@@ -13,7 +13,7 @@ namespace Augments
 {
 	public static class AugmentAdvisoryHUD
 	{
-		private const float DisplayDuration = 7.0f;
+		private const float DisplayDuration = 10.0f;
 		private const float FadeDuration = 0.4f;
 		private const float DefaultPeriodicInterval = 420f; // 7 minutes
 
@@ -28,18 +28,18 @@ namespace Augments
 		// 12 Rotating natural tips
 		private static readonly (string Prefix, string Text)[] RotatingTips = new (string, string)[]
 		{
-			("[POD 042 // OPERATOR TIP]", "Hold Left Alt to freely drag and move your pinned DPS and damage tracker cards anywhere on your screen."),
-			("[POD 042 // TACTICAL ADVICE]", "Support Class defense scales higher as you equip more support plugins, reaching up to +60 bonus defense at five plugins while reducing your damage penalty."),
-			("[POD 042 // PROTOCOL DATA]", "Protocols unlock powerful team perks when you equip two or four matching plugins. Combining different protocols can create unique builds."),
-			("[POD 042 // SYSTEM NOTE]", "Keystone plugins permanently install game changing powers into your build, but each character can only equip one Keystone."),
-			("[POD 042 // FIELD INTEL]", "Fortune plugins do more than just drop extra Machine Cores. They also directly boost your character's world luck stat."),
-			("[POD 042 // SURVIVAL TIP]", "Equipping two Field Medic plugins cuts your Potion Sickness cooldown by 20%, allowing you to heal much more often."),
-			("[POD 042 // COMBAT ANALYSIS]", "Kinetic Protocol turns your movement speed into bonus Melee attack speed. The faster you run or fly, the faster your weapons swing."),
-			("[POD 042 // OPERATOR TIP]", "Press [P] whenever you want to search through your plugins by class, rarity, or keywords."),
-			("[POD 042 // TELEMETRY]", "The Combat Analytics menu tracks exact damage blocked, showing how much incoming lethal damage your shields and armor absorbed."),
-			("[POD 042 // HUD ADVICE]", "Right click any pinned HUD card to quickly unpin it and keep your screen clean."),
-			("[POD 042 // FIELD INTEL]", "Hover your mouse over the docked icons on the right edge of the screen to slide out full bonus specifications."),
-			("[POD 042 // CHIP INTEL]", "Universal plugins can be used by any class with zero restrictions, making them versatile choices for any build.")
+			("[POD 042]", "Hold Left Alt to freely drag and move your pinned DPS and damage tracker cards anywhere on your screen."),
+			("[POD 042]", "Support Class defense scales higher as you equip more support plugins, reaching up to +60 bonus defense at five plugins while reducing your damage penalty."),
+			("[POD 042]", "Protocols unlock powerful team perks when you equip two or four matching plugins. Combining different protocols can create unique builds."),
+			("[POD 042]", "Keystone plugins permanently install game changing powers into your build, but each character can only equip one Keystone."),
+			("[POD 042]", "Fortune plugins do more than just drop extra Machine Cores. They also directly boost your character's world luck stat."),
+			("[POD 042]", "Equipping two Field Medic plugins cuts your Potion Sickness cooldown by 20%, allowing you to heal much more often."),
+			("[POD 042]", "Kinetic Protocol turns your movement speed into bonus Melee attack speed. The faster you run or fly, the faster your weapons swing."),
+			("[POD 042]", "Press [P] whenever you want to search through your plugins by class, rarity, or keywords."),
+			("[POD 042]", "The Combat Analytics menu tracks exact damage blocked, showing how much incoming lethal damage your shields and armor absorbed."),
+			("[POD 042]", "Right click any pinned HUD card to quickly unpin it and keep your screen clean."),
+			("[POD 042]", "Hover your mouse over the docked icons on the right edge of the screen to slide out full bonus specifications."),
+			("[POD 042]", "Universal plugins can be used by any class with zero restrictions, making them versatile choices for any build.")
 		};
 
 		public static void ShowAdvisory(string prefix, string message, bool playSound = true)

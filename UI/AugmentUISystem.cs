@@ -449,7 +449,7 @@ namespace Augments
 			var ap = Main.LocalPlayer?.GetModPlayer<AugmentPlayer>();
 			if (ap != null)
 			{
-				AugmentAdvisoryHUD.TriggerSmartAdvisory(ap, "first_vendor", "[POD 042 // OPERATOR TIP]", "All plugins can be removed for a 100% full Machine Core refund at the shop, so feel free to experiment with different setups.");
+				AugmentAdvisoryHUD.TriggerSmartAdvisory(ap, "first_vendor", "[POD 042]", "All plugins can be removed for a 100% full Machine Core refund at the shop, so feel free to experiment with different setups.");
 			}
 
 			if (IsGachaOpen)

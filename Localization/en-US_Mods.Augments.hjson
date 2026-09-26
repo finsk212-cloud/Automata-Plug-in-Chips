@@ -7,6 +7,7 @@ Keybinds: {
 	UndoReforge.DisplayName: Undo Reforge
 	ResetCooldowns.DisplayName: Reset Plugin Cooldowns (Dev)
 	ToggleCombatAnalytics.DisplayName: Toggle Combat Analytics
+	TriggerTacticalTip.DisplayName: Trigger Tactical Tip
 }
 
 NPCs: {

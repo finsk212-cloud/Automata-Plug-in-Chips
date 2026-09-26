@@ -50,7 +50,7 @@ namespace Augments
 				// Increment BEFORE rolling — farming to win the random roll still
 				// advances the counter, preventing indefinite retry loops.
 				ap.BossAugmentKills[bossKey] = killCount + 1;
-				AugmentAdvisoryHUD.TriggerSmartAdvisory(ap, "first_boss", "[POD 042 // COMBAT DATA]", "Combat analytics are online. Press [L] or click the DPS button on the right edge of your screen to review live damage stats and damage blocked.");
+				AugmentAdvisoryHUD.TriggerSmartAdvisory(ap, "first_boss", "[POD 042]", "Combat analytics are online. Press [L] or click the DPS button on the right edge of your screen to review live damage stats and damage blocked.");
 
 				if (chance <= 0f) continue;
 				if (Main.rand.NextFloat() > chance) continue;

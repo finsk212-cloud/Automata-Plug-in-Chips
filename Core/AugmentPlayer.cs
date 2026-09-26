@@ -592,13 +592,13 @@ namespace Augments
 					spawnTipDelay -= 1f / 60f;
 					if (spawnTipDelay <= 0f)
 					{
-						AugmentAdvisoryHUD.TriggerSmartAdvisory(this, "first_spawn", "[POD 042 // SYSTEM START]", "Welcome, Operator. You can press [P] anytime to open your Plugins Menu and configure your installed chips.");
+						AugmentAdvisoryHUD.TriggerSmartAdvisory(this, "first_spawn", "[POD 042]", "Welcome. You can press [P] anytime to open your Plugins Menu and configure your installed chips.");
 					}
 				}
 
 				if (Player.CountItem(ModContent.ItemType<AugmentEssenceItem>()) > 0)
 				{
-					AugmentAdvisoryHUD.TriggerSmartAdvisory(this, "first_core", "[POD 042 // DISCOVERY]", "Machine Core acquired. You can use these cores to purchase, upgrade, and reroll combat plugins with Vendor 2B.");
+					AugmentAdvisoryHUD.TriggerSmartAdvisory(this, "first_core", "[POD 042]", "Machine Core acquired. You can use these cores to purchase, upgrade, and reroll combat plugins with Vendor 2B.");
 				}
 
 				if (!SeenAdvisoryTriggers.Contains("first_protocol"))
@@ -607,7 +607,7 @@ namespace Augments
 					{
 						if (AugmentFamilyRegistry.GetOwnedCount(this, fid) >= 2)
 						{
-							AugmentAdvisoryHUD.TriggerSmartAdvisory(this, "first_protocol", "[POD 042 // SYNERGY]", "Protocol synergy activated. Hover over the icons docked on the right side of your screen to inspect your unlocked bonus perks.");
+							AugmentAdvisoryHUD.TriggerSmartAdvisory(this, "first_protocol", "[POD 042]", "Protocol synergy activated. Hover over the icons docked on the right side of your screen to inspect your unlocked bonus perks.");
 							break;
 						}
 					}
@@ -615,7 +615,7 @@ namespace Augments
 
 				if (SupportAugmentCount >= 2)
 				{
-					AugmentAdvisoryHUD.TriggerSmartAdvisory(this, "first_support", "[POD 042 // RECALIBRATION]", "Support Class activated. Your armor has surged with bonus defense, but your personal weapon damage is reduced. Check your Support icon on the right for tier details.");
+					AugmentAdvisoryHUD.TriggerSmartAdvisory(this, "first_support", "[POD 042]", "Support Class activated. Your armor has surged with bonus defense, but your personal weapon damage is reduced. Check your Support icon on the right for tier details.");
 				}
 			}
 
