@@ -57,6 +57,7 @@ namespace Augments
 		public static ModKeybind UndoReforgeKeybind;
 		public static ModKeybind ResetCooldownsKeybind;
 		public static ModKeybind ToggleCombatAnalyticsKeybind;
+		public static ModKeybind TriggerTipKeybind;
 
 		public override void Load()
 		{
@@ -69,6 +70,7 @@ namespace Augments
 			UndoReforgeKeybind = KeybindLoader.RegisterKeybind(this, "UndoReforge", "None");
 			ResetCooldownsKeybind = KeybindLoader.RegisterKeybind(this, "ResetCooldowns", "K");
 			ToggleCombatAnalyticsKeybind = KeybindLoader.RegisterKeybind(this, "ToggleCombatAnalytics", "L");
+			TriggerTipKeybind = KeybindLoader.RegisterKeybind(this, "TriggerTacticalTip", "None");
 
 			// Registered manually, in this exact order, instead of relying on
 			// autoload - AugmentFesteringWoundsNPC's UpdateLifeRegen must run
@@ -89,6 +91,7 @@ namespace Augments
 			UndoReforgeKeybind = null;
 			ResetCooldownsKeybind = null;
 			ToggleCombatAnalyticsKeybind = null;
+			TriggerTipKeybind = null;
 		}
 
 		public override void HandlePacket(BinaryReader reader, int whoAmI)

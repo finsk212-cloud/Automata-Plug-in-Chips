@@ -1281,6 +1281,11 @@ namespace Augments
 			if (analyticsPressed && !isTyping)
 				ui?.ToggleAnalytics();
 
+			if (Augments.TriggerTipKeybind?.JustPressed == true && !isTyping)
+			{
+				AugmentAdvisoryHUD.TriggerNextRandomTip();
+			}
+
 			if (HasAugment("cleanse") && CleanseCooldown == 0 && Augments.CleanseKeybind?.JustPressed == true && !isTyping)
 			{
 				CleanseCooldown = 1800;

@@ -92,10 +92,19 @@ namespace Augments
 			Point mouse = new Point(Main.mouseX, Main.mouseY);
 			bool isHovered = bounds != Rectangle.Empty && bounds.Contains(mouse) && fadeAlpha > 0.1f;
 
-			// Click to dismiss immediately
-			if (isHovered && (Main.mouseLeftRelease && Main.mouseLeft || Main.mouseRightRelease && Main.mouseRight))
+			// Click to interact: Left click cycles to next tip, right click dismisses
+			if (isHovered)
 			{
-				displayTimer = 0f;
+				if (Main.mouseLeft && Main.mouseLeftRelease)
+				{
+					TriggerNextRandomTip();
+					Main.mouseLeftRelease = false;
+				}
+				else if (Main.mouseRight && Main.mouseRightRelease)
+				{
+					displayTimer = 0f;
+					Main.mouseRightRelease = false;
+				}
 			}
 
 			// Active toast countdown (pause countdown if player is actively hovering to read)
@@ -133,7 +142,7 @@ namespace Augments
 			}
 		}
 
-		private static void TriggerNextRandomTip()
+		public static void TriggerNextRandomTip()
 		{
 			if (RotatingTips.Length == 0)
 				return;
@@ -185,6 +194,16 @@ namespace Augments
 			// Primary text
 			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, currentPrefix, prefixPos, pColor, 0f, Vector2.Zero, scale);
 			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, currentMessage, msgPos, mColor, 0f, Vector2.Zero, scale);
+
+			// Subtle interaction hint when hovered
+			if (bounds.Contains(new Point(Main.mouseX, Main.mouseY)) && fadeAlpha > 0.5f)
+			{
+				string hint = "[Left Click: Next Tip  •  Right Click: Dismiss]";
+				Vector2 hintScale = new Vector2(0.56f);
+				Vector2 hintSize = ChatManager.GetStringSize(font, hint, hintScale);
+				Vector2 hintPos = new Vector2((Main.screenWidth - hintSize.X) * 0.5f, posY + textHeight + 2f);
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, hint, hintPos, new Color(148, 163, 184) * (0.85f * fadeAlpha), 0f, Vector2.Zero, hintScale);
+			}
 		}
 	}
 }
