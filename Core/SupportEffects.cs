@@ -18,6 +18,69 @@ namespace Augments
 			return owner.team == 0 || target.team == 0 || owner.team == target.team;
 		}
 
+		/// <summary>
+		/// Checks line-of-sight for the MediGun beam. Only fully solid blocks obstruct the beam.
+		/// Ropes, platforms, and non-solid blocks do NOT interrupt the beam.
+		/// </summary>
+		public static bool CanBeamPassLine(Vector2 start, Vector2 end)
+		{
+			int x0 = (int)(start.X / 16f);
+			int y0 = (int)(start.Y / 16f);
+			int x1 = (int)(end.X / 16f);
+			int y1 = (int)(end.Y / 16f);
+
+			int dx = Math.Abs(x1 - x0);
+			int dy = Math.Abs(y1 - y0);
+			int sx = x0 < x1 ? 1 : -1;
+			int sy = y0 < y1 ? 1 : -1;
+			int err = dx - dy;
+
+			int curX = x0;
+			int curY = y0;
+
+			while (true)
+			{
+				// Ignore start and end tile so entity bounding box clipping at endpoints never blocks the beam
+				if ((curX != x0 || curY != y0) && (curX != x1 || curY != y1))
+				{
+					if (curX >= 0 && curX < Main.maxTilesX && curY >= 0 && curY < Main.maxTilesY)
+					{
+						Tile tile = Main.tile[curX, curY];
+						if (tile.HasUnactuatedTile)
+						{
+							ushort type = tile.TileType;
+							bool isPlatform = Main.tileSolidTop[type] || TileID.Sets.Platforms[type];
+							bool isRope = Main.tileRope[type];
+							bool isSolid = Main.tileSolid[type];
+
+							// Only true solid blocks (not platforms and not ropes) interrupt the beam
+							if (isSolid && !isPlatform && !isRope)
+							{
+								return false;
+							}
+						}
+					}
+				}
+
+				if (curX == x1 && curY == y1)
+					break;
+
+				int e2 = 2 * err;
+				if (e2 > -dy)
+				{
+					err -= dy;
+					curX += sx;
+				}
+				if (e2 < dx)
+				{
+					err += dx;
+					curY += sy;
+				}
+			}
+
+			return true;
+		}
+
 		public static bool IsAllyInRange(Player owner, Player target, float radius, bool includeOwner = false)
 		{
 			if (!AreAllies(owner, target) || target.dead)

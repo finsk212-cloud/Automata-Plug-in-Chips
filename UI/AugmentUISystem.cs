@@ -266,11 +266,11 @@ namespace Augments
 
 		// --- Choice popup controls ---
 
-		public void ShowChoices(List<Augment> choices, AugmentRarity rarity, RarityBracket bracket = RarityBracket.PreHardmode, bool networkReward = false, bool rerolled = false)
+		public void ShowChoices(List<Augment> choices, AugmentRarity rarity, RarityBracket bracket = RarityBracket.PreHardmode, bool networkReward = false, int rerollCount = 0)
 		{
-			choiceState.SetChoices(choices, rarity, bracket, networkReward, rerolled);
+			choiceState.SetChoices(choices, rarity, bracket, networkReward, rerollCount);
 			augmentInterface?.SetState(choiceState);
-			if (!rerolled)
+			if (rerollCount == 0)
 				SoundEngine.PlaySound(SoundID.Research);
 		}
 

@@ -93,15 +93,9 @@ namespace Augments
 			var (startY, spacing) = GetDynamicLayout(ap);
 			float currentY = startY;
 
-			Rectangle tipBtn = new Rectangle((int)iconX, (int)startY - 76, (int)IconWidth, 32);
 			Rectangle analyticsBtn = new Rectangle((int)iconX, (int)startY - 40, (int)IconWidth, 32);
 			bool justClicked = Main.mouseLeft && !wasMouseLeft;
-			if (tipBtn.Contains(mouse) && justClicked)
-			{
-				AugmentAdvisoryHUD.TriggerNextRandomTip();
-				Main.blockMouse = true;
-			}
-			else if (analyticsBtn.Contains(mouse) && justClicked)
+			if (analyticsBtn.Contains(mouse) && justClicked)
 			{
 				ModContent.GetInstance<AugmentUISystem>()?.ToggleAnalytics();
 				Main.blockMouse = true;
@@ -216,39 +210,6 @@ namespace Augments
 			float currentY = startY;
 
 			Point mouse = new Point(Main.mouseX, Main.mouseY);
-
-			// 0. Tactical Advisory (Tip) Button
-			Rectangle tipBtn = new Rectangle((int)iconX, (int)startY - 76, (int)IconWidth, 32);
-			bool tipHover = tipBtn.Contains(mouse);
-			Color tipTheme = new Color(56, 189, 248); // Pod 042 cyan
-
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, tipBtn, new Color(8, 14, 28, 245));
-			if (tipHover)
-			{
-				spriteBatch.Draw(TextureAssets.MagicPixel.Value, tipBtn, tipTheme * 0.25f);
-			}
-			DrawHighTechBorder(spriteBatch, tipBtn, tipHover ? Color.Lerp(tipTheme, Color.White, 0.35f) : tipTheme * 0.75f);
-
-			// High-Tech Telemetry Icon: Pixel-art Pod 042 Visor & Sensor
-			int tcx = tipBtn.X + tipBtn.Width / 2;
-			int tcy = tipBtn.Y + 9;
-			Texture2D pix = TextureAssets.MagicPixel.Value;
-			Color podBody = tipHover ? Color.White : new Color(180, 205, 230);
-			spriteBatch.Draw(pix, new Rectangle(tcx - 5, tcy - 3, 10, 5), podBody * 0.75f);
-			spriteBatch.Draw(pix, new Rectangle(tcx - 1, tcy - 5, 2, 2), podBody * 0.85f);
-			float pulse = (float)Math.Sin(globalTimer * 3.5f) * 0.5f + 0.5f;
-			Color eyeCol = Color.Lerp(tipTheme, Color.White, pulse * 0.5f);
-			spriteBatch.Draw(pix, new Rectangle(tcx - 2, tcy - 2, 4, 2), tipHover ? Color.White : eyeCol);
-
-			string tipLabel = "TIP";
-			Vector2 tipSz = ChatManager.GetStringSize(font, tipLabel, new Vector2(0.52f));
-			Vector2 tipPos = new Vector2(tcx - tipSz.X * 0.5f, tipBtn.Y + 18f);
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, tipLabel, tipPos, tipHover ? Color.White : tipTheme, 0f, Vector2.Zero, new Vector2(0.52f));
-
-			if (tipHover)
-			{
-				Main.instance.MouseText("Tactical Advisory [POD 042]\nClick to trigger tactical tip, field intel, or advice\nClick active tip at bottom to cycle next");
-			}
 
 			// 1. Combat Analytics (DPS) Button
 			Rectangle analyticsBtn = new Rectangle((int)iconX, (int)startY - 40, (int)IconWidth, 32);

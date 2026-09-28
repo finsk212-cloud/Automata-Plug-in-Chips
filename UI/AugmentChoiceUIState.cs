@@ -36,9 +36,11 @@ namespace Augments
 		// on this same tier, not re-roll a fresh (possibly different) one.
 		private AugmentRarity currentRarity;
 
-		// Exactly one reroll per popup, no matter how much Essence is
-		// stockpiled - reset to false only when a fresh popup is shown.
-		private bool rerollUsed;
+		// Tracks how many times reroll has been used for this popup:
+		// 0 = first reroll (free)
+		// 1 = second reroll (costs 4 Machine Cores)
+		// >= 2 = cannot reroll anymore
+		private int rerollCount;
 		private bool rerollPending;
 		private bool networkReward;
 
@@ -245,11 +247,11 @@ namespace Augments
 		// Call this right before showing the panel - replaces whatever cards
 		// were there with a fresh set built from the given augments, and resets
 		// this popup's reroll allowance.
-		public void SetChoices(List<Augment> choices, AugmentRarity rarity, RarityBracket bracket = RarityBracket.PreHardmode, bool networkReward = false, bool rerolled = false)
+		public void SetChoices(List<Augment> choices, AugmentRarity rarity, RarityBracket bracket = RarityBracket.PreHardmode, bool networkReward = false, int rerollCount = 0)
 		{
 			currentRarity = rarity;
 			currentBracket = bracket;
-			rerollUsed = rerolled;
+			this.rerollCount = rerollCount;
 			rerollPending = false;
 			this.networkReward = networkReward;
 			pendingSkipConfirm = false;
@@ -446,17 +448,17 @@ namespace Augments
 
 		private void HandleRerollClicked()
 		{
-			if (rerollPending)
+			if (rerollPending || rerollCount >= 2)
 				return;
 
 			var player = Main.LocalPlayer;
 			int essenceType = ModContent.ItemType<AugmentEssenceItem>();
 
-			if (rerollUsed)
+			if (rerollCount == 1)
 			{
-				if (player.CountItem(essenceType, 1) < 1)
+				if (player.CountItem(essenceType) < 4)
 				{
-					Main.NewText("Not enough Machine Cores to reroll.", 255, 80, 80);
+					Main.NewText("Not enough Machine Cores to reroll (Requires 4).", 255, 80, 80);
 					SoundEngine.PlaySound(SoundID.MenuClose);
 					RefreshRerollButton();
 					return;
@@ -480,14 +482,13 @@ namespace Augments
 				return;
 			}
 
-			if (rerollUsed)
+			if (rerollCount == 1)
 			{
-				player.ConsumeItem(essenceType);
+				for (int i = 0; i < 4; i++)
+					player.ConsumeItem(essenceType);
 			}
-			else
-			{
-				rerollUsed = true;
-			}
+
+			rerollCount++;
 
 			currentRarity = newRarity;
 			SoundEngine.PlaySound(SoundID.Item37);
@@ -503,22 +504,29 @@ namespace Augments
 				return;
 			}
 
-			if (!rerollUsed)
+			if (rerollCount >= 2)
+			{
+				rerollButton.SetEnabled(false, "No Rerolls Left");
+				return;
+			}
+
+			if (rerollCount == 0)
 			{
 				rerollButton.SetEnabled(true, "Reroll (Free)");
 				return;
 			}
 
+			// rerollCount == 1: costs 4 Machine Cores
 			int essenceType = ModContent.ItemType<AugmentEssenceItem>();
 			int essenceCount = Main.LocalPlayer.CountItem(essenceType);
 
-			if (essenceCount >= 1)
+			if (essenceCount >= 4)
 			{
-				rerollButton.SetEnabled(true, "Reroll (1 Core)");
+				rerollButton.SetEnabled(true, "Reroll (4 Cores)");
 			}
 			else
 			{
-				rerollButton.SetEnabled(false, "Need 1 Core");
+				rerollButton.SetEnabled(false, "Need 4 Cores");
 			}
 		}
 

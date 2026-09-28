@@ -62,16 +62,16 @@ namespace Augments
             if (spawnInfo.PlayerSafe || spawnInfo.Invasion || Main.invasionType != 0 || spawnInfo.Player.ZoneDungeon)
                 return 0f;
 
-            // Surface or underground Pre-Hardmode encounter
+            // Surface or underground Pre-Hardmode encounter (1% spawn rate)
             if (!Main.hardMode && (spawnInfo.SpawnTileY < Main.rockLayer || spawnInfo.SpawnTileY > Main.worldSurface))
             {
-                return 0.08f;
+                return 0.01f;
             }
 
             // Occasional stray machine scout in Hardmode
             if (Main.hardMode && spawnInfo.SpawnTileY < Main.rockLayer)
             {
-                return 0.03f;
+                return 0.005f;
             }
 
             return 0f;

@@ -71,7 +71,7 @@ namespace Augments.Projectiles
                 {
                     Player target = Main.player[targetPlayerWhoAmI];
                     if (!target.active || target.dead || Vector2.Distance(muzzlePos, target.Center) > MaxBreakRange ||
-                        !Collision.CanHitLine(muzzlePos, 1, 1, target.Center, 1, 1) || !SupportEffects.AreAllies(player, target))
+                        !SupportEffects.CanBeamPassLine(muzzlePos, target.Center) || !SupportEffects.AreAllies(player, target))
                     {
                         targetPlayerWhoAmI = -1;
                     }
@@ -82,7 +82,7 @@ namespace Augments.Projectiles
                     NPC npc = Main.npc[targetNPCWhoAmI];
                     if (!npc.active || (!npc.townNPC && npc.type != NPCID.TargetDummy && !npc.friendly) ||
                         Vector2.Distance(muzzlePos, npc.Center) > MaxBreakRange ||
-                        !Collision.CanHitLine(muzzlePos, 1, 1, npc.Center, 1, 1))
+                        !SupportEffects.CanBeamPassLine(muzzlePos, npc.Center))
                     {
                         targetNPCWhoAmI = -1;
                     }
@@ -103,7 +103,7 @@ namespace Augments.Projectiles
                             continue;
                         if (Vector2.Distance(muzzlePos, candidate.Center) > MaxAcquireRange)
                             continue;
-                        if (!Collision.CanHitLine(muzzlePos, 1, 1, candidate.Center, 1, 1))
+                        if (!SupportEffects.CanBeamPassLine(muzzlePos, candidate.Center))
                             continue;
 
                         float cursorDist = Vector2.Distance(Main.MouseWorld, candidate.Center);
@@ -124,7 +124,7 @@ namespace Augments.Projectiles
                                 continue;
                             if (Vector2.Distance(muzzlePos, candidate.Center) > MaxAcquireRange)
                                 continue;
-                            if (!Collision.CanHitLine(muzzlePos, 1, 1, candidate.Center, 1, 1))
+                            if (!SupportEffects.CanBeamPassLine(muzzlePos, candidate.Center))
                                 continue;
 
                             float cursorDist = Vector2.Distance(Main.MouseWorld, candidate.Center);

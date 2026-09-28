@@ -29,17 +29,23 @@ namespace Augments
 		private static readonly (string Prefix, string Text)[] RotatingTips = new (string, string)[]
 		{
 			("[POD 042]", "Hold Left Alt to freely drag and move your pinned DPS and damage tracker cards anywhere on your screen."),
-			("[POD 042]", "Support Class defense scales higher as you equip more support plugins, reaching up to +60 bonus defense at five plugins while reducing your damage penalty."),
 			("[POD 042]", "Protocols unlock powerful team perks when you equip two or four matching plugins. Combining different protocols can create unique builds."),
 			("[POD 042]", "Keystone plugins permanently install game changing powers into your build, but each character can only equip one Keystone."),
 			("[POD 042]", "Fortune plugins do more than just drop extra Machine Cores. They also directly boost your character's world luck stat."),
 			("[POD 042]", "Equipping two Field Medic plugins cuts your Potion Sickness cooldown by 20%, allowing you to heal much more often."),
 			("[POD 042]", "Kinetic Protocol turns your movement speed into bonus Melee attack speed. The faster you run or fly, the faster your weapons swing."),
 			("[POD 042]", "Press [P] whenever you want to search through your plugins by class, rarity, or keywords."),
-			("[POD 042]", "The Combat Analytics menu tracks exact damage blocked, showing how much incoming lethal damage your shields and armor absorbed."),
-			("[POD 042]", "Right click any pinned HUD card to quickly unpin it and keep your screen clean."),
 			("[POD 042]", "Hover your mouse over the docked icons on the right edge of the screen to slide out full bonus specifications."),
-			("[POD 042]", "Universal plugins can be used by any class with zero restrictions, making them versatile choices for any build.")
+			("[POD 042]", "Universal plugins can be used by any class with zero restrictions, making them versatile choices for any build."),
+			("[POD 042]", "You can socket compatible accessories directly into your Medi Gun to share accessory buffs with your tethered patient."),
+			("[POD 042]", "Sealed Plugin Caches dropped by monsters can be decrypted with Machine Cores to extract random plugins."),
+			("[POD 042]", "Defeating any boss triggers a three card reward screen offering plugins scaled to your current world progression tier."),
+			("[POD 042]", "Opening the Combat Analytics menu shows a breakdown of your current DPS alongside total incoming damage absorbed by shields."),
+			("[POD 042]", "Right clicking any pinned card on your screen instantly removes it to keep your combat view clear."),
+			("[POD 042]", "If none of the offered reward plugins fit your character, you can use the Skip button to decline without penalty."),
+			("[POD 042]", "Equipping multiple support class plugins reduces your attack penalty while granting bonus defense and team utility."),
+			("[POD 042]", "The Plugin Vendor moves into an empty town room once Skeletron has been defeated."),
+			("[POD 042]", "Machine Cores drop reliably from bosses and rare mechanical units, serving as the primary currency for plugin trading and upgrades.")
 		};
 
 		public static void ShowAdvisory(string prefix, string message, bool playSound = true)
