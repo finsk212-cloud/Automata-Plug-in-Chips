@@ -49,6 +49,12 @@ namespace Augments
 			("[POD 042]", "Holding a CTRL button in Plugin List menu let's you see a detailed view of plugin.")
 		};
 
+		private static bool AdvisoryTipsEnabled => AugmentConfig.Instance == null || AugmentConfig.Instance.EnableAdvisoryTips;
+
+		private static float PeriodicIntervalSeconds => AugmentConfig.Instance == null
+			? DefaultPeriodicInterval
+			: AugmentConfig.Instance.AdvisoryTipIntervalMinutes * 60f;
+
 		public static void ShowAdvisory(string prefix, string message, bool playSound = true)
 		{
 			currentPrefix = prefix;
@@ -63,6 +69,10 @@ namespace Augments
 		public static void TriggerSmartAdvisory(AugmentPlayer ap, string triggerId, string prefix, string message)
 		{
 			if (ap == null || ap.SeenAdvisoryTriggers.Contains(triggerId))
+				return;
+
+			// Not marked as seen, so a first-time tip still appears if the player re-enables tips.
+			if (!AdvisoryTipsEnabled)
 				return;
 
 			ap.SeenAdvisoryTriggers.Add(triggerId);
@@ -138,12 +148,12 @@ namespace Augments
 			}
 
 			// Periodic random tip timer (paused during boss fights)
-			if (!isBossActive && displayTimer <= 0f && fadeAlpha <= 0f)
+			if (AdvisoryTipsEnabled && !isBossActive && displayTimer <= 0f && fadeAlpha <= 0f)
 			{
 				periodicTimer -= dt;
 				if (periodicTimer <= 0f)
 				{
-					periodicTimer = DefaultPeriodicInterval;
+					periodicTimer = PeriodicIntervalSeconds;
 					TriggerNextRandomTip();
 				}
 			}

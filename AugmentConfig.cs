@@ -29,5 +29,14 @@ namespace Augments
 
 		[DefaultValue(false)]
 		public bool DockOnRightSide;
+
+		[Header("AdvisorySettings")]
+
+		[DefaultValue(true)]
+		public bool EnableAdvisoryTips;
+
+		[DefaultValue(7)]
+		[Range(1, 30)]
+		public int AdvisoryTipIntervalMinutes;
 	}
 }
