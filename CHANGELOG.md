@@ -1,6 +1,13 @@
 # Automata: Plug-in Chips — Upcoming Update Changelog
 
-## Version 1.3.0 (Work in Progress)
+## Version 1.3.0
+
+### Highlights
+- **Automata Music**: [TODO: describe the Automata Music mod and add its Workshop link here]
+- **Full UI Visual Overhaul**: Every menu and HUD now shares one clean "cybernetic chassis" look: Plugins menu and inspector, Shop, reward choice cards, tooltips, Combat Analytics, pinned stat HUD, Protocol sidebar, cooldown/charge tiles, and the new Pod 042 advisory ticker. Also new: the Diagnostics telemetry drawer.
+- **Automata Protocols**: 12 chip-set bonuses (see section 1).
+- **Core Overrides**: build-defining one-per-character chips (see section 2).
+- **Combat Analytics & Live DPS Monitor** (see section 6).
 
 ### 1. New Feature: Automata Protocols (Chip Synergies)
 - **Assigned Plug-in Chip Synergies**: Equipping matching sets of chips now unlocks powerful, passive protocol specifications.
