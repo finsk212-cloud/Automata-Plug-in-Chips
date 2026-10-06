@@ -126,6 +126,7 @@
 - **Ricochet Engine Bullet Alignment & Visuals**:
   - Fixed bullet sprite orientation from rendering perpendicular (vertical bar) to horizontal, pointing directly forward along the flight velocity.
   - Added glowing neon purple tracer trails (`PreDraw` afterimages), luminous in-flight particles (`DustID.PurpleTorch` + `DustID.GemAmethyst`), and metallic deflection sounds/spark bursts when ricocheting off enemies.
+- **Pod 042 Advisory Tip Settings**: New client config options (`Settings > Mod Configuration > Automata Configuration`) to turn automatic Pod 042 tips off and to choose how often they appear (1-30 minutes, default 7). The TIP button and hotkey still work when automatic tips are off.
 
 ---
 

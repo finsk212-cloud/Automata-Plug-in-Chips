@@ -263,6 +263,18 @@ Configs: {
 			Label: Dock On Right Screen Edge
 			Tooltip: When enabled, docks the drawer tab on the right side of the screen instead of the left side.
 		}
+
+		Headers.AdvisorySettings: Pod 042 Advisory Tips
+
+		EnableAdvisoryTips: {
+			Label: Enable Advisory Tips
+			Tooltip: Shows the automatic Pod 042 tips at the bottom of the screen (periodic hints and first-time tutorials). The TIP button and hotkey still work when this is off.
+		}
+
+		AdvisoryTipIntervalMinutes: {
+			Label: Tip Interval (Minutes)
+			Tooltip: How many minutes pass between automatic Pod 042 tips. Tips are paused during boss fights.
+		}
 	}
 
 	AugmentServerConfig: {
