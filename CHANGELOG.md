@@ -4,7 +4,8 @@
 
 ### Highlights
 - **Automata Music**: [TODO: describe the Automata Music mod and add its Workshop link here]
-- **Full UI Visual Overhaul**: Every menu and HUD now shares one clean "cybernetic chassis" look: Plugins menu and inspector, Shop, reward choice cards, tooltips, Combat Analytics, pinned stat HUD, Protocol sidebar, cooldown/charge tiles, and the new Pod 042 advisory ticker. Also new: the Diagnostics telemetry drawer.
+- **Full UI Visual Overhaul**: Every menu and HUD now shares one clean "cybernetic chassis" look: Plugins menu and inspector, Shop, reward choice cards, tooltips, Combat Analytics, pinned stat HUD, Protocol sidebar, cooldown/charge tiles, and the new Pod 042 advisory ticker.
+- **Diagnostics Drawer**: A slide-out panel on the edge of the screen (click or hover to open, dockable left or right, can be turned off in the config) showing hidden stats such as Luck, fishing multipliers and combat mechanics.
 - **Automata Protocols**: 12 chip-set bonuses (see section 1).
 - **Core Overrides**: build-defining one-per-character chips (see section 2).
 - **Combat Analytics & Live DPS Monitor** (see section 6).
