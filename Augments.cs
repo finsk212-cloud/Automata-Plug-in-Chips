@@ -96,6 +96,19 @@ namespace Augments
 
 		public override void HandlePacket(BinaryReader reader, int whoAmI)
 		{
+			try
+			{
+				HandlePacketInternal(reader, whoAmI);
+			}
+			catch (System.Exception e)
+			{
+				// A malformed or unexpected packet must not crash the server or kick the player.
+				Logger.Error($"Failed to handle mod packet from player {whoAmI}.", e);
+			}
+		}
+
+		private void HandlePacketInternal(BinaryReader reader, int whoAmI)
+		{
 			var type = (AugmentPacketType)reader.ReadByte();
 			if (AugmentNet.HandlePacket(type, reader, whoAmI))
 				return;

@@ -2625,10 +2625,18 @@ namespace Augments
 			var customData = new TagCompound();
 			foreach (var a in owned)
 			{
-				var augmentTag = new TagCompound();
-				a.SaveCustomData(augmentTag);
-				if (augmentTag.Count > 0)
-					customData[a.Id] = augmentTag;
+				// One chip's bug must not abort the save, or the whole character loses its chips.
+				try
+				{
+					var augmentTag = new TagCompound();
+					a.SaveCustomData(augmentTag);
+					if (augmentTag.Count > 0)
+						customData[a.Id] = augmentTag;
+				}
+				catch (System.Exception e)
+				{
+					Mod.Logger.Error($"Failed to save custom data for chip '{a.Id}'; skipping it.", e);
+				}
 			}
 			tag["ownedAugmentIds"] = new List<string>(ownedIds);
 			tag["augmentCustomData"] = customData;
@@ -2663,6 +2671,20 @@ namespace Augments
 		};
 
 		public override void LoadData(TagCompound tag)
+		{
+			try
+			{
+				LoadDataInternal(tag);
+			}
+			catch (System.Exception e)
+			{
+				// Keep whatever loaded before the failure so the character stays playable.
+				Mod.Logger.Error("Failed to fully load plug-in chip data; continuing with partial data.", e);
+				RebuildOwnedCacheFromOwnedIdsOnly();
+			}
+		}
+
+		private void LoadDataInternal(TagCompound tag)
 		{
 			ownedIds.Clear();
 			everOwnedIds.Clear();
@@ -2727,8 +2749,15 @@ namespace Augments
 			{
 				foreach (var a in owned)
 				{
-					if (customData.GetCompound(a.Id) is TagCompound augmentTag)
-						a.LoadCustomData(augmentTag);
+					try
+					{
+						if (customData.GetCompound(a.Id) is TagCompound augmentTag)
+							a.LoadCustomData(augmentTag);
+					}
+					catch (System.Exception e)
+					{
+						Mod.Logger.Error($"Failed to load custom data for chip '{a.Id}'; using defaults.", e);
+					}
 				}
 			}
 
@@ -2765,7 +2794,7 @@ namespace Augments
 				foreach (var kv in bossKills)
 				{
 					if (int.TryParse(kv.Key, out int npcType))
-						BossAugmentKills[npcType] = (int)kv.Value;
+						BossAugmentKills[npcType] = System.Convert.ToInt32(kv.Value);
 				}
 			}
 
