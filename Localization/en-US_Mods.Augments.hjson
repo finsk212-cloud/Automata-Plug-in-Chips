@@ -265,6 +265,15 @@ Configs: {
 		}
 	}
 
+	AugmentServerConfig: {
+		DisplayName: Automata Server Configuration
+
+		EnableDeveloperTools: {
+			Label: Enable Developer Tools
+			Tooltip: Turns on the /augment command, the dev-mode chip editor and the dev keybinds (spawn vendor, trigger reward, reset cooldowns). Leave OFF on public servers - anyone could grant themselves chips.
+		}
+	}
+
 	TelemetryOpenMode: {
 		Tooltip: ""
 

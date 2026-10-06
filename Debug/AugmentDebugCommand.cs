@@ -14,6 +14,12 @@ namespace Augments
 
         public override void Action(CommandCaller caller, string input, string[] args)
         {
+            if (!AugmentNet.EnableDebugCommandsInMultiplayer)
+            {
+                caller.Reply("Developer tools are disabled. Enable them in the mod's server config (Enable Developer Tools).", Color.Orange);
+                return;
+            }
+
             var augmentPlayer = caller.Player.GetModPlayer<AugmentPlayer>();
 
             if (args.Length == 0)
