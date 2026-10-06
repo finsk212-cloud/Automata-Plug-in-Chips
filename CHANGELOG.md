@@ -158,3 +158,14 @@
     - **Visual Percentage Bars**: Color-coded progress bars reflect each plugin's percentage of total damage output or damage blocked using plugin rarity palette colors.
     - **Detailed Tooltips**: Hovering over any record displays total hits, critical strike count, crit rate percentage, max hit, and total damage blocked with block count.
 
+---
+
+### 7. Security & Stability
+- **Developer Tools Locked by Default**:
+  - The `/augment` command, the secret dev-mode chip editor, the dev keybinds (trigger reward, spawn vendor, open shop, reset cooldowns) and the debug network packets now require the new server-side **Enable Developer Tools** option (`Settings > Mod Configuration > Automata Server Configuration`), which is **off** by default.
+  - Fixes a hole where any player on a multiplayer server could grant themselves plug-in chips.
+- **Save & Load Hardening**:
+  - A failing chip can no longer abort a character save or load; the error is logged and that chip's extra data falls back to defaults.
+  - If loading fails partway, the character keeps the data that did load instead of losing its chips.
+  - Boss kill counts from older saves load safely instead of risking a crash.
+- **Network Packet Safety**: Malformed or unexpected mod packets are logged and ignored instead of crashing the server or dropping the player.
