@@ -9,7 +9,11 @@ namespace Augments
         public override string Id => "critical_surge";
         public override string DisplayName => "Critical Surge";
         public override string Description =>
-            $"{AugmentText.Crit("Crits")} have a 30% chance to deal a bonus {AugmentText.OnHit("on-hit")} strike for " +
+            $"{AugmentText.Crit("Crits")} have a {FormatCurrentChance(ProcChance)} to deal a bonus {AugmentText.OnHit("on-hit")} strike for " +
+            $"{AugmentText.SpecialDamage("25%")} of the weapon's base damage.";
+
+        public override string GetDetailedDescription(Player player) =>
+            $"{AugmentText.Crit("Crits")} have a {FormatFortuneChance(ProcChance, player)} to deal a bonus {AugmentText.OnHit("on-hit")} strike for " +
             $"{AugmentText.SpecialDamage("25%")} of the weapon's base damage.";
 
         public override AugmentRarity Rarity => AugmentRarity.Rare;
@@ -24,7 +28,7 @@ namespace Augments
         // suppresses the auto popup and CombatText.NewText spawns our own.
         public override void OnHitNPCWithItem(Player player, Item item, NPC target, NPC.HitInfo hit)
         {
-            if (hit.Crit && Main.rand.NextFloat() < ProcChance)
+            if (hit.Crit && RollFortuneChance(player, ProcChance))
             {
                 int dmg = ScaleHitEffect((int)(item.damage * BonusDamagePercent));
                 player.GetModPlayer<AugmentPlayer>().RecordOnHitDamage(dmg);
@@ -34,7 +38,7 @@ namespace Augments
 
         public override void OnHitNPCWithProj(Player player, Projectile proj, NPC target, NPC.HitInfo hit)
         {
-            if (hit.Crit && Main.rand.NextFloat() < ProcChance)
+            if (hit.Crit && RollFortuneChance(player, ProcChance))
             {
                 int dmg = ScaleHitEffect((int)(proj.damage * BonusDamagePercent));
                 player.GetModPlayer<AugmentPlayer>().RecordOnHitDamage(dmg);

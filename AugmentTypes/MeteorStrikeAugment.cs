@@ -10,7 +10,11 @@ namespace Augments
         public override string Id => "meteor_strike";
         public override string DisplayName => "Meteor Strike";
         public override string Description =>
-            $"{AugmentText.Crit("Crits")} against bosses have a 15% chance to call down a bonus strike " +
+            $"{AugmentText.Crit("Crits")} against bosses have a {FormatCurrentChance(ProcChance)} to call down a bonus strike " +
+            $"dealing {AugmentText.BonusDamage("2.5%")} of the boss's {AugmentText.HP("maximum HP")}.";
+
+        public override string GetDetailedDescription(Player player) =>
+            $"{AugmentText.Crit("Crits")} against bosses have a {FormatFortuneChance(ProcChance, player)} to call down a bonus strike " +
             $"dealing {AugmentText.BonusDamage("2.5%")} of the boss's {AugmentText.HP("maximum HP")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
@@ -21,13 +25,13 @@ namespace Augments
 
         public override void OnHitNPCWithItem(Player player, Item item, NPC target, NPC.HitInfo hit)
         {
-            if (hit.Crit && target.boss && Main.rand.NextFloat() < ProcChance)
+            if (hit.Crit && target.boss && RollFortuneChance(player, ProcChance))
                 Strike(player, target, HitEffectiveness);
         }
 
         public override void OnHitNPCWithProj(Player player, Projectile proj, NPC target, NPC.HitInfo hit)
         {
-            if (hit.Crit && target.boss && Main.rand.NextFloat() < ProcChance)
+            if (hit.Crit && target.boss && RollFortuneChance(player, ProcChance))
                 Strike(player, target, HitEffectiveness);
         }
 

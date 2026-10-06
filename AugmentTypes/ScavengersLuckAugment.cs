@@ -9,21 +9,13 @@ namespace Augments
     {
         public override string Id => "scavengers_luck";
         public override string DisplayName => "Scavenger's Luck";
-        public override string Description
-        {
-            get
-            {
-                var ap = Main.LocalPlayer?.GetModPlayer<AugmentPlayer>();
-                float fortune = ap?.TotalFortune ?? 0f;
-                float currentChance = ProcChance * (1f + fortune) * 100f;
-                string chanceStr = fortune > 0f
-                    ? $"{AugmentText.Trigger($"{currentChance:0.#}% chance")} ({ProcChance * 100f:0}% base + {currentChance - (ProcChance * 100f):0.#}% Fortune)"
-                    : AugmentText.Trigger($"{ProcChance * 100f:0}% chance");
+        public override string Description =>
+            $"Grants {AugmentText.Crit("+5% Fortune")} (World Luck & lucky trigger chance). Defeated enemies have a {FormatCurrentChance(ProcChance)} " +
+            $"to grant {AugmentText.Crit("+15% crit chance")} for {AugmentText.Duration("5s")}.";
 
-                return $"Grants {AugmentText.Crit("+5% Fortune")} (World Luck & lucky trigger chance). Defeated enemies have a {chanceStr} " +
-                       $"to grant {AugmentText.Crit("+15% crit chance")} for {AugmentText.Duration("5s")}.";
-            }
-        }
+        public override string GetDetailedDescription(Player player) =>
+            $"Grants {AugmentText.Crit("+5% Fortune")} (World Luck & lucky trigger chance). Defeated enemies have a {FormatFortuneChance(ProcChance, player)} " +
+            $"to grant {AugmentText.Crit("+15% crit chance")} for {AugmentText.Duration("5s")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Rare;
         public override AugmentClass Class => AugmentClass.Universal;

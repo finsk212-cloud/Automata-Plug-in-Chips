@@ -8,7 +8,10 @@ namespace Augments
         public override string Id => "treasure_diver";
         public override string DisplayName => "Treasure Diver";
         public override string Description =>
-            $"While submerged, {AugmentText.Defense("breath capacity is increased")} and kills have a {AugmentText.Trigger("30% chance")} to drop bonus coins.";
+            $"While submerged, {AugmentText.Defense("breath capacity is increased")} and kills have a {FormatCurrentChance(DropChance)} to drop bonus coins.";
+
+        public override string GetDetailedDescription(Player player) =>
+            $"While submerged, {AugmentText.Defense("breath capacity is increased")} and kills have a {FormatFortuneChance(DropChance, player)} to drop bonus coins.";
 
         public override AugmentRarity Rarity => AugmentRarity.Rare;
         public override AugmentClass Class => AugmentClass.Universal;
@@ -43,7 +46,7 @@ namespace Augments
             if (!player.wet)
                 return;
 
-            if (Main.rand.NextFloat() >= DropChance)
+            if (!RollFortuneChance(player, DropChance))
                 return;
 
             int coinCount = Main.rand.Next(MinCoins, MaxCoins + 1);

@@ -8,21 +8,13 @@ namespace Augments
     {
         public override string Id => "lucky_strike";
         public override string DisplayName => "Lucky Strike";
-        public override string Description
-        {
-            get
-            {
-                var ap = Main.LocalPlayer?.GetModPlayer<AugmentPlayer>();
-                float fortune = ap?.TotalFortune ?? 0f;
-                float currentChance = ProcChance * (1f + fortune) * 100f;
-                string chanceStr = fortune > 0f
-                    ? $"{AugmentText.Trigger($"{currentChance:0.#}% chance")} ({ProcChance * 100f:0}% base + {currentChance - (ProcChance * 100f):0.#}% Fortune)"
-                    : AugmentText.Trigger($"{ProcChance * 100f:0}% chance");
+        public override string Description =>
+            $"Grants {AugmentText.Crit("+5% Fortune")} (World Luck & lucky trigger chance). Any {AugmentText.Crit("crit")} has a {FormatCurrentChance(ProcChance)} " +
+            $"to deal a second strike for the same {AugmentText.BonusDamage("damage")}.";
 
-                return $"Grants {AugmentText.Crit("+5% Fortune")} (World Luck & lucky trigger chance). Any {AugmentText.Crit("crit")} has a {chanceStr} " +
-                       $"to deal a second strike for the same {AugmentText.BonusDamage("damage")}.";
-            }
-        }
+        public override string GetDetailedDescription(Player player) =>
+            $"Grants {AugmentText.Crit("+5% Fortune")} (World Luck & lucky trigger chance). Any {AugmentText.Crit("crit")} has a {FormatFortuneChance(ProcChance, player)} " +
+            $"to deal a second strike for the same {AugmentText.BonusDamage("damage")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Rare;
         public override AugmentClass Class => AugmentClass.Universal;

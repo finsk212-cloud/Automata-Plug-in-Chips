@@ -81,6 +81,7 @@ namespace Augments
 			AugmentFamilyHUD.Update(gameTime);
 			AugmentPinnedHUD.Update(gameTime);
 			AugmentAdvisoryHUD.Update(gameTime);
+			AugmentHiddenStatsDrawer.Update(gameTime);
 
 			if (IsPlayerInputBlocked())
 			{
@@ -163,6 +164,16 @@ namespace Augments
 				delegate
 				{
 					AugmentPinnedHUD.Draw(Main.spriteBatch);
+					return true;
+				},
+				InterfaceScaleType.UI)
+			);
+
+			layers.Insert(mouseTextIndex, new LegacyGameInterfaceLayer(
+				"Augments: Hidden Stats Drawer",
+				delegate
+				{
+					AugmentHiddenStatsDrawer.Draw(Main.spriteBatch);
 					return true;
 				},
 				InterfaceScaleType.UI)

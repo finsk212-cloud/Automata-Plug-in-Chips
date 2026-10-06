@@ -54,5 +54,14 @@ namespace Augments
         public static readonly Color BloodMoon = new Color(255, 107, 107);
         public static readonly Color SolarEclipse = new Color(250, 204, 21);
         public static readonly Color Note = new Color(148, 163, 184);
+
+        public static string GetRarityHex(AugmentRarity rarity) => rarity switch
+        {
+            AugmentRarity.Common => "B9C8E1",
+            AugmentRarity.Rare => "55C3FF",
+            AugmentRarity.Epic => "C373FF",
+            AugmentRarity.Legendary => "FFB92D",
+            _ => "B9C8E1"
+        };
     }
 }

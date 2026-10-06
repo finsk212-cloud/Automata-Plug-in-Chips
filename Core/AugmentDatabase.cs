@@ -65,6 +65,8 @@ namespace Augments
             Register(new ReforgersPatienceAugment());
             Register(new SpectralGuardAugment());
             Register(new SharpshooterAugment());
+            Register(new PointBlankAugment());
+            Register(new ArmorPiercerAugment());
             Register(new ScavengersLuckAugment());
             Register(new QuickfireAugment());
             Register(new VoidStepAugment());
@@ -98,8 +100,13 @@ namespace Augments
             Register(new SentrysResolveAugment());
             Register(new WhipCrackerAugment());
             Register(new WhipMasterAugment());
+            Register(new FocusDirectiveAugment());
+            Register(new SentrySalvoAugment());
             Register(new QuickcastAugment());
             Register(new WandDisciplineAugment());
+            Register(new CelestialPullAugment());
+            Register(new ArcaneSparkAugment());
+            Register(new AstralSiphonAugment());
             Register(new FrenziedAssaultAugment());
             Register(new MomentumCrashAugment());
             Register(new TrophyHunterAugment());
@@ -131,6 +138,7 @@ namespace Augments
             Register(new RapidFireAugment());
             Register(new GlassSightAugment());
             Register(new SharpenedFocusAugment());
+            Register(new SuperchargerAugment());
         }
 
         private static void Register(Augment augment)

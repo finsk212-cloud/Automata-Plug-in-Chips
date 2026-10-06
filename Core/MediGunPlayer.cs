@@ -7,6 +7,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
 using Augments.Items;
+using Augments.Core;
 
 namespace Augments
 {
@@ -15,24 +16,35 @@ namespace Augments
 		public float OverclockCharge { get; set; } = 0f;
 		public int CurrentPatientWhoAmI { get; set; } = -1;
 		public int CurrentTargetNPCWhoAmI { get; set; } = -1;
+		public int CurrentEnemySiphonWhoAmI { get; set; } = -1;
+		public int SiphonBurstCooldown { get; set; } = 0;
+		public int SiphonContinuousCooldown { get; set; } = 0;
 		public int PhilosopherHealCooldown { get; set; } = 0;
 
 		public float OverclockChargeRateMultiplier
 		{
 			get
 			{
+				float mult = 1.0f;
 				if (Player.HeldItem?.TryGetGlobalItem<MediGunGlobalItem>(out var mg) == true)
 				{
 					if (mg.SocketedAccessoryType == ItemID.BandofStarpower)
-						return 1.25f;
+						mult += 0.25f;
 					if (mg.SocketedAccessoryType == ItemID.FeralClaws)
-						return 1.15f;
+						mult += 0.15f;
 				}
-				return 1.0f;
+
+				if (Player.GetModPlayer<AugmentPlayer>().HasAugment("supercharger"))
+				{
+					mult += 0.15f;
+				}
+
+				return mult;
 			}
 		}
 
 		private bool rightClickReleased = true;
+		private bool leftClickReleased = true;
 		private bool playedReadySound = false;
 
 		public bool IsHoldingMediGun(out int tier)
@@ -70,7 +82,7 @@ namespace Augments
 		{
 			if (IsHoldingMediGun(out _) && Player.HeldItem?.TryGetGlobalItem<MediGunGlobalItem>(out var mg) == true)
 			{
-				bool isTethered = CurrentPatientWhoAmI >= 0 || CurrentTargetNPCWhoAmI >= 0;
+				bool isTethered = CurrentPatientWhoAmI >= 0 || CurrentTargetNPCWhoAmI >= 0 || CurrentEnemySiphonWhoAmI >= 0;
 
 				if (mg.SocketedAccessoryType == ItemID.AnkletoftheWind && isTethered)
 				{
@@ -110,6 +122,12 @@ namespace Augments
 			if (PhilosopherHealCooldown > 0)
 				PhilosopherHealCooldown--;
 
+			if (SiphonBurstCooldown > 0)
+				SiphonBurstCooldown--;
+
+			if (SiphonContinuousCooldown > 0)
+				SiphonContinuousCooldown--;
+
 			// Only local player processes input
 			if (Player.whoAmI != Main.myPlayer)
 				return;
@@ -125,7 +143,7 @@ namespace Augments
 						SoundEngine.PlaySound(SoundID.MaxMana, Player.Center);
 					}
 
-					// Right-click activates Overclock on current tethered target (only when inventory is closed)
+					// Right-click activates Overclock on current tethered ally target (only when inventory is closed)
 					if (Main.mouseRight && rightClickReleased && !Main.playerInventory)
 					{
 						rightClickReleased = false;
@@ -133,6 +151,17 @@ namespace Augments
 						if (CurrentPatientWhoAmI >= 0 || CurrentTargetNPCWhoAmI >= 0)
 						{
 							ActivateOverclock(tier);
+						}
+					}
+
+					// Left-click activates Overclock on current siphoned enemy target (while channeling with right-click)
+					if (Main.mouseLeft && leftClickReleased && !Main.playerInventory)
+					{
+						leftClickReleased = false;
+
+						if (CurrentEnemySiphonWhoAmI >= 0 && CurrentEnemySiphonWhoAmI < Main.maxNPCs)
+						{
+							ActivateEnemyOverclock(tier, CurrentEnemySiphonWhoAmI);
 						}
 					}
 				}
@@ -145,6 +174,11 @@ namespace Augments
 				{
 					rightClickReleased = true;
 				}
+
+				if (!Main.mouseLeft)
+				{
+					leftClickReleased = true;
+				}
 			}
 			else
 			{
@@ -154,7 +188,8 @@ namespace Augments
 
 		public void ActivateOverclock(int tier)
 		{
-			OverclockCharge = 0f;
+			bool hasSupercharger = Player.GetModPlayer<AugmentPlayer>().HasAugment("supercharger");
+			OverclockCharge = hasSupercharger ? 15f : 0f;
 			playedReadySound = false;
 
 			int healAmount = tier == 4 ? 100 : (tier == 3 ? 75 : (tier == 2 ? 50 : 30));
@@ -223,12 +258,114 @@ namespace Augments
 			}
 		}
 
+		public void ActivateEnemyOverclock(int tier, int npcWhoAmI)
+		{
+			if (npcWhoAmI < 0 || npcWhoAmI >= Main.maxNPCs)
+				return;
+
+			NPC target = Main.npc[npcWhoAmI];
+			if (!target.active || target.life <= 0)
+				return;
+
+			bool hasSupercharger = Player.GetModPlayer<AugmentPlayer>().HasAugment("supercharger");
+			OverclockCharge = hasSupercharger ? 15f : 0f;
+			playedReadySound = false;
+
+			int burstDamage = tier switch
+			{
+				4 => 300,
+				3 => 150,
+				2 => 60,
+				_ => 25
+			};
+
+			int hitDir = Player.direction;
+			if (target.Center.X != Player.Center.X)
+				hitDir = target.Center.X > Player.Center.X ? 1 : -1;
+
+			target.SimpleStrikeNPC(burstDamage, hitDir, false, 2f, DamageClass.Generic, false);
+
+			if (Player.whoAmI == Main.myPlayer)
+			{
+				string weaponName = Player.HeldItem?.Name ?? "Medi Gun";
+				AugmentDamageTracker.RecordWeaponHit(weaponName, burstDamage, false, AugmentClass.Support);
+			}
+
+			// Apply debuffs based on tier
+			if (tier == 1)
+			{
+				target.AddBuff(ModContent.BuffType<Buffs.MediGunCorrosionBuff>(), 300); // -5 def, 5 seconds
+				if (Main.netMode == NetmodeID.MultiplayerClient)
+				{
+					NetMessage.SendData(MessageID.AddNPCBuff, -1, -1, null, target.whoAmI, ModContent.BuffType<Buffs.MediGunCorrosionBuff>(), 300);
+				}
+			}
+			else if (tier == 2)
+			{
+				target.AddBuff(BuffID.Ichor, 360); // -15 def, 6 seconds
+				if (Main.netMode == NetmodeID.MultiplayerClient)
+				{
+					NetMessage.SendData(MessageID.AddNPCBuff, -1, -1, null, target.whoAmI, BuffID.Ichor, 360);
+				}
+			}
+			else if (tier == 3)
+			{
+				target.AddBuff(BuffID.Ichor, 480); // -15 def, 8 seconds
+				if (Main.netMode == NetmodeID.MultiplayerClient)
+				{
+					NetMessage.SendData(MessageID.AddNPCBuff, -1, -1, null, target.whoAmI, BuffID.Ichor, 480);
+				}
+			}
+			else if (tier >= 4)
+			{
+				target.AddBuff(BuffID.Ichor, 600); // -15 def, 10 seconds
+				target.AddBuff(BuffID.BetsysCurse, 600); // -40 def, 10 seconds
+				if (Main.netMode == NetmodeID.MultiplayerClient)
+				{
+					NetMessage.SendData(MessageID.AddNPCBuff, -1, -1, null, target.whoAmI, BuffID.Ichor, 600);
+					NetMessage.SendData(MessageID.AddNPCBuff, -1, -1, null, target.whoAmI, BuffID.BetsysCurse, 600);
+				}
+			}
+
+			// Audio: Explosive discharge and electric crackle
+			SoundEngine.PlaySound(SoundID.Item14 with { Volume = 0.85f, Pitch = 0.15f }, target.Center);
+			SoundEngine.PlaySound(SoundID.Item94 with { Volume = 0.9f, Pitch = -0.1f }, target.Center);
+
+			// Visual Explosion: High-energy kinetic crimson & status particles
+			int particleCount = 20 + tier * 6;
+			for (int i = 0; i < particleCount; i++)
+			{
+				Vector2 speed = Main.rand.NextVector2Circular(5.5f + tier * 0.8f, 5.5f + tier * 0.8f);
+				int dustType = DustID.CrimsonTorch;
+				if (tier >= 2 && Main.rand.NextBool(3))
+				{
+					dustType = DustID.Ichor;
+				}
+				else if (tier >= 4 && Main.rand.NextBool(3))
+				{
+					dustType = DustID.Shadowflame;
+				}
+				else if (Main.rand.NextBool(2))
+				{
+					dustType = DustID.LifeDrain;
+				}
+
+				Dust d = Dust.NewDustDirect(target.position, target.width, target.height, dustType, speed.X, speed.Y, 100, default, 1.35f + tier * 0.15f);
+				d.noGravity = true;
+			}
+		}
+
 		public override void Kill(double damage, int hitDirection, bool pvp, PlayerDeathReason damageSource)
 		{
 			OverclockCharge = 0f;
 			CurrentPatientWhoAmI = -1;
 			CurrentTargetNPCWhoAmI = -1;
+			CurrentEnemySiphonWhoAmI = -1;
+			SiphonBurstCooldown = 0;
+			SiphonContinuousCooldown = 0;
 			playedReadySound = false;
+			leftClickReleased = true;
+			rightClickReleased = true;
 			PhilosopherHealCooldown = 0;
 		}
 

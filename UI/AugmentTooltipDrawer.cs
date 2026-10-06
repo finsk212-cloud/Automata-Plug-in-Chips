@@ -112,7 +112,10 @@ namespace Augments
             }
 
             // 3. Description lines
-            var descLines = AugmentColorText.Wrap(font, augment.Description, MaxContentWidth, DescScale);
+            bool isCtrlDown = Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftControl) ||
+                              Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.RightControl);
+            string descToDraw = (isCtrlDown && player != null ? augment.GetDetailedDescription(player) : augment.Description);
+            var descLines = AugmentColorText.Wrap(font, descToDraw, MaxContentWidth, DescScale);
 
             // 4. Metadata (Fortune & Keybind)
             var metaLines = new List<(string text, Color color)>();

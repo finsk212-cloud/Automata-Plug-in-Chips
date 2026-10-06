@@ -7,7 +7,10 @@ namespace Augments
         public override string Id => "brewers_instinct";
         public override string DisplayName => "Brewer's Instinct";
         public override string Description =>
-            $"Buff potions have a 40% chance to last {AugmentText.Duration("50% longer")}.";
+            $"Buff potions have a {FormatCurrentChance(ProcChance)} to last {AugmentText.Duration("50% longer")}.";
+
+        public override string GetDetailedDescription(Player player) =>
+            $"Buff potions have a {FormatFortuneChance(ProcChance, player)} to last {AugmentText.Duration("50% longer")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Rare;
         public override AugmentClass Class => AugmentClass.Universal;
@@ -29,7 +32,7 @@ namespace Augments
             if (item.buffType <= 0)
                 return;
 
-            if (Main.rand.NextFloat() >= ProcChance)
+            if (!RollFortuneChance(player, ProcChance))
                 return;
 
             int buffIndex = player.FindBuffIndex(item.buffType);

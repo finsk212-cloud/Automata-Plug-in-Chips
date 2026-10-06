@@ -8,7 +8,10 @@ namespace Augments
         public override string Id => "quickfire";
         public override string DisplayName => "Quickfire";
         public override string Description =>
-            $"Ranged weapons have a {AugmentText.Trigger("25% chance")} to not consume ammo.";
+            $"Ranged weapons have a {FormatCurrentChance(ProcChance)} to not consume ammo.";
+
+        public override string GetDetailedDescription(Player player) =>
+            $"Ranged weapons have a {FormatFortuneChance(ProcChance, player)} to not consume ammo.";
 
         public override AugmentRarity Rarity => AugmentRarity.Common;
         public override AugmentClass Class => AugmentClass.Ranged;
@@ -18,7 +21,7 @@ namespace Augments
 
         public override bool CanConsumeAmmo(Player player, Item weapon, Item ammo)
         {
-            if (Main.rand.NextFloat() < ProcChance)
+            if (RollFortuneChance(player, ProcChance))
                 return false;
 
             return true;

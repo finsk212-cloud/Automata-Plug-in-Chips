@@ -45,7 +45,8 @@ namespace Augments
 			("[POD 042]", "If none of the offered reward plugins fit your character, you can use the Skip button to decline without penalty."),
 			("[POD 042]", "Equipping multiple support class plugins reduces your attack penalty while granting bonus defense and team utility."),
 			("[POD 042]", "The Plugin Vendor moves into an empty town room once Skeletron has been defeated."),
-			("[POD 042]", "Machine Cores drop reliably from bosses and rare mechanical units, serving as the primary currency for plugin trading and upgrades.")
+			("[POD 042]", "Machine Cores drop reliably from bosses and rare mechanical units, serving as the primary currency for plugin trading and upgrades."),
+			("[POD 042]", "Holding a CTRL button in Plugin List menu let's you see a detailed view of plugin.")
 		};
 
 		public static void ShowAdvisory(string prefix, string message, bool playSound = true)
@@ -164,10 +165,88 @@ namespace Augments
 			ShowAdvisory(prefix, text, true);
 		}
 
+		private static Texture2D podTexture;
+
+		// Option A: Tactical Pod 042 (NieR: Automata authentic)
+		private static readonly string[] PodMask = new string[]
+		{
+			"        AA        ",
+			"        AA        ",
+			"        ..        ",
+			"    ..........    ",
+			"    .BBBBBBBS.    ",
+			"    .BMMMMMMS.    ",
+			"..  .BMMMMMMS.  ..",
+			".LL..BMMMMMMS..LL.",
+			".LL..BMMEEMMS..LL.",
+			".LL..BMMeWMMS..LL.",
+			".LL..BMMeEMMS..LL.",
+			".LL..BMMMMMMS..LL.",
+			".ll..BMMMMMMS..ll.",
+			"..  .BMMMMMMS.  ..",
+			"    .BMMMMMMS.    ",
+			"    .SSSSSSSS.    ",
+			"    ....TT....    ",
+			"        TT        ",
+		};
+
+		private static void EnsurePodTexture()
+		{
+			if (podTexture != null && !podTexture.IsDisposed)
+				return;
+
+			if (Main.graphics?.GraphicsDevice == null)
+				return;
+
+			int width = 18;
+			int height = 18;
+			podTexture = new Texture2D(Main.graphics.GraphicsDevice, width, height);
+			Color[] data = new Color[width * height];
+
+			Color outline = new Color(14, 20, 30, 255);
+			Color antenna = new Color(160, 175, 195, 255);
+			Color bevel = new Color(155, 170, 190, 255);
+			Color body = new Color(74, 88, 108, 255);
+			Color shadow = new Color(48, 58, 74, 255);
+			Color arm = new Color(66, 80, 100, 255);
+			Color armJoint = new Color(38, 48, 62, 255);
+			Color eyeOuter = new Color(2, 132, 199, 255);
+			Color eyeBright = new Color(56, 189, 248, 255);
+			Color eyeGlint = new Color(245, 252, 255, 255);
+			Color thruster = new Color(14, 165, 233, 235);
+
+			for (int y = 0; y < height; y++)
+			{
+				string row = PodMask[y];
+				for (int x = 0; x < width; x++)
+				{
+					char c = row[x];
+					Color col = Color.Transparent;
+					if (c == '.') col = outline;
+					else if (c == 'A') col = antenna;
+					else if (c == 'B') col = bevel;
+					else if (c == 'M') col = body;
+					else if (c == 'S') col = shadow;
+					else if (c == 'L') col = arm;
+					else if (c == 'l') col = armJoint;
+					else if (c == 'E') col = eyeOuter;
+					else if (c == 'e') col = eyeBright;
+					else if (c == 'W') col = eyeGlint;
+					else if (c == 'T') col = thruster;
+
+					data[y * width + x] = col;
+				}
+			}
+
+			podTexture.SetData(data);
+		}
+
 		public static void Draw(SpriteBatch spriteBatch)
 		{
 			if (Main.dedServ || Main.gameMenu || fadeAlpha <= 0.001f || string.IsNullOrEmpty(currentMessage))
 				return;
+
+			EnsurePodTexture();
 
 			var font = FontAssets.MouseText.Value;
 			Vector2 scale = new Vector2(0.74f);
@@ -176,18 +255,41 @@ namespace Augments
 			Vector2 msgSize = ChatManager.GetStringSize(font, currentMessage, scale);
 
 			const float gap = 8f;
-			float totalTextWidth = prefixSize.X + gap + msgSize.X;
+			const float podWidth = 18f;
+			const float podGap = 7f;
+			float totalWidth = podWidth + podGap + prefixSize.X + gap + msgSize.X;
 			float textHeight = Math.Max(prefixSize.Y, msgSize.Y);
 
 			// Position horizontally centered at the bottom of the screen
-			float posX = (Main.screenWidth - totalTextWidth) * 0.5f;
+			float posX = (Main.screenWidth - totalWidth) * 0.5f;
 			float posY = Main.screenHeight - 56f;
 
-			// Invisible interaction bounds around the text for pause-on-hover and click-to-dismiss
-			bounds = new Rectangle((int)posX - 8, (int)posY - 4, (int)totalTextWidth + 16, (int)textHeight + 8);
+			// Invisible interaction bounds around the text & pod for pause-on-hover and click-to-dismiss
+			bounds = new Rectangle((int)posX - 8, (int)posY - 8, (int)totalWidth + 16, (int)textHeight + 16);
 
-			Vector2 prefixPos = new Vector2(posX, posY);
-			Vector2 msgPos = new Vector2(posX + prefixSize.X + gap, posY);
+			// Smooth floating hover bobbing for Pod 042 - optically leveled with text midline
+			float podHover = (float)Math.Sin(Main.GlobalTimeWrappedHourly * 3.5f) * 2.0f;
+			Vector2 podPos = new Vector2(posX, posY + (textHeight - 18f) * 0.5f - 5f + podHover);
+			podPos = new Vector2((float)Math.Round(podPos.X), (float)Math.Round(podPos.Y));
+
+			Vector2 prefixPos = new Vector2(posX + podWidth + podGap, posY);
+			Vector2 msgPos = new Vector2(prefixPos.X + prefixSize.X + gap, posY);
+
+			// 1. Draw Pod 042
+			if (podTexture != null)
+			{
+				// Subtle shadow behind pod
+				spriteBatch.Draw(podTexture, podPos + new Vector2(0f, 1f), null, Color.Black * (0.65f * fadeAlpha), 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+
+				// Pod sprite
+				spriteBatch.Draw(podTexture, podPos, null, Color.White * fadeAlpha, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+
+				// Breathing optical lens cyan eye glow
+				float eyePulse = (float)Math.Sin(Main.GlobalTimeWrappedHourly * 4.5f) * 0.5f + 0.5f;
+				Vector2 eyeCenter = podPos + new Vector2(9f, 9.5f);
+				int glowSize = (int)(4f + eyePulse * 2f);
+				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle((int)eyeCenter.X - glowSize / 2, (int)eyeCenter.Y - glowSize / 2, glowSize, glowSize), new Color(56, 189, 248) * ((0.20f + eyePulse * 0.25f) * fadeAlpha));
+			}
 
 			Color pColor = new Color(56, 189, 248) * fadeAlpha; // Cyan
 			Color mColor = new Color(241, 245, 249) * fadeAlpha; // Crisp white
@@ -207,7 +309,7 @@ namespace Augments
 				string hint = "[Left Click: Next Tip  •  Right Click: Dismiss]";
 				Vector2 hintScale = new Vector2(0.56f);
 				Vector2 hintSize = ChatManager.GetStringSize(font, hint, hintScale);
-				Vector2 hintPos = new Vector2((Main.screenWidth - hintSize.X) * 0.5f, posY + textHeight + 2f);
+				Vector2 hintPos = new Vector2((Main.screenWidth - hintSize.X) * 0.5f, posY + textHeight + 4f);
 				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, hint, hintPos, new Color(148, 163, 184) * (0.85f * fadeAlpha), 0f, Vector2.Zero, hintScale);
 			}
 		}

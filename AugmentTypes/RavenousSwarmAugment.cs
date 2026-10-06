@@ -8,7 +8,11 @@ namespace Augments
         public override string Id => "ravenous_swarm";
         public override string DisplayName => "Ravenous Swarm";
         public override string Description =>
-            $"Minion kills have a {AugmentText.Trigger("5% chance")} to grant {AugmentText.BonusDamage("+1 max minion slot")}.\n" +
+            $"Minion kills have a {FormatCurrentChance(ProcChance)} to grant {AugmentText.BonusDamage("+1 max minion slot")}.\n" +
+            AugmentText.Note("(Capped at +3 total slots per session.)");
+
+        public override string GetDetailedDescription(Player player) =>
+            $"Minion kills have a {FormatFortuneChance(ProcChance, player)} to grant {AugmentText.BonusDamage("+1 max minion slot")}.\n" +
             AugmentText.Note("(Capped at +3 total slots per session.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
@@ -51,7 +55,7 @@ namespace Augments
             if (ap.RavenousSwarmSlotsGranted >= MaxSlotsGranted)
                 return;
 
-            if (Main.rand.NextFloat() < ProcChance)
+            if (RollFortuneChance(player, ProcChance))
                 ap.RavenousSwarmSlotsGranted++;
         }
 

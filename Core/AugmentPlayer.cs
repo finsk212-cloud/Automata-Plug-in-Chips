@@ -1263,7 +1263,19 @@ namespace Augments
 			var ui = ModContent.GetInstance<AugmentUISystem>();
 			bool isTyping = ui?.IsTypingAnywhere() ?? false;
 
-			if (Augments.OpenAugmentListKeybind.JustPressed && !isTyping)
+			bool listPressed = Augments.OpenAugmentListKeybind?.JustPressed == true;
+			if (!listPressed && (Augments.OpenAugmentListKeybind == null || Augments.OpenAugmentListKeybind.GetAssignedKeys().Count == 0))
+			{
+				if (!isTyping)
+				{
+					if (Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.P) && !Main.oldKeyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.P))
+					{
+						listPressed = true;
+					}
+				}
+			}
+
+			if (listPressed && !isTyping)
 				ui?.ToggleList();
 
 			bool analyticsPressed = Augments.ToggleCombatAnalyticsKeybind?.JustPressed == true;

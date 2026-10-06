@@ -50,12 +50,14 @@ Items: {
 		DisplayName: Medi Gun MK I
 		Tooltip:
 			'''
-			Hold Left-Click to lock onto a nearby ally or town NPC and channel a healing beam
-			Heals [c/4ADE80:3 HP] per second
-			Healing builds Overclock charge over [c/A5C8E8:35 seconds]
-			Press Right-Click at 100% to activate Overclock:
+			Hold Left-Click to lock onto a nearby ally or town NPC and channel a healing beam (3 HP/sec)
+			Hold Right-Click to lock onto the nearest enemy and channel a crimson siphon beam ([c/FF5C5C:6 DMG/sec])
+			Healing or siphoning builds Overclock charge over [c/A5C8E8:35 seconds]
+			Press Right-Click at 100% while healing to activate Overclock:
 			- Instantly restores [c/4ADE80:30 HP] to the tethered ally
 			- Grants the ally [c/2DD4BF:+20% movement speed] for [c/A5C8E8:6 seconds]
+			Press Left-Click at 100% while siphoning an enemy to detonate Overclock:
+			- Deals [c/FF5C5C:25 burst damage] and inflicts [c/FFA500:Corrosion] (-5 enemy defense for 5s)
 			Tether breaks if line of sight is obstructed or distance exceeds range
 			'''
 	}
@@ -64,12 +66,14 @@ Items: {
 		DisplayName: Medi Gun MK II
 		Tooltip:
 			'''
-			Hold Left-Click to lock onto a nearby ally or town NPC and channel an advanced healing beam
-			Heals [c/4ADE80:6 HP] per second with extended tether range
-			Healing builds Overclock charge over [c/A5C8E8:30 seconds]
-			Press Right-Click at 100% to activate Overclock:
+			Hold Left-Click to lock onto a nearby ally or town NPC and channel an advanced healing beam (6 HP/sec)
+			Hold Right-Click to lock onto the nearest enemy and channel a crimson siphon beam ([c/FF5C5C:20 DMG/sec])
+			Healing or siphoning builds Overclock charge over [c/A5C8E8:30 seconds]
+			Press Right-Click at 100% while healing to activate Overclock:
 			- Instantly restores [c/4ADE80:50 HP] to the tethered ally
 			- Grants the ally [c/2DD4BF:+20% movement speed] and [c/FB923C:+10% attack speed] for [c/A5C8E8:6 seconds]
+			Press Left-Click at 100% while siphoning an enemy to detonate Overclock:
+			- Deals [c/FF5C5C:60 burst damage] and inflicts [c/EAB308:Ichor] (-15 enemy defense for 6s)
 			Tether breaks if line of sight is obstructed or distance exceeds range
 			'''
 	}
@@ -78,12 +82,14 @@ Items: {
 		DisplayName: Medi Gun MK III
 		Tooltip:
 			'''
-			Hold Left-Click to lock onto a nearby ally or town NPC and channel an advanced spectral healing beam
-			Heals [c/4ADE80:10 HP] per second with maximum tether range
-			Healing builds Overclock charge over [c/A5C8E8:25 seconds]
-			Press Right-Click at 100% to activate Overclock:
+			Hold Left-Click to lock onto a nearby ally or town NPC and channel an advanced spectral healing beam (10 HP/sec)
+			Hold Right-Click to lock onto the nearest enemy and channel a crimson siphon beam ([c/FF5C5C:3x 20 DMG bursts every 1.5s])
+			Healing or siphoning builds Overclock charge over [c/A5C8E8:25 seconds]
+			Press Right-Click at 100% while healing to activate Overclock:
 			- Instantly restores [c/4ADE80:75 HP] to the tethered ally
 			- Grants the ally [c/2DD4BF:+25% movement speed], [c/FB923C:+15% attack speed], and [c/FFC83B:+8% critical strike chance] for [c/A5C8E8:6 seconds]
+			Press Left-Click at 100% while siphoning an enemy to detonate Overclock:
+			- Deals [c/FF5C5C:150 burst damage] and inflicts [c/EAB308:Ichor] (-15 enemy defense for 8s)
 			Tether breaks if line of sight is obstructed or distance exceeds range
 			'''
 	}
@@ -92,18 +98,25 @@ Items: {
 		DisplayName: Medi Gun MK IV
 		Tooltip:
 			'''
-			Hold Left-Click to lock onto a nearby ally or town NPC and channel an ultimate celestial healing beam
-			Heals [c/4ADE80:16 HP] per second with screen-wide tether range
-			Healing builds Overclock charge over [c/A5C8E8:20 seconds]
-			Press Right-Click at 100% to activate Overclock:
+			Hold Left-Click to lock onto a nearby ally or town NPC and channel an ultimate celestial healing beam (16 HP/sec)
+			Hold Right-Click to lock onto the nearest enemy and channel a crimson siphon beam ([c/FF5C5C:3x 50 DMG bursts every 1.5s])
+			Healing or siphoning builds Overclock charge over [c/A5C8E8:20 seconds]
+			Press Right-Click at 100% while healing to activate Overclock:
 			- Instantly restores [c/4ADE80:100 HP] to the tethered ally
 			- Grants the ally [c/2DD4BF:+30% movement speed], [c/FB923C:+20% attack speed], [c/FFC83B:+12% critical strike chance], and [c/FF5C5C:+15% all damage] for [c/A5C8E8:6 seconds]
+			Press Left-Click at 100% while siphoning an enemy to detonate Overclock:
+			- Deals [c/FF5C5C:300 burst damage] and inflicts [c/EAB308:Ichor] (-15 defense) & [c/D946EF:Betsy's Curse] (-40 defense) for 10s
 			Tether breaks if line of sight is obstructed or distance exceeds range
 			'''
 	}
 }
 
 Buffs: {
+	MediGunCorrosionBuff: {
+		DisplayName: Corrosion
+		Description: Armor is corroded, reducing defense by 5.
+	}
+
 	OverclockBuff: {
 		DisplayName: Overclocked
 		Description: Movement speed increased.
@@ -226,6 +239,43 @@ Projectiles: {
 	MediGunMK2BeamProjectile.DisplayName: Medi Gun MK II Beam
 	MediGunMK3BeamProjectile.DisplayName: Medi Gun MK III Beam
 	MediGunMK4BeamProjectile.DisplayName: Medi Gun MK IV Beam
+	MediGunSiphonBeamProjectile.DisplayName: Medi Gun Siphon Beam
 	CryoIceShardProjectile.DisplayName: Cryo Ice Shard Projectile
 	KineticShrapnelProjectile.DisplayName: Kinetic Shrapnel Projectile
+}
+
+Configs: {
+	AugmentConfig: {
+		DisplayName: Automata Configuration
+		Headers.HiddenStatsSettings: Hidden Telemetry & Diagnostics Settings
+
+		EnableHiddenStatsPanel: {
+			Label: Enable Hidden Stats Drawer
+			Tooltip: Shows an arrow tab on the edge of the screen that slides out a NieR-styled Hidden Diagnostics panel displaying Luck, Fishing multipliers, and Combat hidden mechanics.
+		}
+
+		DrawerOpenMode: {
+			Label: Interaction Mode
+			Tooltip: Choose between Click to toggle (prevents accidental opening in combat) or Hover to slide open.
+		}
+
+		DockOnRightSide: {
+			Label: Dock On Right Screen Edge
+			Tooltip: When enabled, docks the drawer tab on the right side of the screen instead of the left side.
+		}
+	}
+
+	TelemetryOpenMode: {
+		Tooltip: ""
+
+		ClickToToggle: {
+			Label: Click To Toggle
+			Tooltip: ""
+		}
+
+		HoverToOpen: {
+			Label: Hover To Open
+			Tooltip: ""
+		}
+	}
 }

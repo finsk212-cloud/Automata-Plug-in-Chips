@@ -9,7 +9,7 @@ namespace Augments
     // Texture: placeholder — flag for art pass.
     public class SupportClassBuff : ModBuff
     {
-        public override string Texture => "Terraria/Images/Buff_2";
+        public override string Texture => "Terraria/Images/Buff_88";
 
         public override void SetStaticDefaults()
         {

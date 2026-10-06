@@ -11,7 +11,11 @@ namespace Augments
         public override string Id => "stormcaller";
         public override string DisplayName => "Stormcaller";
         public override string Description =>
-            $"Melee kills have a 20% chance to call down a lightning strike on a random nearby enemy, " +
+            $"Melee kills have a {FormatCurrentChance(ProcChance)} to call down a lightning strike on a random nearby enemy, " +
+            $"dealing 15% of that enemy's {AugmentText.HP("max HP")} as damage.";
+
+        public override string GetDetailedDescription(Player player) =>
+            $"Melee kills have a {FormatFortuneChance(ProcChance, player)} to call down a lightning strike on a random nearby enemy, " +
             $"dealing 15% of that enemy's {AugmentText.HP("max HP")} as damage.";
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
@@ -46,7 +50,7 @@ namespace Augments
 
             marker.ClearTag();
 
-            bool success = Main.rand.NextFloat() < ProcChance;
+            bool success = RollFortuneChance(player, ProcChance);
 
             if (success)
                 StrikeRandomNearbyTarget(npc, player);

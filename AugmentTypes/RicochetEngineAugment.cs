@@ -10,7 +10,11 @@ namespace Augments
         public override string Id => "ricochet_engine";
         public override string DisplayName => "Ricochet Engine";
         public override string Description =>
-            "Ranged hits have a chance to spawn a ricochet shot that bounces between nearby enemies. " +
+            $"Ranged hits have a {FormatCurrentChance(ProcChance)} to spawn a ricochet shot that bounces between nearby enemies. " +
+            $"Ricochet hits trigger {AugmentText.OnHit("on-hit")} effects at 50% effectiveness.";
+
+        public override string GetDetailedDescription(Player player) =>
+            $"Ranged hits have a {FormatFortuneChance(ProcChance, player)} to spawn a ricochet shot that bounces between nearby enemies. " +
             $"Ricochet hits trigger {AugmentText.OnHit("on-hit")} effects at 50% effectiveness.";
 
         public override AugmentRarity Rarity => AugmentRarity.Legendary;
@@ -38,7 +42,7 @@ namespace Augments
 
         private void TrySpawnRicochet(Player player, NPC target, int hitDamage)
         {
-            if (Main.rand.NextFloat() >= ProcChance * HitEffectiveness)
+            if (!RollFortuneChance(player, ProcChance * HitEffectiveness))
                 return;
 
             int damage = Math.Max(1, (int)(hitDamage * DamageMultiplier));

@@ -9,7 +9,10 @@ namespace Augments
         public override string Id => "master_angler";
         public override string DisplayName => "Master Angler";
         public override string Description =>
-            $"Grants {AugmentText.BonusDamage("+10 fishing power")} and opening crates has a {AugmentText.Trigger("20% chance")} for bonus loot.";
+            $"Grants {AugmentText.BonusDamage("+10 fishing power")} and opening crates has a {FormatCurrentChance(CrateBonusChance)} for bonus loot.";
+
+        public override string GetDetailedDescription(Player player) =>
+            $"Grants {AugmentText.BonusDamage("+10 fishing power")} and opening crates has a {FormatFortuneChance(CrateBonusChance, player)} for bonus loot.";
 
         public override AugmentRarity Rarity => AugmentRarity.Rare;
         public override AugmentClass Class => AugmentClass.Universal;
@@ -43,7 +46,7 @@ namespace Augments
             if (!isCrate)
                 return;
 
-            if (Main.rand.NextFloat() >= CrateBonusChance)
+            if (!RollFortuneChance(player, CrateBonusChance))
                 return;
 
             int coinCount = Main.rand.Next(MinBonusCoins, MaxBonusCoins + 1);

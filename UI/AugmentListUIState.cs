@@ -1014,9 +1014,9 @@ namespace Augments
 				RegexOptions.Compiled | RegexOptions.IgnoreCase
 			);
 
-			private static void ExtractDescriptionAndCooldown(Augment augment, out string effectText, out string cooldownText)
+			private static void ExtractDescriptionAndCooldown(Augment augment, out string effectText, out string cooldownText, bool detailed = false, Player player = null)
 			{
-				effectText = augment.Description ?? "";
+				effectText = (detailed && player != null ? augment.GetDetailedDescription(player) : augment.Description) ?? "";
 				cooldownText = augment.CooldownText;
 
 				var match = CooldownRegex.Match(effectText);
@@ -1418,13 +1418,17 @@ namespace Augments
 				y += 8f;
 
 				// 5. Description Header (Clean high-tech uppercase)
+				bool isCtrlDown = Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftControl) ||
+				                  Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.RightControl);
+
+				string headerTitle = isCtrlDown ? "EFFECT (DETAILED)" : "EFFECT";
 				ChatManager.DrawColorCodedStringWithShadow(
-					spriteBatch, font, "EFFECT", new Vector2(x, y), new Color(250, 204, 21), 0f, Vector2.Zero, new Vector2(0.72f)
+					spriteBatch, font, headerTitle, new Vector2(x, y), new Color(250, 204, 21), 0f, Vector2.Zero, new Vector2(0.72f)
 				);
-				y += ChatManager.GetStringSize(font, "EFFECT", new Vector2(0.72f)).Y + 4f;
+				y += ChatManager.GetStringSize(font, headerTitle, new Vector2(0.72f)).Y + 4f;
 
 				// 6. Wrapped Description with chat colors (stripping inline cooldown clause)
-				ExtractDescriptionAndCooldown(currentAugment, out string effectText, out string cooldownText);
+				ExtractDescriptionAndCooldown(currentAugment, out string effectText, out string cooldownText, isCtrlDown, Main.LocalPlayer);
 
 				var lines = AugmentColorText.Wrap(font, effectText, maxTextWidth, new Vector2(0.82f));
 				foreach (var line in lines)
@@ -1450,7 +1454,7 @@ namespace Augments
 				// 8. Cooldown footer displayed at bottom of card with clean telemetry layout
 				if (!string.IsNullOrEmpty(cooldownText))
 				{
-					float cdY = dims.Y + dims.Height - 28f;
+					float cdY = dims.Y + dims.Height - 38f;
 					// Subtle divider line
 					spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle((int)x, (int)(cdY - 6f), (int)maxTextWidth, 1), new Color(56, 189, 248) * 0.35f);
 
@@ -1459,6 +1463,17 @@ namespace Augments
 						spriteBatch, font, cdDisplay, new Vector2(x + 2f, cdY), new Color(56, 189, 248), 0f, Vector2.Zero, new Vector2(0.78f)
 					);
 				}
+
+				// 9. 50% alpha text under card preview: "Hold [Ctrl] for detailed view"
+				float hintY = dims.Y + dims.Height - 16f;
+				string hintText = isCtrlDown ? "Release [Ctrl] for standard view" : "Hold [Ctrl] for detailed view";
+				Color hintColor = isCtrlDown ? new Color(250, 204, 21) * 0.75f : Color.White * 0.50f;
+				Vector2 hintSize = ChatManager.GetStringSize(font, hintText, new Vector2(0.68f));
+				ChatManager.DrawColorCodedStringWithShadow(
+					spriteBatch, font, hintText,
+					new Vector2(x + (maxTextWidth - hintSize.X) * 0.5f, hintY),
+					hintColor, 0f, Vector2.Zero, new Vector2(0.68f)
+				);
 			}
 		}
 

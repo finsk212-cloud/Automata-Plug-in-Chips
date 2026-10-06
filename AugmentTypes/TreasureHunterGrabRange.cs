@@ -13,17 +13,25 @@ namespace Augments
     {
         public override void GrabRange(Item item, Player player, ref int grabRange)
         {
-            if (!player.GetModPlayer<AugmentPlayer>().HasAugment("treasure_hunter"))
-                return;
+            var ap = player.GetModPlayer<AugmentPlayer>();
 
-            if (item.IsACoin)
-                grabRange += TreasureHunterAugment.CoinGrabRangeBonus;
+            if (ap.HasAugment("treasure_hunter"))
+            {
+                if (item.IsACoin)
+                    grabRange += TreasureHunterAugment.CoinGrabRangeBonus;
 
-            if (item.type == ItemID.Heart || item.type == ItemID.CandyApple || item.type == ItemID.CandyCane)
-                grabRange += TreasureHunterAugment.HeartGrabRangeBonus;
+                if (item.type == ItemID.Heart || item.type == ItemID.CandyApple || item.type == ItemID.CandyCane)
+                    grabRange += TreasureHunterAugment.HeartGrabRangeBonus;
 
-            if (item.type == ItemID.Star || item.type == ItemID.SoulCake || item.type == ItemID.SugarPlum)
-                grabRange += TreasureHunterAugment.ManaStarGrabRangeBonus;
+                if (item.type == ItemID.Star || item.type == ItemID.SoulCake || item.type == ItemID.SugarPlum)
+                    grabRange += TreasureHunterAugment.ManaStarGrabRangeBonus;
+            }
+
+            if (ap.HasAugment("celestial_pull"))
+            {
+                if (item.type == ItemID.Star || item.type == ItemID.SoulCake || item.type == ItemID.SugarPlum)
+                    grabRange += CelestialPullAugment.StarGrabRangeBonus;
+            }
         }
     }
 }

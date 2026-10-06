@@ -8,9 +8,14 @@ namespace Augments
         public override string Id => "piercing_shot";
         public override string DisplayName => "Piercing Shot";
         public override string Description =>
-            $"Ranged projectiles have a {AugmentText.Trigger("20% chance")} to pierce through the first enemy hit.";
+            $"Ranged projectiles have a {FormatCurrentChance(ProcChance)} to pierce through the first enemy hit.";
+        public override string GetDetailedDescription(Player player) =>
+            $"Ranged projectiles have a {FormatFortuneChance(ProcChance, player)} to pierce through the first enemy hit.";
+
         public override AugmentRarity Rarity => AugmentRarity.Rare;
         public override AugmentClass Class => AugmentClass.Ranged;
+
+        private const float ProcChance = 0.20f;
 
         public override void OnShootProjectile(Player player, Item item, Projectile projectile)
         {
@@ -19,7 +24,7 @@ namespace Augments
             var tag = projectile.GetGlobalProjectile<AugmentProjectileTag>();
             if (tag.IsAugmentProcDamage) return;
 
-            if (Main.rand.NextFloat() > 0.20f) return;
+            if (!RollFortuneChance(player, ProcChance)) return;
 
             // Only upgrade non-piercing projectiles (penetrate == 1).
             // Leave infinite-pierce (-1) and already-piercing (> 1) untouched.

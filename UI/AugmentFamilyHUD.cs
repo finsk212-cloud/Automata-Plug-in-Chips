@@ -1247,43 +1247,104 @@ namespace Augments
 			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, countText, new Vector2(numX, numY), countColor, 0f, Vector2.Zero, numScale);
 		}
 
+		private static Texture2D supportShieldActive;
+		private static Texture2D supportShieldInactive;
+
+		// Clean, symmetrical Support Aegis Shield with an embossed Medical Cross in the center
+		private static readonly string[] SupportShieldMask = new string[]
+		{
+			"  ..........  ",
+			" .RRRRRRRRRR. ",
+			".RGGGGGGGGGGD.",
+			".RGGGGooGGGGD.",
+			".RGGGoWWoGGGD.",
+			".RGGGoWWoGGGD.",
+			".RGoWWWWWWoGD.",
+			".RGoWWWWWWoGD.",
+			".RGGGoWWoGGGD.",
+			".RGGGoWWoGGGD.",
+			".RGGGGooGGGGD.",
+			" .RGGGGGGGGD. ",
+			"  .RGGGGGGD.  ",
+			"   .RGGGGD.   ",
+			"    .RGGD.    ",
+			"     ....     ",
+		};
+
+		private static void EnsureSupportTextures()
+		{
+			if (supportShieldActive != null && !supportShieldActive.IsDisposed)
+				return;
+
+			if (Main.graphics?.GraphicsDevice == null)
+				return;
+
+			// Active: Radiant emerald aegis with bright white cross
+			supportShieldActive = CreateSupportShieldTexture(
+				new Color(6, 16, 22, 255),      // Dark crisp outline
+				new Color(185, 255, 220, 255),  // Mint rim bevel
+				new Color(52, 211, 115, 255),   // Vibrant emerald plate fill
+				new Color(28, 140, 72, 255),    // Right shade
+				new Color(8, 28, 18, 255),      // Cross outline
+				Color.White                     // Crisp white cross
+			);
+
+			// Inactive: Subdued sage/slate aegis with soft white cross
+			supportShieldInactive = CreateSupportShieldTexture(
+				new Color(6, 14, 18, 240),      // Dark outline
+				new Color(135, 195, 165, 255),  // Muted rim
+				new Color(50, 145, 95, 255),    // Muted green plate fill
+				new Color(26, 90, 58, 255),     // Right shade
+				new Color(8, 24, 16, 230),      // Cross outline
+				new Color(210, 230, 220, 255)   // Muted white cross
+			);
+		}
+
+		private static Texture2D CreateSupportShieldTexture(Color outline, Color rim, Color plate, Color shade, Color crossOutline, Color crossFill)
+		{
+			int width = 14;
+			int height = 16;
+			Texture2D tex = new Texture2D(Main.graphics.GraphicsDevice, width, height);
+			Color[] data = new Color[width * height];
+
+			for (int y = 0; y < height; y++)
+			{
+				string row = SupportShieldMask[y];
+				for (int x = 0; x < width; x++)
+				{
+					char c = row[x];
+					Color col = Color.Transparent;
+					if (c == '.') col = outline;
+					else if (c == 'R') col = rim;
+					else if (c == 'G') col = plate;
+					else if (c == 'D') col = shade;
+					else if (c == 'o') col = crossOutline;
+					else if (c == 'W') col = crossFill;
+
+					data[y * width + x] = col;
+				}
+			}
+
+			tex.SetData(data);
+			return tex;
+		}
+
 		private static void DrawSupportStanceGraphic(SpriteBatch spriteBatch, int cx, int cy, bool isActive)
 		{
-			Color iconCol = isActive
-				? Color.Lerp(new Color(74, 222, 128), Color.White, 0.25f)
-				: Color.Lerp(new Color(74, 222, 128), new Color(170, 190, 210), 0.40f);
+			EnsureSupportTextures();
 
-			Color outline = new Color(4, 8, 14) * 0.90f;
+			Texture2D tex = isActive ? supportShieldActive : supportShieldInactive;
+			if (tex == null)
+				return;
 
-			// Outer Shield Silhouette (Width 16, Height 18)
-			// Dark contrast outline
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 7, cy - 8, 14, 8), outline);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 6, cy, 12, 4), outline);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 4, cy + 4, 8, 3), outline);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 2, cy + 7, 4, 2), outline);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 1, cy + 9, 2, 1), outline);
+			Vector2 origin = new Vector2(tex.Width * 0.5f, tex.Height * 0.5f);
+			Vector2 drawPos = new Vector2(cx, cy);
 
-			// Shield Body Fill
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 6, cy - 7, 12, 7), iconCol * 0.85f);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 5, cy, 10, 4), iconCol * 0.85f);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 3, cy + 4, 6, 3), iconCol * 0.85f);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 1, cy + 7, 2, 2), iconCol * 0.85f);
+			// 1px clean drop shadow
+			spriteBatch.Draw(tex, drawPos + new Vector2(0f, 1f), null, Color.Black * 0.65f, 0f, origin, 1f, SpriteEffects.None, 0f);
 
-			// Center Support Plus/Cross (Width 10, Height 10, thickness 2)
-			// Cross Outline
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 5, cy - 3, 10, 4), outline);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 2, cy - 6, 4, 10), outline);
-
-			// Cross Fill
-			Color crossCol = isActive ? Color.White : new Color(200, 235, 215);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 4, cy - 2, 8, 2), crossCol);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 1, cy - 5, 2, 8), crossCol);
-
-			if (isActive)
-			{
-				// Brilliant center micro-sparkle
-				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 1, cy - 2, 2, 2), Color.White);
-			}
+			// Razor-sharp foreground shield with bold white cross
+			spriteBatch.Draw(tex, drawPos, null, Color.White, 0f, origin, 1f, SpriteEffects.None, 0f);
 		}
 
 		private static void DrawSupportStanceSlideoutPanel(SpriteBatch spriteBatch, DynamicSpriteFont font, AugmentPlayer ap, Rectangle iconRect, float progress)

@@ -62,7 +62,7 @@ namespace Augments
 		public override void Load()
 		{
 			AugmentDatabase.Load();
-			OpenAugmentListKeybind = KeybindLoader.RegisterKeybind(this, "OpenAugmentList", "OemOpenBrackets");
+			OpenAugmentListKeybind = KeybindLoader.RegisterKeybind(this, "OpenAugmentList", "P");
 			DebugTriggerPopupKeybind = KeybindLoader.RegisterKeybind(this, "DebugTriggerPopup", "OemCloseBrackets");
 			DebugSpawnVendorKeybind = KeybindLoader.RegisterKeybind(this, "DebugSpawnVendor", "OemSemicolon");
 			DebugToggleShopKeybind = KeybindLoader.RegisterKeybind(this, "DebugToggleShop", "OemQuotes");

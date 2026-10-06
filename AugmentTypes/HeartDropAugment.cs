@@ -9,7 +9,11 @@ namespace Augments
         public override string Id => "heart_drop";
         public override string DisplayName => "Heart Drop";
         public override string Description =>
-            $"While {AugmentText.HP("missing HP")}, enemy kills have {AugmentText.Healing("+10% heart drop chance")}.\n" +
+            $"While {AugmentText.HP("missing HP")}, enemy kills have {AugmentText.Healing("+" + FormatCurrentChance(ExtraHeartDropChance) + " heart drop chance")}.\n" +
+            AugmentText.Note("Vanilla Terraria chance: 8.33%. This augment is additive.");
+
+        public override string GetDetailedDescription(Player player) =>
+            $"While {AugmentText.HP("missing HP")}, enemy kills have {AugmentText.Healing("+" + FormatFortuneChance(ExtraHeartDropChance, player) + " heart drop chance")}.\n" +
             AugmentText.Note("Vanilla Terraria chance: 8.33%. This augment is additive.");
 
         public override AugmentRarity Rarity => AugmentRarity.Common;
@@ -28,7 +32,7 @@ namespace Augments
                 !player.GetModPlayer<AugmentPlayer>().HasAugment("heart_drop"))
                 return;
 
-            if (Main.rand.NextFloat() < ExtraHeartDropChance * effectiveness)
+            if (RollFortuneChance(player, ExtraHeartDropChance * effectiveness))
             {
                 int index = Item.NewItem(target.GetSource_Loot(), target.Hitbox, ItemID.Heart);
                 if (Main.netMode == NetmodeID.Server)

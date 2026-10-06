@@ -67,6 +67,48 @@ namespace Augments
 		public abstract AugmentRarity Rarity { get; }
 		public abstract AugmentClass Class { get; }
 
+		public virtual string GetDetailedDescription(Player player)
+		{
+			return Description;
+		}
+
+		public static float GetFortuneScaledChance(Player player, float baseChance)
+		{
+			if (player == null)
+				return baseChance;
+
+			float fortune = player.GetModPlayer<AugmentPlayer>().TotalFortune;
+			return baseChance * (1f + fortune);
+		}
+
+		public static bool RollFortuneChance(Player player, float baseChance)
+		{
+			float effectiveChance = GetFortuneScaledChance(player, baseChance);
+			return Main.rand.NextFloat() < effectiveChance;
+		}
+
+		public static string FormatCurrentChance(float baseChance)
+		{
+			var ap = Main.LocalPlayer?.GetModPlayer<AugmentPlayer>();
+			float fortune = ap?.TotalFortune ?? 0f;
+			float currentChance = baseChance * (1f + fortune) * 100f;
+			return AugmentText.Trigger($"{currentChance:0.#}% chance");
+		}
+
+		public static string FormatFortuneChance(float baseChance, Player player)
+		{
+			float fortune = player?.GetModPlayer<AugmentPlayer>()?.TotalFortune ?? 0f;
+			float finalChance = baseChance * (1f + fortune);
+			int basePercent = (int)System.Math.Round(baseChance * 100f);
+			int fortunePercent = (int)System.Math.Round(fortune * 100f);
+			string finalPercentStr = (finalChance * 100f).ToString("0.0") + "%";
+
+			if (fortune > 0f)
+				return $"{AugmentText.Trigger(basePercent + "% chance")} [c/94A3B8:({basePercent}% × (1 + {fortunePercent}% Fortune) = {finalPercentStr})]";
+			else
+				return $"{AugmentText.Trigger(basePercent + "% chance")} [c/94A3B8:({basePercent}% × (1 + 0% Fortune) = {basePercent}%)]";
+		}
+
 		// Debug/testing augments are never offered by RollChoices, but can
 		// still be granted directly via the /augment command.
 		public virtual bool IsDebugOnly => false;

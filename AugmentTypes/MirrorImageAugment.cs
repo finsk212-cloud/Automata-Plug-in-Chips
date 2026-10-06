@@ -7,7 +7,11 @@ namespace Augments
         public override string Id => "mirror_image";
         public override string DisplayName => "Mirror Image";
         public override string Description =>
-            $"Incoming hits have a 15% chance to be completely avoided, taking zero damage, " +
+            $"Incoming hits have a {FormatCurrentChance(DodgeChance)} to be completely avoided, taking zero damage, " +
+            $"followed by a brief {AugmentText.Duration("1.33s")} window of invincibility. Applies to any damage source.";
+
+        public override string GetDetailedDescription(Player player) =>
+            $"Incoming hits have a {FormatFortuneChance(DodgeChance, player)} to be completely avoided, taking zero damage, " +
             $"followed by a brief {AugmentText.Duration("1.33s")} window of invincibility. Applies to any damage source.";
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
@@ -24,7 +28,7 @@ namespace Augments
         // trusting it to survive.
         public override bool FreeDodge(Player player, Player.HurtInfo info)
         {
-            bool result = Main.rand.NextFloat() < DodgeChance;
+            bool result = RollFortuneChance(player, DodgeChance);
 
             if (result)
                 player.GetModPlayer<AugmentPlayer>().MirrorImageInvulnTicks = InvulnerabilityTicks;

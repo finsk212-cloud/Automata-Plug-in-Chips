@@ -24,6 +24,21 @@ namespace Augments
             }
         }
 
+        public override string GetDetailedDescription(Player player)
+        {
+            float fortune = player?.GetModPlayer<AugmentPlayer>()?.TotalFortune ?? 0f;
+            int fortunePercent = (int)System.Math.Round(fortune * 100f);
+            float mult = 1f + fortune;
+            int heal = (int)System.Math.Round(HealAmount * mult);
+            int bonusDamage = (int)System.Math.Round(20f * mult);
+
+            return $"Grants {AugmentText.Crit("+5% Fortune")} (World Luck & lucky trigger chance). Crits randomly trigger ONE of four effects (25% chance each, scaled by {fortunePercent}% Fortune):\n" +
+                   $"• {AugmentText.Healing($"heal {heal} HP")} [c/94A3B8:(5 × {mult:0.00})]\n" +
+                   $"• {AugmentText.MovementSpeed("+50% movement speed")}\n" +
+                   $"• {AugmentText.Duration("~1 second")} invincibility\n" +
+                   $"• bonus strike for {AugmentText.BonusDamage($"+{bonusDamage}% damage")} [c/94A3B8:(20% × {mult:0.00})]";
+        }
+
         public override AugmentRarity Rarity => AugmentRarity.Rare;
         public override AugmentClass Class => AugmentClass.Universal;
         public override string FamilyId => AugmentFamilyRegistry.FortuneId;
