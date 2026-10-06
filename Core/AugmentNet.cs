@@ -9,8 +9,9 @@ namespace Augments
 {
 	internal static class AugmentNet
 	{
-		// DEBUG COMMANDS - remove or restrict before public release.
-		public static readonly bool EnableDebugCommandsInMultiplayer = true;
+		// Debug commands, dev keybinds and the dev-mode chip editor are off unless
+		// the (server-side) EnableDeveloperTools config option is ticked.
+		public static bool EnableDebugCommandsInMultiplayer => AugmentServerConfig.Instance?.EnableDeveloperTools == true;
 
 		private sealed class PendingReward
 		{
@@ -152,7 +153,7 @@ namespace Augments
 
 		public static void SendDebugRewardRequest()
 		{
-			if (Main.netMode != NetmodeID.MultiplayerClient)
+			if (Main.netMode != NetmodeID.MultiplayerClient || !EnableDebugCommandsInMultiplayer)
 				return;
 
 			ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
@@ -362,7 +363,7 @@ namespace Augments
 
 		private static void HandleDebugRewardRequest(int whoAmI)
 		{
-			if (Main.netMode != NetmodeID.Server || whoAmI < 0 || whoAmI >= Main.maxPlayers)
+			if (Main.netMode != NetmodeID.Server || !EnableDebugCommandsInMultiplayer || whoAmI < 0 || whoAmI >= Main.maxPlayers)
 				return;
 
 			Player player = Main.player[whoAmI];
@@ -421,7 +422,7 @@ namespace Augments
 
 		public static bool ApplyDebugCommand(Player player, DebugAugmentCommandType command, string augmentId = "")
 		{
-			if (Main.netMode == NetmodeID.MultiplayerClient || player == null || !player.active)
+			if (Main.netMode == NetmodeID.MultiplayerClient || player == null || !player.active || !EnableDebugCommandsInMultiplayer)
 				return false;
 
 			AugmentPlayer augmentPlayer = player.GetModPlayer<AugmentPlayer>();

@@ -1347,7 +1347,8 @@ namespace Augments
 			// Debug: pop the reward choice UI without killing a boss. Endgame
 			// is hardcoded since it's the bracket that can roll all 4
 			// rarities via fallback, which is most useful for testing.
-			if (Augments.DebugTriggerPopupKeybind.JustPressed)
+			bool devTools = AugmentNet.EnableDebugCommandsInMultiplayer;
+			if (devTools && Augments.DebugTriggerPopupKeybind.JustPressed)
 			{
 				if (Main.netMode == NetmodeID.SinglePlayer)
 				AugmentRewardLogic.GrantReward(Player, RarityBracket.FinalCalamity);
@@ -1359,7 +1360,7 @@ namespace Augments
 			// CanTownNPCSpawn entirely (that check only gates the automatic
 			// town-relocation system, not a direct NewNPC call) - lets us
 			// test the NPC without needing a house or Skeletron downed.
-			if (Augments.DebugSpawnVendorKeybind.JustPressed)
+			if (devTools && Augments.DebugSpawnVendorKeybind.JustPressed)
 			{
 				AugmentNet.RequestVendorSpawn(Player);
 			}
@@ -1367,10 +1368,10 @@ namespace Augments
 			// Debug: open the vendor shop panel directly, ahead of it being
 			// wired to the NPC's chat button - lets the panel be tested on
 			// its own before that wiring happens.
-			if (Augments.DebugToggleShopKeybind.JustPressed)
+			if (devTools && Augments.DebugToggleShopKeybind.JustPressed)
 				ModContent.GetInstance<AugmentUISystem>().ToggleShop();
 
-			if (Augments.ResetCooldownsKeybind?.JustPressed == true)
+			if (devTools && Augments.ResetCooldownsKeybind?.JustPressed == true)
 			{
 				ResetAllCooldowns();
 				SoundEngine.PlaySound(SoundID.MaxMana, Player.Center);
