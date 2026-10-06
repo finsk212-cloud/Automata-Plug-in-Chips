@@ -1,3 +1,5 @@
 displayName = Automata: Plug-in Chips
 author = Finsk
 version = 1.2.1
+
+buildIgnore = art/*, CHANGELOG.md, .claude/*
