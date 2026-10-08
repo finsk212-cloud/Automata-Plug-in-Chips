@@ -25,6 +25,8 @@ namespace Augments
         public int SourceMinionProjectileIdentity = -1;
 
         public string SourceAugmentId;
+        // Name of the weapon that fired this projectile (local only, used by the DPS panel).
+        public string SourceItemName;
         public string SourceProtocolId;
 
         public override void SendExtraAI(Projectile projectile, BitWriter bitWriter, BinaryWriter binaryWriter)

@@ -1444,7 +1444,7 @@ namespace Augments
 				else if (item.CountsAsClass(DamageClass.Generic) || item.DamageType == DamageClass.Generic)
 					wClass = AugmentClass.Universal;
 
-				AugmentDamageTracker.RecordWeaponHit(item.Name, damageDone, hit.Crit, wClass);
+				AugmentDamageTracker.RecordWeaponHit(item.Name, ApplyChipContributions(damageDone, hit.Crit), hit.Crit, wClass);
 			}
 
 			if (item.CountsAsClass(DamageClass.Melee))
@@ -1513,7 +1513,13 @@ namespace Augments
 				}
 				else
 				{
-					string weaponName = Player.HeldItem != null && !Player.HeldItem.IsAir ? Player.HeldItem.Name : proj.Name;
+					// Credit the weapon that fired the projectile. Only fall back to the held
+					// item when it is a real weapon (not ammo, a torch or a placeable like a dummy).
+					Item held = Player.HeldItem;
+					bool heldIsWeapon = held != null && !held.IsAir && held.damage > 0 && held.ammo == 0 && !held.consumable;
+					string weaponName = !string.IsNullOrEmpty(tag.SourceItemName) ? tag.SourceItemName
+						: heldIsWeapon ? held.Name
+						: proj.Name;
 					AugmentClass wClass = AugmentClass.Universal;
 					if (proj.CountsAsClass(DamageClass.Melee) || proj.DamageType == DamageClass.Melee)
 						wClass = AugmentClass.Melee;
@@ -1524,7 +1530,7 @@ namespace Augments
 					else if (proj.CountsAsClass(DamageClass.Summon) || proj.DamageType == DamageClass.Summon || proj.CountsAsClass(DamageClass.SummonMeleeSpeed))
 						wClass = AugmentClass.Summon;
 
-					AugmentDamageTracker.RecordWeaponHit(weaponName, damageDone, hit.Crit, wClass);
+					AugmentDamageTracker.RecordWeaponHit(weaponName, ApplyChipContributions(damageDone, hit.Crit), hit.Crit, wClass);
 				}
 			}
 
@@ -1570,11 +1576,42 @@ namespace Augments
 		}
 
 
+		// Per-hit record of how much extra damage each chip added in its Modify hook,
+		// so the DPS panel can credit stat-boost chips instead of only the weapon.
+		private readonly List<(Augment aug, int delta)> pendingChipContributions = new();
+		private int pendingContributionBaseline;
+
+		// Returns the damage left for the weapon after crediting each chip's share.
+		private int ApplyChipContributions(int damageDone, bool crit)
+		{
+			int remaining = damageDone;
+			int total = 0;
+			foreach (var c in pendingChipContributions)
+				total += c.delta;
+
+			if (total > 0 && damageDone > 0)
+			{
+				int denominator = Math.Max(pendingContributionBaseline, total);
+				foreach (var c in pendingChipContributions)
+				{
+					int share = (int)((long)damageDone * c.delta / denominator);
+					if (share <= 0)
+						continue;
+					AugmentDamageTracker.RecordChipHit(c.aug, share, crit);
+					remaining -= share;
+				}
+			}
+
+			pendingChipContributions.Clear();
+			return Math.Max(0, remaining);
+		}
+
 		// Fires BEFORE a melee hit is finalized - lets augments boost the
 		// actual damage of the hit via modifiers.FlatBonusDamage.
 		public override void ModifyHitNPCWithItem(Item item, NPC target, ref NPC.HitModifiers modifiers)
 		{
 			CurrentHitOnHitDamage = 0;
+			pendingChipContributions.Clear();
 
 			if (AugmentListUIState.IsDevCritMode)
 				modifiers.SetCrit();
@@ -1595,13 +1632,26 @@ namespace Augments
 			ApplyHivemindFlatDamage(target, ref modifiers);
 			ApplyMarksmanArmorPenetration(target, item.CountsAsClass(DamageClass.Ranged) || item.DamageType == DamageClass.Ranged, ref modifiers);
 
+			bool trackContrib = Player.whoAmI == Main.myPlayer;
+			float baseDmg = Math.Max(1, item.damage);
 			foreach (var a in Owned)
+			{
+				int before = trackContrib ? modifiers.GetDamage(baseDmg, false) : 0;
 				a.ModifyHitNPCWithItem(Player, item, target, ref modifiers, AugmentHitSource.NormalAttack);
+				if (trackContrib)
+				{
+					int delta = modifiers.GetDamage(baseDmg, false) - before;
+					if (delta > 0)
+						pendingChipContributions.Add((a, delta));
+				}
+			}
+			pendingContributionBaseline = trackContrib ? modifiers.GetDamage(baseDmg, false) : 0;
 		}
 
 		public override void ModifyHitNPCWithProj(Projectile proj, NPC target, ref NPC.HitModifiers modifiers)
 		{
 			CurrentHitOnHitDamage = 0;
+			pendingChipContributions.Clear();
 
 			if (AugmentListUIState.IsDevCritMode)
 				modifiers.SetCrit();
@@ -1640,8 +1690,20 @@ namespace Augments
 			AugmentHitSource source = tag.IsAugmentProcDamage ? AugmentHitSource.AugmentProc : AugmentHitSource.NormalAttack;
 			float effectiveness = tag.IsAugmentProcDamage ? MathHelper.Clamp(tag.OnHitEffectiveness, 0f, 1f) : 1f;
 
+			bool trackContrib = Player.whoAmI == Main.myPlayer;
+			float baseDmg = Math.Max(1, proj.damage);
 			foreach (var a in Owned)
+			{
+				int before = trackContrib ? modifiers.GetDamage(baseDmg, false) : 0;
 				a.ModifyHitNPCWithProj(Player, proj, target, ref modifiers, source, effectiveness);
+				if (trackContrib)
+				{
+					int delta = modifiers.GetDamage(baseDmg, false) - before;
+					if (delta > 0)
+						pendingChipContributions.Add((a, delta));
+				}
+			}
+			pendingContributionBaseline = trackContrib ? modifiers.GetDamage(baseDmg, false) : 0;
 		}
 
 		public override void ModifyShootStats(Item item, ref Vector2 position, ref Vector2 velocity, ref int type, ref int damage, ref float knockback)

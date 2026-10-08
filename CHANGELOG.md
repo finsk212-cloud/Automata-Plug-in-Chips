@@ -166,7 +166,7 @@
     - **Scrollable List**: Smooth mouse wheel scrolling with dynamic scroll thumb indicator.
     - **Visual Percentage Bars**: Color-coded progress bars reflect each plugin's percentage of total damage output or damage blocked using plugin rarity palette colors.
     - **Detailed Tooltips**: Hovering over any record displays total hits, critical strike count, crit rate percentage, max hit, and total damage blocked with block count.
-  - **Tracking Fixes**: Vengeance, Inferno's Heart, Volatile Rounds, Twin Strike, Wild Card, Bulwark and Type-D Dreadnought shockwave damage is now counted under the right chip. Arcane Singularity, Eldritch Covenant and War God's Tempo damage is no longer misattributed to your held weapon. A paused feed is automatically resumed when you enter a world.
+  - **Tracking Fixes**: Vengeance, Inferno's Heart, Volatile Rounds, Twin Strike, Wild Card, Bulwark and Type-D Dreadnought shockwave damage is now counted under the right chip. Arcane Singularity, Eldritch Covenant and War God's Tempo damage is no longer misattributed to your held weapon. A paused feed is automatically resumed when you enter a world. Minion, sentry and projectile hits are now credited to the weapon that fired them instead of whatever you were holding (no more Torch, Silver Bullet or Target Dummy listed as weapons), and stat-boost chips now show the bonus damage they add to your hits, which is taken out of the weapon's row.
 
 ---
 

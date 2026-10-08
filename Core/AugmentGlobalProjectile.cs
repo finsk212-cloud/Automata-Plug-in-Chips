@@ -9,6 +9,11 @@ namespace Augments
 		public override void OnSpawn(Projectile projectile, IEntitySource source)
 		{
 			AugmentProjectileTag projectileTag = projectile.GetGlobalProjectile<AugmentProjectileTag>();
+
+			// Remember which weapon fired this so the DPS panel credits the real weapon
+			// instead of whatever the player is holding when the hit lands.
+			if (source is EntitySource_ItemUse weaponSource && weaponSource.Item != null && !weaponSource.Item.IsAir)
+				projectileTag.SourceItemName = weaponSource.Item.Name;
 			if (projectile.minion)
 			{
 				projectileTag.SourceMinionProjectileType = projectile.type;
@@ -21,6 +26,13 @@ namespace Augments
 			if (source is EntitySource_Parent parentSource && parentSource.Entity is Projectile parentProjectile)
 			{
 				AugmentProjectileTag parentTag = parentProjectile.GetGlobalProjectile<AugmentProjectileTag>();
+				if (projectileTag.SourceItemName == null)
+					projectileTag.SourceItemName = parentTag.SourceItemName;
+				if (parentTag.IsAugmentProcDamage)
+				{
+					projectileTag.SourceAugmentId ??= parentTag.SourceAugmentId;
+					projectileTag.SourceProtocolId ??= parentTag.SourceProtocolId;
+				}
 				if (parentTag.SourceMinionProjectileType >= 0)
 				{
 					projectileTag.SourceMinionProjectileType = parentTag.SourceMinionProjectileType;
