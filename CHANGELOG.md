@@ -135,6 +135,7 @@
   - Fixed bullet sprite orientation from rendering perpendicular (vertical bar) to horizontal, pointing directly forward along the flight velocity.
   - Added glowing neon purple tracer trails (`PreDraw` afterimages), luminous in-flight particles (`DustID.PurpleTorch` + `DustID.GemAmethyst`), and metallic deflection sounds/spark bursts when ricocheting off enemies.
 - **Pod 042 Advisory Tip Settings**: New client config options (`Settings > Mod Configuration > Automata Configuration`) to turn automatic Pod 042 tips off and to choose how often they appear (1-30 minutes, default 7). The TIP button and hotkey still work when automatic tips are off.
+- **Mistress 2B Reacts to the World**: Her dialogue now responds to the situation: time of day and weather, Blood Moon and Eclipse, the biome you are standing in, boss progression, your health, and how many chip slots you have filled. She still has her idle lines too.
 
 ---
 
