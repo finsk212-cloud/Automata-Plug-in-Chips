@@ -19,6 +19,7 @@ namespace Augments
         {
             AugmentProjectileTag tag = Projectile.GetGlobalProjectile<AugmentProjectileTag>();
             tag.IsAugmentProcDamage = true;
+            tag.SourceAugmentId = "eldritch_covenant";
             tag.CanTriggerOnHitAugments = false;
 
             Projectile.width = 2;

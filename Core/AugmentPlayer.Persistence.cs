@@ -173,6 +173,8 @@ namespace Augments
 		public override void OnEnterWorld()
 		{
 			DamagedBossesThisFight.Clear();
+			// A Pause clicked in an earlier session would otherwise silently drop every hit.
+			AugmentDamageTracker.IsPaused = false;
 			// Push our disk-loaded owned list to the server FIRST so it has the
 			// correct state before it replies to RequestAugmentSync. Packets on the
 			// same connection are processed in order, so this arrives before the

@@ -97,7 +97,10 @@ namespace Augments
                     ap.WildCardInvulnTicks = ScaleHitEffect((int)System.MathF.Round(InvulnerabilityTicks * fortuneMult));
                     break;
                 case 3:
-                    target.SimpleStrikeNPC(ScaleHitEffect((int)(hit.Damage * BonusStrikeDamagePercent * fortuneMult)), player.direction);
+                    int bonusStrike = ScaleHitEffect((int)(hit.Damage * BonusStrikeDamagePercent * fortuneMult));
+                    target.SimpleStrikeNPC(bonusStrike, player.direction);
+                    if (player.whoAmI == Main.myPlayer)
+                        AugmentDamageTracker.RecordChipHit("wild_card", bonusStrike, false);
                     break;
             }
         }

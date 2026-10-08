@@ -106,6 +106,8 @@ namespace Augments
 
                         int hitDirection = dir.X >= 0f ? 1 : -1;
                         npc.SimpleStrikeNPC(shockwaveDamage, hitDirection, false, 8.5f, DamageClass.Generic, false);
+                        if (player.whoAmI == Main.myPlayer)
+                            AugmentDamageTracker.RecordChipHit("bulwark", shockwaveDamage, false);
                     }
                 }
             }

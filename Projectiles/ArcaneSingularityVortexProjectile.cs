@@ -16,7 +16,9 @@ namespace Augments
 
         public override void SetDefaults()
         {
-            Projectile.GetGlobalProjectile<AugmentProjectileTag>().IsAugmentProcDamage = true;
+            AugmentProjectileTag tag = Projectile.GetGlobalProjectile<AugmentProjectileTag>();
+            tag.IsAugmentProcDamage = true;
+            tag.SourceAugmentId = "arcane_singularity";
             Projectile.width = (int)(DamageRadius * 2f);
             Projectile.height = (int)(DamageRadius * 2f);
             Projectile.friendly = true;

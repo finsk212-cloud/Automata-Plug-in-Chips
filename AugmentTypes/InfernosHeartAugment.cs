@@ -1,5 +1,6 @@
 using Terraria;
 using Terraria.ModLoader;
+using Augments.Core;
 
 namespace Augments
 {
@@ -58,7 +59,7 @@ namespace Augments
             ap.InfernosHeartResetTimer = ResetWindowTicks;
 
             if (triggers)
-                Burst(target);
+                Burst(player, target);
         }
 
         public override void OnUpdate(Player player)
@@ -75,7 +76,7 @@ namespace Augments
         // Uncapped nearby-enemy search - same shape as
         // TimeWarpAugment.SlowNearbyTargets, just dealing damage instead of
         // applying a slow.
-        private static void Burst(NPC origin)
+        private static void Burst(Player player, NPC origin)
         {
             foreach (NPC npc in Main.npc)
             {
@@ -86,6 +87,8 @@ namespace Augments
                 {
                     int direction = npc.Center.X >= origin.Center.X ? 1 : -1;
                     npc.SimpleStrikeNPC(BurstDamage, direction);
+                    if (player.whoAmI == Main.myPlayer)
+                        AugmentDamageTracker.RecordChipHit("infernos_heart", BurstDamage, false);
                 }
             }
         }

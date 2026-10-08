@@ -19,6 +19,7 @@ namespace Augments
         {
             AugmentProjectileTag tag = Projectile.GetGlobalProjectile<AugmentProjectileTag>();
             tag.IsAugmentProcDamage = true;
+            tag.SourceAugmentId = "war_gods_tempo";
             tag.CanTriggerOnHitAugments = false;
 
             Projectile.width = 2;

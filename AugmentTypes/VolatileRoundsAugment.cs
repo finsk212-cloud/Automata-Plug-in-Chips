@@ -1,6 +1,7 @@
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Augments.Core;
 
 namespace Augments
 {
@@ -44,13 +45,13 @@ namespace Augments
         public override void OnHitNPCWithItem(Player player, Item item, NPC target, NPC.HitInfo hit)
         {
             if (item.DamageType == DamageClass.Ranged && HasDamagingDot(target))
-                Explode(target, hit.Damage, HitEffectiveness);
+                Explode(player, target, hit.Damage, HitEffectiveness);
         }
 
         public override void OnHitNPCWithProj(Player player, Projectile proj, NPC target, NPC.HitInfo hit)
         {
             if (proj.DamageType == DamageClass.Ranged && HasDamagingDot(target))
-                Explode(target, hit.Damage, HitEffectiveness);
+                Explode(player, target, hit.Damage, HitEffectiveness);
         }
 
         private static bool HasDamagingDot(NPC target)
@@ -70,7 +71,7 @@ namespace Augments
         // Same uncapped nearby-enemy search shape as ChainLightningAugment/
         // TimeWarpAugment, dealing a flat fraction of the triggering hit's
         // damage to everything in range (including the original target).
-        private static void Explode(NPC origin, int hitDamage, float effectiveness)
+        private static void Explode(Player player, NPC origin, int hitDamage, float effectiveness)
         {
             int damage = System.Math.Max(1, (int)(hitDamage * ExplosionDamagePercent * effectiveness));
 
@@ -83,6 +84,8 @@ namespace Augments
                 {
                     int direction = npc.Center.X >= origin.Center.X ? 1 : -1;
                     npc.SimpleStrikeNPC(damage, direction);
+                    if (player.whoAmI == Main.myPlayer)
+                        AugmentDamageTracker.RecordChipHit("volatile_rounds", damage, false);
                 }
             }
         }

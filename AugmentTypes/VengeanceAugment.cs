@@ -1,5 +1,6 @@
 using Terraria;
 using Terraria.ModLoader;
+using Augments.Core;
 
 namespace Augments
 {
@@ -19,6 +20,8 @@ namespace Augments
         public override void OnHitByNPC(Player player, NPC npc, Player.HurtInfo hurtInfo)
         {
             npc.SimpleStrikeNPC(RetaliationDamage, player.direction);
+            if (player.whoAmI == Main.myPlayer)
+                AugmentDamageTracker.RecordChipHit("vengeance", RetaliationDamage, false);
         }
     }
 }

@@ -4,6 +4,7 @@ using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Augments.Core;
 
 namespace Augments
 {
@@ -126,6 +127,8 @@ namespace Augments
 
                 direction.Normalize();
                 npc.SimpleStrikeNPC(ShockwaveDamage, direction.X >= 0f ? 1 : -1, false, ShockwaveKnockback, DamageClass.Generic, false);
+                if (player.whoAmI == Main.myPlayer)
+                    AugmentDamageTracker.RecordChipHit("type_d_dreadnought_protocol", ShockwaveDamage, false);
             }
         }
 
