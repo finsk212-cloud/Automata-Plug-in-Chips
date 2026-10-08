@@ -315,10 +315,49 @@ namespace Augments
 				CalculatedStyle dims = GetDimensions();
 				Texture2D pixel = TextureAssets.MagicPixel.Value;
 				Color divColor = new Color(30, 41, 59) * 0.90f;
+				Rectangle bRect = dims.ToRectangle();
+
+				// Inner 1px hairline highlight
+				Color innerHairline = Color.White * 0.05f;
+				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Y + 1, bRect.Width - 2, 1), innerHairline);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Bottom - 2, bRect.Width - 2, 1), innerHairline);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Y + 1, 1, bRect.Height - 2), innerHairline);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - 2, bRect.Y + 1, 1, bRect.Height - 2), innerHairline);
+
+				// Flush corner accent notches
+				Color cornerAccent = new Color(56, 189, 248) * 0.70f;
+				const int clen = 5;
+				const int cthk = 2;
+				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Y + 1, clen, cthk), cornerAccent);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Y + 1, cthk, clen), cornerAccent);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - clen - 1, bRect.Y + 1, clen, cthk), cornerAccent);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - cthk - 1, bRect.Y + 1, cthk, clen), cornerAccent);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Bottom - cthk - 1, clen, cthk), cornerAccent);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Bottom - clen - 1, cthk, clen), cornerAccent);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - clen - 1, bRect.Bottom - cthk - 1, clen, cthk), cornerAccent);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - cthk - 1, bRect.Bottom - clen - 1, cthk, clen), cornerAccent);
+
+				// Faint radar watermark
+				Vector2 center = new Vector2(bRect.X + bRect.Width * 0.5f, bRect.Y + bRect.Height * 0.58f);
+				Color watermarkCol = new Color(56, 189, 248) * 0.04f;
+				foreach (float radius in new[] { 60f, 130f, 200f })
+				{
+					const int segments = 36;
+					for (int i = 0; i < segments; i++)
+					{
+						float angle = MathHelper.TwoPi * i / segments;
+						spriteBatch.Draw(pixel, new Rectangle((int)(center.X + Math.Cos(angle) * radius), (int)(center.Y + Math.Sin(angle) * radius), 2, 2), watermarkCol);
+					}
+				}
+				spriteBatch.Draw(pixel, new Rectangle((int)center.X - 210, (int)center.Y, 420, 1), watermarkCol);
+				spriteBatch.Draw(pixel, new Rectangle((int)center.X, (int)center.Y - 210, 1, 420), watermarkCol);
 
 				// Header horizontal divider under subtitle
 				int divY1 = (int)dims.Y + 66;
 				spriteBatch.Draw(pixel, new Rectangle((int)dims.X + 18, divY1, (int)dims.Width - 36, 1), divColor);
+				int nodeX = bRect.X + bRect.Width / 2;
+				spriteBatch.Draw(pixel, new Rectangle(nodeX - 1, divY1 - 1, 3, 3), new Color(56, 189, 248) * 0.85f);
+				spriteBatch.Draw(pixel, new Rectangle(nodeX, divY1, 1, 1), Color.White * 0.9f);
 
 				// Column headers horizontal divider under headers
 				int divY2 = (int)dims.Y + 120;
