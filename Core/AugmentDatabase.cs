@@ -139,6 +139,7 @@ namespace Augments
             Register(new GlassSightAugment());
             Register(new SharpenedFocusAugment());
             Register(new SuperchargerAugment());
+            Register(new AutopilotAugment());
         }
 
         private static void Register(Augment augment)
