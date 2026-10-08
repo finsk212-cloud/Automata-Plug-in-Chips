@@ -74,6 +74,7 @@ namespace Augments
 
 		private const float PanelWidth = 880f;
 		private const float PanelHeight = 600f;
+		private readonly UIParticleSystem listParticles = new UIParticleSystem(70);
 		private const int SlotsPerRow = 6;
 		private const float SlotWidth = 74f;
 		private const float SlotHeight = 84f;
@@ -91,6 +92,18 @@ namespace Augments
 			{
 				Main.LocalPlayer.mouseInterface = true;
 			}
+
+			listParticles.Update();
+			if (backPanel != null && Main.rand.NextBool(8))
+			{
+				CalculatedStyle pdims = backPanel.GetDimensions();
+				if (pdims.Width > 0)
+				{
+					Rectangle prect = new Rectangle((int)pdims.X, (int)pdims.Y, (int)pdims.Width, (int)pdims.Height);
+					Color emberCol = Main.rand.NextBool(3) ? new Color(0, 220, 255) : new Color(60, 140, 240);
+					listParticles.SpawnAmbient(prect, emberCol, 1.8f);
+				}
+			}
 		}
 
 		public override void OnDeactivate()
@@ -102,15 +115,15 @@ namespace Augments
 
 		public override void OnInitialize()
 		{
-			// Main Background Panel (Classic Terraria slate-blue panel)
-			backPanel = new UIPanel();
+			// Main Background Panel (dark cybernetic style shared with the other panels)
+			backPanel = new PluginsBackPanel();
 			backPanel.Width.Set(PanelWidth, 0f);
 			backPanel.Height.Set(PanelHeight, 0f);
 			backPanel.HAlign = 0.5f;
 			backPanel.VAlign = 0.5f;
 			backPanel.SetPadding(0f);
-			backPanel.BackgroundColor = new Color(28, 38, 70) * 0.96f;
-			backPanel.BorderColor = new Color(14, 20, 42);
+			backPanel.BackgroundColor = new Color(10, 16, 28, 250);
+			backPanel.BorderColor = new Color(30, 41, 59);
 
 			// Title Header & Secret Dev Badge
 			UIElement titleContainer = new UIElement();
@@ -123,7 +136,7 @@ namespace Augments
 			{
 				HAlign = 0.44f,
 				VAlign = 0.5f,
-				TextColor = new Color(255, 235, 175)
+				TextColor = new Color(248, 250, 252)
 			};
 			titleContainer.Append(title);
 
@@ -199,6 +212,7 @@ namespace Augments
 		public override void Draw(SpriteBatch spriteBatch)
 		{
 			base.Draw(spriteBatch);
+			listParticles.Draw(spriteBatch);
 			AugmentChoiceCard.DrawActiveTooltip(spriteBatch);
 		}
 
@@ -1550,6 +1564,60 @@ namespace Augments
 		}
 
 		// Close button (cybernetic chassis)
+		private class PluginsBackPanel : UIPanel
+		{
+			protected override void DrawSelf(SpriteBatch spriteBatch)
+			{
+				base.DrawSelf(spriteBatch);
+
+				CalculatedStyle dims = GetDimensions();
+				Texture2D pixel = TextureAssets.MagicPixel.Value;
+				Rectangle bRect = dims.ToRectangle();
+
+				// Inner 1px hairline highlight
+				Color innerHairline = Color.White * 0.05f;
+				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Y + 1, bRect.Width - 2, 1), innerHairline);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Bottom - 2, bRect.Width - 2, 1), innerHairline);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Y + 1, 1, bRect.Height - 2), innerHairline);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - 2, bRect.Y + 1, 1, bRect.Height - 2), innerHairline);
+
+				// Flush corner accent notches
+				Color cornerAccent = new Color(56, 189, 248) * 0.70f;
+				const int clen = 5;
+				const int cthk = 2;
+				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Y + 1, clen, cthk), cornerAccent);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Y + 1, cthk, clen), cornerAccent);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - clen - 1, bRect.Y + 1, clen, cthk), cornerAccent);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - cthk - 1, bRect.Y + 1, cthk, clen), cornerAccent);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Bottom - cthk - 1, clen, cthk), cornerAccent);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Bottom - clen - 1, cthk, clen), cornerAccent);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - clen - 1, bRect.Bottom - cthk - 1, clen, cthk), cornerAccent);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - cthk - 1, bRect.Bottom - clen - 1, cthk, clen), cornerAccent);
+
+				// Header divider between the tab row and the grid
+				int divY = bRect.Y + 69;
+				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 18, divY, bRect.Width - 36, 1), new Color(30, 41, 59) * 0.90f);
+				int midX = bRect.X + bRect.Width / 2;
+				spriteBatch.Draw(pixel, new Rectangle(midX - 1, divY - 1, 3, 3), new Color(56, 189, 248) * 0.85f);
+				spriteBatch.Draw(pixel, new Rectangle(midX, divY, 1, 1), Color.White * 0.9f);
+
+				// Faint radar watermark
+				Vector2 center = new Vector2(bRect.X + bRect.Width * 0.5f, bRect.Y + bRect.Height * 0.55f);
+				Color watermarkCol = new Color(56, 189, 248) * 0.04f;
+				foreach (float radius in new[] { 60f, 130f, 200f })
+				{
+					const int segments = 36;
+					for (int i = 0; i < segments; i++)
+					{
+						float angle = MathHelper.TwoPi * i / segments;
+						spriteBatch.Draw(pixel, new Rectangle((int)(center.X + Math.Cos(angle) * radius), (int)(center.Y + Math.Sin(angle) * radius), 2, 2), watermarkCol);
+					}
+				}
+				spriteBatch.Draw(pixel, new Rectangle((int)center.X - 210, (int)center.Y, 420, 1), watermarkCol);
+				spriteBatch.Draw(pixel, new Rectangle((int)center.X, (int)center.Y - 210, 1, 420), watermarkCol);
+			}
+		}
+
 		private class CloseButton : UIElement
 		{
 			public event Action Clicked;
