@@ -9,9 +9,11 @@ namespace Augments
 {
 	internal static class AugmentNet
 	{
-		// Debug commands, dev keybinds and the dev-mode chip editor are off unless
-		// the (server-side) EnableDeveloperTools config option is ticked.
-		public static bool EnableDebugCommandsInMultiplayer => AugmentServerConfig.Instance?.EnableDeveloperTools == true;
+		// Debug commands, dev keybinds and the dev-mode chip editor are always available
+		// in singleplayer (only the local player is affected). In multiplayer they stay
+		// off unless the (server-side) EnableDeveloperTools config option is ticked.
+		public static bool EnableDebugCommandsInMultiplayer =>
+			Main.netMode == NetmodeID.SinglePlayer || AugmentServerConfig.Instance?.EnableDeveloperTools == true;
 
 		private sealed class PendingReward
 		{

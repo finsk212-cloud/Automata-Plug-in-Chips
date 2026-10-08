@@ -31,7 +31,7 @@ To update later, run `git pull` in that folder and Build + Reload again.
 
 ## Developer tools
 
-The `/augment` command, the dev-mode chip editor and the dev keybinds are off by default. To use them, enable **Settings → Mod Configuration → Automata Server Configuration → Enable Developer Tools**. Leave it off on public servers, because it lets any player grant themselves chips.
+The `/augment` command, the dev-mode chip editor and the dev keybinds are always available in singleplayer. In multiplayer they are off by default; to use them, enable **Settings → Mod Configuration → Automata Server Configuration → Enable Developer Tools**. Leave it off on public servers, because it lets any player grant themselves chips.
 
 | Command | Does |
 |---|---|

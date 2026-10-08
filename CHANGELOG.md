@@ -171,8 +171,8 @@
 ---
 
 ### 7. Security & Stability
-- **Developer Tools Locked by Default**:
-  - The `/augment` command, the secret dev-mode chip editor, the dev keybinds (trigger reward, spawn vendor, open shop, reset cooldowns) and the debug network packets now require the new server-side **Enable Developer Tools** option (`Settings > Mod Configuration > Automata Server Configuration`), which is **off** by default.
+- **Developer Tools Locked in Multiplayer**:
+  - The `/augment` command, the secret dev-mode chip editor, the dev keybinds (trigger reward, spawn vendor, open shop, reset cooldowns) and the debug network packets now require the new server-side **Enable Developer Tools** option (`Settings > Mod Configuration > Automata Server Configuration`), which is **off** by default. Singleplayer is unaffected, so the dev tools always work there.
   - Fixes a hole where any player on a multiplayer server could grant themselves plug-in chips.
 - **Save & Load Hardening**:
   - A failing chip can no longer abort a character save or load; the error is logged and that chip's extra data falls back to defaults.
