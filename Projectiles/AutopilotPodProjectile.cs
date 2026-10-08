@@ -184,6 +184,20 @@ namespace Augments
             return false;
         }
 
+        // Draws a line of an exact pixel length and thickness regardless of the
+        // size of the shared 'magic pixel' texture.
+        private static void DrawLine(Texture2D pixel, Vector2 screenStart, float rotation, float length, float thickness, Color color)
+        {
+            Vector2 scale = new Vector2(length / pixel.Width, thickness / pixel.Height);
+            Main.EntitySpriteDraw(pixel, screenStart, null, color, rotation, new Vector2(0f, pixel.Height * 0.5f), scale, SpriteEffects.None, 0);
+        }
+
+        private static void DrawDot(Texture2D pixel, Vector2 screenCenter, float size, Color color)
+        {
+            Vector2 scale = new Vector2(size / pixel.Width, size / pixel.Height);
+            Main.EntitySpriteDraw(pixel, screenCenter, null, color, 0f, pixel.Size() * 0.5f, scale, SpriteEffects.None, 0);
+        }
+
         private void DrawWire()
         {
             Texture2D pixel = TextureAssets.MagicPixel.Value;
@@ -207,23 +221,23 @@ namespace Augments
                     float rot = diff.ToRotation();
                     Vector2 screen = previous - Main.screenPosition;
                     // Dark casing underneath, bright core on top.
-                    Main.EntitySpriteDraw(pixel, screen, null, new Color(14, 70, 38), rot, new Vector2(0f, 0.5f), new Vector2(length + 1f, 3f), SpriteEffects.None, 0);
-                    Main.EntitySpriteDraw(pixel, screen, null, new Color(80, 255, 140), rot, new Vector2(0f, 0.5f), new Vector2(length + 1f, 1.5f), SpriteEffects.None, 0);
+                    DrawLine(pixel, screen, rot, length + 1f, 3f, new Color(14, 70, 38));
+                    DrawLine(pixel, screen, rot, length + 1f, 1.5f, new Color(80, 255, 140));
                 }
                 previous = point;
             }
 
             // Plug at the loose end.
             Vector2 plug = end - Main.screenPosition;
-            Main.EntitySpriteDraw(pixel, plug, null, new Color(14, 70, 38), 0f, new Vector2(0.5f), new Vector2(5f, 5f), SpriteEffects.None, 0);
-            Main.EntitySpriteDraw(pixel, plug, null, new Color(150, 255, 190), 0f, new Vector2(0.5f), new Vector2(3f, 3f), SpriteEffects.None, 0);
+            DrawDot(pixel, plug, 5f, new Color(14, 70, 38));
+            DrawDot(pixel, plug, 3f, new Color(150, 255, 190));
 
             // A bright pulse travels down the wire on every heal tick.
             if (targetIndex >= 0)
             {
                 float u = (Projectile.localAI[0] % HealIntervalTicks) / HealIntervalTicks;
                 Vector2 spark = QuadBezier(start, control, end, u) - Main.screenPosition;
-                Main.EntitySpriteDraw(pixel, spark, null, new Color(210, 255, 225), 0f, new Vector2(0.5f), new Vector2(4f, 4f), SpriteEffects.None, 0);
+                DrawDot(pixel, spark, 4f, new Color(210, 255, 225));
             }
         }
 

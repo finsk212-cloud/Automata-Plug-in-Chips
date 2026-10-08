@@ -14,7 +14,11 @@ namespace Augments
         public override string Id => ChipId;
         public override string DisplayName => "Autopilot";
         public override string Description =>
-            $"A Pod drone follows you and heals the lowest-health nearby player for {AugmentText.Healing("5 HP")} per second, {AugmentText.Healing("1 HP")} at a time. Never heals NPCs.";
+            $"Pod 153 drone follows you and heals the lowest-health nearby player for {AugmentText.Healing("5 HP")} per second.";
+
+        public override string GetDetailedDescription(Player player) =>
+            Description + "\n" +
+            "[c/94A3B8:(Heals 1 HP every 0.2s. Doesn't heal NPCs.)]";
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Support;
