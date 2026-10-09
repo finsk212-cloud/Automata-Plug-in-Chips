@@ -184,18 +184,13 @@ namespace Augments
             return false;
         }
 
-        // Draws a line of an exact pixel length and thickness regardless of the
-        // size of the shared 'magic pixel' texture.
-        private static void DrawLine(Texture2D pixel, Vector2 screenStart, float rotation, float length, float thickness, Color color)
+        // Everything below is drawn as plain pixel-sized rectangles (no rotation
+        // or texture scaling), the same way the rest of the mod's UI draws, so it
+        // renders at exact sizes whatever the shared pixel texture's dimensions.
+        private static void DrawSquare(Texture2D pixel, Vector2 worldCenter, int size, Color color)
         {
-            Vector2 scale = new Vector2(length / pixel.Width, thickness / pixel.Height);
-            Main.EntitySpriteDraw(pixel, screenStart, null, color, rotation, new Vector2(0f, pixel.Height * 0.5f), scale, SpriteEffects.None, 0);
-        }
-
-        private static void DrawDot(Texture2D pixel, Vector2 screenCenter, float size, Color color)
-        {
-            Vector2 scale = new Vector2(size / pixel.Width, size / pixel.Height);
-            Main.EntitySpriteDraw(pixel, screenCenter, null, color, 0f, pixel.Size() * 0.5f, scale, SpriteEffects.None, 0);
+            Vector2 screen = worldCenter - Main.screenPosition;
+            Main.spriteBatch.Draw(pixel, new Rectangle((int)MathF.Round(screen.X - size * 0.5f), (int)MathF.Round(screen.Y - size * 0.5f), size, size), color);
         }
 
         private void DrawWire()
@@ -205,39 +200,28 @@ namespace Augments
             Vector2 end = wireEnd;
 
             float distance = Vector2.Distance(start, end);
+            if (distance > 1500f)
+                return;
+
             float sag = MathHelper.Clamp(distance * 0.35f, 10f, 70f);
             Vector2 control = (start + end) * 0.5f + new Vector2(0f, sag);
 
-            int segments = Math.Max(10, (int)(distance / 8f));
-            Vector2 previous = start;
-            for (int i = 1; i <= segments; i++)
-            {
-                float u = i / (float)segments;
-                Vector2 point = QuadBezier(start, control, end, u);
-                Vector2 diff = point - previous;
-                float length = diff.Length();
-                if (length > 0.01f)
-                {
-                    float rot = diff.ToRotation();
-                    Vector2 screen = previous - Main.screenPosition;
-                    // Dark casing underneath, bright core on top.
-                    DrawLine(pixel, screen, rot, length + 1f, 3f, new Color(14, 70, 38));
-                    DrawLine(pixel, screen, rot, length + 1f, 1.5f, new Color(80, 255, 140));
-                }
-                previous = point;
-            }
+            // Dense samples along the curve; dark casing first, bright core on top.
+            int samples = Math.Clamp((int)(distance * 0.9f) + 8, 8, 600);
+            for (int i = 0; i <= samples; i++)
+                DrawSquare(pixel, QuadBezier(start, control, end, i / (float)samples), 3, new Color(14, 70, 38));
+            for (int i = 0; i <= samples; i++)
+                DrawSquare(pixel, QuadBezier(start, control, end, i / (float)samples), 2, new Color(80, 255, 140));
 
             // Plug at the loose end.
-            Vector2 plug = end - Main.screenPosition;
-            DrawDot(pixel, plug, 5f, new Color(14, 70, 38));
-            DrawDot(pixel, plug, 3f, new Color(150, 255, 190));
+            DrawSquare(pixel, end, 5, new Color(14, 70, 38));
+            DrawSquare(pixel, end, 3, new Color(150, 255, 190));
 
             // A bright pulse travels down the wire on every heal tick.
             if (targetIndex >= 0)
             {
                 float u = (Projectile.localAI[0] % HealIntervalTicks) / HealIntervalTicks;
-                Vector2 spark = QuadBezier(start, control, end, u) - Main.screenPosition;
-                DrawDot(pixel, spark, 4f, new Color(210, 255, 225));
+                DrawSquare(pixel, QuadBezier(start, control, end, u), 4, new Color(210, 255, 225));
             }
         }
 
