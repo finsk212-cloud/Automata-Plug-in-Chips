@@ -177,12 +177,13 @@ namespace Augments
 
 			// 3. Border (Rarity colored, with Epic/Legendary custom effects)
 			Color borderColor = rarityColor;
-			int borderWidth = 1;
+			// 2px so the edge survives non-integer UI scaling and list clipping (1px lines vanished between corners)
+			int borderWidth = 2;
 
 			if (IsSelected)
 			{
 				borderColor = new Color(255, 220, 80);
-				borderWidth = 2;
+				borderWidth = 3;
 			}
 			else if (Augment.Rarity == AugmentRarity.Rare)
 			{
@@ -208,16 +209,16 @@ namespace Augments
 			}
 
 			// Draw 4 border lines
-			Color finalBorderCol = borderColor * (isHovered ? 0.90f : 0.65f);
+			Color finalBorderCol = borderColor * (isHovered ? 1.0f : 0.85f);
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X, rect.Y, rect.Width, borderWidth), finalBorderCol);
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X, rect.Bottom - borderWidth, rect.Width, borderWidth), finalBorderCol);
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X, rect.Y, borderWidth, rect.Height), finalBorderCol);
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.Right - borderWidth, rect.Y, borderWidth, rect.Height), finalBorderCol);
 
 			// Corner accent notches: clean and flush inside tile bounds on all corners
-			const int cLen = 5;
-			const int cThick = 2;
-			Color cornerCol = IsSelected 
+			const int cLen = 7;
+			const int cThick = 3;
+			Color cornerCol = IsSelected
 				? new Color(255, 220, 80) 
 				: (isHovered ? Color.Lerp(borderColor, Color.White, 0.35f) : borderColor * 0.90f);
 
