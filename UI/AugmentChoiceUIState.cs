@@ -448,13 +448,16 @@ namespace Augments
 
 		private void HandleRerollClicked()
 		{
-			if (rerollPending || rerollCount >= 2)
+			// Dev mode: unlimited free rerolls (local rolls only; the server still enforces limits in multiplayer)
+			bool devFree = AugmentListUIState.IsDevMode && !networkReward;
+
+			if (rerollPending || (!devFree && rerollCount >= 2))
 				return;
 
 			var player = Main.LocalPlayer;
 			int essenceType = ModContent.ItemType<AugmentEssenceItem>();
 
-			if (rerollCount == 1)
+			if (!devFree && rerollCount == 1)
 			{
 				if (player.CountItem(essenceType) < 4)
 				{
@@ -482,13 +485,16 @@ namespace Augments
 				return;
 			}
 
-			if (rerollCount == 1)
+			if (!devFree)
 			{
-				for (int i = 0; i < 4; i++)
-					player.ConsumeItem(essenceType);
-			}
+				if (rerollCount == 1)
+				{
+					for (int i = 0; i < 4; i++)
+						player.ConsumeItem(essenceType);
+				}
 
-			rerollCount++;
+				rerollCount++;
+			}
 
 			currentRarity = newRarity;
 			SoundEngine.PlaySound(SoundID.Item37);
@@ -501,6 +507,12 @@ namespace Augments
 			if (rerollPending)
 			{
 				rerollButton.SetEnabled(false, "Rerolling...");
+				return;
+			}
+
+			if (AugmentListUIState.IsDevMode && !networkReward)
+			{
+				rerollButton.SetEnabled(true, "Reroll (Dev: Free)");
 				return;
 			}
 
