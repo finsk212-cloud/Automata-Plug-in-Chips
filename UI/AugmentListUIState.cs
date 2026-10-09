@@ -299,9 +299,9 @@ namespace Augments
 			{
 				int slot = i;
 				var btn = new CodexFilterButton("", 0.72f);
-				btn.Left.Set(556f + i * 104f, 0f);
+				btn.Left.Set(574f + i * 98f, 0f);
 				btn.Top.Set(556f, 0f);
-				btn.Width.Set(98f, 0f);
+				btn.Width.Set(92f, 0f);
 				btn.Height.Set(28f, 0f);
 				btn.Clicked += () => OnLoadoutClicked(slot);
 				loadoutButtons[i] = btn;
@@ -353,13 +353,13 @@ namespace Augments
 			devBarContainer = new UIElement();
 			devBarContainer.Left.Set(18f, 0f);
 			devBarContainer.Top.Set(556f, 0f);
-			devBarContainer.Width.Set(518f, 0f);
+			devBarContainer.Width.Set(540f, 0f);
 			devBarContainer.Height.Set(28f, 0f);
 
 			var clearAllBtn = new CodexFilterButton("Clear All", 0.72f);
 			clearAllBtn.Left.Set(0f, 0f);
 			clearAllBtn.Top.Set(0f, 0f);
-			clearAllBtn.Width.Set(86f, 0f);
+			clearAllBtn.Width.Set(70f, 0f);
 			clearAllBtn.Height.Set(26f, 0f);
 			clearAllBtn.CustomActiveBorder = new Color(255, 100, 100);
 			clearAllBtn.Clicked += () =>
@@ -378,9 +378,9 @@ namespace Augments
 			devBarContainer.Append(clearAllBtn);
 
 			var resetCdsBtn = new CodexFilterButton("Reset CDs", 0.72f);
-			resetCdsBtn.Left.Set(90f, 0f);
+			resetCdsBtn.Left.Set(74f, 0f);
 			resetCdsBtn.Top.Set(0f, 0f);
-			resetCdsBtn.Width.Set(94f, 0f);
+			resetCdsBtn.Width.Set(80f, 0f);
 			resetCdsBtn.Height.Set(26f, 0f);
 			resetCdsBtn.CustomActiveBorder = new Color(100, 220, 255);
 			resetCdsBtn.Clicked += () =>
@@ -392,9 +392,9 @@ namespace Augments
 			devBarContainer.Append(resetCdsBtn);
 
 			critToggleBtn = new CodexFilterButton(IsDevCritMode ? "Crit: ON" : "100% Crit", 0.72f);
-			critToggleBtn.Left.Set(188f, 0f);
+			critToggleBtn.Left.Set(158f, 0f);
 			critToggleBtn.Top.Set(0f, 0f);
-			critToggleBtn.Width.Set(100f, 0f);
+			critToggleBtn.Width.Set(96f, 0f);
 			critToggleBtn.Height.Set(26f, 0f);
 			critToggleBtn.CustomActiveBorder = new Color(255, 140, 40);
 			critToggleBtn.CustomActiveBg = new Color(80, 30, 20);
@@ -413,9 +413,9 @@ namespace Augments
 			devBarContainer.Append(critToggleBtn);
 
 			var spawnDummyBtn = new CodexFilterButton("Spawn Dummy", 0.72f);
-			spawnDummyBtn.Left.Set(292f, 0f);
+			spawnDummyBtn.Left.Set(258f, 0f);
 			spawnDummyBtn.Top.Set(0f, 0f);
-			spawnDummyBtn.Width.Set(108f, 0f);
+			spawnDummyBtn.Width.Set(100f, 0f);
 			spawnDummyBtn.Height.Set(26f, 0f);
 			spawnDummyBtn.CustomActiveBorder = new Color(120, 255, 120);
 			spawnDummyBtn.Clicked += () =>
@@ -476,9 +476,9 @@ namespace Augments
 			devBarContainer.Append(spawnDummyBtn);
 
 			var testRollBtn = new CodexFilterButton("Test Roll", 0.72f);
-			testRollBtn.Left.Set(404f, 0f);
+			testRollBtn.Left.Set(362f, 0f);
 			testRollBtn.Top.Set(0f, 0f);
-			testRollBtn.Width.Set(111f, 0f);
+			testRollBtn.Width.Set(84f, 0f);
 			testRollBtn.Height.Set(26f, 0f);
 			testRollBtn.CustomActiveBorder = new Color(255, 215, 80);
 			testRollBtn.Clicked += () =>
@@ -494,9 +494,9 @@ namespace Augments
 			devBarContainer.Append(testRollBtn);
 
 			var spawnVendorBtn = new CodexFilterButton("2B Vendor", 0.72f);
-			spawnVendorBtn.Left.Set(519f, 0f);
+			spawnVendorBtn.Left.Set(450f, 0f);
 			spawnVendorBtn.Top.Set(0f, 0f);
-			spawnVendorBtn.Width.Set(108f, 0f);
+			spawnVendorBtn.Width.Set(90f, 0f);
 			spawnVendorBtn.Height.Set(26f, 0f);
 			spawnVendorBtn.CustomActiveBorder = new Color(255, 160, 210);
 			spawnVendorBtn.Clicked += () =>
@@ -575,16 +575,6 @@ namespace Augments
 				if (devBarContainer != null && backPanel.HasChild(devBarContainer))
 					backPanel.RemoveChild(devBarContainer);
 			}
-
-			// The dev bar needs the full row, so in dev mode the loadout buttons drop onto their own row below it.
-			float devExtra = IsDevMode ? 34f : 0f;
-			backPanel.Height.Set(PanelHeight + devExtra, 0f);
-			gridList?.Height.Set(-125f - devExtra, 1f);
-			gridScrollbar?.Height.Set(-125f - devExtra, 1f);
-			detailPanel?.Height.Set(-125f - devExtra, 1f);
-			foreach (var lb in loadoutButtons)
-				lb?.Top.Set(556f + devExtra, 0f);
-			backPanel.Recalculate();
 
 			if (selectedAugment != null && detailPanel != null)
 			{
