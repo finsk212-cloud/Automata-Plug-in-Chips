@@ -99,6 +99,8 @@ namespace Augments
 
 			if (changed && Main.netMode == NetmodeID.Server)
 				AugmentNet.SendSyncPlayer(Player);
+			else if (changed && Main.netMode == NetmodeID.SinglePlayer)
+				ModContent.GetInstance<AugmentUISystem>()?.RefreshOpenPlayerPanels();
 			return changed;
 		}
 

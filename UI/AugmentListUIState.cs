@@ -52,6 +52,7 @@ namespace Augments
 		private string searchQuery = "";
 
 		private UIElement devBarContainer;
+		private readonly CodexFilterButton[] loadoutButtons = new CodexFilterButton[AugmentPlayer.MaxLoadouts];
 		private DevBadgeElement devBadge;
 		private CodexFilterButton critToggleBtn;
 		private int titleClickCount = 0;
@@ -206,6 +207,8 @@ namespace Augments
 			if (IsDevMode)
 				backPanel.Append(devBarContainer);
 
+			CreateLoadoutBar();
+
 			Append(backPanel);
 		}
 
@@ -287,6 +290,60 @@ namespace Augments
 			filterPanel.Top.Set(68f, 0f);
 			filterPanel.Width.Set(320f, 0f);
 			filterPanel.Height.Set(330f, 0f);
+		}
+
+		// Bottom-right: three loadout apply buttons under the detail panel.
+		private void CreateLoadoutBar()
+		{
+			for (int i = 0; i < AugmentPlayer.MaxLoadouts; i++)
+			{
+				int slot = i;
+				var btn = new CodexFilterButton("", 0.72f);
+				btn.Left.Set(556f + i * 104f, 0f);
+				btn.Top.Set(556f, 0f);
+				btn.Width.Set(98f, 0f);
+				btn.Height.Set(28f, 0f);
+				btn.Clicked += () => OnLoadoutClicked(slot);
+				loadoutButtons[i] = btn;
+				backPanel.Append(btn);
+			}
+		}
+
+		private void OnLoadoutClicked(int slot)
+		{
+			var ap = Main.LocalPlayer.GetModPlayer<AugmentPlayer>();
+			if (slot >= ap.LoadoutSlotsUnlocked)
+			{
+				Main.NewText($"Loadout {slot + 1} is locked. Unlock it at Mistress 2B.", 255, 200, 120);
+				return;
+			}
+			if (ap.GetLoadout(slot).Count == 0)
+			{
+				Main.NewText($"Loadout {slot + 1} is empty. Save it at Mistress 2B.", 255, 200, 120);
+				return;
+			}
+			string reason = ap.GetLoadoutLockReason();
+			if (reason != null)
+			{
+				Main.NewText(reason, 255, 140, 140);
+				return;
+			}
+			ap.RequestLoadoutOp(LoadoutOp.ApplyLoadout, slot);
+		}
+
+		private void UpdateLoadoutButtons()
+		{
+			if (loadoutButtons[0] == null)
+				return;
+
+			var ap = Main.LocalPlayer.GetModPlayer<AugmentPlayer>();
+			for (int i = 0; i < AugmentPlayer.MaxLoadouts; i++)
+			{
+				bool unlocked = i < ap.LoadoutSlotsUnlocked;
+				bool hasData = unlocked && ap.GetLoadout(i).Count > 0;
+				loadoutButtons[i].SetText(!unlocked ? $"{i + 1} · Locked" : hasData ? $"Loadout {i + 1}" : $"{i + 1} · Empty");
+				loadoutButtons[i].IsActiveHighlight = hasData && ap.ActiveLoadout == i;
+			}
 		}
 
 		private void CreateDevBarControls()
@@ -742,6 +799,7 @@ namespace Augments
 
 			UpdateDevModeVisuals();
 			UpdateFilterControlStates();
+			UpdateLoadoutButtons();
 			PopulateGrid();
 
 			if (selectedAugment == null)
