@@ -490,9 +490,9 @@ namespace Augments
 				}
 
 				if (isKeystone)
-					specialTagRect = DrawPillBadge(spriteBatch, font, rect, ySpecial, KeystoneTagText, KeystoneTagColor, Color.Transparent);
+					specialTagRect = DrawAlertTextBadge(spriteBatch, font, rect, ySpecial, KeystoneTagText, KeystoneTagColor);
 				else if (isSupport)
-					specialTagRect = DrawPillBadge(spriteBatch, font, rect, ySpecial, SupportTagText, SupportTagColor, Color.Transparent);
+					specialTagRect = DrawProtocolTextBadge(spriteBatch, font, rect, ySpecial, SupportTagText, SupportTagColor);
 			}
 			else if (hasFamily)
 			{
@@ -508,9 +508,9 @@ namespace Augments
 			{
 				int ySpecial = rect.Bottom - 60;
 				if (isKeystone)
-					specialTagRect = DrawPillBadge(spriteBatch, font, rect, ySpecial, KeystoneTagText, KeystoneTagColor, Color.Transparent);
+					specialTagRect = DrawAlertTextBadge(spriteBatch, font, rect, ySpecial, KeystoneTagText, KeystoneTagColor);
 				else if (isSupport)
-					specialTagRect = DrawPillBadge(spriteBatch, font, rect, ySpecial, SupportTagText, SupportTagColor, Color.Transparent);
+					specialTagRect = DrawProtocolTextBadge(spriteBatch, font, rect, ySpecial, SupportTagText, SupportTagColor);
 			}
 		}
 
@@ -544,6 +544,48 @@ namespace Augments
 				Vector2.Zero,
 				scale
 			);
+
+			return hitRect;
+		}
+
+		// Same flat text style as the protocol tag, but flagged as permanent with a pulsing
+		// colour and diamond markers + hairlines either side.
+		private Rectangle DrawAlertTextBadge(SpriteBatch spriteBatch, DynamicSpriteFont font, Rectangle cardRect, int y, string text, Color alertColor)
+		{
+			Vector2 scale = new Vector2(0.66f);
+			Vector2 textSize = ChatManager.GetStringSize(font, text, scale);
+			float maxTextWidth = cardRect.Width - 56f;
+			if (textSize.X > maxTextWidth)
+			{
+				scale *= maxTextWidth / textSize.X;
+				textSize = ChatManager.GetStringSize(font, text, scale);
+			}
+
+			int textX = cardRect.X + (int)((cardRect.Width - textSize.X) * 0.5f);
+			int textY = y;
+			Rectangle hitRect = new Rectangle(textX - 22, textY - 2, (int)textSize.X + 44, (int)textSize.Y + 4);
+			bool hovered = hitRect.Contains(Main.MouseScreen.ToPoint());
+
+			float pulse = 0.5f + 0.5f * (float)Math.Sin(Main.GlobalTimeWrappedHourly * 3.2f);
+			Color baseColor = hovered ? Color.Lerp(alertColor, Color.White, 0.45f) : Color.Lerp(alertColor * 0.85f, Color.White, 0.18f * pulse);
+			Color markColor = Color.Lerp(alertColor * 0.7f, alertColor, pulse);
+
+			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text, new Vector2(textX, textY), baseColor, 0f, Vector2.Zero, scale);
+
+			Texture2D pixel = TextureAssets.MagicPixel.Value;
+			int midY = textY + (int)(textSize.Y * 0.5f) + 1;
+			int leftCx = textX - 9;
+			int rightCx = textX + (int)textSize.X + 9;
+			foreach (int cx in new[] { leftCx, rightCx })
+			{
+				// 5px diamond
+				spriteBatch.Draw(pixel, new Rectangle(cx, midY - 2, 1, 5), markColor);
+				spriteBatch.Draw(pixel, new Rectangle(cx - 1, midY - 1, 3, 3), markColor);
+				spriteBatch.Draw(pixel, new Rectangle(cx - 2, midY, 5, 1), markColor);
+			}
+			int lineLen = Math.Max(0, Math.Min(18, (textX - 14) - (cardRect.X + 10)));
+			spriteBatch.Draw(pixel, new Rectangle(leftCx - 6 - lineLen, midY, lineLen, 1), alertColor * 0.35f);
+			spriteBatch.Draw(pixel, new Rectangle(rightCx + 6, midY, lineLen, 1), alertColor * 0.35f);
 
 			return hitRect;
 		}
