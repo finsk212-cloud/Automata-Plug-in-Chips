@@ -898,7 +898,7 @@ namespace Augments
 				if (isHovered)
 				{
 					// Subtle soft red hover wash, NO harsh outline box
-					spriteBatch.Draw(pixel, rect, new Color(239, 68, 68, 35));
+					spriteBatch.Draw(pixel, rect, new Color(239, 68, 68) * 0.14f);
 				}
 
 				var font = FontAssets.MouseText.Value;

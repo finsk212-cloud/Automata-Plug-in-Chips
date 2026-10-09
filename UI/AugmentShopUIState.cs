@@ -349,7 +349,6 @@ namespace Augments
 					continue;
 
 				var stashEntry = new AugmentShopEntry(stashed, "Install (Free)", InstallStashed);
-				stashEntry.Width.Set(0f, 1f);
 				stashEntry.Height.Set(54f, 0f);
 				buyBackList.Add(stashEntry);
 				buyBackCount++;
@@ -362,7 +361,6 @@ namespace Augments
 
 				int buyBackCost = AugmentPlayer.GetBuyBackCost(augment.Rarity);
 				var entry = new AugmentShopEntry(augment, $"Buy ({buyBackCost} Core{(buyBackCost > 1 ? "s" : "")})", BuyBack);
-				entry.Width.Set(0f, 1f);
 				entry.Height.Set(54f, 0f);
 				buyBackList.Add(entry);
 				buyBackCount++;
@@ -393,7 +391,6 @@ namespace Augments
 					string label = removeRefund > 0 ? $"Remove (+{removeRefund} Core{(removeRefund > 1 ? "s" : "")})" : "Remove (Free)";
 					entry = new AugmentShopEntry(augment, label, SellOwned, "Stash (Free)", StashOwned);
 				}
-				entry.Width.Set(0f, 1f);
 				entry.Height.Set(54f, 0f);
 				removeList.Add(entry);
 				removeCount++;
@@ -881,7 +878,7 @@ namespace Augments
 				if (isHovered)
 				{
 					// Subtle soft red hover wash, NO harsh outline box
-					spriteBatch.Draw(pixel, rect, new Color(239, 68, 68, 35));
+					spriteBatch.Draw(pixel, rect, new Color(239, 68, 68) * 0.14f);
 				}
 
 				var font = FontAssets.MouseText.Value;

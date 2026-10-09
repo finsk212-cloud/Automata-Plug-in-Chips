@@ -267,7 +267,7 @@ namespace Augments
 				// Soft ambient hover wash — ZERO outline boxes or border lines
 				if (isHovered && !disabled)
 				{
-					Color washColor = neutral ? new Color(56, 189, 248, 35) : isBuy ? new Color(34, 197, 94, 35) : new Color(239, 68, 68, 35);
+					Color washColor = neutral ? new Color(56, 189, 248) * 0.14f : isBuy ? new Color(34, 197, 94) * 0.14f : new Color(239, 68, 68) * 0.14f;
 					spriteBatch.Draw(pixel, rect, washColor);
 				}
 
