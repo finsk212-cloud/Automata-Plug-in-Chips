@@ -1468,7 +1468,7 @@ namespace Augments
 				// 8. Cooldown footer displayed at bottom of card with clean telemetry layout
 				if (!string.IsNullOrEmpty(cooldownText))
 				{
-					float cdY = dims.Y + dims.Height - 38f;
+					float cdY = dims.Y + dims.Height - 54f;
 					// Subtle divider line
 					spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle((int)x, (int)(cdY - 6f), (int)maxTextWidth, 1), new Color(56, 189, 248) * 0.35f);
 
