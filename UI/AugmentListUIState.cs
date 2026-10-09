@@ -576,6 +576,13 @@ namespace Augments
 					backPanel.RemoveChild(devBarContainer);
 			}
 
+			// The dev bar needs the full row, so in dev mode the loadout buttons drop onto their own row below it.
+			float devExtra = IsDevMode ? 34f : 0f;
+			backPanel.Height.Set(PanelHeight + devExtra, 0f);
+			foreach (var lb in loadoutButtons)
+				lb?.Top.Set(556f + devExtra, 0f);
+			backPanel.Recalculate();
+
 			if (selectedAugment != null && detailPanel != null)
 			{
 				bool isOwned = Main.LocalPlayer.GetModPlayer<AugmentPlayer>().HasAugment(selectedAugment.Id);
