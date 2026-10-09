@@ -534,6 +534,7 @@ namespace Augments
 			bool isTagHovered = hitRect.Contains(Main.MouseScreen.ToPoint());
 			Color drawColor = isTagHovered ? Color.Lerp(themeColor, Color.White, 0.45f) : themeColor;
 
+			DrawTagDivider(spriteBatch, cardRect, textY + (int)(textSize.Y * 0.5f) + 1, themeColor, 0f);
 			ChatManager.DrawColorCodedStringWithShadow(
 				spriteBatch,
 				font,
@@ -545,11 +546,10 @@ namespace Augments
 				scale
 			);
 
-			DrawTagDivider(spriteBatch, cardRect, textY + (int)textSize.Y + 1, themeColor, 0f);
 			return hitRect;
 		}
 
-		// Continuous hairline across the card just below the tag text, with one orb in the middle.
+		// Continuous hairline across the card through the middle of the tag row, behind the text, with one orb in the middle.
 		// glow > 0 adds a soft halo around the orb (used by the permanent Core Override tag).
 		private static void DrawTagDivider(SpriteBatch spriteBatch, Rectangle cardRect, int lineY, Color color, float glow)
 		{
@@ -584,9 +584,9 @@ namespace Augments
 			Color baseColor = hovered ? Color.Lerp(alertColor, Color.White, 0.45f) : Color.Lerp(alertColor * 0.85f, Color.White, 0.18f * pulse);
 			Color markColor = Color.Lerp(alertColor * 0.7f, alertColor, pulse);
 
+			DrawTagDivider(spriteBatch, cardRect, textY + (int)(textSize.Y * 0.5f) + 1, markColor, pulse);
 			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text, new Vector2(textX, textY), baseColor, 0f, Vector2.Zero, scale);
 
-			DrawTagDivider(spriteBatch, cardRect, textY + (int)textSize.Y + 1, markColor, pulse);
 
 			return hitRect;
 		}
