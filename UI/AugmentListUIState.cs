@@ -1479,7 +1479,7 @@ namespace Augments
 				}
 
 				// 9. 50% alpha text under card preview: "Hold [Ctrl] for detailed view"
-				float hintY = dims.Y + dims.Height - 16f;
+				float hintY = dims.Y + dims.Height - 28f;
 				string hintText = isCtrlDown ? "Release [Ctrl] for standard view" : "Hold [Ctrl] for detailed view";
 				Color hintColor = isCtrlDown ? new Color(250, 204, 21) * 0.75f : Color.White * 0.50f;
 				Vector2 hintSize = ChatManager.GetStringSize(font, hintText, new Vector2(0.68f));
