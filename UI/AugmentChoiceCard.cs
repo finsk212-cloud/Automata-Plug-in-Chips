@@ -545,11 +545,11 @@ namespace Augments
 				scale
 			);
 
-			DrawTagDivider(spriteBatch, cardRect, textY - 4, themeColor, 0f);
+			DrawTagDivider(spriteBatch, cardRect, textY + (int)textSize.Y + 1, themeColor, 0f);
 			return hitRect;
 		}
 
-		// Continuous hairline across the card just above the tag text, with one orb in the middle.
+		// Continuous hairline across the card just below the tag text, with one orb in the middle.
 		// glow > 0 adds a soft halo around the orb (used by the permanent Core Override tag).
 		private static void DrawTagDivider(SpriteBatch spriteBatch, Rectangle cardRect, int lineY, Color color, float glow)
 		{
@@ -586,7 +586,7 @@ namespace Augments
 
 			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text, new Vector2(textX, textY), baseColor, 0f, Vector2.Zero, scale);
 
-			DrawTagDivider(spriteBatch, cardRect, textY - 4, markColor, pulse);
+			DrawTagDivider(spriteBatch, cardRect, textY + (int)textSize.Y + 1, markColor, pulse);
 
 			return hitRect;
 		}
