@@ -33,9 +33,9 @@ namespace Augments
 			this.isPermanent = onAction == null;
 
 			SetPadding(0f);
-			// Extra right margin so the 1px border isn't clipped by the list's scissor rect.
-			Left.Set(2f, 0f);
-			Width.Set(-8f, 1f);
+			// Fixed width inside the 356px shop lists, with an even margin each side so all four border edges stay inside the scissor rect.
+			Left.Set(4f, 0f);
+			Width.Set(344f, 0f);
 			Height.Set(54f, 0f);
 
 			bool stacked = secondaryLabel != null && onSecondary != null;
