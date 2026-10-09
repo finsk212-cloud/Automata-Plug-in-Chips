@@ -26,6 +26,7 @@ namespace Augments
 		private ShopTabButton loadoutTabBtn;
 		private UIElement loadoutView;
 		private UIText lockStatusText;
+		private UIText slotInfoText;
 		private readonly LoadoutCard[] loadoutCards = new LoadoutCard[AugmentPlayer.MaxLoadouts];
 		private readonly List<UIElement> storageElements = new List<UIElement>();
 		private bool showLoadouts;
@@ -217,8 +218,13 @@ namespace Augments
 			loadoutView.Height.Set(420f, 0f);
 
 			lockStatusText = new UIText("", 0.78f) { TextColor = new Color(148, 163, 184) };
-			lockStatusText.Top.Set(0f, 0f);
+			lockStatusText.HAlign = 1f;
+			lockStatusText.Top.Set(4f, 0f);
 			loadoutView.Append(lockStatusText);
+
+			slotInfoText = new UIText("", 0.78f) { TextColor = new Color(148, 163, 184) };
+			slotInfoText.Top.Set(4f, 0f);
+			loadoutView.Append(slotInfoText);
 
 			const float cardWidth = 244f;
 			for (int i = 0; i < AugmentPlayer.MaxLoadouts; i++)
@@ -226,18 +232,18 @@ namespace Augments
 				int slot = i;
 				var card = new LoadoutCard(slot, () => SaveLoadoutSlot(slot), () => ApplyLoadoutSlot(slot), () => BuyLoadoutSlot(slot));
 				card.Left.Set(i * (cardWidth + 16f), 0f);
-				card.Top.Set(26f, 0f);
+				card.Top.Set(30f, 0f);
 				card.Width.Set(cardWidth, 0f);
-				card.Height.Set(276f, 0f);
+				card.Height.Set(292f, 0f);
 				loadoutCards[i] = card;
 				loadoutView.Append(card);
 			}
 
-			var help = new UIText("Stashed plugins are kept for free and can be reinstalled at no cost.\nLoadouts swap equipped plugins from your stash. Locked during boss fights\nand briefly after taking damage. Archived plugins are skipped until bought back.\nAssign hotkeys under Settings > Controls > Mod Controls.", 0.74f)
+			var help = new UIText("Swaps use your equipped plugins and your stash. Locked during boss fights and briefly after damage.\nArchived plugins are skipped until bought back. Bind hotkeys in Settings > Controls > Mod Controls.", 0.72f)
 			{
-				TextColor = new Color(130, 145, 175)
+				TextColor = new Color(110, 124, 150)
 			};
-			help.Top.Set(318f, 0f);
+			help.Top.Set(340f, 0f);
 			loadoutView.Append(help);
 		}
 
@@ -417,8 +423,9 @@ namespace Augments
 				return;
 
 			string reason = ap.GetLoadoutLockReason();
-			lockStatusText.SetText(reason ?? "Swaps ready");
+			lockStatusText.SetText("● " + (reason ?? "Swaps ready"));
 			lockStatusText.TextColor = reason == null ? new Color(74, 222, 128) : new Color(248, 180, 100);
+			slotInfoText.SetText($"Slots unlocked: {ap.LoadoutSlotsUnlocked}/{AugmentPlayer.MaxLoadouts}");
 			foreach (var card in loadoutCards)
 				card.Bind(ap);
 		}
@@ -517,7 +524,7 @@ namespace Augments
 			var font = FontAssets.MouseText.Value;
 			Vector2 scale = new Vector2(0.72f);
 			Vector2 size = ChatManager.GetStringSize(font, label, scale);
-			Vector2 pos = new Vector2(rect.X + (rect.Width - size.X) * 0.5f, rect.Y + (rect.Height - size.Y) * 0.5f + 1f);
+			Vector2 pos = new Vector2(rect.X + (rect.Width - size.X) * 0.5f, rect.Y + (rect.Height - size.Y) * 0.5f + 5f);
 			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, label, pos, textColor, 0f, Vector2.Zero, scale);
 		}
 
@@ -618,7 +625,7 @@ namespace Augments
 
 				saveBtn = new ShopButton { Label = "Save current setup" };
 				saveBtn.Left.Set(12f, 0f);
-				saveBtn.Top.Set(190f, 0f);
+				saveBtn.Top.Set(206f, 0f);
 				saveBtn.Width.Set(-24f, 1f);
 				saveBtn.Height.Set(30f, 0f);
 				saveBtn.Clicked += onSave;
@@ -626,7 +633,7 @@ namespace Augments
 
 				applyBtn = new ShopButton { Label = "Apply", Accent = new Color(74, 222, 128) };
 				applyBtn.Left.Set(12f, 0f);
-				applyBtn.Top.Set(228f, 0f);
+				applyBtn.Top.Set(244f, 0f);
 				applyBtn.Width.Set(-24f, 1f);
 				applyBtn.Height.Set(30f, 0f);
 				applyBtn.Clicked += onApply;
@@ -634,7 +641,7 @@ namespace Augments
 
 				buyBtn = new ShopButton { Label = "Unlock", Accent = new Color(250, 204, 21) };
 				buyBtn.Left.Set(12f, 0f);
-				buyBtn.Top.Set(228f, 0f);
+				buyBtn.Top.Set(244f, 0f);
 				buyBtn.Width.Set(-24f, 1f);
 				buyBtn.Height.Set(30f, 0f);
 				buyBtn.Clicked += onBuy;
@@ -692,34 +699,41 @@ namespace Augments
 				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, status, new Vector2(rect.X + 12f, rect.Y + 32f), statusCol, 0f, Vector2.Zero, new Vector2(0.72f));
 				spriteBatch.Draw(pixel, new Rectangle(rect.X + 12, rect.Y + 56, rect.Width - 24, 1), new Color(30, 41, 59));
 
+				// Five slot rows show the capacity; filled rows carry a rarity-colored edge.
+				for (int row = 0; row < 5; row++)
+				{
+					var r = new Rectangle(rect.X + 12, rect.Y + 66 + row * 26, rect.Width - 24, 22);
+					Augment a = unlocked && row < chipIds.Count ? AugmentDatabase.GetById(chipIds[row]) : null;
+					if (a == null)
+					{
+						spriteBatch.Draw(pixel, r, new Color(8, 13, 24) * (unlocked ? 0.9f : 0.6f));
+						Color edge = new Color(22, 32, 50) * (unlocked ? 1f : 0.6f);
+						spriteBatch.Draw(pixel, new Rectangle(r.X, r.Y, r.Width, 1), edge);
+						spriteBatch.Draw(pixel, new Rectangle(r.X, r.Bottom - 1, r.Width, 1), edge);
+						spriteBatch.Draw(pixel, new Rectangle(r.X, r.Y, 1, r.Height), edge);
+						spriteBatch.Draw(pixel, new Rectangle(r.Right - 1, r.Y, 1, r.Height), edge);
+						ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, (row + 1).ToString(), new Vector2(r.X + 9f, r.Y + 5f), new Color(55, 68, 92), 0f, Vector2.Zero, new Vector2(0.68f));
+						continue;
+					}
+
+					bool here = available.Contains(chipIds[row]);
+					Color rc = a.Rarity == AugmentRarity.Common ? new Color(225, 230, 240) : AugmentListEntry.RarityColor(a.Rarity);
+					spriteBatch.Draw(pixel, r, new Color(16, 26, 44) * 0.95f);
+					spriteBatch.Draw(pixel, new Rectangle(r.X, r.Y, 3, r.Height), here ? rc : new Color(70, 82, 104));
+					Color col = here ? rc : new Color(100, 116, 139);
+					string tag = equipped.Contains(chipIds[row]) ? "" : here ? "  (stash)" : "  (archived)";
+					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, a.DisplayName + tag, new Vector2(r.X + 11f, r.Y + 5f), col, 0f, Vector2.Zero, new Vector2(0.72f));
+				}
+
 				if (!unlocked)
 				{
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "Unlock this slot to save a", new Vector2(rect.X + 12f, rect.Y + 70f), new Color(130, 145, 175), 0f, Vector2.Zero, new Vector2(0.74f));
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "plugin setup and swap to it.", new Vector2(rect.X + 12f, rect.Y + 90f), new Color(130, 145, 175), 0f, Vector2.Zero, new Vector2(0.74f));
-					return;
+					Vector2 sz = ChatManager.GetStringSize(font, "Locked slot", new Vector2(0.8f));
+					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "Locked slot", new Vector2(rect.X + (rect.Width - sz.X) * 0.5f, rect.Y + 66f + 52f - sz.Y * 0.5f + 4f), new Color(250, 204, 21) * 0.8f, 0f, Vector2.Zero, new Vector2(0.8f));
 				}
-
-				if (chipIds.Count == 0)
+				else if (chipIds.Count == 0)
 				{
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "Nothing saved yet.", new Vector2(rect.X + 12f, rect.Y + 70f), new Color(130, 145, 175), 0f, Vector2.Zero, new Vector2(0.74f));
-					return;
-				}
-
-				float y = rect.Y + 66f;
-				foreach (string id in chipIds)
-				{
-					Augment a = AugmentDatabase.GetById(id);
-					if (a == null)
-						continue;
-
-					bool here = available.Contains(id);
-					Color rc = AugmentListEntry.RarityColor(a.Rarity);
-					if (a.Rarity == AugmentRarity.Common)
-						rc = new Color(225, 230, 240);
-					Color col = here ? rc : new Color(100, 116, 139);
-					string text = equipped.Contains(id) ? "● " + a.DisplayName : here ? "○ " + a.DisplayName : "✕ " + a.DisplayName;
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text, new Vector2(rect.X + 12f, y), col, 0f, Vector2.Zero, new Vector2(0.74f));
-					y += 22f;
+					Vector2 sz = ChatManager.GetStringSize(font, "Nothing saved yet", new Vector2(0.74f));
+					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "Nothing saved yet", new Vector2(rect.X + (rect.Width - sz.X) * 0.5f, rect.Y + 66f + 52f - sz.Y * 0.5f + 4f), new Color(130, 145, 175), 0f, Vector2.Zero, new Vector2(0.74f));
 				}
 			}
 		}
