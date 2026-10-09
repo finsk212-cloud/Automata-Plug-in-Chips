@@ -139,4 +139,44 @@ namespace Augments
 			}
 		}
 	}
+
+	// Shared scrollbar: track flush with the panels it sits beside.
+	public class PanelScrollbar : UIScrollbar
+	{
+		public PanelScrollbar()
+		{
+			Width.Set(8f, 0f);
+		}
+
+		protected override void DrawSelf(SpriteBatch spriteBatch)
+		{
+			if (!CanScroll)
+				return;
+
+			CalculatedStyle dims = GetDimensions();
+			Rectangle trackRect = new Rectangle((int)dims.X, (int)dims.Y, (int)dims.Width, (int)dims.Height);
+			Texture2D pixel = TextureAssets.MagicPixel.Value;
+			bool hot = IsMouseHovering;
+
+			// Track: flush with the grid/detail panels (same top and bottom edge)
+			spriteBatch.Draw(pixel, trackRect, new Color(10, 16, 32) * 0.92f);
+			Color edge = new Color(30, 41, 59);
+			spriteBatch.Draw(pixel, new Rectangle(trackRect.X, trackRect.Y, 1, trackRect.Height), edge);
+			spriteBatch.Draw(pixel, new Rectangle(trackRect.Right - 1, trackRect.Y, 1, trackRect.Height), edge);
+			spriteBatch.Draw(pixel, new Rectangle(trackRect.X, trackRect.Y, trackRect.Width, 1), edge);
+			spriteBatch.Draw(pixel, new Rectangle(trackRect.X, trackRect.Bottom - 1, trackRect.Width, 1), edge);
+
+			// Handle: same geometry the base class uses for dragging (5px vertical inset)
+			Rectangle inner = GetInnerDimensions().ToRectangle();
+			inner.Y += 5;
+			inner.Height -= 10;
+			float max = Math.Max(MaxViewSize, 1f);
+			int handleH = Math.Max(16, (int)(inner.Height * (ViewSize / max)));
+			int handleY = inner.Y + (int)(inner.Height * (ViewPosition / max));
+			handleY = Math.Min(handleY, inner.Bottom - handleH);
+			var handle = new Rectangle(trackRect.X + 1, handleY, trackRect.Width - 2, handleH);
+			spriteBatch.Draw(pixel, handle, (hot ? new Color(86, 130, 190) : new Color(52, 82, 130)));
+			spriteBatch.Draw(pixel, new Rectangle(handle.X, handle.Y, handle.Width, 1), new Color(56, 189, 248) * 0.55f);
+		}
+	}
 }

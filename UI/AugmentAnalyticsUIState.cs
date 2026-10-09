@@ -22,7 +22,7 @@ namespace Augments
 	{
 		private AnalyticsBackPanel backPanel;
 		private UIList recordsList;
-		private AnalyticsScrollbar listScrollbar;
+		private PanelScrollbar listScrollbar;
 
 		private UIText dpsValueText;
 		private UIText totalDmgValueText;
@@ -189,7 +189,7 @@ namespace Augments
 			recordsList.ListPadding = 4f;
 			backPanel.Append(recordsList);
 
-			listScrollbar = new AnalyticsScrollbar();
+			listScrollbar = new PanelScrollbar();
 			listScrollbar.Top.Set(listTop, 0f);
 			listScrollbar.Height.Set(listHeight, 0f);
 			listScrollbar.Left.Set(830f, 0f);
@@ -406,30 +406,6 @@ namespace Augments
 						Main.instance.MouseText("Telemetry Feed: LIVE FEED (Online)\nGreen indicator confirms combat damage telemetry is actively recording in real-time.");
 					}
 				}
-			}
-		}
-
-		private class AnalyticsScrollbar : UIScrollbar
-		{
-			public AnalyticsScrollbar()
-			{
-				Width.Set(8f, 0f);
-			}
-
-			protected override void DrawSelf(SpriteBatch spriteBatch)
-			{
-				if (!CanScroll)
-					return;
-
-				CalculatedStyle dims = GetDimensions();
-				Rectangle trackRect = new Rectangle((int)dims.X, (int)dims.Y, (int)dims.Width, (int)dims.Height);
-
-				// Dark sleek cybernetic track backing
-				spriteBatch.Draw(TextureAssets.MagicPixel.Value, trackRect, new Color(10, 16, 32) * 0.92f);
-				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(trackRect.X, trackRect.Y, 1, trackRect.Height), new Color(34, 48, 86) * 0.6f);
-				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(trackRect.Right - 1, trackRect.Y, 1, trackRect.Height), new Color(34, 48, 86) * 0.6f);
-
-				base.DrawSelf(spriteBatch);
 			}
 		}
 

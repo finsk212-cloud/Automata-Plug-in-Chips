@@ -180,7 +180,7 @@ namespace Augments
 			backPanel.Append(gridList);
 
 			// Scrollbar for Grid (Left = 528f, Width = 8f)
-			gridScrollbar = new PluginListScrollbar();
+			gridScrollbar = new PanelScrollbar();
 			gridScrollbar.Top.Set(74f, 0f);
 			gridScrollbar.Height.Set(-125f, 1f);
 			gridScrollbar.Left.Set(528f, 0f);
@@ -1651,30 +1651,6 @@ namespace Augments
 				}
 				spriteBatch.Draw(pixel, new Rectangle((int)center.X - 210, (int)center.Y, 420, 1), watermarkCol);
 				spriteBatch.Draw(pixel, new Rectangle((int)center.X, (int)center.Y - 210, 1, 420), watermarkCol);
-			}
-		}
-
-		private class PluginListScrollbar : UIScrollbar
-		{
-			public PluginListScrollbar()
-			{
-				Width.Set(8f, 0f);
-			}
-
-			protected override void DrawSelf(SpriteBatch spriteBatch)
-			{
-				if (!CanScroll)
-					return;
-
-				CalculatedStyle dims = GetDimensions();
-				Rectangle trackRect = new Rectangle((int)dims.X, (int)dims.Y, (int)dims.Width, (int)dims.Height);
-
-				// Dark sleek cybernetic track backing
-				spriteBatch.Draw(TextureAssets.MagicPixel.Value, trackRect, new Color(10, 16, 32) * 0.92f);
-				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(trackRect.X, trackRect.Y, 1, trackRect.Height), new Color(34, 48, 86) * 0.6f);
-				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(trackRect.Right - 1, trackRect.Y, 1, trackRect.Height), new Color(34, 48, 86) * 0.6f);
-
-				base.DrawSelf(spriteBatch);
 			}
 		}
 

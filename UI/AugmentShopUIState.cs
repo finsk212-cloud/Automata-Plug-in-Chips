@@ -169,7 +169,7 @@ namespace Augments
 			backPanel.Append(buyBackList);
 			storageElements.Add(buyBackList);
 
-			ShopScrollbar buyBackScrollbar = new ShopScrollbar();
+			PanelScrollbar buyBackScrollbar = new PanelScrollbar();
 			buyBackScrollbar.Top.Set(ListsTop, 0f);
 			buyBackScrollbar.Height.Set(-(ListsTop + 14f), 1f);
 			buyBackScrollbar.Left.Set(378f, 0f);
@@ -189,7 +189,7 @@ namespace Augments
 			backPanel.Append(removeList);
 			storageElements.Add(removeList);
 
-			ShopScrollbar removeScrollbar = new ShopScrollbar();
+			PanelScrollbar removeScrollbar = new PanelScrollbar();
 			removeScrollbar.Top.Set(ListsTop, 0f);
 			removeScrollbar.Height.Set(-(ListsTop + 14f), 1f);
 			removeScrollbar.Left.Set(770f, 0f);
@@ -782,30 +782,6 @@ namespace Augments
 		}
 
 		// Modern scrollbar that only renders when the list has enough items to scroll
-		private class ShopScrollbar : UIScrollbar
-		{
-			public ShopScrollbar()
-			{
-				Width.Set(8f, 0f);
-			}
-
-			protected override void DrawSelf(SpriteBatch spriteBatch)
-			{
-				if (!CanScroll)
-					return;
-
-				CalculatedStyle dims = GetDimensions();
-				Rectangle trackRect = new Rectangle((int)dims.X, (int)dims.Y, (int)dims.Width, (int)dims.Height);
-
-				// Dark sleek cybernetic track backing
-				spriteBatch.Draw(TextureAssets.MagicPixel.Value, trackRect, new Color(10, 16, 32) * 0.92f);
-				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(trackRect.X, trackRect.Y, 1, trackRect.Height), new Color(34, 48, 86) * 0.6f);
-				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(trackRect.Right - 1, trackRect.Y, 1, trackRect.Height), new Color(34, 48, 86) * 0.6f);
-
-				base.DrawSelf(spriteBatch);
-			}
-		}
-
 		private class EssenceBadge : UIElement
 		{
 			public EssenceBadge()
