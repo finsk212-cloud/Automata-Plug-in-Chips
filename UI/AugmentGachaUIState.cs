@@ -94,13 +94,12 @@ namespace Augments
 
 		public override void OnInitialize()
 		{
-			backPanel = new UIPanel();
+			backPanel = new GachaBackPanel();
 			backPanel.Width.Set(PanelWidth, 0f);
 			backPanel.Height.Set(PanelHeight, 0f);
 			backPanel.HAlign = 0.5f;
 			backPanel.VAlign = 0.5f;
-			backPanel.BackgroundColor = new Color(14, 18, 32) * 0.98f;
-			backPanel.BorderColor = new Color(42, 68, 108) * 0.85f;
+			PanelChrome.Style(backPanel, zeroPadding: false);
 
 			// Top Navigation Tab: Return to Storage
 			var storageTab = new TabButton("← Plugin Storage & Dismantle", () => ModContent.GetInstance<AugmentUISystem>().ShowShop());
@@ -126,14 +125,8 @@ namespace Augments
 			essenceBadge.Append(essenceLabel);
 			backPanel.Append(essenceBadge);
 
-			// Close Button
-			var closeBtn = new CloseButton();
-			closeBtn.Width.Set(24f, 0f);
-			closeBtn.Height.Set(24f, 0f);
-			closeBtn.Left.Set(-34f, 1f);
-			closeBtn.Top.Set(10f, 0f);
-			closeBtn.Clicked += () => ModContent.GetInstance<AugmentUISystem>().HideGacha();
-			backPanel.Append(closeBtn);
+			// Close button (shared across all panels)
+			PanelChrome.AddCloseButton(backPanel, () => ModContent.GetInstance<AugmentUISystem>().HideGacha(), 12f);
 
 			// Title Header
 			UIText title = new UIText("YoRHa Neural Decryption Chamber", 1.25f)
@@ -920,45 +913,12 @@ namespace Augments
 			}
 		}
 
-		private class CloseButton : UIPanel
+		private class GachaBackPanel : UIPanel
 		{
-			public event Action Clicked;
-
-			private static readonly Color IdleColor = new Color(95, 35, 35);
-			private static readonly Color HoverColor = new Color(145, 50, 50);
-
-			public CloseButton()
+			protected override void DrawSelf(SpriteBatch spriteBatch)
 			{
-				SetPadding(0f);
-				BackgroundColor = IdleColor;
-				BorderColor = Color.White * 0.35f;
-
-				UIText labelText = new UIText("x", 0.85f)
-				{
-					HAlign = 0.5f,
-					VAlign = 0.5f
-				};
-				Append(labelText);
-			}
-
-			public override void LeftClick(UIMouseEvent evt)
-			{
-				base.LeftClick(evt);
-				SoundEngine.PlaySound(SoundID.MenuClose);
-				Clicked?.Invoke();
-			}
-
-			public override void MouseOver(UIMouseEvent evt)
-			{
-				base.MouseOver(evt);
-				BackgroundColor = HoverColor;
-				SoundEngine.PlaySound(SoundID.MenuTick);
-			}
-
-			public override void MouseOut(UIMouseEvent evt)
-			{
-				base.MouseOut(evt);
-				BackgroundColor = IdleColor;
+				base.DrawSelf(spriteBatch);
+				PanelChrome.DrawFrame(spriteBatch, GetDimensions().ToRectangle());
 			}
 		}
 	}

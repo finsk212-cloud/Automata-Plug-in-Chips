@@ -81,20 +81,14 @@ namespace Augments
 			backPanel.BackgroundColor = new Color(10, 16, 28, 250);
 			backPanel.BorderColor = new Color(30, 41, 59);
 
-			// Close Button in top-right corner
-			var closeButton = new CloseButton();
-			closeButton.Width.Set(24f, 0f);
-			closeButton.Height.Set(24f, 0f);
-			closeButton.Top.Set(10f, 0f);
-			closeButton.Left.Set(762f, 0f);
-			closeButton.Clicked += () => ModContent.GetInstance<AugmentUISystem>().HideShop();
-			backPanel.Append(closeButton);
+			// Close button (shared across all panels)
+			PanelChrome.AddCloseButton(backPanel, () => ModContent.GetInstance<AugmentUISystem>().HideShop());
 
 			// Currency Badge (pure unboxed typography in top-right)
 			var essenceBadge = new EssenceBadge();
 			essenceBadge.Width.Set(210f, 0f);
 			essenceBadge.Height.Set(22f, 0f);
-			essenceBadge.Left.Set(544f, 0f);
+			essenceBadge.Left.Set(536f, 0f);
 			essenceBadge.Top.Set(12f, 0f);
 
 			essenceLabel = new ColoredLabel("[c/D4B872:Machine Cores:] [c/68C2D8:0]", 0.82f);
@@ -748,25 +742,7 @@ namespace Augments
 				Color divColor = new Color(30, 41, 59) * 0.90f;
 				Rectangle bRect = dims.ToRectangle();
 
-				// Inner 1px hairline highlight
-				Color innerHairline = Color.White * 0.05f;
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Y + 1, bRect.Width - 2, 1), innerHairline);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Bottom - 2, bRect.Width - 2, 1), innerHairline);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Y + 1, 1, bRect.Height - 2), innerHairline);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - 2, bRect.Y + 1, 1, bRect.Height - 2), innerHairline);
-
-				// Flush corner accent notches
-				Color cornerAccent = new Color(56, 189, 248) * 0.70f;
-				const int clen = 5;
-				const int cthk = 2;
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Y + 1, clen, cthk), cornerAccent);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Y + 1, cthk, clen), cornerAccent);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - clen - 1, bRect.Y + 1, clen, cthk), cornerAccent);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - cthk - 1, bRect.Y + 1, cthk, clen), cornerAccent);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Bottom - cthk - 1, clen, cthk), cornerAccent);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Bottom - clen - 1, cthk, clen), cornerAccent);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - clen - 1, bRect.Bottom - cthk - 1, clen, cthk), cornerAccent);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - cthk - 1, bRect.Bottom - clen - 1, cthk, clen), cornerAccent);
+				PanelChrome.DrawFrame(spriteBatch, bRect);
 
 				// Faint radar watermark
 				Vector2 center = new Vector2(bRect.X + bRect.Width * 0.5f, bRect.Y + bRect.Height * 0.58f);
@@ -841,53 +817,6 @@ namespace Augments
 			{
 				// Pure unboxed typography: no borders, fills, or corner ticks
 				base.DrawSelf(spriteBatch);
-			}
-		}
-
-		private class CloseButton : UIElement
-		{
-			public event Action Clicked;
-			private bool isHovered;
-
-			public override void LeftClick(UIMouseEvent evt)
-			{
-				base.LeftClick(evt);
-				SoundEngine.PlaySound(SoundID.MenuClose);
-				Clicked?.Invoke();
-			}
-
-			public override void MouseOver(UIMouseEvent evt)
-			{
-				base.MouseOver(evt);
-				isHovered = true;
-				SoundEngine.PlaySound(SoundID.MenuTick);
-			}
-
-			public override void MouseOut(UIMouseEvent evt)
-			{
-				base.MouseOut(evt);
-				isHovered = false;
-			}
-
-			protected override void DrawSelf(SpriteBatch spriteBatch)
-			{
-				CalculatedStyle dims = GetDimensions();
-				var rect = new Rectangle((int)dims.X, (int)dims.Y, (int)dims.Width, (int)dims.Height);
-				Texture2D pixel = TextureAssets.MagicPixel.Value;
-
-				if (isHovered)
-				{
-					// Subtle soft red hover wash, NO harsh outline box
-					spriteBatch.Draw(pixel, rect, new Color(239, 68, 68) * 0.14f);
-				}
-
-				var font = FontAssets.MouseText.Value;
-				Vector2 xSize = ChatManager.GetStringSize(font, "✕", new Vector2(0.85f));
-				Vector2 xPos = new Vector2(
-					rect.X + (rect.Width - xSize.X) * 0.5f,
-					rect.Y + (rect.Height - xSize.Y) * 0.5f + 1f
-				);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "✕", xPos, isHovered ? new Color(248, 113, 113) : new Color(148, 163, 184), 0f, Vector2.Zero, new Vector2(0.85f));
 			}
 		}
 

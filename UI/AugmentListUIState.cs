@@ -151,14 +151,8 @@ namespace Augments
 
 			backPanel.Append(titleContainer);
 
-			// Close Button in top-right corner (ends at 862f, exact 18px buffer from right edge)
-			var closeButton = new CloseButton();
-			closeButton.Width.Set(24f, 0f);
-			closeButton.Height.Set(24f, 0f);
-			closeButton.Top.Set(8f, 0f);
-			closeButton.Left.Set(838f, 0f);
-			closeButton.Clicked += () => ModContent.GetInstance<AugmentUISystem>().HideList();
-			backPanel.Append(closeButton);
+			// Close button (shared across all panels)
+			PanelChrome.AddCloseButton(backPanel, () => ModContent.GetInstance<AugmentUISystem>().HideList());
 
 			// Search Bar in top-left corner (Left = 18f, Width = 210f)
 			searchBar = new CodexSearchBar();
@@ -1634,25 +1628,7 @@ namespace Augments
 				Texture2D pixel = TextureAssets.MagicPixel.Value;
 				Rectangle bRect = dims.ToRectangle();
 
-				// Inner 1px hairline highlight
-				Color innerHairline = Color.White * 0.05f;
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Y + 1, bRect.Width - 2, 1), innerHairline);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Bottom - 2, bRect.Width - 2, 1), innerHairline);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Y + 1, 1, bRect.Height - 2), innerHairline);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - 2, bRect.Y + 1, 1, bRect.Height - 2), innerHairline);
-
-				// Flush corner accent notches
-				Color cornerAccent = new Color(56, 189, 248) * 0.70f;
-				const int clen = 5;
-				const int cthk = 2;
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Y + 1, clen, cthk), cornerAccent);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Y + 1, cthk, clen), cornerAccent);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - clen - 1, bRect.Y + 1, clen, cthk), cornerAccent);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - cthk - 1, bRect.Y + 1, cthk, clen), cornerAccent);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Bottom - cthk - 1, clen, cthk), cornerAccent);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Bottom - clen - 1, cthk, clen), cornerAccent);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - clen - 1, bRect.Bottom - cthk - 1, clen, cthk), cornerAccent);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - cthk - 1, bRect.Bottom - clen - 1, cthk, clen), cornerAccent);
+				PanelChrome.DrawFrame(spriteBatch, bRect);
 
 				// Header divider between the tab row and the grid
 				int divY = bRect.Y + 69;
@@ -1675,66 +1651,6 @@ namespace Augments
 				}
 				spriteBatch.Draw(pixel, new Rectangle((int)center.X - 210, (int)center.Y, 420, 1), watermarkCol);
 				spriteBatch.Draw(pixel, new Rectangle((int)center.X, (int)center.Y - 210, 1, 420), watermarkCol);
-			}
-		}
-
-		private class CloseButton : UIElement
-		{
-			public event Action Clicked;
-			private bool isHovered;
-
-			public CloseButton()
-			{
-				UIText labelText = new UIText("✕", 0.75f)
-				{
-					HAlign = 0.5f,
-					VAlign = 0.5f,
-					TextColor = new Color(240, 160, 160)
-				};
-				Append(labelText);
-			}
-
-			public override void LeftClick(UIMouseEvent evt)
-			{
-				base.LeftClick(evt);
-				Clicked?.Invoke();
-			}
-
-			public override void MouseOver(UIMouseEvent evt)
-			{
-				base.MouseOver(evt);
-				isHovered = true;
-				SoundEngine.PlaySound(SoundID.MenuTick);
-			}
-
-			public override void MouseOut(UIMouseEvent evt)
-			{
-				base.MouseOut(evt);
-				isHovered = false;
-			}
-
-			protected override void DrawSelf(SpriteBatch spriteBatch)
-			{
-				CalculatedStyle dims = GetDimensions();
-				var rect = new Rectangle((int)dims.X, (int)dims.Y, (int)dims.Width, (int)dims.Height);
-				Texture2D pixel = TextureAssets.MagicPixel.Value;
-
-				Color bg = isHovered ? new Color(110, 28, 36) * 0.95f : new Color(60, 18, 24) * 0.90f;
-				Color border = isHovered ? new Color(255, 100, 100) : new Color(140, 45, 55);
-
-				// Ambient hover glow
-				if (isHovered)
-				{
-					spriteBatch.Draw(pixel, new Rectangle(rect.X - 1, rect.Y - 1, rect.Width + 2, rect.Height + 2), border * 0.15f);
-				}
-
-				spriteBatch.Draw(pixel, rect, bg);
-
-				// 1px border
-				spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, rect.Width, 1), border);
-				spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Bottom - 1, rect.Width, 1), border);
-				spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, 1, rect.Height), border);
-				spriteBatch.Draw(pixel, new Rectangle(rect.Right - 1, rect.Y, 1, rect.Height), border);
 			}
 		}
 
@@ -2180,7 +2096,7 @@ namespace Augments
 				Append(title);
 
 				// Close button [X]
-				var closeBtn = new CloseButton();
+				var closeBtn = new PanelCloseButton();
 				closeBtn.Width.Set(20f, 0f);
 				closeBtn.Height.Set(20f, 0f);
 				closeBtn.HAlign = 1f;

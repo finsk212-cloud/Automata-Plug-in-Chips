@@ -807,6 +807,8 @@ namespace Augments
 				CalculatedStyle dims = GetDimensions();
 				Texture2D pixel = TextureAssets.MagicPixel.Value;
 
+				PanelChrome.DrawFrame(spriteBatch, dims.ToRectangle());
+
 				// Header horizontal divider spanning X = 18f to X = 862f (exact 18px bilateral symmetry)
 				int divY = (int)dims.Y + 86;
 				spriteBatch.Draw(pixel, new Rectangle((int)dims.X + 18, divY, (int)dims.Width - 36, 1), new Color(30, 41, 59) * 0.90f);

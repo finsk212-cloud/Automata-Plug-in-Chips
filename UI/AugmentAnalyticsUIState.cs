@@ -95,14 +95,8 @@ namespace Augments
 			subtitle.Top.Set(38f, 0f);
 			backPanel.Append(subtitle);
 
-			// Close Button in top-right corner (ends at 840f, exact 20px buffer from right edge)
-			var closeButton = new CloseButton();
-			closeButton.Width.Set(24f, 0f);
-			closeButton.Height.Set(24f, 0f);
-			closeButton.Top.Set(10f, 0f);
-			closeButton.Left.Set(816f, 0f);
-			closeButton.Clicked += () => ModContent.GetInstance<AugmentUISystem>().HideAnalytics();
-			backPanel.Append(closeButton);
+			// Close button (shared across all panels)
+			PanelChrome.AddCloseButton(backPanel, () => ModContent.GetInstance<AugmentUISystem>().HideAnalytics());
 
 			// 3. Control Action Toolbar (Y = 76f to 104f - completely clear of header divider at 66f)
 			float barTop = 76f;
@@ -786,30 +780,7 @@ namespace Augments
 				Texture2D pixel = TextureAssets.MagicPixel.Value;
 				Rectangle bRect = dims.ToRectangle();
 
-				// 1. Inner 1px hairline highlight
-				Color innerHairline = Color.White * 0.05f;
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Y + 1, bRect.Width - 2, 1), innerHairline);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Bottom - 2, bRect.Width - 2, 1), innerHairline);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Y + 1, 1, bRect.Height - 2), innerHairline);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - 2, bRect.Y + 1, 1, bRect.Height - 2), innerHairline);
-
-				// Flush corner accent notches (5x2 / 2x5)
-				Color cornerAccent = new Color(56, 189, 248) * 0.70f;
-				const int clen = 5;
-				const int cthk = 2;
-
-				// Top-left
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Y + 1, clen, cthk), cornerAccent);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Y + 1, cthk, clen), cornerAccent);
-				// Top-right
-				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - clen - 1, bRect.Y + 1, clen, cthk), cornerAccent);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - cthk - 1, bRect.Y + 1, cthk, clen), cornerAccent);
-				// Bottom-left
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Bottom - cthk - 1, clen, cthk), cornerAccent);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 1, bRect.Bottom - clen - 1, cthk, clen), cornerAccent);
-				// Bottom-right
-				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - clen - 1, bRect.Bottom - cthk - 1, clen, cthk), cornerAccent);
-				spriteBatch.Draw(pixel, new Rectangle(bRect.Right - cthk - 1, bRect.Bottom - clen - 1, cthk, clen), cornerAccent);
+				PanelChrome.DrawFrame(spriteBatch, bRect);
 
 				// 2. Header horizontal divider (at Y = 66)
 				int divY = (int)dims.Y + 66;
@@ -861,53 +832,6 @@ namespace Augments
 					int y = (int)(center.Y + (float)Math.Sin(angle) * radius);
 					spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(x, y, 2, 2), color);
 				}
-			}
-		}
-
-		private class CloseButton : UIElement
-		{
-			public event Action Clicked;
-			private bool isHovered;
-
-			public override void LeftClick(UIMouseEvent evt)
-			{
-				base.LeftClick(evt);
-				SoundEngine.PlaySound(SoundID.MenuClose);
-				Clicked?.Invoke();
-			}
-
-			public override void MouseOver(UIMouseEvent evt)
-			{
-				base.MouseOver(evt);
-				isHovered = true;
-				SoundEngine.PlaySound(SoundID.MenuTick);
-			}
-
-			public override void MouseOut(UIMouseEvent evt)
-			{
-				base.MouseOut(evt);
-				isHovered = false;
-			}
-
-			protected override void DrawSelf(SpriteBatch spriteBatch)
-			{
-				CalculatedStyle dims = GetDimensions();
-				var rect = new Rectangle((int)dims.X, (int)dims.Y, (int)dims.Width, (int)dims.Height);
-				Texture2D pixel = TextureAssets.MagicPixel.Value;
-
-				if (isHovered)
-				{
-					// Subtle soft red hover wash, NO harsh outline box
-					spriteBatch.Draw(pixel, rect, new Color(239, 68, 68) * 0.14f);
-				}
-
-				var font = FontAssets.MouseText.Value;
-				Vector2 xSize = ChatManager.GetStringSize(font, "✕", new Vector2(0.85f));
-				Vector2 xPos = new Vector2(
-					rect.X + (rect.Width - xSize.X) * 0.5f,
-					rect.Y + (rect.Height - xSize.Y) * 0.5f + 1f
-				);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "✕", xPos, isHovered ? new Color(248, 113, 113) : new Color(148, 163, 184), 0f, Vector2.Zero, new Vector2(0.85f));
 			}
 		}
 
@@ -1328,7 +1252,7 @@ namespace Augments
 				Append(title);
 
 				// Close button [x]
-				var closeBtn = new CloseButton();
+				var closeBtn = new PanelCloseButton();
 				closeBtn.Width.Set(20f, 0f);
 				closeBtn.Height.Set(20f, 0f);
 				closeBtn.HAlign = 1f;
