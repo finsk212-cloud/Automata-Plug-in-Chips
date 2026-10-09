@@ -9,7 +9,7 @@
 - **Automata Protocols**: 12 chip-set bonuses (see section 1).
 - **Core Overrides**: build-defining one-per-character chips (see section 2).
 - **Combat Analytics & Live DPS Monitor** (see section 6).
-- **New Plugin: Autopilot** (Epic, Support): A Pod drone floats beside you on a green wire and heals the lowest-health nearby player for 5 HP per second, one HP at a time. Players only, never NPCs.
+- **New Plugin: Autopilot** (Epic, Support): A Pod drone floats beside you on a green wire and heals the lowest-health nearby player for 5 HP per second, one HP at a time. Players only, never NPCs. The drone sticks to its patient instead of flickering between equally hurt players, groups its heal text into one "+5" per second, reacts to nearby enemies and occasionally blinks, and its healing is tracked in the Combat Analytics panel (per-chip row and a total in the footer).
 
 ### 1. New Feature: Automata Protocols (Chip Synergies)
 - **Assigned Plug-in Chip Synergies**: Equipping matching sets of chips now unlocks powerful, passive protocol specifications.

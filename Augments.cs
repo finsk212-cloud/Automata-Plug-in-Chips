@@ -144,7 +144,7 @@ namespace Augments
 					break;
 
 				case AugmentPacketType.SupportHealVisual:
-					SupportEffects.HandleHealVisual(reader.ReadByte(), reader.ReadInt32());
+					SupportEffects.HandleHealVisual(reader.ReadByte(), reader.ReadInt32(), reader.ReadInt32());
 					break;
 
 				case AugmentPacketType.LifelineTrigger:

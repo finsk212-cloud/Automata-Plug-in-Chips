@@ -115,7 +115,10 @@ namespace Augments
 			return owner != null;
 		}
 
-		public static int ServerHealPlayer(Player target, int healAmount)
+		// displayAmount: -1 shows the real healed amount as floating text (default),
+		// 0 shows no text, and any positive number shows that value instead.
+		// Callers that heal in small frequent pulses use it to group the text.
+		public static int ServerHealPlayer(Player target, int healAmount, int displayAmount = -1)
 		{
 			if (Main.netMode == NetmodeID.MultiplayerClient || target == null || !target.active || target.dead || healAmount <= 0)
 				return 0;
@@ -129,6 +132,8 @@ namespace Augments
 			if (actualHeal <= 0)
 				return 0;
 
+			int shownAmount = displayAmount < 0 ? actualHeal : displayAmount;
+
 			if (Main.netMode == NetmodeID.Server)
 			{
 				NetMessage.SendData(MessageID.PlayerLifeMana, -1, -1, null, target.whoAmI);
@@ -136,14 +141,16 @@ namespace Augments
 				packet.Write((byte)AugmentPacketType.SupportHealVisual);
 				packet.Write((byte)target.whoAmI);
 				packet.Write(actualHeal);
+				packet.Write(shownAmount);
 				packet.Send();
 			}
-			else
+			else if (shownAmount > 0)
 			{
-				target.HealEffect(actualHeal, false);
+				target.HealEffect(shownAmount, false);
 			}
 
-			ModContent.GetInstance<Augments>().Logger.Info($"Server healed target={target.name} amount={actualHeal}");
+			if (displayAmount < 0)
+				ModContent.GetInstance<Augments>().Logger.Info($"Server healed target={target.name} amount={actualHeal}");
 			return actualHeal;
 		}
 
@@ -551,7 +558,7 @@ namespace Augments
 				RevitalizingWaveAugment.SpawnBurst(Main.player[ownerIndex]);
 		}
 
-		public static void HandleHealVisual(int targetIndex, int amount)
+		public static void HandleHealVisual(int targetIndex, int amount, int shownAmount)
 		{
 			if (Main.netMode != NetmodeID.MultiplayerClient || targetIndex < 0 || targetIndex >= Main.maxPlayers || amount <= 0)
 				return;
@@ -561,7 +568,8 @@ namespace Augments
 				return;
 
 			// Floating combat text for all nearby clients
-			player.HealEffect(amount, false);
+			if (shownAmount > 0)
+				player.HealEffect(shownAmount, false);
 
 			int maxHp = Math.Max(player.statLifeMax, player.statLifeMax2);
 			if (maxHp <= 0) maxHp = 500;

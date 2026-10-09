@@ -21,8 +21,26 @@ namespace Augments
         private const int HealPerPulse = 1;       // +1 HP each pulse = 5 HP per second
         private const int RetargetIntervalTicks = 6;
 
+        // Floating heal text is grouped: one "+5" per second instead of five "+1".
+        private const int PulsesPerText = 5;
+
+        // The drone stays on its patient for at least a second, and only switches
+        // when someone else is clearly worse off, so it doesn't flicker between
+        // two equally hurt players.
+        private const int MinHoldTicks = 60;
+        private const float SwitchMargin = 0.15f;
+
+        private const float EnemyAwareRange = 450f;
+
         private int targetIndex = -1;
-        private int healTimer;
+        private int lastTargetIndex = -1;
+        private int enemyIndex = -1;
+        private int stickyTicks;
+        private int pulseTimer;
+        private int pulsesSinceText;
+        private int healedSinceText;
+        private int blinkTicksLeft;
+        private int ticksToNextBlink = 150;
         private Vector2 wireEnd;
         private bool wireReady;
 
@@ -61,27 +79,39 @@ namespace Augments
             Projectile.timeLeft = 5;
             float t = Projectile.localAI[0]++;
 
+            if (t % RetargetIntervalTicks == 0)
+            {
+                targetIndex = PickTarget(owner);
+                enemyIndex = targetIndex >= 0 ? -1 : FindNearestEnemy();
+            }
+            else if (targetIndex >= 0 && !IsValidTarget(owner, Main.player[targetIndex]))
+            {
+                targetIndex = -1;
+            }
+
+            stickyTicks = targetIndex >= 0 ? stickyTicks + 1 : 0;
+
+            if (targetIndex != lastTargetIndex)
+            {
+                lastTargetIndex = targetIndex;
+                pulsesSinceText = 0;
+                healedSinceText = 0;
+                pulseTimer = 0;
+            }
+
             FollowOwner(owner, t);
 
-            if (t % RetargetIntervalTicks == 0)
-                targetIndex = FindTarget(owner);
-            else if (targetIndex >= 0 && !IsValidTarget(owner, Main.player[targetIndex]))
-                targetIndex = -1;
-
-            if (Main.netMode != NetmodeID.MultiplayerClient && targetIndex >= 0)
+            if (targetIndex >= 0)
             {
-                healTimer++;
-                if (healTimer >= HealIntervalTicks)
+                pulseTimer++;
+                if (pulseTimer >= HealIntervalTicks)
                 {
-                    healTimer = 0;
-                    SupportEffects.ServerHealPlayer(Main.player[targetIndex], HealPerPulse);
+                    pulseTimer = 0;
+                    HealPulse(owner);
                 }
             }
-            else if (targetIndex < 0)
-            {
-                healTimer = 0;
-            }
 
+            UpdateBlink();
             UpdateWire(t);
 
             // Visual tick: a small spark where the wire plugs in, once per pulse.
@@ -112,12 +142,123 @@ namespace Augments
                 desired = Vector2.Normalize(desired) * 18f;
 
             Projectile.velocity = Vector2.Lerp(Projectile.velocity, desired, 0.35f);
-            Projectile.rotation = Projectile.velocity.X * 0.04f;
 
-            // Face the patient while healing, otherwise face where the owner faces.
-            Projectile.spriteDirection = targetIndex >= 0
-                ? (Main.player[targetIndex].Center.X >= Projectile.Center.X ? 1 : -1)
-                : owner.direction;
+            // Facing: the patient first, then a nearby enemy (leaning toward it),
+            // otherwise where the owner faces, with an occasional look the other way.
+            int direction = owner.direction;
+            float lean = 0f;
+            if (targetIndex >= 0)
+            {
+                direction = Main.player[targetIndex].Center.X >= Projectile.Center.X ? 1 : -1;
+            }
+            else if (enemyIndex >= 0 && Main.npc[enemyIndex].active)
+            {
+                direction = Main.npc[enemyIndex].Center.X >= Projectile.Center.X ? 1 : -1;
+                lean = direction * 0.14f;
+            }
+            else
+            {
+                float cycle = t % 420f;
+                if (cycle >= 300f && cycle < 360f)
+                    direction = -owner.direction;
+            }
+
+            Projectile.spriteDirection = direction;
+            float desiredRotation = Projectile.velocity.X * 0.04f + lean;
+            Projectile.rotation = MathHelper.Lerp(Projectile.rotation, desiredRotation, 0.15f);
+        }
+
+        // Runs once per heal pulse on every client and the server.
+        private void HealPulse(Player owner)
+        {
+            Player target = Main.player[targetIndex];
+            if (!IsValidTarget(owner, target))
+                return;
+
+            // The server (or singleplayer) applies the actual heal. Floating text is
+            // suppressed on four pulses and shown as a single grouped "+5" on the fifth.
+            if (Main.netMode != NetmodeID.MultiplayerClient)
+            {
+                pulsesSinceText++;
+                bool showText = pulsesSinceText >= PulsesPerText;
+                int display = showText ? healedSinceText + HealPerPulse : 0;
+
+                int healed = SupportEffects.ServerHealPlayer(target, HealPerPulse, display);
+                if (showText)
+                {
+                    pulsesSinceText = 0;
+                    healedSinceText = 0;
+                }
+                else
+                {
+                    healedSinceText += healed;
+                }
+            }
+
+            // The owner's client records the healing for the analytics panel.
+            if (Projectile.owner == Main.myPlayer)
+                AugmentDamageTracker.RecordHealing(AutopilotAugment.ChipId, HealPerPulse);
+        }
+
+        private int PickTarget(Player owner)
+        {
+            int best = FindTarget(owner);
+            if (best == targetIndex)
+                return best;
+
+            if (targetIndex >= 0 && best >= 0 && IsValidTarget(owner, Main.player[targetIndex]))
+            {
+                float currentRatio = LifeRatio(Main.player[targetIndex]);
+                float bestRatio = LifeRatio(Main.player[best]);
+                if (stickyTicks < MinHoldTicks || bestRatio > currentRatio - SwitchMargin)
+                    return targetIndex;
+            }
+
+            stickyTicks = 0;
+            return best;
+        }
+
+        private static float LifeRatio(Player player)
+        {
+            int maxLife = Math.Max(player.statLifeMax, player.statLifeMax2);
+            return maxLife > 0 ? (float)player.statLife / maxLife : 1f;
+        }
+
+        private int FindNearestEnemy()
+        {
+            int best = -1;
+            float bestDistanceSq = EnemyAwareRange * EnemyAwareRange;
+            for (int i = 0; i < Main.maxNPCs; i++)
+            {
+                NPC npc = Main.npc[i];
+                if (!npc.active || !npc.CanBeChasedBy())
+                    continue;
+
+                float d = Vector2.DistanceSquared(npc.Center, Projectile.Center);
+                if (d < bestDistanceSq)
+                {
+                    bestDistanceSq = d;
+                    best = i;
+                }
+            }
+
+            return best;
+        }
+
+        // Occasional blink of the lens while idle.
+        private void UpdateBlink()
+        {
+            if (blinkTicksLeft > 0)
+            {
+                blinkTicksLeft--;
+                return;
+            }
+
+            if (--ticksToNextBlink <= 0)
+            {
+                blinkTicksLeft = 7;
+                ticksToNextBlink = Main.rand.Next(150, 420);
+            }
         }
 
         private static bool IsValidTarget(Player owner, Player candidate)
@@ -181,6 +322,16 @@ namespace Augments
             Color drawColor = Color.Lerp(lightColor, Color.White, 0.55f);
 
             Main.EntitySpriteDraw(tex, pos, null, drawColor, Projectile.rotation, tex.Size() * 0.5f, 1f, fx, 0);
+
+            if (blinkTicksLeft > 0)
+            {
+                // Cover the lens (a 4x5 area on the front of the sprite) and leave a thin slit.
+                Texture2D pixel = TextureAssets.MagicPixel.Value;
+                Vector2 lensOffset = new Vector2(8f * Projectile.spriteDirection, -0.5f).RotatedBy(Projectile.rotation);
+                DrawSquare(pixel, Projectile.Center + lensOffset, 5, Color.Lerp(new Color(44, 48, 60), lightColor, 0.4f));
+                DrawSquare(pixel, Projectile.Center + lensOffset, 2, new Color(150, 35, 28));
+            }
+
             return false;
         }
 

@@ -23,6 +23,8 @@ namespace Augments.Core
 		public int MaxHit { get; set; }
 		public long DamageBlocked { get; set; }
 		public int BlockCount { get; set; }
+		public long HealingDone { get; set; }
+		public int HealCount { get; set; }
 		public AugmentRarity? Rarity { get; set; }
 		public AugmentClass? SourceClass { get; set; }
 		public bool IsProtocol { get; set; }
@@ -44,6 +46,13 @@ namespace Augments.Core
 		public int DamageBlocked;
 	}
 
+	public struct TimedHeal
+	{
+		public float Timestamp;
+		public string SourceId;
+		public int Amount;
+	}
+
 	public static class AugmentDamageTracker
 	{
 		private const float InactivityTimeout = 4.0f;
@@ -54,12 +63,14 @@ namespace Augments.Core
 		public static float SessionDuration { get; private set; } = 0f;
 		public static long TotalSessionDamage { get; private set; } = 0;
 		public static long TotalSessionDamageBlocked { get; private set; } = 0;
+		public static long TotalSessionHealing { get; private set; } = 0;
 		public static AnalyticsViewMode ViewMode { get; set; } = AnalyticsViewMode.Last10Minutes;
 
 		private static float timeSinceLastHit = 999f;
 		private static readonly Dictionary<string, DamageSourceRecord> totalRecords = new();
 		private static readonly Queue<TimedHit> historyQueue = new();
 		private static readonly Queue<TimedBlockedHit> historyBlockedQueue = new();
+		private static readonly Queue<TimedHeal> historyHealQueue = new();
 		private static float globalTime = 0f;
 
 		public static IReadOnlyDictionary<string, DamageSourceRecord> TotalRecords => totalRecords;
@@ -89,6 +100,11 @@ namespace Augments.Core
 			while (historyBlockedQueue.Count > 0 && historyBlockedQueue.Peek().Timestamp < pruneCutoff)
 			{
 				historyBlockedQueue.Dequeue();
+			}
+
+			while (historyHealQueue.Count > 0 && historyHealQueue.Peek().Timestamp < pruneCutoff)
+			{
+				historyHealQueue.Dequeue();
 			}
 		}
 
@@ -281,6 +297,72 @@ namespace Augments.Core
 			}
 		}
 
+		// Records healing a plugin did for an ally (or the player). Healing shows up
+		// in the analytics panel beside damage and blocked damage.
+		public static void RecordHealing(string sourceId, int amount)
+		{
+			if (IsPaused || amount <= 0 || string.IsNullOrEmpty(sourceId))
+				return;
+
+			Augment aug = AugmentDatabase.GetById(sourceId);
+			string displayName = aug != null ? aug.DisplayName : sourceId;
+			Color sourceColor = Color.White;
+			if (aug != null)
+			{
+				sourceColor = aug.Rarity switch
+				{
+					AugmentRarity.Legendary => new Color(255, 200, 50),
+					AugmentRarity.Epic => new Color(185, 115, 255),
+					AugmentRarity.Rare => new Color(60, 195, 255),
+					_ => new Color(210, 215, 225)
+				};
+			}
+
+			timeSinceLastHit = 0f;
+			TotalSessionHealing += amount;
+
+			historyHealQueue.Enqueue(new TimedHeal
+			{
+				Timestamp = globalTime,
+				SourceId = sourceId,
+				Amount = amount
+			});
+
+			if (!totalRecords.TryGetValue(sourceId, out var rec))
+			{
+				rec = new DamageSourceRecord
+				{
+					Id = sourceId,
+					DisplayName = displayName,
+					Color = sourceColor,
+					Rarity = aug?.Rarity,
+					SourceClass = aug?.Class,
+					IsProtocol = false,
+					IsWeapon = false
+				};
+				totalRecords[sourceId] = rec;
+			}
+
+			rec.HealingDone += amount;
+			rec.HealCount++;
+		}
+
+		// Total healing in the current view (session total or last 10 minutes).
+		public static long GetViewHealing()
+		{
+			if (ViewMode == AnalyticsViewMode.TotalSession)
+				return TotalSessionHealing;
+
+			float cutoff = globalTime - TenMinutesSeconds;
+			long total = 0;
+			foreach (var h in historyHealQueue)
+			{
+				if (h.Timestamp >= cutoff)
+					total += h.Amount;
+			}
+			return total;
+		}
+
 		public static float GetCurrentDPS()
 		{
 			if (historyQueue.Count == 0 || timeSinceLastHit >= InactivityTimeout)
@@ -385,6 +467,8 @@ namespace Augments.Core
 					existing.MaxHit = kvp.Value.MaxHit;
 					existing.DamageBlocked = kvp.Value.DamageBlocked;
 					existing.BlockCount = kvp.Value.BlockCount;
+					existing.HealingDone = kvp.Value.HealingDone;
+					existing.HealCount = kvp.Value.HealCount;
 				}
 			}
 			else
@@ -471,10 +555,42 @@ namespace Augments.Core
 					rec.DamageBlocked += block.DamageBlocked;
 					rec.BlockCount++;
 				}
+
+				// Healing in the 10-minute window
+				foreach (var heal in historyHealQueue)
+				{
+					if (heal.Timestamp < cutoff)
+						continue;
+
+					if (!resultDict.TryGetValue(heal.SourceId, out var rec))
+					{
+						if (totalRecords.TryGetValue(heal.SourceId, out var meta))
+						{
+							rec = new DamageSourceRecord
+							{
+								Id = meta.Id,
+								DisplayName = meta.DisplayName,
+								Color = meta.Color,
+								Rarity = meta.Rarity,
+								SourceClass = meta.SourceClass,
+								IsProtocol = meta.IsProtocol,
+								IsWeapon = meta.IsWeapon
+							};
+						}
+						else
+						{
+							rec = new DamageSourceRecord { Id = heal.SourceId, DisplayName = heal.SourceId, Color = Color.White };
+						}
+						resultDict[heal.SourceId] = rec;
+					}
+
+					rec.HealingDone += heal.Amount;
+					rec.HealCount++;
+				}
 			}
 
 			var sortedList = resultDict.Values
-				.OrderByDescending(r => r.TotalDamage + r.DamageBlocked)
+				.OrderByDescending(r => r.TotalDamage + r.DamageBlocked + r.HealingDone)
 				.ThenBy(r => r.DisplayName)
 				.ToList();
 
@@ -486,6 +602,8 @@ namespace Augments.Core
 			totalRecords.Clear();
 			historyQueue.Clear();
 			historyBlockedQueue.Clear();
+			historyHealQueue.Clear();
+			TotalSessionHealing = 0;
 			TotalSessionDamage = 0;
 			TotalSessionDamageBlocked = 0;
 			SessionDuration = 0f;
