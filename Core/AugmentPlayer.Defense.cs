@@ -242,6 +242,7 @@ namespace Augments
 
 		public override void OnHurt(Player.HurtInfo info)
 		{
+			MarkHurtForLoadoutLock();
 			foreach (var a in Owned)
 				a.OnHurt(Player, info);
 

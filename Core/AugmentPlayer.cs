@@ -1298,6 +1298,17 @@ namespace Augments
 				AugmentAdvisoryHUD.TriggerNextRandomTip();
 			}
 
+			for (int slot = 0; slot < MaxLoadouts && !isTyping; slot++)
+			{
+				if (Augments.LoadoutKeybinds[slot]?.JustPressed == true)
+				{
+					if (slot >= loadoutSlotsUnlocked || loadouts[slot].Count == 0)
+						Main.NewText($"Loadout {slot + 1} is not set up.", new Color(255, 200, 120));
+					else
+						RequestLoadoutOp(LoadoutOp.ApplyLoadout, slot);
+				}
+			}
+
 			if (HasAugment("cleanse") && CleanseCooldown == 0 && Augments.CleanseKeybind?.JustPressed == true && !isTyping)
 			{
 				CleanseCooldown = 1800;

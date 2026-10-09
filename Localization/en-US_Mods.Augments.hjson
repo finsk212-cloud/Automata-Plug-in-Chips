@@ -4,6 +4,9 @@ Keybinds: {
 	DebugSpawnVendor.DisplayName: Spawn Mistress 2B (Vendor)
 	DebugToggleShop.DisplayName: Open Mistress 2B Shop
 	Cleanse.DisplayName: Cleanse
+	ApplyLoadout1.DisplayName: Apply Loadout 1
+	ApplyLoadout2.DisplayName: Apply Loadout 2
+	ApplyLoadout3.DisplayName: Apply Loadout 3
 	UndoReforge.DisplayName: Undo Reforge
 	ResetCooldowns.DisplayName: Reset Plugin Cooldowns (Dev)
 	ToggleCombatAnalytics.DisplayName: Toggle Combat Analytics

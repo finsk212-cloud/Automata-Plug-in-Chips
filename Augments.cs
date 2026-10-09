@@ -34,7 +34,8 @@ namespace Augments
 		RequestVendorSpawn,
 		SyncOwnedAugments, // client -> server -> all: list of owned augment IDs
 		ApplyNPCEffect,    // client -> server: custom GlobalNPC effect (Bleed, Slow, Cracked)
-		SyncPlayerLifeMax  // client -> server -> all: player effective max life sync
+		SyncPlayerLifeMax, // client -> server -> all: player effective max life sync
+		LoadoutRequest     // client -> server: stash/unstash/save/buy/apply loadout
 	}
 
 	internal enum DebugAugmentCommandType : byte
@@ -54,6 +55,7 @@ namespace Augments
 		public static ModKeybind DebugSpawnVendorKeybind;
 		public static ModKeybind DebugToggleShopKeybind;
 		public static ModKeybind CleanseKeybind;
+		public static ModKeybind[] LoadoutKeybinds = new ModKeybind[3];
 		public static ModKeybind UndoReforgeKeybind;
 		public static ModKeybind ResetCooldownsKeybind;
 		public static ModKeybind ToggleCombatAnalyticsKeybind;
@@ -67,6 +69,8 @@ namespace Augments
 			DebugSpawnVendorKeybind = KeybindLoader.RegisterKeybind(this, "DebugSpawnVendor", "OemSemicolon");
 			DebugToggleShopKeybind = KeybindLoader.RegisterKeybind(this, "DebugToggleShop", "OemQuotes");
 			CleanseKeybind = KeybindLoader.RegisterKeybind(this, "Cleanse", "None");
+			for (int i = 0; i < LoadoutKeybinds.Length; i++)
+				LoadoutKeybinds[i] = KeybindLoader.RegisterKeybind(this, "ApplyLoadout" + (i + 1), "None");
 			UndoReforgeKeybind = KeybindLoader.RegisterKeybind(this, "UndoReforge", "None");
 			ResetCooldownsKeybind = KeybindLoader.RegisterKeybind(this, "ResetCooldowns", "K");
 			ToggleCombatAnalyticsKeybind = KeybindLoader.RegisterKeybind(this, "ToggleCombatAnalytics", "L");
@@ -88,6 +92,8 @@ namespace Augments
 			DebugSpawnVendorKeybind = null;
 			DebugToggleShopKeybind = null;
 			CleanseKeybind = null;
+			for (int i = 0; i < LoadoutKeybinds.Length; i++)
+				LoadoutKeybinds[i] = null;
 			UndoReforgeKeybind = null;
 			ResetCooldownsKeybind = null;
 			ToggleCombatAnalyticsKeybind = null;

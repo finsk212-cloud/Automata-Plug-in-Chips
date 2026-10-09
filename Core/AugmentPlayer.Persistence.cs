@@ -83,6 +83,7 @@ namespace Augments
 			everOwnedIds.Clear();
 			soldAugmentIds.Clear();
 			lockedKeystoneFamilies.Clear();
+			ResetLoadoutState();
 			owned.Clear();
 			BossAugmentKills = new Dictionary<int, int>();
 			DamagedBossesThisFight = new HashSet<int>();
@@ -207,6 +208,19 @@ namespace Augments
 			foreach (string family in lockedKeystoneFamilies)
 				writer.Write(family);
 
+			writer.Write((ushort)stashedIds.Count);
+			foreach (string id in stashedIds)
+				writer.Write(id);
+
+			writer.Write((byte)loadoutSlotsUnlocked);
+			writer.Write((sbyte)activeLoadout);
+			for (int s = 0; s < MaxLoadouts; s++)
+			{
+				writer.Write((byte)loadouts[s].Count);
+				foreach (string id in loadouts[s])
+					writer.Write(id);
+			}
+
 			writer.Write(RevitalizingWaveTimer);
 			writer.Write(CleanseCooldown);
 			writer.Write(LastRitesCooldown);
@@ -237,6 +251,21 @@ namespace Augments
 			ushort lockedFamilyCount = reader.ReadUInt16();
 			for (int i = 0; i < lockedFamilyCount; i++)
 				lockedKeystoneFamilies.Add(reader.ReadString());
+
+			stashedIds.Clear();
+			ushort stashCount = reader.ReadUInt16();
+			for (int i = 0; i < stashCount; i++)
+				stashedIds.Add(reader.ReadString());
+
+			loadoutSlotsUnlocked = Math.Clamp((int)reader.ReadByte(), 1, MaxLoadouts);
+			activeLoadout = reader.ReadSByte();
+			for (int s = 0; s < MaxLoadouts; s++)
+			{
+				loadouts[s].Clear();
+				int n = reader.ReadByte();
+				for (int i = 0; i < n; i++)
+					loadouts[s].Add(reader.ReadString());
+			}
 
 			RevitalizingWaveTimer = reader.ReadInt32();
 			CleanseCooldown = reader.ReadInt32();
@@ -274,6 +303,10 @@ namespace Augments
 			tag["everOwnedIds"] = new List<string>(everOwnedIds);
 			tag["soldAugmentIds"] = new List<string>(soldAugmentIds);
 			tag["lockedKeystoneFamilies"] = new List<string>(lockedKeystoneFamilies);
+			tag["stashedIds"] = new List<string>(stashedIds);
+			tag["loadoutSlotsUnlocked"] = loadoutSlotsUnlocked;
+			for (int s = 0; s < MaxLoadouts; s++)
+				tag["loadout" + s] = new List<string>(loadouts[s]);
 			tag["revitalizingWaveTimer"] = RevitalizingWaveTimer;
 			tag["cleanseCooldown"] = CleanseCooldown;
 			tag["lastRitesCooldown"] = LastRitesCooldown;
@@ -366,6 +399,25 @@ namespace Augments
 
 			if (tag.ContainsKey("lockedKeystoneFamilies"))
 				lockedKeystoneFamilies.UnionWith(tag.GetList<string>("lockedKeystoneFamilies"));
+
+			ResetLoadoutState();
+			if (tag.ContainsKey("stashedIds"))
+			{
+				foreach (string rawId in tag.GetList<string>("stashedIds"))
+				{
+					string id = NormalizeLegacyId(rawId);
+					if (AugmentDatabase.GetById(id) != null && !ownedIds.Contains(id) && !soldAugmentIds.Contains(id))
+						stashedIds.Add(id);
+				}
+				everOwnedIds.UnionWith(stashedIds);
+			}
+			if (tag.ContainsKey("loadoutSlotsUnlocked"))
+				loadoutSlotsUnlocked = Math.Clamp(tag.GetInt("loadoutSlotsUnlocked"), 1, MaxLoadouts);
+			for (int s = 0; s < MaxLoadouts; s++)
+			{
+				if (tag.ContainsKey("loadout" + s))
+					loadouts[s].AddRange(tag.GetList<string>("loadout" + s).Select(NormalizeLegacyId).Take(MaxOwnedAugments));
+			}
 
 			RevitalizingWaveTimer = tag.ContainsKey("revitalizingWaveTimer") ? tag.GetInt("revitalizingWaveTimer") : 1200;
 			CleanseCooldown = tag.ContainsKey("cleanseCooldown") ? tag.GetInt("cleanseCooldown") : 0;

@@ -62,6 +62,9 @@ namespace Augments
 				case AugmentPacketType.RequestVendorSpawn:
 					HandleVendorSpawnRequest(whoAmI);
 					return true;
+				case AugmentPacketType.LoadoutRequest:
+					HandleLoadoutRequest(reader, whoAmI);
+					return true;
 				case AugmentPacketType.ApplyNPCEffect:
 					HandleApplyNPCEffect(reader, whoAmI);
 					return true;
@@ -410,6 +413,30 @@ namespace Augments
 			AugmentPlayer augmentPlayer = player.GetModPlayer<AugmentPlayer>();
 			if (augmentPlayer.BuyBackSoldAugmentByIdServerAuthoritative(augmentId, false))
 				SendSyncPlayer(player);
+		}
+
+		public static void SendLoadoutRequest(LoadoutOp op, int slot, string id)
+		{
+			if (Main.netMode != NetmodeID.MultiplayerClient)
+				return;
+
+			ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
+			packet.Write((byte)AugmentPacketType.LoadoutRequest);
+			packet.Write((byte)op);
+			packet.Write((byte)slot);
+			packet.Write(id ?? "");
+			packet.Send();
+		}
+
+		private static void HandleLoadoutRequest(BinaryReader reader, int whoAmI)
+		{
+			LoadoutOp op = (LoadoutOp)reader.ReadByte();
+			int slot = reader.ReadByte();
+			string id = reader.ReadString();
+			if (!TryGetActiveSender(whoAmI, out Player player))
+				return;
+
+			player.GetModPlayer<AugmentPlayer>().ExecuteLoadoutOp(op, slot, id);
 		}
 
 		private static bool TryGetActiveSender(int whoAmI, out Player player)
