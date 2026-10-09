@@ -545,35 +545,25 @@ namespace Augments
 				scale
 			);
 
-			DrawTagDivider(spriteBatch, cardRect, textX, (int)textSize.X, textY + (int)(textSize.Y * 0.5f) + 1, themeColor, 0f);
+			DrawTagDivider(spriteBatch, cardRect, textY - 4, themeColor, 0f);
 			return hitRect;
 		}
 
-		// Full-width hairline across the card, broken around the tag text, with an orb node on each side of the text.
-		// glow > 0 adds a soft halo around the orbs (used by the permanent Core Override tag).
-		private static void DrawTagDivider(SpriteBatch spriteBatch, Rectangle cardRect, int textX, int textW, int midY, Color color, float glow)
+		// Continuous hairline across the card just above the tag text, with one orb in the middle.
+		// glow > 0 adds a soft halo around the orb (used by the permanent Core Override tag).
+		private static void DrawTagDivider(SpriteBatch spriteBatch, Rectangle cardRect, int lineY, Color color, float glow)
 		{
 			Texture2D pixel = TextureAssets.MagicPixel.Value;
-			int leftOrb = textX - 9;
-			int rightOrb = textX + textW + 9;
-			int lineLeft = cardRect.X + 10;
-			int lineRight = cardRect.Right - 10;
-			Color lineColor = color * 0.35f;
-
-			spriteBatch.Draw(pixel, new Rectangle(lineLeft, midY, Math.Max(0, leftOrb - 4 - lineLeft), 1), lineColor);
-			spriteBatch.Draw(pixel, new Rectangle(rightOrb + 5, midY, Math.Max(0, lineRight - (rightOrb + 5)), 1), lineColor);
-
-			foreach (int cx in new[] { leftOrb, rightOrb })
-			{
-				if (glow > 0f)
-					spriteBatch.Draw(pixel, new Rectangle(cx - 3, midY - 3, 7, 7), color * (0.10f + 0.18f * glow));
-				spriteBatch.Draw(pixel, new Rectangle(cx - 1, midY - 1, 3, 3), color);
-				spriteBatch.Draw(pixel, new Rectangle(cx, midY, 1, 1), Color.White * 0.9f);
-			}
+			int midX = cardRect.X + cardRect.Width / 2;
+			spriteBatch.Draw(pixel, new Rectangle(cardRect.X + 10, lineY, cardRect.Width - 20, 1), color * 0.35f);
+			if (glow > 0f)
+				spriteBatch.Draw(pixel, new Rectangle(midX - 3, lineY - 3, 7, 7), color * (0.10f + 0.18f * glow));
+			spriteBatch.Draw(pixel, new Rectangle(midX - 1, lineY - 1, 3, 3), color);
+			spriteBatch.Draw(pixel, new Rectangle(midX, lineY, 1, 1), Color.White * 0.9f);
 		}
 
 		// Same flat text style as the protocol tag, but flagged as permanent with a pulsing
-		// colour and glowing orbs on the shared divider line.
+		// colour and a glowing orb on the shared divider line.
 		private Rectangle DrawAlertTextBadge(SpriteBatch spriteBatch, DynamicSpriteFont font, Rectangle cardRect, int y, string text, Color alertColor)
 		{
 			Vector2 scale = new Vector2(0.66f);
@@ -596,7 +586,7 @@ namespace Augments
 
 			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text, new Vector2(textX, textY), baseColor, 0f, Vector2.Zero, scale);
 
-			DrawTagDivider(spriteBatch, cardRect, textX, (int)textSize.X, textY + (int)(textSize.Y * 0.5f) + 1, markColor, pulse);
+			DrawTagDivider(spriteBatch, cardRect, textY - 4, markColor, pulse);
 
 			return hitRect;
 		}
