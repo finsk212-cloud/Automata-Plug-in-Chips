@@ -681,7 +681,7 @@ namespace Augments
 				CalculatedStyle d = GetDimensions();
 				var rect = new Rectangle((int)d.X, (int)d.Y, (int)d.Width, (int)d.Height);
 				Texture2D pixel = TextureAssets.MagicPixel.Value;
-				Color accent = isActive ? new Color(56, 189, 248) : new Color(30, 41, 59);
+				Color accent = isActive ? new Color(56, 189, 248) : unlocked ? new Color(30, 41, 59) : new Color(120, 48, 56);
 
 				spriteBatch.Draw(pixel, rect, new Color(10, 16, 28) * 0.94f);
 				Color hair = Color.White * 0.04f;

@@ -343,6 +343,8 @@ namespace Augments
 				bool hasData = unlocked && ap.GetLoadout(i).Count > 0;
 				loadoutButtons[i].SetText(!unlocked ? $"{i + 1} · Locked" : hasData ? $"Loadout {i + 1}" : $"{i + 1} · Empty");
 				loadoutButtons[i].IsActiveHighlight = hasData && ap.ActiveLoadout == i;
+				loadoutButtons[i].BorderColor = unlocked ? new Color(30, 42, 66) : new Color(120, 48, 56);
+				loadoutButtons[i].BackgroundColor = unlocked ? new Color(10, 16, 28) : new Color(20, 14, 24);
 			}
 		}
 
