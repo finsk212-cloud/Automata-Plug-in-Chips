@@ -480,6 +480,7 @@ namespace Augments
 				}
 			}
 
+			shopState.ResetTab();
 			shopState.Refresh();
 			shopInterface?.SetState(shopState);
 		}

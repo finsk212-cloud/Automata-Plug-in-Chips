@@ -13,6 +13,7 @@ A [tModLoader](https://github.com/tModLoader/tModLoader) mod for Terraria. Every
 - **Protocols**: owning a matching set of chips unlocks bonus effects (Bloodhunter, Field Medic, Kinetic, Cryo, Volt, Hivemind, Marksman, Arcane Surge, Bastion, Gunslinger, Lasher, Fortune). See [CHANGELOG.md](CHANGELOG.md) for details.
 - **Core Overrides**: one build-defining chip per character with trade-offs (Type-B, Type-D, Type-S).
 - **Medi Gun (MK I to MK IV)**: a support weapon that tethers to teammates and heals them.
+- **Loadout Presets**: save up to 3 chip setups (2 extra slots unlock with Machine Cores), swap from the Plugins menu, the 2B shop or a hotkey, with a free stash for uninstalled chips.
 - **Mistress 2B**: a vendor NPC where you can sell and buy back chips.
 - **In-game tools**: chip list, combat analytics and live DPS monitor, pinnable stat HUD, hidden-stats drawer, and the Pod 042 advisory tips.
 

@@ -7,6 +7,7 @@
 - **Full UI Visual Overhaul**: Every menu and HUD now shares one clean "cybernetic chassis" look: Plugins menu and inspector, Shop, reward choice cards, tooltips, Combat Analytics, pinned stat HUD, Protocol sidebar, cooldown/charge tiles, and the new Pod 042 advisory ticker.
 - **Diagnostics Drawer**: A slide-out panel on the edge of the screen (click or hover to open, dockable left or right, can be turned off in the config) showing hidden stats such as Luck, fishing multipliers and combat mechanics.
 - **Automata Protocols**: 12 chip-set bonuses (see section 1).
+- **Loadout Presets & Stash**: Save up to 3 chip setups and swap between them in one click, from the Plugins menu, the Mistress 2B shop, or a hotkey (see section 8).
 - **Core Overrides**: build-defining one-per-character chips (see section 2).
 - **Combat Analytics & Live DPS Monitor** (see section 6).
 - **New Plugin: Autopilot** (Epic, Support): A Pod drone floats beside you on a green wire and heals the lowest-health nearby player for 5 HP per second, one HP at a time. Players only, never NPCs. The drone sticks to its patient instead of flickering between equally hurt players, groups its heal text into one "+5" per second, reacts to nearby enemies and occasionally blinks, and its healing is tracked in the Combat Analytics panel (per-chip row and a total in the footer).
@@ -181,3 +182,12 @@
   - If loading fails partway, the character keeps the data that did load instead of losing its chips.
   - Boss kill counts from older saves load safely instead of risking a crash.
 - **Network Packet Safety**: Malformed or unexpected mod packets are logged and ignored instead of crashing the server or dropping the player.
+
+---
+
+### 8. New Feature: Loadout Presets & Stash
+- **3 Loadouts**: Save your current chip setup and swap back to it later. Slot 1 is free, slot 2 costs 5 Machine Cores and slot 3 costs 10. Unlocks are permanent for the character.
+- **Where to use them**: Apply buttons along the bottom of the Plugins menu, the new **Loadouts** tab in Mistress 2B's shop (save, unlock, apply), or three hotkeys (Apply Loadout 1/2/3, unbound by default).
+- **Stash**: Chips can now be uninstalled and reinstalled for free from the shop's Storage tab. Stashed chips keep their cooldowns exactly as they were, so swapping can't be used to reset them. Dismantling at 2B is still how you archive a chip for Cores.
+- **Swap rules**: Loadouts can't be applied during a boss fight or shortly after taking damage, and there is a short cooldown between swaps. Core Overrides stay equipped. If a saved chip has since been archived it is skipped and you are told which.
+- Works in multiplayer (the server validates every change) and is saved with the character.
