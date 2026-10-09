@@ -33,8 +33,9 @@ namespace Augments
 			this.isPermanent = onAction == null;
 
 			SetPadding(0f);
+			// Extra right margin so the 1px border isn't clipped by the list's scissor rect.
 			Left.Set(2f, 0f);
-			Width.Set(-4f, 1f);
+			Width.Set(-8f, 1f);
 			Height.Set(54f, 0f);
 
 			bool stacked = secondaryLabel != null && onSecondary != null;
