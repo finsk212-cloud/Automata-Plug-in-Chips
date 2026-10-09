@@ -54,7 +54,7 @@ namespace Augments
 		}
 
 		// Null when swapping is allowed, otherwise a short player-facing reason.
-		public string GetLoadoutLockReason()
+		public string GetLoadoutLockReason(bool ignoreCooldown = false)
 		{
 			for (int i = 0; i < Main.maxNPCs; i++)
 			{
@@ -65,7 +65,7 @@ namespace Augments
 			long now = (long)Main.GameUpdateCount;
 			if (now - lastHurtTick < RecentlyHurtTicks)
 				return "Locked: recently took damage";
-			if (now - lastLoadoutApplyTick < ApplyCooldownTicks)
+			if (!ignoreCooldown && now - lastLoadoutApplyTick < ApplyCooldownTicks)
 				return "Loadout swap on cooldown";
 			return null;
 		}
@@ -109,8 +109,8 @@ namespace Augments
 			Augment a = AugmentDatabase.GetById(id);
 			if (a == null || a.IsPermanent || !ownedIds.Contains(id))
 				return false;
-			string lockReason = GetLoadoutLockReason();
-			if (lockReason != null && lockReason != "Loadout swap on cooldown")
+			string lockReason = GetLoadoutLockReason(true);
+			if (lockReason != null)
 			{
 				NotifyPlayer(lockReason, new Color(255, 140, 140));
 				return false;
@@ -127,8 +127,8 @@ namespace Augments
 			Augment a = AugmentDatabase.GetById(id);
 			if (a == null || !stashedIds.Contains(id) || ownedIds.Count >= MaxOwnedAugments)
 				return false;
-			string lockReason = GetLoadoutLockReason();
-			if (lockReason != null && lockReason != "Loadout swap on cooldown")
+			string lockReason = GetLoadoutLockReason(true);
+			if (lockReason != null)
 			{
 				NotifyPlayer(lockReason, new Color(255, 140, 140));
 				return false;

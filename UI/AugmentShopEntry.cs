@@ -24,12 +24,12 @@ namespace Augments
 
 		private readonly ActionButton actionButton;
 
-		public AugmentShopEntry(Augment augment, string actionLabel, Action<Augment> onAction)
+		public AugmentShopEntry(Augment augment, string actionLabel, Action<Augment> onAction, string secondaryLabel = null, Action<Augment> onSecondary = null)
 		{
 			this.augment = augment;
 			this.actionLabel = actionLabel;
 			this.onAction = onAction;
-			this.isBuyAction = actionLabel.StartsWith("Buy", StringComparison.OrdinalIgnoreCase);
+			this.isBuyAction = actionLabel.StartsWith("Buy", StringComparison.OrdinalIgnoreCase) || actionLabel.StartsWith("Install", StringComparison.OrdinalIgnoreCase);
 			this.isPermanent = onAction == null;
 
 			SetPadding(0f);
@@ -37,17 +37,33 @@ namespace Augments
 			Width.Set(-4f, 1f);
 			Height.Set(54f, 0f);
 
+			bool stacked = secondaryLabel != null && onSecondary != null;
 			actionButton = new ActionButton(actionLabel, isBuyAction, isPermanent, this, augment);
 			actionButton.Width.Set(116f, 0f);
-			actionButton.Height.Set(26f, 0f);
+			actionButton.Height.Set(stacked ? 22f : 26f, 0f);
 			actionButton.HAlign = 1f;
-			actionButton.VAlign = 0.5f;
+			if (stacked)
+				actionButton.Top.Set(28f, 0f);
+			else
+				actionButton.VAlign = 0.5f;
 			actionButton.Left.Set(-8f, 0f);
 			if (!isPermanent && onAction != null)
 			{
 				actionButton.Clicked += () => onAction(augment);
 			}
 			Append(actionButton);
+
+			if (stacked)
+			{
+				var secondary = new ActionButton(secondaryLabel, false, false, this, augment, true);
+				secondary.Width.Set(116f, 0f);
+				secondary.Height.Set(22f, 0f);
+				secondary.HAlign = 1f;
+				secondary.Top.Set(4f, 0f);
+				secondary.Left.Set(-8f, 0f);
+				secondary.Clicked += () => onSecondary(augment);
+				Append(secondary);
+			}
 		}
 
 		public override void MouseOver(UIMouseEvent evt)
@@ -170,12 +186,14 @@ namespace Augments
 			private readonly string label;
 			private readonly bool isBuy;
 			private readonly bool disabled;
+			private readonly bool neutral;
 			private readonly AugmentShopEntry parentEntry;
 			private readonly Augment parentAugment;
 			private bool isHovered;
 
-			public ActionButton(string label, bool isBuy, bool disabled, AugmentShopEntry parentEntry, Augment parentAugment)
+			public ActionButton(string label, bool isBuy, bool disabled, AugmentShopEntry parentEntry, Augment parentAugment, bool neutral = false)
 			{
+				this.neutral = neutral;
 				this.label = label;
 				this.isBuy = isBuy;
 				this.disabled = disabled;
@@ -231,6 +249,10 @@ namespace Augments
 				{
 					textColor = new Color(100, 116, 139);
 				}
+				else if (neutral)
+				{
+					textColor = isHovered ? Color.White : new Color(104, 194, 216);
+				}
 				else if (isBuy)
 				{
 					textColor = isHovered ? Color.White : new Color(74, 222, 128);
@@ -244,7 +266,7 @@ namespace Augments
 				// Soft ambient hover wash — ZERO outline boxes or border lines
 				if (isHovered && !disabled)
 				{
-					Color washColor = isBuy ? new Color(34, 197, 94, 35) : new Color(239, 68, 68, 35);
+					Color washColor = neutral ? new Color(56, 189, 248, 35) : isBuy ? new Color(34, 197, 94, 35) : new Color(239, 68, 68, 35);
 					spriteBatch.Draw(pixel, rect, washColor);
 				}
 

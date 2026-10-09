@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
@@ -20,6 +21,14 @@ namespace Augments
 		private UndoReforgeBar undoReforgeBar;
 		private UIList buyBackList;
 		private UIList removeList;
+		private UIText subtitleText;
+		private ShopTabButton storageTabBtn;
+		private ShopTabButton loadoutTabBtn;
+		private UIElement loadoutView;
+		private UIText lockStatusText;
+		private readonly LoadoutCard[] loadoutCards = new LoadoutCard[AugmentPlayer.MaxLoadouts];
+		private readonly List<UIElement> storageElements = new List<UIElement>();
+		private bool showLoadouts;
 
 		private readonly UIParticleSystem shopParticles = new UIParticleSystem(70);
 
@@ -37,6 +46,10 @@ namespace Augments
 			}
 
 			shopParticles.Update();
+
+			// Keep the swap-lock readout live while the Loadouts tab is open.
+			if (showLoadouts && Main.GameUpdateCount % 20 == 0 && Main.LocalPlayer != null)
+				RefreshLoadoutView(Main.LocalPlayer.GetModPlayer<AugmentPlayer>());
 
 			if (backPanel != null && Main.rand.NextBool(8))
 			{
@@ -97,13 +110,30 @@ namespace Augments
 			backPanel.Append(title);
 
 			// Subtitle
-			UIText subtitle = new UIText("Mistress 2B's Archive — Re-acquire archived plugins or dismantle equipped plugins", 0.76f)
+			subtitleText = new UIText("Mistress 2B's Archive — Stash or dismantle equipped plugins, re-acquire archived ones", 0.76f)
 			{
 				HAlign = 0.5f,
 				TextColor = new Color(148, 163, 184)
 			};
-			subtitle.Top.Set(42f, 0f);
-			backPanel.Append(subtitle);
+			subtitleText.Top.Set(42f, 0f);
+			backPanel.Append(subtitleText);
+
+			// Tabs (top-left)
+			storageTabBtn = new ShopTabButton("Storage");
+			storageTabBtn.Left.Set(18f, 0f);
+			storageTabBtn.Top.Set(12f, 0f);
+			storageTabBtn.Width.Set(80f, 0f);
+			storageTabBtn.Height.Set(24f, 0f);
+			storageTabBtn.Clicked += () => SetTab(false);
+			backPanel.Append(storageTabBtn);
+
+			loadoutTabBtn = new ShopTabButton("Loadouts");
+			loadoutTabBtn.Left.Set(104f, 0f);
+			loadoutTabBtn.Top.Set(12f, 0f);
+			loadoutTabBtn.Width.Set(80f, 0f);
+			loadoutTabBtn.Height.Set(24f, 0f);
+			loadoutTabBtn.Clicked += () => SetTab(true);
+			backPanel.Append(loadoutTabBtn);
 
 			// Optional Undo Reforge Bar (spans 18f to 782f)
 			undoReforgeBar = new UndoReforgeBar(TryUndoReforge);
@@ -113,7 +143,7 @@ namespace Augments
 			undoReforgeBar.Height.Set(22f, 0f);
 
 			// Column Headers (symmetrical at Left = 18f and Left = 410f)
-			UIText buyBackHeader = new UIText("Re-acquire (Buy Back)", 0.85f)
+			UIText buyBackHeader = new UIText("Stash & Archive", 0.85f)
 			{
 				HAlign = 0f,
 				TextColor = new Color(148, 210, 255)
@@ -121,6 +151,7 @@ namespace Augments
 			buyBackHeader.Left.Set(18f, 0f);
 			buyBackHeader.Top.Set(98f, 0f);
 			backPanel.Append(buyBackHeader);
+			storageElements.Add(buyBackHeader);
 
 			UIText removeHeader = new UIText("Equipped (Dismantle)", 0.85f)
 			{
@@ -130,6 +161,7 @@ namespace Augments
 			removeHeader.Left.Set(410f, 0f);
 			removeHeader.Top.Set(98f, 0f);
 			backPanel.Append(removeHeader);
+			storageElements.Add(removeHeader);
 
 			// Left List: Buy Back (Left = 18f, Width = 356f, Scrollbar = 378f)
 			buyBackList = new UIList();
@@ -140,6 +172,7 @@ namespace Augments
 			buyBackList.Height.Set(-(ListsTop + 14f), 1f);
 			buyBackList.ListPadding = 6f;
 			backPanel.Append(buyBackList);
+			storageElements.Add(buyBackList);
 
 			ShopScrollbar buyBackScrollbar = new ShopScrollbar();
 			buyBackScrollbar.Top.Set(ListsTop, 0f);
@@ -148,6 +181,7 @@ namespace Augments
 			buyBackScrollbar.Width.Set(8f, 0f);
 			buyBackList.SetScrollbar(buyBackScrollbar);
 			backPanel.Append(buyBackScrollbar);
+			storageElements.Add(buyBackScrollbar);
 
 			// Right List: Remove (Left = 410f, Width = 356f, Scrollbar = 770f)
 			removeList = new UIList();
@@ -158,6 +192,7 @@ namespace Augments
 			removeList.Height.Set(-(ListsTop + 14f), 1f);
 			removeList.ListPadding = 6f;
 			backPanel.Append(removeList);
+			storageElements.Add(removeList);
 
 			ShopScrollbar removeScrollbar = new ShopScrollbar();
 			removeScrollbar.Top.Set(ListsTop, 0f);
@@ -166,8 +201,130 @@ namespace Augments
 			removeScrollbar.Width.Set(8f, 0f);
 			removeList.SetScrollbar(removeScrollbar);
 			backPanel.Append(removeScrollbar);
+			storageElements.Add(removeScrollbar);
+
+			BuildLoadoutView();
 
 			Append(backPanel);
+		}
+
+		private void BuildLoadoutView()
+		{
+			loadoutView = new UIElement();
+			loadoutView.Left.Set(18f, 0f);
+			loadoutView.Top.Set(78f, 0f);
+			loadoutView.Width.Set(764f, 0f);
+			loadoutView.Height.Set(420f, 0f);
+
+			lockStatusText = new UIText("", 0.78f) { TextColor = new Color(148, 163, 184) };
+			lockStatusText.Top.Set(0f, 0f);
+			loadoutView.Append(lockStatusText);
+
+			const float cardWidth = 244f;
+			for (int i = 0; i < AugmentPlayer.MaxLoadouts; i++)
+			{
+				int slot = i;
+				var card = new LoadoutCard(slot, () => SaveLoadoutSlot(slot), () => ApplyLoadoutSlot(slot), () => BuyLoadoutSlot(slot));
+				card.Left.Set(i * (cardWidth + 16f), 0f);
+				card.Top.Set(26f, 0f);
+				card.Width.Set(cardWidth, 0f);
+				card.Height.Set(276f, 0f);
+				loadoutCards[i] = card;
+				loadoutView.Append(card);
+			}
+
+			var help = new UIText("Stashed plugins are kept for free and can be reinstalled at no cost.\nLoadouts swap equipped plugins from your stash. Locked during boss fights\nand briefly after taking damage. Archived plugins are skipped until bought back.\nAssign hotkeys under Settings > Controls > Mod Controls.", 0.74f)
+			{
+				TextColor = new Color(130, 145, 175)
+			};
+			help.Top.Set(318f, 0f);
+			loadoutView.Append(help);
+		}
+
+		private void SetTab(bool loadouts)
+		{
+			showLoadouts = loadouts;
+			foreach (var e in storageElements)
+			{
+				if (loadouts && backPanel.HasChild(e))
+					backPanel.RemoveChild(e);
+				else if (!loadouts && !backPanel.HasChild(e))
+					backPanel.Append(e);
+			}
+			if (loadouts && !backPanel.HasChild(loadoutView))
+				backPanel.Append(loadoutView);
+			else if (!loadouts && backPanel.HasChild(loadoutView))
+				backPanel.RemoveChild(loadoutView);
+
+			backPanel.ShowColumns = !loadouts;
+			subtitleText.SetText(loadouts
+				? "Mistress 2B's Archive — Save, unlock and apply plugin loadouts"
+				: "Mistress 2B's Archive — Stash or dismantle equipped plugins, re-acquire archived ones");
+			Refresh();
+		}
+
+		public void ResetTab()
+		{
+			if (backPanel != null && showLoadouts)
+				SetTab(false);
+		}
+
+		private void SaveLoadoutSlot(int slot)
+		{
+			Main.LocalPlayer.GetModPlayer<AugmentPlayer>().RequestLoadoutOp(LoadoutOp.SaveLoadout, slot);
+		}
+
+		private void ApplyLoadoutSlot(int slot)
+		{
+			var ap = Main.LocalPlayer.GetModPlayer<AugmentPlayer>();
+			string reason = ap.GetLoadoutLockReason();
+			if (reason != null)
+			{
+				Main.NewText(reason, 255, 140, 140);
+				return;
+			}
+			ap.RequestLoadoutOp(LoadoutOp.ApplyLoadout, slot);
+		}
+
+		private void BuyLoadoutSlot(int slot)
+		{
+			var player = Main.LocalPlayer;
+			int cost = AugmentPlayer.GetLoadoutSlotCost(slot);
+			if (player.CountItem(ModContent.ItemType<AugmentEssenceItem>(), cost) < cost)
+			{
+				Main.NewText("Not enough Machine Cores.", 255, 80, 80);
+				return;
+			}
+			player.GetModPlayer<AugmentPlayer>().RequestLoadoutOp(LoadoutOp.BuyLoadoutSlot, slot);
+		}
+
+		private void StashOwned(Augment augment)
+		{
+			var ap = Main.LocalPlayer.GetModPlayer<AugmentPlayer>();
+			string reason = ap.GetLoadoutLockReason(true);
+			if (reason != null)
+			{
+				Main.NewText(reason, 255, 140, 140);
+				return;
+			}
+			ap.RequestLoadoutOp(LoadoutOp.Stash, 0, augment.Id);
+		}
+
+		private void InstallStashed(Augment augment)
+		{
+			var ap = Main.LocalPlayer.GetModPlayer<AugmentPlayer>();
+			if (ap.Owned.Count >= AugmentPlayer.MaxOwnedAugments)
+			{
+				Main.NewText("Plugin slots full.", 255, 80, 80);
+				return;
+			}
+			string reason = ap.GetLoadoutLockReason(true);
+			if (reason != null)
+			{
+				Main.NewText(reason, 255, 140, 140);
+				return;
+			}
+			ap.RequestLoadoutOp(LoadoutOp.Unstash, 0, augment.Id);
 		}
 
 		public void Refresh()
@@ -179,6 +336,18 @@ namespace Augments
 			var augmentPlayer = player.GetModPlayer<AugmentPlayer>();
 
 			int buyBackCount = 0;
+			foreach (var id in augmentPlayer.StashedIds)
+			{
+				var stashed = AugmentDatabase.GetById(id);
+				if (stashed == null)
+					continue;
+
+				var stashEntry = new AugmentShopEntry(stashed, "Install (Free)", InstallStashed);
+				stashEntry.Width.Set(0f, 1f);
+				stashEntry.Height.Set(54f, 0f);
+				buyBackList.Add(stashEntry);
+				buyBackCount++;
+			}
 			foreach (var id in augmentPlayer.SoldAugmentIds)
 			{
 				var augment = AugmentDatabase.GetById(id);
@@ -195,7 +364,7 @@ namespace Augments
 
 			if (buyBackCount == 0)
 			{
-				var empty = new UIText("No archived plugins.\nPlugins you sell will appear here.", 0.8f)
+				var empty = new UIText("Nothing stashed or archived.\nStashed and dismantled plugins appear here.", 0.8f)
 				{
 					HAlign = 0.5f,
 					TextColor = new Color(130, 145, 175)
@@ -216,7 +385,7 @@ namespace Augments
 				{
 					int removeRefund = AugmentPlayer.GetRemoveRefund(augment.Rarity);
 					string label = removeRefund > 0 ? $"Remove (+{removeRefund} Core{(removeRefund > 1 ? "s" : "")})" : "Remove (Free)";
-					entry = new AugmentShopEntry(augment, label, SellOwned);
+					entry = new AugmentShopEntry(augment, label, SellOwned, "Stash (Free)", StashOwned);
 				}
 				entry.Width.Set(0f, 1f);
 				entry.Height.Set(54f, 0f);
@@ -237,12 +406,27 @@ namespace Augments
 
 			RefreshEssenceText();
 			RefreshUndoReforgeBar();
+			RefreshLoadoutView(augmentPlayer);
+		}
+
+		private void RefreshLoadoutView(AugmentPlayer ap)
+		{
+			storageTabBtn.IsActive = !showLoadouts;
+			loadoutTabBtn.IsActive = showLoadouts;
+			if (!showLoadouts)
+				return;
+
+			string reason = ap.GetLoadoutLockReason();
+			lockStatusText.SetText(reason ?? "Swaps ready");
+			lockStatusText.TextColor = reason == null ? new Color(74, 222, 128) : new Color(248, 180, 100);
+			foreach (var card in loadoutCards)
+				card.Bind(ap);
 		}
 
 		private void RefreshUndoReforgeBar()
 		{
 			var augmentPlayer = Main.LocalPlayer.GetModPlayer<AugmentPlayer>();
-			bool owns = augmentPlayer.HasAugment("reforgers_patience");
+			bool owns = augmentPlayer.HasAugment("reforgers_patience") && !showLoadouts;
 			bool pending = owns && augmentPlayer.HasPendingReforgeUndo;
 
 			if (!owns)
@@ -306,8 +490,244 @@ namespace Augments
 				Refresh();
 		}
 
+		// Shared flat button chrome: chassis fill, hairline, 1px border, centered label.
+		private static void DrawFlatButton(SpriteBatch spriteBatch, Rectangle rect, string label, bool hovered, bool active, bool enabled, Color accent)
+		{
+			Texture2D pixel = TextureAssets.MagicPixel.Value;
+			Color bg = !enabled ? new Color(10, 16, 28) * 0.95f
+				: active ? new Color(18, 34, 62)
+				: hovered ? new Color(18, 32, 56) * 0.98f : new Color(12, 22, 40) * 0.94f;
+			Color border = !enabled ? new Color(30, 42, 60)
+				: active ? accent
+				: hovered ? accent * 0.9f : new Color(30, 58, 92);
+			Color textColor = !enabled ? new Color(100, 116, 139) : (hovered || active) ? Color.White : new Color(220, 235, 250);
+
+			if (hovered && enabled)
+				spriteBatch.Draw(pixel, new Rectangle(rect.X - 1, rect.Y - 1, rect.Width + 2, rect.Height + 2), border * 0.12f);
+
+			spriteBatch.Draw(pixel, rect, bg);
+			Color hair = Color.White * (hovered && enabled ? 0.08f : 0.04f);
+			spriteBatch.Draw(pixel, new Rectangle(rect.X + 1, rect.Y + 1, rect.Width - 2, 1), hair);
+			spriteBatch.Draw(pixel, new Rectangle(rect.X + 1, rect.Bottom - 2, rect.Width - 2, 1), hair);
+			spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, rect.Width, 1), border);
+			spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Bottom - 1, rect.Width, 1), border);
+			spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, 1, rect.Height), border);
+			spriteBatch.Draw(pixel, new Rectangle(rect.Right - 1, rect.Y, 1, rect.Height), border);
+
+			var font = FontAssets.MouseText.Value;
+			Vector2 scale = new Vector2(0.72f);
+			Vector2 size = ChatManager.GetStringSize(font, label, scale);
+			Vector2 pos = new Vector2(rect.X + (rect.Width - size.X) * 0.5f, rect.Y + (rect.Height - size.Y) * 0.5f + 1f);
+			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, label, pos, textColor, 0f, Vector2.Zero, scale);
+		}
+
+		private class ShopTabButton : UIElement
+		{
+			public event Action Clicked;
+			public bool IsActive;
+			private readonly string label;
+			private bool isHovered;
+
+			public ShopTabButton(string label)
+			{
+				this.label = label;
+			}
+
+			public override void LeftClick(UIMouseEvent evt)
+			{
+				base.LeftClick(evt);
+				SoundEngine.PlaySound(SoundID.MenuTick);
+				Clicked?.Invoke();
+			}
+
+			public override void MouseOver(UIMouseEvent evt)
+			{
+				base.MouseOver(evt);
+				isHovered = true;
+				SoundEngine.PlaySound(SoundID.MenuTick);
+			}
+
+			public override void MouseOut(UIMouseEvent evt)
+			{
+				base.MouseOut(evt);
+				isHovered = false;
+			}
+
+			protected override void DrawSelf(SpriteBatch spriteBatch)
+			{
+				CalculatedStyle d = GetDimensions();
+				DrawFlatButton(spriteBatch, new Rectangle((int)d.X, (int)d.Y, (int)d.Width, (int)d.Height), label, isHovered, IsActive, true, new Color(56, 189, 248));
+			}
+		}
+
+		private class ShopButton : UIElement
+		{
+			public event Action Clicked;
+			public string Label = "";
+			public bool Enabled = true;
+			public Color Accent = new Color(56, 189, 248);
+			private bool isHovered;
+
+			public override void LeftClick(UIMouseEvent evt)
+			{
+				base.LeftClick(evt);
+				if (!Enabled)
+					return;
+				SoundEngine.PlaySound(SoundID.MenuTick);
+				Clicked?.Invoke();
+			}
+
+			public override void MouseOver(UIMouseEvent evt)
+			{
+				base.MouseOver(evt);
+				isHovered = true;
+				if (Enabled)
+					SoundEngine.PlaySound(SoundID.MenuTick);
+			}
+
+			public override void MouseOut(UIMouseEvent evt)
+			{
+				base.MouseOut(evt);
+				isHovered = false;
+			}
+
+			protected override void DrawSelf(SpriteBatch spriteBatch)
+			{
+				CalculatedStyle d = GetDimensions();
+				DrawFlatButton(spriteBatch, new Rectangle((int)d.X, (int)d.Y, (int)d.Width, (int)d.Height), Label, isHovered, false, Enabled, Accent);
+			}
+		}
+
+		// One loadout slot: title, saved chips, and Save / Apply / Unlock buttons.
+		private class LoadoutCard : UIElement
+		{
+			private readonly int slot;
+			private readonly ShopButton saveBtn;
+			private readonly ShopButton applyBtn;
+			private readonly ShopButton buyBtn;
+			private bool unlocked;
+			private bool isActive;
+			private IReadOnlyList<string> chipIds = new List<string>();
+			private HashSet<string> available = new HashSet<string>();
+			private HashSet<string> equipped = new HashSet<string>();
+
+			public LoadoutCard(int slot, Action onSave, Action onApply, Action onBuy)
+			{
+				this.slot = slot;
+				SetPadding(0f);
+
+				saveBtn = new ShopButton { Label = "Save current setup" };
+				saveBtn.Left.Set(12f, 0f);
+				saveBtn.Top.Set(190f, 0f);
+				saveBtn.Width.Set(-24f, 1f);
+				saveBtn.Height.Set(30f, 0f);
+				saveBtn.Clicked += onSave;
+				Append(saveBtn);
+
+				applyBtn = new ShopButton { Label = "Apply", Accent = new Color(74, 222, 128) };
+				applyBtn.Left.Set(12f, 0f);
+				applyBtn.Top.Set(228f, 0f);
+				applyBtn.Width.Set(-24f, 1f);
+				applyBtn.Height.Set(30f, 0f);
+				applyBtn.Clicked += onApply;
+				Append(applyBtn);
+
+				buyBtn = new ShopButton { Label = "Unlock", Accent = new Color(250, 204, 21) };
+				buyBtn.Left.Set(12f, 0f);
+				buyBtn.Top.Set(228f, 0f);
+				buyBtn.Width.Set(-24f, 1f);
+				buyBtn.Height.Set(30f, 0f);
+				buyBtn.Clicked += onBuy;
+			}
+
+			public void Bind(AugmentPlayer ap)
+			{
+				unlocked = slot < ap.LoadoutSlotsUnlocked;
+				chipIds = ap.GetLoadout(slot);
+				isActive = unlocked && chipIds.Count > 0 && ap.ActiveLoadout == slot;
+				equipped = new HashSet<string>(ap.OwnedIds);
+				available = new HashSet<string>(ap.OwnedIds);
+				available.UnionWith(ap.StashedIds);
+
+				if (unlocked)
+				{
+					if (!HasChild(saveBtn)) Append(saveBtn);
+					if (!HasChild(applyBtn)) Append(applyBtn);
+					if (HasChild(buyBtn)) RemoveChild(buyBtn);
+					applyBtn.Enabled = chipIds.Count > 0;
+				}
+				else
+				{
+					if (HasChild(saveBtn)) RemoveChild(saveBtn);
+					if (HasChild(applyBtn)) RemoveChild(applyBtn);
+					if (!HasChild(buyBtn)) Append(buyBtn);
+
+					int cost = AugmentPlayer.GetLoadoutSlotCost(slot);
+					bool next = slot == ap.LoadoutSlotsUnlocked;
+					buyBtn.Enabled = next;
+					buyBtn.Label = next ? $"Unlock ({cost} Cores)" : "Unlock previous slot first";
+				}
+			}
+
+			protected override void DrawSelf(SpriteBatch spriteBatch)
+			{
+				CalculatedStyle d = GetDimensions();
+				var rect = new Rectangle((int)d.X, (int)d.Y, (int)d.Width, (int)d.Height);
+				Texture2D pixel = TextureAssets.MagicPixel.Value;
+				Color accent = isActive ? new Color(56, 189, 248) : new Color(30, 41, 59);
+
+				spriteBatch.Draw(pixel, rect, new Color(10, 16, 28) * 0.94f);
+				Color hair = Color.White * 0.04f;
+				spriteBatch.Draw(pixel, new Rectangle(rect.X + 1, rect.Y + 1, rect.Width - 2, 1), hair);
+				spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, rect.Width, 1), accent);
+				spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Bottom - 1, rect.Width, 1), accent);
+				spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, 1, rect.Height), accent);
+				spriteBatch.Draw(pixel, new Rectangle(rect.Right - 1, rect.Y, 1, rect.Height), accent);
+
+				var font = FontAssets.MouseText.Value;
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, $"Loadout {slot + 1}", new Vector2(rect.X + 12f, rect.Y + 10f), new Color(248, 250, 252), 0f, Vector2.Zero, new Vector2(0.9f));
+
+				string status = !unlocked ? "Locked" : isActive ? "Active" : chipIds.Count == 0 ? "Empty" : $"{chipIds.Count} plugin{(chipIds.Count == 1 ? "" : "s")}";
+				Color statusCol = !unlocked ? new Color(250, 204, 21) : isActive ? new Color(56, 189, 248) : new Color(148, 163, 184);
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, status, new Vector2(rect.X + 12f, rect.Y + 32f), statusCol, 0f, Vector2.Zero, new Vector2(0.72f));
+				spriteBatch.Draw(pixel, new Rectangle(rect.X + 12, rect.Y + 56, rect.Width - 24, 1), new Color(30, 41, 59));
+
+				if (!unlocked)
+				{
+					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "Unlock this slot to save a", new Vector2(rect.X + 12f, rect.Y + 70f), new Color(130, 145, 175), 0f, Vector2.Zero, new Vector2(0.74f));
+					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "plugin setup and swap to it.", new Vector2(rect.X + 12f, rect.Y + 90f), new Color(130, 145, 175), 0f, Vector2.Zero, new Vector2(0.74f));
+					return;
+				}
+
+				if (chipIds.Count == 0)
+				{
+					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "Nothing saved yet.", new Vector2(rect.X + 12f, rect.Y + 70f), new Color(130, 145, 175), 0f, Vector2.Zero, new Vector2(0.74f));
+					return;
+				}
+
+				float y = rect.Y + 66f;
+				foreach (string id in chipIds)
+				{
+					Augment a = AugmentDatabase.GetById(id);
+					if (a == null)
+						continue;
+
+					bool here = available.Contains(id);
+					Color rc = AugmentListEntry.RarityColor(a.Rarity);
+					if (a.Rarity == AugmentRarity.Common)
+						rc = new Color(225, 230, 240);
+					Color col = here ? rc : new Color(100, 116, 139);
+					string text = equipped.Contains(id) ? "● " + a.DisplayName : here ? "○ " + a.DisplayName : "✕ " + a.DisplayName;
+					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text, new Vector2(rect.X + 12f, y), col, 0f, Vector2.Zero, new Vector2(0.74f));
+					y += 22f;
+				}
+			}
+		}
+
 		private class ShopBackPanel : UIPanel
 		{
+			public bool ShowColumns = true;
+
 			protected override void DrawSelf(SpriteBatch spriteBatch)
 			{
 				base.DrawSelf(spriteBatch);
@@ -358,6 +778,9 @@ namespace Augments
 				int nodeX = bRect.X + bRect.Width / 2;
 				spriteBatch.Draw(pixel, new Rectangle(nodeX - 1, divY1 - 1, 3, 3), new Color(56, 189, 248) * 0.85f);
 				spriteBatch.Draw(pixel, new Rectangle(nodeX, divY1, 1, 1), Color.White * 0.9f);
+
+				if (!ShowColumns)
+					return;
 
 				// Column headers horizontal divider under headers
 				int divY2 = (int)dims.Y + 120;
