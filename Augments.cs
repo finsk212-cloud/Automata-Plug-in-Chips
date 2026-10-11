@@ -37,6 +37,7 @@ namespace Augments
 		SyncPlayerLifeMax, // client -> server -> all: player effective max life sync
 		LoadoutRequest,    // client -> server: stash/unstash/save/buy/apply loadout
 		SyncBossKills,     // client -> server: saved boss reward kill counts (merged by max)
+		DebugGivePlugin,  // client -> server: dev command, give a chip to a target player
 		ClientFullState    // client -> server: whole disk-loaded state (stash, loadouts, sold list...) on world join
 	}
 

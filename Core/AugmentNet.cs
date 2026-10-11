@@ -53,6 +53,9 @@ namespace Augments
 				case AugmentPacketType.DebugCommandRequest:
 					HandleDebugCommandRequest(reader, whoAmI);
 					return true;
+				case AugmentPacketType.DebugGivePlugin:
+					HandleDebugGivePlugin(reader, whoAmI);
+					return true;
 				case AugmentPacketType.VendorSellRequest:
 					HandleVendorSellRequest(reader, whoAmI);
 					return true;
@@ -176,6 +179,43 @@ namespace Augments
 			packet.Write((byte)command);
 			packet.Write(augmentId ?? "");
 			packet.Send();
+		}
+
+		public static void SendDebugGivePlugin(int targetIndex, string augmentId)
+		{
+			if (Main.netMode != NetmodeID.MultiplayerClient || !EnableDebugCommandsInMultiplayer)
+				return;
+
+			ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
+			packet.Write((byte)AugmentPacketType.DebugGivePlugin);
+			packet.Write((byte)targetIndex);
+			packet.Write(augmentId ?? "");
+			packet.Send();
+		}
+
+		private static void HandleDebugGivePlugin(BinaryReader reader, int whoAmI)
+		{
+			int targetIndex = reader.ReadByte();
+			string augmentId = reader.ReadString();
+
+			if (Main.netMode != NetmodeID.Server || !EnableDebugCommandsInMultiplayer)
+				return;
+			if (!TryGetActiveSender(whoAmI, out _))
+				return;
+			if (targetIndex < 0 || targetIndex >= Main.maxPlayers || !Main.player[targetIndex].active)
+				return;
+
+			GiveDebugPlugin(Main.player[targetIndex], augmentId);
+		}
+
+		// Installs the chip if there is a free slot, otherwise stores it in 2B's stash.
+		public static bool GiveDebugPlugin(Player target, string augmentId)
+		{
+			Augment augment = AugmentDatabase.GetById(augmentId);
+			if (augment == null || target == null || !target.active)
+				return false;
+
+			return target.GetModPlayer<AugmentPlayer>().ApplyRewardAugment(augment);
 		}
 
 		public static void SendVendorSellRequest(string augmentId)
