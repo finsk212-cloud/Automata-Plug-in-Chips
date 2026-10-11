@@ -36,7 +36,8 @@ namespace Augments
 		ApplyNPCEffect,    // client -> server: custom GlobalNPC effect (Bleed, Slow, Cracked)
 		SyncPlayerLifeMax, // client -> server -> all: player effective max life sync
 		LoadoutRequest,    // client -> server: stash/unstash/save/buy/apply loadout
-		SyncBossKills      // client -> server: saved boss reward kill counts (merged by max)
+		SyncBossKills,     // client -> server: saved boss reward kill counts (merged by max)
+		ClientFullState    // client -> server: whole disk-loaded state (stash, loadouts, sold list...) on world join
 	}
 
 	internal enum DebugAugmentCommandType : byte
@@ -215,6 +216,16 @@ namespace Augments
 					reader.ReadByte();
 					if (Main.netMode == NetmodeID.Server && whoAmI >= 0 && whoAmI < Main.maxPlayers && Main.player[whoAmI].active)
 						Main.player[whoAmI].GetModPlayer<AugmentPlayer>().ReadBossKillsMerge(reader);
+					break;
+				}
+
+				case AugmentPacketType.ClientFullState:
+				{
+					reader.ReadByte();
+					if (Main.netMode == NetmodeID.Server && whoAmI >= 0 && whoAmI < Main.maxPlayers && Main.player[whoAmI].active)
+					{
+						Main.player[whoAmI].GetModPlayer<AugmentPlayer>().ReadAugmentState(reader);
+					}
 					break;
 				}
 

@@ -181,6 +181,7 @@ namespace Augments
 			// same connection are processed in order, so this arrives before the
 			// request is handled.
 			SendSyncOwnedAugments();
+			SendFullStateToServer();
 			SendBossKillsToServer();
 			AugmentNet.SendRequestAugmentSync();
 		}
@@ -225,6 +226,21 @@ namespace Augments
 			packet.Write((byte)AugmentPacketType.SyncBossKills);
 			packet.Write((byte)Player.whoAmI);
 			WriteBossKills(packet);
+			packet.Send();
+		}
+
+		// The server's copy of this player starts empty every session, and its reply to
+		// RequestAugmentSync overwrites the client's state. Without this the stash,
+		// loadouts and sold/ever-owned lists loaded from disk were wiped on every join.
+		internal void SendFullStateToServer()
+		{
+			if (Main.netMode != NetmodeID.MultiplayerClient)
+				return;
+
+			ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
+			packet.Write((byte)AugmentPacketType.ClientFullState);
+			packet.Write((byte)Player.whoAmI);
+			WriteAugmentState(packet);
 			packet.Send();
 		}
 
