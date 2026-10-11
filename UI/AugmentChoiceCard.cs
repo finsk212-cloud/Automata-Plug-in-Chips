@@ -643,7 +643,7 @@ namespace Augments
 
 			if (slotsFull)
 			{
-				installText = isHovered ? $"Transfer (+{coreRefund} Core{(coreRefund > 1 ? "s" : "")})" : $"Transfer (+{coreRefund} Core{(coreRefund > 1 ? "s" : "")})";
+				installText = "Send to Stash";
 				installColor = isHovered ? new Color(255, 205, 140) : new Color(225, 130, 120) * 0.9f;
 			}
 			else

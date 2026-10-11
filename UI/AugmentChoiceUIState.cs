@@ -432,7 +432,7 @@ namespace Augments
 		{
 			var ap = Main.LocalPlayer.GetModPlayer<AugmentPlayer>();
 			capNoticeText.SetText(ap.Owned.Count >= AugmentPlayer.MaxOwnedAugments
-				? "⚠ NOTICE: Neural Frame full (5/5) — Selection will be archived at Mistress 2B & dismantled for Machine Cores."
+				? "⚠ NOTICE: Neural Frame full (5/5) — Selection will be stored in Mistress 2B's stash."
 				: "");
 		}
 

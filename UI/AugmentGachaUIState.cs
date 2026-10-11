@@ -446,7 +446,7 @@ namespace Augments
 			// Authoritatively grant or archive the augment so chat announces it at the exact moment of reveal!
 			var ap = player.GetModPlayer<AugmentPlayer>();
 			wonAugmentArchived = ap.Owned.Count >= AugmentPlayer.MaxOwnedAugments;
-			wonRefundCores = wonAugmentArchived ? AugmentPlayer.GetRemoveRefund(wonAugment.Rarity) : 0;
+			wonRefundCores = 0;
 			ap.ChooseReward(wonAugment);
 		}
 
@@ -717,7 +717,7 @@ namespace Augments
 				bool archived = ap.Owned.Count >= AugmentPlayer.MaxOwnedAugments;
 				int refund = archived ? AugmentPlayer.GetRemoveRefund(augment.Rarity) : 0;
 				string statusNotice = archived
-					? $"[c/E8A068:✦ Neural Frame full (5/5) — Archived at Mistress 2B (+{refund} Cores) ✦]"
+					? $"[c/E8A068:✦ Neural Frame full (5/5) — Stored in Mistress 2B's stash ✦]"
 					: "[c/7AE8A8:✦ Installed directly into your Neural Frame! ✦]";
 
 				var statusLabel = new ColoredLabel(statusNotice, 0.82f)

@@ -198,8 +198,29 @@ namespace Augments
 
 		public bool ApplyRewardAugment(Augment augment, bool sync = true)
 		{
-			if (Main.netMode == NetmodeID.MultiplayerClient || augment == null || HasAugment(augment.Id) || soldAugmentIds.Contains(augment.Id))
+			if (Main.netMode == NetmodeID.MultiplayerClient || augment == null || HasAugment(augment.Id) || soldAugmentIds.Contains(augment.Id) || stashedIds.Contains(augment.Id))
 				return false;
+
+			if (ownedIds.Count >= MaxOwnedAugments && !augment.IsPermanent)
+			{
+				everOwnedIds.Add(augment.Id);
+				stashedIds.Add(augment.Id);
+
+				string stashMsg = $"✦ [Slots Full] {augment.DisplayName} stored in Mistress 2B's stash! ✦";
+				if (Main.netMode == NetmodeID.Server)
+				{
+					ChatHelper.SendChatMessageToClient(NetworkText.FromLiteral(stashMsg), new Color(255, 140, 90), Player.whoAmI);
+					if (sync)
+						AugmentNet.SendSyncPlayer(Player);
+				}
+				else if (Main.netMode == NetmodeID.SinglePlayer)
+				{
+					Main.NewText(stashMsg, 255, 140, 90);
+					ModContent.GetInstance<AugmentUISystem>()?.RefreshOpenPlayerPanels();
+				}
+
+				return true;
+			}
 
 			if (ownedIds.Count >= MaxOwnedAugments)
 			{
