@@ -181,6 +181,7 @@ namespace Augments
 			// same connection are processed in order, so this arrives before the
 			// request is handled.
 			SendSyncOwnedAugments();
+			SendBossKillsToServer();
 			AugmentNet.SendRequestAugmentSync();
 		}
 
@@ -188,6 +189,43 @@ namespace Augments
 		{
 			if (Main.netMode == NetmodeID.Server)
 				AugmentNet.SendSyncPlayer(Player, toWho);
+		}
+
+		// Boss reward kill counts are rolled on the server but saved on the client, so both
+		// directions must carry them. Merging by max means a fresh/empty copy never erases progress.
+		public void WriteBossKills(BinaryWriter writer)
+		{
+			writer.Write((ushort)BossAugmentKills.Count);
+			foreach (var kv in BossAugmentKills)
+			{
+				writer.Write(kv.Key);
+				writer.Write(kv.Value);
+			}
+		}
+
+		public void ReadBossKillsMerge(BinaryReader reader)
+		{
+			ushort n = reader.ReadUInt16();
+			for (int i = 0; i < n; i++)
+			{
+				int type = reader.ReadInt32();
+				int kills = reader.ReadInt32();
+				BossAugmentKills.TryGetValue(type, out int existing);
+				if (kills > existing)
+					BossAugmentKills[type] = kills;
+			}
+		}
+
+		internal void SendBossKillsToServer()
+		{
+			if (Main.netMode != NetmodeID.MultiplayerClient)
+				return;
+
+			ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
+			packet.Write((byte)AugmentPacketType.SyncBossKills);
+			packet.Write((byte)Player.whoAmI);
+			WriteBossKills(packet);
+			packet.Send();
 		}
 
 		public void WriteAugmentState(BinaryWriter writer)
@@ -228,6 +266,8 @@ namespace Augments
 			writer.Write(LifelineCooldown);
 			writer.Write(lifelineInvulnTicks);
 			writer.Write(lifelineProtectionAuthorized);
+
+			WriteBossKills(writer);
 		}
 
 		public void ReadAugmentState(BinaryReader reader)
@@ -274,6 +314,8 @@ namespace Augments
 			LifelineCooldown = reader.ReadInt32();
 			lifelineInvulnTicks = reader.ReadInt32();
 			lifelineProtectionAuthorized = reader.ReadBoolean();
+
+			ReadBossKillsMerge(reader);
 
 			RebuildOwnedCacheFromOwnedIdsOnly();
 		}
