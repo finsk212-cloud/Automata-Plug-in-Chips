@@ -1491,6 +1491,11 @@ namespace Augments
 
 			TryTriggerVoltStaticArc(target);
 
+			// Twin Strike's combined-crit flag must start every hit cleared, or a
+			// stale "pending" from an earlier hit swallows this hit's proc.
+			TwinStrikeItemProcPending = false;
+			TwinStrikeProjProcPending = false;
+
 			foreach (var a in Owned)
 				a.OnHitNPCWithItem(Player, item, target, hit, AugmentHitSource.NormalAttack);
 
@@ -1503,6 +1508,9 @@ namespace Augments
 				foreach (var a in Owned)
 					a.OnHitNPCWithItem(Player, item, target, hit, AugmentHitSource.NormalAttack);
 			}
+
+			TwinStrikeItemProcPending = false;
+			TwinStrikeProjProcPending = false;
 
 			if (item.CountsAsClass(DamageClass.Melee))
 			{
@@ -1591,6 +1599,9 @@ namespace Augments
 			TryTriggerMarksmanEffects(proj, target, hit, source);
 			TryTriggerArcaneNova(target, proj.CountsAsClass(DamageClass.Magic) || proj.DamageType == DamageClass.Magic);
 
+			TwinStrikeItemProcPending = false;
+			TwinStrikeProjProcPending = false;
+
 			foreach (var a in Owned)
 				a.OnHitNPCWithProj(Player, proj, target, hit, source, effectiveness);
 
@@ -1600,6 +1611,9 @@ namespace Augments
 				foreach (var a in Owned)
 					a.OnHitNPCWithProj(Player, proj, target, hit, source, effectiveness);
 			}
+
+			TwinStrikeItemProcPending = false;
+			TwinStrikeProjProcPending = false;
 
 			if (source == AugmentHitSource.NormalAttack && proj.CountsAsClass(DamageClass.Melee))
 			{

@@ -1,5 +1,6 @@
 using Terraria;
 using Terraria.ID;
+using Terraria.ModLoader;
 using Augments.Core;
 
 namespace Augments
@@ -84,6 +85,7 @@ namespace Augments
                 Damage = damage,
                 SourceDamage = damage,
                 HitDirection = player.direction,
+                DamageType = DamageClass.Generic,
                 HideCombatText = true
             };
 
