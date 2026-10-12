@@ -134,25 +134,6 @@ namespace Augments
                     metaLines.Add(("• Keybind: [Unassigned]", new Color(255, 135, 120)));
             }
 
-            // Ctrl also reveals the damage scaling calculation (base x stage multiplier).
-            if (isCtrlDown)
-            {
-                var scalingEntries = augment.GetScalingEntries();
-                var protocolEntries = AugmentScaling.GetProtocolEntries(augment.FamilyId);
-                if (protocolEntries != null)
-                {
-                    int existing = scalingEntries?.Length ?? 0;
-                    var combined = new (string label, int baseValue)[existing + protocolEntries.Length];
-                    if (existing > 0)
-                        Array.Copy(scalingEntries, combined, existing);
-                    Array.Copy(protocolEntries, 0, combined, existing, protocolEntries.Length);
-                    scalingEntries = combined;
-                }
-
-                foreach (string scalingLine in AugmentScaling.BuildBreakdownLines(scalingEntries))
-                    metaLines.Add((scalingLine, new Color(255, 190, 120)));
-            }
-
             // 5. Protocol synergy section
             AugmentFamily family = null;
             int ownedMembers = 0;
@@ -187,7 +168,8 @@ namespace Augments
 
                         foreach (var desc in bonus.Descriptions)
                         {
-                            var wrappedPerk = AugmentColorText.Wrap(font, "    " + desc.Trim(), MaxContentWidth, BonusScale);
+                            string perkText = isCtrlDown ? AugmentScaling.ApplyToText(desc, AugmentScaling.GetProtocolEntries(family.Id), false) : desc;
+                            var wrappedPerk = AugmentColorText.Wrap(font, "    " + perkText.Trim(), MaxContentWidth, BonusScale);
                             foreach (var line in wrappedPerk)
                             {
                                 Color perkCol = unlocked ? new Color(210, 238, 225) : new Color(125, 138, 158);

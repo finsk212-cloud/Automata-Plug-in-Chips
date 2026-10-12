@@ -69,7 +69,7 @@ namespace Augments
 
 		public virtual string GetDetailedDescription(Player player)
 		{
-			return Description;
+			return AugmentScaling.ApplyToText(Description, GetScalingEntries());
 		}
 
 		// Fixed damage numbers this chip multiplies by AugmentScaling, as (label, base value)

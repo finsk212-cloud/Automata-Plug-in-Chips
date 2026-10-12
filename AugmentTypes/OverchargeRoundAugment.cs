@@ -24,7 +24,7 @@ namespace Augments
 
         public override (string label, int baseValue)[] GetScalingEntries()
         {
-            return new[] { ("Base damage", BaseDamage), ("Damage per stack", DamagePerStack) };
+            return new[] { ("Base damage", BaseDamage), ("Damage per stack", DamagePerStack), ("Full charge", BaseDamage + MaxStacks * DamagePerStack) };
         }
 
 
@@ -66,7 +66,7 @@ namespace Augments
 
             ap.OverchargeRoundResetTimer = ResetWindowTicks;
 
-            int damage = (int)((AugmentScaling.Scale(BaseDamage) + ap.OverchargeRoundHitStacks * AugmentScaling.Scale(DamagePerStack)) * HitEffectiveness);
+            int damage = (int)(AugmentScaling.Scale((int)(BaseDamage + ap.OverchargeRoundHitStacks * DamagePerStack)) * HitEffectiveness);
             Strike(player, target, System.Math.Max(1, damage));
         }
 

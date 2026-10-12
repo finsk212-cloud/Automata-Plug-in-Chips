@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Augments.Core;
 using Terraria;
 using Terraria.ID;
@@ -177,6 +178,38 @@ namespace Augments
 				return new[] { ("Cryo Protocol: Ice Shard (each)", 40) };
 
 			return null;
+		}
+
+		// Rewrites a description for the Ctrl (detailed) view: each base number becomes
+		// "scaled (base xMultiplier)", e.g. "15 damage" -> "53 (15 x3.5) damage". Numbers
+		// inside [c/hex:] colour tags are left alone. A chip whose text never mentions its
+		// number gets a short "Label: scaled (base xMultiplier)" sentence appended instead.
+		public static string ApplyToText(string text, (string label, int baseValue)[] entries, bool appendMissing = true)
+		{
+			if (string.IsNullOrEmpty(text) || entries == null || entries.Length == 0)
+				return text;
+
+			float multiplier = Multiplier;
+			string mult = FormatMultiplier(multiplier);
+			string result = text;
+			string missing = "";
+
+			foreach (var (label, baseValue) in entries)
+			{
+				if (baseValue <= 0)
+					continue;
+
+				int scaled = Math.Max(1, (int)Math.Round(baseValue * multiplier));
+				var pattern = new Regex($@"(?<![0-9A-Za-z#:./+]){baseValue}(?![0-9A-Za-z%.])");
+				string replacement = $"{scaled} ({baseValue} x{mult})";
+
+				if (pattern.IsMatch(result))
+					result = pattern.Replace(result, replacement);
+				else if (appendMissing)
+					missing += $" {label}: {replacement}.";
+			}
+
+			return result + missing;
 		}
 
 		public static string FormatMultiplier(float multiplier)
