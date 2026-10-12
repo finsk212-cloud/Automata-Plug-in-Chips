@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using Augments.Core;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
