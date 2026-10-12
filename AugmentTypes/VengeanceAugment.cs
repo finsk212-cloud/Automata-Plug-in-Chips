@@ -9,8 +9,8 @@ namespace Augments
         public override string Id => "vengeance";
         public override string DisplayName => "Vengeance";
         public override string Description =>
-            $"When struck by a direct enemy attack, retaliate for {AugmentText.BonusDamage("8 damage")}.\n" +
-            AugmentText.Note("(Does not trigger from enemy projectiles.)");
+            $"When an enemy touches or melee-hits you, hit it back for {AugmentText.BonusDamage("8 damage")}.\n" +
+            AugmentText.Note("(Enemy projectiles don't trigger this.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Rare;
         public override AugmentClass Class => AugmentClass.Universal;
