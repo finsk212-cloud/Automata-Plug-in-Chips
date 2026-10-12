@@ -180,11 +180,11 @@ namespace Augments
 			return null;
 		}
 
-		// Rewrites a description for the Ctrl (detailed) view: each base number becomes
-		// "scaled (base xMultiplier)", e.g. "15 damage" -> "53 (15 x3.5) damage". Numbers
-		// inside [c/hex:] colour tags are left alone. A chip whose text never mentions its
-		// number gets a short "Label: scaled (base xMultiplier)" sentence appended instead.
-		public static string ApplyToText(string text, (string label, int baseValue)[] entries, bool appendMissing = true)
+		// Rewrites a description for the Ctrl (detailed) view by inserting the calculation
+		// into the existing sentence: "applies 15 damage on-hit" becomes
+		// "applies 15 damage (15 x3.5 = 53) on-hit". Numbers inside [c/hex:] colour tags are
+		// left alone, and nothing is added when the text never mentions the number.
+		public static string ApplyToText(string text, (string label, int baseValue)[] entries)
 		{
 			if (string.IsNullOrEmpty(text) || entries == null || entries.Length == 0)
 				return text;
@@ -192,7 +192,6 @@ namespace Augments
 			float multiplier = Multiplier;
 			string mult = FormatMultiplier(multiplier);
 			string result = text;
-			string missing = "";
 
 			foreach (var (label, baseValue) in entries)
 			{
@@ -200,16 +199,13 @@ namespace Augments
 					continue;
 
 				int scaled = Math.Max(1, (int)Math.Round(baseValue * multiplier));
-				var pattern = new Regex($@"(?<![0-9A-Za-z#:./+]){baseValue}(?![0-9A-Za-z%.])");
-				string replacement = $"{scaled} ({baseValue} x{mult})";
+				var pattern = new Regex($@"(?<![0-9A-Za-z#:./+]){baseValue}(?![0-9A-Za-z%.])((?:\s+[A-Za-z]+){{0,2}}?\s+damage)?");
+				string calc = $" ({baseValue} x{mult} = {scaled})";
 
-				if (pattern.IsMatch(result))
-					result = pattern.Replace(result, replacement);
-				else if (appendMissing)
-					missing += $" {label}: {replacement}.";
+				result = pattern.Replace(result, m => m.Value + calc);
 			}
 
-			return result + missing;
+			return result;
 		}
 
 		public static string FormatMultiplier(float multiplier)

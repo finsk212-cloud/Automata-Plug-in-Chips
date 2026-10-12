@@ -168,7 +168,7 @@ namespace Augments
 
                         foreach (var desc in bonus.Descriptions)
                         {
-                            string perkText = isCtrlDown ? AugmentScaling.ApplyToText(desc, AugmentScaling.GetProtocolEntries(family.Id), false) : desc;
+                            string perkText = isCtrlDown ? AugmentScaling.ApplyToText(desc, AugmentScaling.GetProtocolEntries(family.Id)) : desc;
                             var wrappedPerk = AugmentColorText.Wrap(font, "    " + perkText.Trim(), MaxContentWidth, BonusScale);
                             foreach (var line in wrappedPerk)
                             {
