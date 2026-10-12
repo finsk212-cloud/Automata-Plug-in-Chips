@@ -33,10 +33,16 @@ namespace Augments
 	{
 		public static bool IsCalamityStage(ScalingStage stage) => stage >= ScalingStage.Providence;
 
+		// Dev testing only: pins the stage on this client without defeating any boss.
+		public static ScalingStage? DebugOverride;
+
 		public static ScalingStage CurrentStage
 		{
 			get
 			{
+				if (DebugOverride.HasValue)
+					return DebugOverride.Value;
+
 				if (AugmentScalingSystem.HasCalamity)
 				{
 					if (AugmentScalingSystem.IsDown(CalamityBoss.ExoMechsOrSupremeCalamitas))
