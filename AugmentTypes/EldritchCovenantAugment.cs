@@ -13,7 +13,7 @@ namespace Augments
         public override string Id => "eldritch_covenant";
         public override string DisplayName => "Eldritch Covenant";
         public override string Description =>
-            $"Spending {AugmentText.Mana("mana")} builds corruption. At full corruption, your next magic hit opens an eldritch eye for {AugmentText.Duration("4s")}.";
+            $"Spending {AugmentText.Mana("mana")} builds corruption. At full corruption, your next magic hit opens an eldritch eye for {AugmentText.Duration("4s")}, firing lasers that deal {AugmentText.BonusDamage("40 damage")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Legendary;
         public override AugmentClass Class => AugmentClass.Magic;

@@ -10,7 +10,7 @@ namespace Augments
         public override string Id => "necromancers_court";
         public override string DisplayName => "Necromancer's Court";
         public override string Description =>
-            $"Summon kills raise ghost minions for {AugmentText.Duration("6s")}.";
+            $"Summon kills raise ghost minions for {AugmentText.Duration("6s")}, each dealing {AugmentText.BonusDamage("5 damage")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Summon;
