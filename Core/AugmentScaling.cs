@@ -199,7 +199,7 @@ namespace Augments
 					continue;
 
 				int scaled = Math.Max(1, (int)Math.Round(baseValue * multiplier));
-				var pattern = new Regex($@"(?<![0-9A-Za-z#:./+]){baseValue}(?![0-9A-Za-z%.])((?:\s+[A-Za-z]+){{0,2}}?\s+damage)?");
+				var pattern = new Regex($@"(?<![0-9A-Za-z#./+]){baseValue}(?![0-9A-Za-z%.])((?:\s+[A-Za-z]+){{0,2}}?\s+damage)?");
 				string calc = $" ({baseValue} x{mult} = {scaled})";
 
 				result = pattern.Replace(result, m => m.Value + calc);
