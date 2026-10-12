@@ -17,6 +17,12 @@ namespace Augments
         public override AugmentClass Class => AugmentClass.Summon;
 
         public const int TagDamage = 6;
+
+        public override (string label, int baseValue)[] GetScalingEntries()
+        {
+            return new[] { ("Tag damage", TagDamage) };
+        }
+
         private const int TagDurationTicks = 240; // 4 seconds
 
         public override void OnHitNPCWithProj(Player player, Projectile proj, NPC target, NPC.HitInfo hit, AugmentHitSource source, float effectiveness)
@@ -40,7 +46,7 @@ namespace Augments
                 var directive = target.GetGlobalNPC<AugmentFocusDirectiveNPC>();
                 if (directive.IsTagged && player.whoAmI == Main.myPlayer)
                 {
-                    AugmentDamageTracker.RecordChipHit("focus_directive", TagDamage, hit.Crit);
+                    AugmentDamageTracker.RecordChipHit("focus_directive", AugmentScaling.Scale(TagDamage), hit.Crit);
                 }
             }
         }

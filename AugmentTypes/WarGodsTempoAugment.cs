@@ -18,6 +18,12 @@ namespace Augments
         private const int ResetDelayTicks = 300;
         private const int ShockwaveDamage = 90;
 
+        public override (string label, int baseValue)[] GetScalingEntries()
+        {
+            return new[] { ("Shockwave damage", ShockwaveDamage) };
+        }
+
+
         public override void OnHitNPCWithItem(
             Player player,
             Item item,
@@ -66,7 +72,7 @@ namespace Augments
                     target.Center,
                     Vector2.Zero,
                     ModContent.ProjectileType<WarGodShockwaveProjectile>(),
-                    ShockwaveDamage,
+                    AugmentScaling.Scale(ShockwaveDamage),
                     0f,
                     player.whoAmI
                 );

@@ -72,6 +72,14 @@ namespace Augments
 			return Description;
 		}
 
+		// Fixed damage numbers this chip multiplies by AugmentScaling, as (label, base value)
+		// pairs. The plugin list shows the base x multiplier calculation for them while Ctrl
+		// is held. Null for chips that have no fixed damage.
+		public virtual (string label, int baseValue)[] GetScalingEntries()
+		{
+			return null;
+		}
+
 		public static float GetFortuneScaledChance(Player player, float baseChance)
 		{
 			if (player == null)

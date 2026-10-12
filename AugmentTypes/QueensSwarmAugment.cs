@@ -19,6 +19,12 @@ namespace Augments
         private const int BugCount = 6;
         private const int BugDamage = 18;
 
+        public override (string label, int baseValue)[] GetScalingEntries()
+        {
+            return new[] { ("Void bug damage", BugDamage) };
+        }
+
+
         public override void OnHitNPCWithProj(Player player, Projectile proj, NPC target, NPC.HitInfo hit)
         {
             if (!proj.CountsAsClass(DamageClass.Summon) || !proj.minion)
@@ -45,7 +51,7 @@ namespace Augments
                     center + direction * 18f,
                     direction * 4f,
                     ModContent.ProjectileType<QueensVoidBugProjectile>(),
-                    BugDamage,
+                    AugmentScaling.Scale(BugDamage),
                     0f,
                     player.whoAmI
                 );

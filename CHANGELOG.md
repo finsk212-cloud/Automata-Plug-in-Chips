@@ -113,6 +113,10 @@
 ---
 
 ### 3. Balance Changes
+- **Damage scaling by world progression**: Every chip with a fixed damage number (Twin Strike, Arcane Spark, Iron Rhythm, Chain Lightning, Overcharge Round, Queen's Swarm, Arcane Singularity, Necromancer's Court, Focus Directive, Vengeance, Bloodletter, Eldritch Covenant, Whip Cracker, War God's Tempo, Avatar of the Wall's shockwave, Inferno's Heart, plus the Fortune, Volt, Cryo, Marksman and Arcane Surge protocol bonuses) now multiplies that number by one shared curve based on the furthest boss defeated in the world: x1 start, x1.25 Skeletron, x2 Wall of Flesh, x3 all mech bosses, x3.5 Plantera, x4 Golem, x5 Moon Lord, then with Calamity x6 Providence, x7.5 Devourer of Gods, x9 Yharon, x10 Exo Mechs / Supreme Calamitas.
+  - Each stage multiplier is a slider in the server config (vanilla and Calamity groups). Calamity stages need Calamity loaded.
+  - Hold **Ctrl** over a chip in the Plugins list to see the calculation (base damage x multiplier = result).
+  - A small world tracker remembers the late Calamity bosses (synced to clients) next to Calamity's own flags. Dev command: `/augmentstage [list|set <stage>|clear]`.
 - **Apex Hunter**:
   - Threshold increased from **10 hits** to **15 hits**.
   - Burst damage reduced from **15% max HP** to **5% max HP**.

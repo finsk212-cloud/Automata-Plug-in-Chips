@@ -287,6 +287,64 @@ Configs: {
 			Label: Enable Developer Tools
 			Tooltip: Turns on the /augment command, the dev-mode chip editor and the dev keybinds (spawn vendor, trigger reward, reset cooldowns). Leave OFF on public servers - anyone could grant themselves chips.
 		}
+
+		Headers.VanillaDamageScaling: Damage Scaling - Vanilla Progression
+		Headers.CalamityDamageScaling: Damage Scaling - Calamity Progression (needs Calamity)
+
+		ScaleStart: {
+			Label: Start (no bosses)
+			Tooltip: Damage multiplier for chips with a fixed damage number once the world has reached this stage. The highest stage reached applies to everyone.
+		}
+
+		ScaleSkeletron: {
+			Label: After Skeletron
+			Tooltip: Damage multiplier for chips with a fixed damage number once the world has reached this stage. The highest stage reached applies to everyone.
+		}
+
+		ScaleWallOfFlesh: {
+			Label: After Wall of Flesh
+			Tooltip: Damage multiplier for chips with a fixed damage number once the world has reached this stage. The highest stage reached applies to everyone.
+		}
+
+		ScaleMechs: {
+			Label: After all 3 mechanical bosses
+			Tooltip: Damage multiplier for chips with a fixed damage number once the world has reached this stage. The highest stage reached applies to everyone.
+		}
+
+		ScalePlantera: {
+			Label: After Plantera
+			Tooltip: Damage multiplier for chips with a fixed damage number once the world has reached this stage. The highest stage reached applies to everyone.
+		}
+
+		ScaleGolem: {
+			Label: After Golem
+			Tooltip: Damage multiplier for chips with a fixed damage number once the world has reached this stage. The highest stage reached applies to everyone.
+		}
+
+		ScaleMoonLord: {
+			Label: After Moon Lord
+			Tooltip: Damage multiplier for chips with a fixed damage number once the world has reached this stage. The highest stage reached applies to everyone.
+		}
+
+		ScaleProvidence: {
+			Label: After Providence (Calamity)
+			Tooltip: Damage multiplier for chips with a fixed damage number once the world has reached this stage. The highest stage reached applies to everyone.
+		}
+
+		ScaleDevourerOfGods: {
+			Label: After Devourer of Gods (Calamity)
+			Tooltip: Damage multiplier for chips with a fixed damage number once the world has reached this stage. The highest stage reached applies to everyone.
+		}
+
+		ScaleYharon: {
+			Label: After Yharon (Calamity)
+			Tooltip: Damage multiplier for chips with a fixed damage number once the world has reached this stage. The highest stage reached applies to everyone.
+		}
+
+		ScaleExoMechsOrSupremeCalamitas: {
+			Label: After Exo Mechs or Supreme Calamitas (Calamity)
+			Tooltip: Damage multiplier for chips with a fixed damage number once the world has reached this stage. The highest stage reached applies to everyone.
+		}
 	}
 
 	TelemetryOpenMode: {

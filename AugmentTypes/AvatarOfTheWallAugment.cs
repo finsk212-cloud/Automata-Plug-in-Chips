@@ -33,6 +33,12 @@ namespace Augments
         private const float ShockwaveKnockback = 10f;
         private const int ShockwaveDamage = 60;
 
+        public override (string label, int baseValue)[] GetScalingEntries()
+        {
+            return new[] { ("Shockwave damage", ShockwaveDamage) };
+        }
+
+
         public override bool FreeDodge(Player player, Player.HurtInfo info)
         {
             var ap = player.GetModPlayer<AugmentPlayer>();
@@ -126,9 +132,9 @@ namespace Augments
                     direction = -Vector2.UnitY;
 
                 direction.Normalize();
-                npc.SimpleStrikeNPC(ShockwaveDamage, direction.X >= 0f ? 1 : -1, false, ShockwaveKnockback, DamageClass.Generic, false);
+                npc.SimpleStrikeNPC(AugmentScaling.Scale(ShockwaveDamage), direction.X >= 0f ? 1 : -1, false, ShockwaveKnockback, DamageClass.Generic, false);
                 if (player.whoAmI == Main.myPlayer)
-                    AugmentDamageTracker.RecordChipHit("type_d_dreadnought_protocol", ShockwaveDamage, false);
+                    AugmentDamageTracker.RecordChipHit("type_d_dreadnought_protocol", AugmentScaling.Scale(ShockwaveDamage), false);
             }
         }
 

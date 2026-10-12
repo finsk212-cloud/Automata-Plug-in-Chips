@@ -41,7 +41,7 @@ namespace Augments
 			if (Main.myPlayer != Player.whoAmI)
 				return;
 
-			const int coinBurstDamage = 50;
+			int coinBurstDamage = AugmentScaling.Scale(50);
 			const float radius = 130f;
 
 			foreach (NPC npc in Main.npc)
@@ -129,7 +129,7 @@ namespace Augments
 				return;
 
 			const float arcRange = 250f;
-			const int arcDamage = 25;
+			int arcDamage = AugmentScaling.Scale(25);
 
 			NPC secondary = null;
 			float nearestDistSq = arcRange * arcRange;

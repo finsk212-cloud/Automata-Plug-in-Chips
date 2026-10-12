@@ -27,7 +27,7 @@ namespace Augments
         {
             if (IsTagged && (modifiers.DamageType == DamageClass.Summon || modifiers.DamageType == DamageClass.SummonMeleeSpeed))
             {
-                modifiers.FlatBonusDamage += FocusDirectiveAugment.TagDamage;
+                modifiers.FlatBonusDamage += AugmentScaling.Scale(FocusDirectiveAugment.TagDamage);
             }
         }
     }

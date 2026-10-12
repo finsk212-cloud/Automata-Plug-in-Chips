@@ -1793,7 +1793,7 @@ namespace Augments
 				SoundEngine.PlaySound(SoundID.Item89 with { Volume = 0.55f, Pitch = 0.4f }, target.Center);
 
 				const int shrapnelCount = 3;
-				const int shrapnelDamage = 35;
+				int shrapnelDamage = AugmentScaling.Scale(35);
 				float baseAngle = Main.rand.NextFloat(MathHelper.TwoPi);
 
 				for (int i = 0; i < shrapnelCount; i++)
@@ -1859,7 +1859,7 @@ namespace Augments
 			if (Main.myPlayer != Player.whoAmI)
 				return;
 
-			const int novaDamage = 65;
+			int novaDamage = AugmentScaling.Scale(65);
 			const float radius = 140f;
 
 			foreach (NPC npc in Main.npc)

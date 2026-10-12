@@ -25,6 +25,12 @@ namespace Augments
         private const int MaxCorruption = 10;
         private const int LaserDamage = 40;
 
+        public override (string label, int baseValue)[] GetScalingEntries()
+        {
+            return new[] { ("Laser damage", LaserDamage) };
+        }
+
+
         public override void OnConsumeMana(Player player, Item item, int manaConsumed)
         {
             var ap = player.GetModPlayer<AugmentPlayer>();
@@ -64,7 +70,7 @@ namespace Augments
                 target.Center + new Vector2(0f, -80f),
                 Vector2.Zero,
                 ModContent.ProjectileType<EldritchEyeProjectile>(),
-                LaserDamage,
+                AugmentScaling.Scale(LaserDamage),
                 0f,
                 player.whoAmI
             );

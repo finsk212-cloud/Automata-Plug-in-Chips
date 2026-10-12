@@ -41,6 +41,7 @@ The `/augment` command, the dev-mode chip editor and the dev keybinds are always
 | `/augment remove <id or number>` | Remove a chip |
 | `/augment sell` / `buyback <id>` | Test the vendor flow |
 | `/augment addall` / `clear` | Add or remove every chip |
+| `/augmentstage [list\|set <stage>\|clear]` | Show or set the Calamity stage used by damage scaling |
 
 ## Project layout
 

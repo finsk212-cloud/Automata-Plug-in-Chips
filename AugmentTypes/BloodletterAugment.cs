@@ -19,6 +19,12 @@ namespace Augments
         private const int BleedDurationTicks = 300;
         private const int DamagePerSecond = 3;
 
+        public override (string label, int baseValue)[] GetScalingEntries()
+        {
+            return new[] { ("Bleed per second", DamagePerSecond) };
+        }
+
+
         public override void OnHitNPCWithItem(Player player, Item item, NPC target, NPC.HitInfo hit)
         {
             if (hit.Crit && item.CountsAsClass(DamageClass.Melee))
@@ -33,10 +39,10 @@ namespace Augments
 
         private static void ApplyBleed(Player player, NPC target)
         {
-            int dps = DamagePerSecond;
+            int dps = AugmentScaling.Scale(DamagePerSecond);
             if (player != null && AugmentFamilyRegistry.GetOwnedCount(player.GetModPlayer<AugmentPlayer>(), AugmentFamilyRegistry.BloodhunterId) >= 2)
             {
-                dps = 5;
+                dps = AugmentScaling.Scale(5);
             }
 
             target.GetGlobalNPC<AugmentBleedNPC>().ApplyBleed(BleedDurationTicks, dps);

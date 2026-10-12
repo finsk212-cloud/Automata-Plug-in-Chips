@@ -19,6 +19,12 @@ namespace Augments
         private const int HitsToCharge = 8;
         private const int VortexDamage = 20;
 
+        public override (string label, int baseValue)[] GetScalingEntries()
+        {
+            return new[] { ("Vortex damage", VortexDamage) };
+        }
+
+
         public override void OnHitNPCWithItem(Player player, Item item, NPC target, NPC.HitInfo hit)
         {
             if (item.DamageType == DamageClass.Magic)
@@ -42,7 +48,7 @@ namespace Augments
                     target.Center,
                     Vector2.Zero,
                     ModContent.ProjectileType<ArcaneSingularityVortexProjectile>(),
-                    VortexDamage,
+                    AugmentScaling.Scale(VortexDamage),
                     0f,
                     player.whoAmI
                 );

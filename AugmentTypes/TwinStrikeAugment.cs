@@ -23,6 +23,11 @@ namespace Augments
 
         private const int ProcDamage = 15;
 
+        public override (string label, int baseValue)[] GetScalingEntries()
+        {
+            return new[] { ("On-hit damage", ProcDamage) };
+        }
+
         // The 15-damage proc fires on every hit, crit or not - only the
         // CRIT-doubling pass is conditional. Owning Twin Strike guarantees
         // the dispatcher's second pass always fires on a crit
@@ -37,7 +42,7 @@ namespace Augments
             var ap = player.GetModPlayer<AugmentPlayer>();
             if (!hit.Crit)
             {
-                int dmg = ScaleHitEffect(ProcDamage);
+                int dmg = ScaleHitEffect(AugmentScaling.Scale(ProcDamage));
                 ap.RecordOnHitDamage(dmg);
                 Strike(player, target, dmg);
                 return;
@@ -50,7 +55,7 @@ namespace Augments
             }
 
             ap.TwinStrikeItemProcPending = true;
-            int doubledDmg = ScaleHitEffect(ProcDamage * 2);
+            int doubledDmg = ScaleHitEffect(AugmentScaling.Scale(ProcDamage) * 2);
             ap.RecordOnHitDamage(doubledDmg);
             Strike(player, target, doubledDmg);
         }
@@ -60,7 +65,7 @@ namespace Augments
             var ap = player.GetModPlayer<AugmentPlayer>();
             if (!hit.Crit)
             {
-                int dmg = ScaleHitEffect(ProcDamage);
+                int dmg = ScaleHitEffect(AugmentScaling.Scale(ProcDamage));
                 ap.RecordOnHitDamage(dmg);
                 Strike(player, target, dmg);
                 return;
@@ -73,7 +78,7 @@ namespace Augments
             }
 
             ap.TwinStrikeProjProcPending = true;
-            int doubledDmg = ScaleHitEffect(ProcDamage * 2);
+            int doubledDmg = ScaleHitEffect(AugmentScaling.Scale(ProcDamage) * 2);
             ap.RecordOnHitDamage(doubledDmg);
             Strike(player, target, doubledDmg);
         }

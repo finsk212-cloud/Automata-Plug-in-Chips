@@ -22,6 +22,12 @@ namespace Augments
         private const int BaseDamage = 5;
         private const int DamagePerStack = 3;
 
+        public override (string label, int baseValue)[] GetScalingEntries()
+        {
+            return new[] { ("Base damage", BaseDamage), ("Damage per stack", DamagePerStack) };
+        }
+
+
         public override void OnUpdate(Player player)
         {
             var ap = player.GetModPlayer<AugmentPlayer>();
@@ -60,7 +66,7 @@ namespace Augments
 
             ap.OverchargeRoundResetTimer = ResetWindowTicks;
 
-            int damage = (int)((BaseDamage + ap.OverchargeRoundHitStacks * DamagePerStack) * HitEffectiveness);
+            int damage = (int)((AugmentScaling.Scale(BaseDamage) + ap.OverchargeRoundHitStacks * AugmentScaling.Scale(DamagePerStack)) * HitEffectiveness);
             Strike(player, target, System.Math.Max(1, damage));
         }
 

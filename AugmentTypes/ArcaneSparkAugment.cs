@@ -18,6 +18,12 @@ namespace Augments
 
         public const int SparkDamage = 6;
 
+        public override (string label, int baseValue)[] GetScalingEntries()
+        {
+            return new[] { ("Spark damage", SparkDamage) };
+        }
+
+
         public override void OnHitNPCWithProj(Player player, Projectile proj, NPC target, NPC.HitInfo hit, AugmentHitSource source, float effectiveness)
         {
             if (source == AugmentHitSource.AugmentProc)
@@ -43,12 +49,13 @@ namespace Augments
         private static void ApplySpark(Player player, NPC target, NPC.HitInfo sourceHit)
         {
             var ap = player.GetModPlayer<AugmentPlayer>();
-            ap.RecordOnHitDamage(SparkDamage);
+            int sparkDamage = AugmentScaling.Scale(SparkDamage);
+            ap.RecordOnHitDamage(sparkDamage);
 
             var sparkHit = new NPC.HitInfo
             {
-                Damage = SparkDamage,
-                SourceDamage = SparkDamage,
+                Damage = sparkDamage,
+                SourceDamage = sparkDamage,
                 HitDirection = sourceHit.HitDirection,
                 DamageType = DamageClass.Magic,
                 HideCombatText = true
@@ -60,9 +67,9 @@ namespace Augments
                 NetMessage.SendStrikeNPC(target, in sparkHit);
 
             if (player.whoAmI == Main.myPlayer)
-                AugmentDamageTracker.RecordChipHit("arcane_spark", SparkDamage, false);
+                AugmentDamageTracker.RecordChipHit("arcane_spark", sparkDamage, false);
 
-            CombatText.NewText(target.Hitbox, AugmentTextColors.SpecialDamage, SparkDamage);
+            CombatText.NewText(target.Hitbox, AugmentTextColors.SpecialDamage, sparkDamage);
 
             if (Main.rand.NextBool(3))
             {

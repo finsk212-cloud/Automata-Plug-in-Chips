@@ -21,6 +21,11 @@ namespace Augments
         public override string FamilyId => AugmentFamilyRegistry.VoltId;
 
         public const int BaseOnHitDamage = 15;
+
+        public override (string label, int baseValue)[] GetScalingEntries()
+        {
+            return new[] { ("On-hit damage", BaseOnHitDamage) };
+        }
         private const float ChainRange = 380f;
         private const int MaxChainTargets = 2;
         private const float ChainDamageFraction = 0.5f;
@@ -58,11 +63,12 @@ namespace Augments
         private static void ApplyOnHitDamage(Player player, NPC target)
         {
             var ap = player.GetModPlayer<AugmentPlayer>();
-            ap.RecordOnHitDamage(BaseOnHitDamage);
-            Strike(player, target, BaseOnHitDamage);
+            int damage = AugmentScaling.Scale(BaseOnHitDamage);
+            ap.RecordOnHitDamage(damage);
+            Strike(player, target, damage);
             if (player.whoAmI == Main.myPlayer)
             {
-                AugmentDamageTracker.RecordChipHit("chain_lightning", BaseOnHitDamage, false);
+                AugmentDamageTracker.RecordChipHit("chain_lightning", damage, false);
             }
         }
 

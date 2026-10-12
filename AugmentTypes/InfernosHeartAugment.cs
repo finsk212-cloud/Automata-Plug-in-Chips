@@ -21,6 +21,12 @@ namespace Augments
         private const float BurstRange = 200f;
         private const int BurstDamage = 100;
 
+        public override (string label, int baseValue)[] GetScalingEntries()
+        {
+            return new[] { ("Burst damage", BurstDamage) };
+        }
+
+
         public override void OnHitNPCWithItem(Player player, Item item, NPC target, NPC.HitInfo hit)
         {
             if (item.DamageType == DamageClass.Magic)
@@ -86,9 +92,9 @@ namespace Augments
                 if (npc.Distance(origin.Center) <= BurstRange)
                 {
                     int direction = npc.Center.X >= origin.Center.X ? 1 : -1;
-                    npc.SimpleStrikeNPC(BurstDamage, direction);
+                    npc.SimpleStrikeNPC(AugmentScaling.Scale(BurstDamage), direction);
                     if (player.whoAmI == Main.myPlayer)
-                        AugmentDamageTracker.RecordChipHit("infernos_heart", BurstDamage, false);
+                        AugmentDamageTracker.RecordChipHit("infernos_heart", AugmentScaling.Scale(BurstDamage), false);
                 }
             }
         }

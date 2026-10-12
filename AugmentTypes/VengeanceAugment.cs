@@ -17,11 +17,17 @@ namespace Augments
 
         private const int RetaliationDamage = 8;
 
+        public override (string label, int baseValue)[] GetScalingEntries()
+        {
+            return new[] { ("Retaliation damage", RetaliationDamage) };
+        }
+
+
         public override void OnHitByNPC(Player player, NPC npc, Player.HurtInfo hurtInfo)
         {
-            npc.SimpleStrikeNPC(RetaliationDamage, player.direction);
+            npc.SimpleStrikeNPC(AugmentScaling.Scale(RetaliationDamage), player.direction);
             if (player.whoAmI == Main.myPlayer)
-                AugmentDamageTracker.RecordChipHit("vengeance", RetaliationDamage, false);
+                AugmentDamageTracker.RecordChipHit("vengeance", AugmentScaling.Scale(RetaliationDamage), false);
         }
     }
 }

@@ -17,6 +17,12 @@ namespace Augments
         private const int HitsRequired = 4;
         private const int BonusDamage = 15;
 
+        public override (string label, int baseValue)[] GetScalingEntries()
+        {
+            return new[] { ("Bonus damage", BonusDamage) };
+        }
+
+
         public override void ModifyHitNPCWithItem(Player player, Item item, NPC target, ref NPC.HitModifiers modifiers)
         {
             TryApplyBonus(player, ref modifiers, 1f);
@@ -50,7 +56,7 @@ namespace Augments
             if (ap.IronRhythmHitCounter >= HitsRequired)
             {
                 ap.IronRhythmHitCounter -= HitsRequired;
-                ap.IronRhythmPendingSpecialDamage = Math.Max(1, (int)(BonusDamage * effectiveness));
+                ap.IronRhythmPendingSpecialDamage = Math.Max(1, (int)(AugmentScaling.Scale(BonusDamage) * effectiveness));
                 modifiers.FlatBonusDamage += ap.IronRhythmPendingSpecialDamage;
                 ap.RecordOnHitDamage(ap.IronRhythmPendingSpecialDamage);
             }

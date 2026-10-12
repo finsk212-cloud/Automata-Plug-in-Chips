@@ -125,7 +125,7 @@ namespace Augments
                         if (Main.netMode != NetmodeID.Server && player.whoAmI == Main.myPlayer)
                         {
                             int projType = ModContent.ProjectileType<CryoIceShardProjectile>();
-                            int damage = 40;
+                            int damage = AugmentScaling.Scale(40);
                             float baseAngle = Main.rand.NextFloat(MathHelper.TwoPi);
                             for (int i = 0; i < 3; i++)
                             {

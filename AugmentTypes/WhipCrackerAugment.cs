@@ -20,6 +20,11 @@ namespace Augments
 
 		private const int StackDurationTicks = 240;
 
+		public override (string label, int baseValue)[] GetScalingEntries()
+		{
+			return new[] { ("Lasher Protocol: Sonic Crack", 45) };
+		}
+
 		public override void OnHitNPCWithProj(Player player, Projectile proj, NPC target, NPC.HitInfo hit)
 		{
 			if (proj.DamageType == DamageClass.SummonMeleeSpeed)
@@ -41,7 +46,7 @@ namespace Augments
 
 		public static void TriggerSonicCrack(Player player, NPC target)
 		{
-			const int shockwaveDamage = 45;
+			int shockwaveDamage = AugmentScaling.Scale(45);
 			const float blastRadius = 130f;
 
 			// Sonic whip crack audio

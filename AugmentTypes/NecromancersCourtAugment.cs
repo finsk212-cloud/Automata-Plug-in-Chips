@@ -18,6 +18,12 @@ namespace Augments
 
         private const int GhostCount = 2;
         private const int GhostDamage = 5;
+
+        public override (string label, int baseValue)[] GetScalingEntries()
+        {
+            return new[] { ("Ghost damage", GhostDamage) };
+        }
+
         private const int GhostLifetimeTicks = 360;
 
         public override void OnHitNPCWithProj(Player player, Projectile proj, NPC target, NPC.HitInfo hit)
@@ -64,7 +70,7 @@ namespace Augments
                     center + offset,
                     velocity,
                     minionType,
-                    GhostDamage,
+                    AugmentScaling.Scale(GhostDamage),
                     0f,
                     player.whoAmI,
                     sourceMinion?.ai[0] ?? 0f,
@@ -76,8 +82,8 @@ namespace Augments
                     continue;
 
                 Projectile ghost = Main.projectile[projectileIndex];
-                ghost.damage = GhostDamage;
-                ghost.originalDamage = GhostDamage;
+                ghost.damage = AugmentScaling.Scale(GhostDamage);
+                ghost.originalDamage = AugmentScaling.Scale(GhostDamage);
                 ghost.minionSlots = 0f;
                 ghost.alpha = System.Math.Max(ghost.alpha, 110);
 
