@@ -1084,7 +1084,7 @@ namespace Augments
 
 			private static void ExtractDescriptionAndCooldown(Augment augment, out string effectText, out string cooldownText, bool detailed = false, Player player = null)
 			{
-				effectText = (detailed && player != null ? augment.GetDetailedDescription(player) : augment.Description) ?? "";
+				effectText = (detailed && player != null ? augment.GetDetailedDescription(player) : augment.LiveDescription) ?? "";
 				cooldownText = augment.CooldownText;
 
 				var match = CooldownRegex.Match(effectText);

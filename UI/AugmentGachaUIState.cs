@@ -753,7 +753,7 @@ namespace Augments
 				// Draw description text strictly starting at X = d.X + TextLeft (matching the name and [EPIC] tag)
 				if (!string.IsNullOrEmpty(augment.Description))
 				{
-					var lines = AugmentColorText.Wrap(font, augment.Description, 530f, new Vector2(0.80f));
+					var lines = AugmentColorText.Wrap(font, augment.LiveDescription, 530f, new Vector2(0.80f));
 					float textX = d.X + TextLeft;
 					float textY = d.Y + 76f;
 					foreach (var line in lines)

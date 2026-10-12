@@ -67,6 +67,9 @@ namespace Augments
 		public abstract AugmentRarity Rarity { get; }
 		public abstract AugmentClass Class { get; }
 
+		// The description with fixed damage numbers already scaled to the current world stage.
+		public string LiveDescription => AugmentScaling.ApplyToText(Description, GetScalingEntries(), false);
+
 		public virtual string GetDetailedDescription(Player player)
 		{
 			return AugmentScaling.ApplyToText(Description, GetScalingEntries());

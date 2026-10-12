@@ -190,7 +190,7 @@ namespace Augments
 		// into the existing sentence: "applies 15 damage on-hit" becomes
 		// "applies 15 damage (15 x3.5 = 53) on-hit". Numbers inside [c/hex:] colour tags are
 		// left alone, and nothing is added when the text never mentions the number.
-		public static string ApplyToText(string text, (string label, int baseValue)[] entries)
+		public static string ApplyToText(string text, (string label, int baseValue)[] entries, bool showCalculation = true)
 		{
 			if (string.IsNullOrEmpty(text) || entries == null || entries.Length == 0)
 				return text;
@@ -207,8 +207,13 @@ namespace Augments
 				int scaled = Math.Max(1, (int)Math.Round(baseValue * multiplier));
 				var pattern = new Regex($@"(?<![0-9A-Za-z#./+]){baseValue}(?![0-9A-Za-z%.])((?:\s+[A-Za-z]+){{0,2}}?\s+damage)?");
 				string calc = $" ({baseValue} x{mult} = {scaled})";
+				string scaledText = scaled.ToString();
 
-				result = pattern.Replace(result, m => m.Value + calc);
+				// Normal view: the number itself becomes the live scaled value.
+				// Detailed view: the original number stays and the calculation follows it.
+				result = pattern.Replace(result, m => showCalculation
+					? m.Value + calc
+					: scaledText + m.Groups[1].Value);
 			}
 
 			return result;

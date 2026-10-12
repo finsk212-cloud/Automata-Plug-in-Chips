@@ -114,7 +114,7 @@ namespace Augments
             // 3. Description lines
             bool isCtrlDown = Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftControl) ||
                               Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.RightControl);
-            string descToDraw = (isCtrlDown && player != null ? augment.GetDetailedDescription(player) : augment.Description);
+            string descToDraw = (isCtrlDown && player != null ? augment.GetDetailedDescription(player) : augment.LiveDescription);
             var descLines = AugmentColorText.Wrap(font, descToDraw, MaxContentWidth, DescScale);
 
             // 4. Metadata (Fortune & Keybind)

@@ -60,7 +60,7 @@ namespace Augments
 			float contentWidth = width - 32f; // 16px left/right padding
 
 			var names = AugmentColorText.Wrap(font, augment.DisplayName, contentWidth, NameScale);
-			var descs = AugmentColorText.Wrap(font, augment.Description, contentWidth, DescScale);
+			var descs = AugmentColorText.Wrap(font, augment.LiveDescription, contentWidth, DescScale);
 
 			float nameHeight = 0f;
 			foreach (var line in names)
@@ -102,7 +102,7 @@ namespace Augments
 			float contentWidth = width - 32f; // 16px left/right padding
 
 			nameLines = AugmentColorText.Wrap(font, augment.DisplayName, contentWidth, NameScale);
-			descLines = AugmentColorText.Wrap(font, augment.Description, contentWidth, DescScale);
+			descLines = AugmentColorText.Wrap(font, augment.LiveDescription, contentWidth, DescScale);
 		}
 
 		public override void Update(GameTime gameTime)
