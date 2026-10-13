@@ -1222,6 +1222,7 @@ namespace Augments
 			getOverHereWindup = GetOverHereAugment.ThrowTicks(Vector2.Distance(owner.Center, Player.Center));
 			getOverHerePullTicks = 0;
 			getOverHerePullSpeed = GetOverHereAugment.PullStartSpeed;
+			ModContent.GetInstance<Augments>().Logger.Info($"Get over here! reeling {Player.name} in toward {owner.name} ({getOverHereWindup} tick throw)");
 		}
 
 		// Moves the pulled player a step toward the owner every tick, speeding up as they go, instead

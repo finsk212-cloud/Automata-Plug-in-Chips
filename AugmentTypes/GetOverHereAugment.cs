@@ -18,17 +18,19 @@ namespace Augments
         // 2s at 60 ticks/sec.
         public const int ReductionTicks = 120;
 
-        // The pull is real movement, not a teleport: the hook flies out (a few ticks), then the
-        // pulled player is hauled toward the owner, starting slow and speeding up. Pixels per tick.
-        public const float PullStartSpeed = 10f;
-        public const float PullAcceleration = 1.5f;
-        public const float PullMaxSpeed = 36f;
-        // Safety cap so a pull can never hold someone forever (1.5s).
-        public const int PullMaxTicks = 90;
+        // The pull is real movement, not a teleport: the hook visibly flies out, then the pulled
+        // player is reeled toward the owner at grappling-hook pace (a Lunar Hook is about 18
+        // pixels per tick), easing up to speed. Pixels per tick.
+        public const float PullStartSpeed = 8f;
+        public const float PullAcceleration = 1f;
+        public const float PullMaxSpeed = 20f;
+        // Safety cap so a pull can never hold someone forever (2s).
+        public const int PullMaxTicks = 120;
+        public const float HookFlightSpeed = 40f;
 
-        // How many ticks the hook takes to fly out; the visual and the pulled client both use this
-        // so the drag starts exactly when the hook lands.
-        public static int ThrowTicks(float distance) => Math.Clamp((int)(distance / 100f), 3, 12);
+        // How many ticks the hook takes to fly out (never under 0.1s, so the throw always reads);
+        // the visual and the pulled client both use this so the reel-in starts when the hook lands.
+        public static int ThrowTicks(float distance) => Math.Clamp((int)Math.Ceiling(distance / HookFlightSpeed), 6, 30);
 
         public override string Id => "get_over_here";
         public override string DisplayName => "Get over here!";
@@ -83,6 +85,8 @@ namespace Augments
 
                 customSounds = found.ToArray();
                 mod.Logger.Info($"Get over here! found {customSounds.Length} custom sound file(s) in {SoundFolder}");
+                if (customSounds.Length == 0)
+                    Main.NewText("Get over here!: no sound files found in the mod's Sounds/GetOverHere folder, using the default sound. Put your .wav/.ogg/.mp3 files there and rebuild, or turn the option off in the mod config.", 255, 170, 80);
                 return customSounds;
             }
         }
@@ -107,6 +111,7 @@ namespace Augments
             if (Main.dedServ)
                 return;
 
+            ModContent.GetInstance<Augments>().Logger.Info($"Get over here! hook thrown: {owner.name} -> {target.name}");
             PlayPullSound(owner.Center);
             GetOverHereHooks.Add(owner.whoAmI, target.whoAmI);
         }
