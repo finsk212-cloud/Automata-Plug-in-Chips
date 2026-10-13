@@ -17,25 +17,44 @@ namespace Augments
 			return new MarkSnippet(text);
 		}
 
+		// Pixel-exact diamond: dark edge, light rim, gold fill. Shared by the description icon and the marker over
+		// enemies so both look the same. Drawn as 1px rows, so there is no rotation blur.
+		public static void DrawDiamond(SpriteBatch spriteBatch, Vector2 center, int radius, float opacity)
+		{
+			Texture2D pixel = TextureAssets.MagicPixel.Value;
+			int cx = (int)System.Math.Round(center.X);
+			int cy = (int)System.Math.Round(center.Y);
+
+			FillDiamond(spriteBatch, pixel, cx, cy, radius + 1, new Color(12, 14, 20) * (0.75f * opacity));
+			FillDiamond(spriteBatch, pixel, cx, cy, radius, new Color(255, 238, 170) * opacity);
+			FillDiamond(spriteBatch, pixel, cx, cy, System.Math.Max(1, radius - 2), new Color(255, 190, 40) * opacity);
+		}
+
+		private static void FillDiamond(SpriteBatch spriteBatch, Texture2D pixel, int cx, int cy, int radius, Color color)
+		{
+			for (int dy = -radius; dy <= radius; dy++)
+			{
+				int half = radius - System.Math.Abs(dy);
+				spriteBatch.Draw(pixel, new Rectangle(cx - half, cy + dy, half * 2 + 1, 1), color);
+			}
+		}
+
 		private class MarkSnippet : TextSnippet
 		{
 			public MarkSnippet(string text) : base(text) { }
 
 			public override bool UniqueDraw(bool justCheckingString, out Vector2 size, SpriteBatch spriteBatch, Vector2 position = default, Color color = default, float scale = 1f)
 			{
-				size = new Vector2(15f * scale, 16f * scale);
+				int radius = System.Math.Max(4, (int)System.Math.Round(7f * scale));
+				size = new Vector2(radius * 2 + 5f, 14f * scale);
 
-				// Color.Black is the shadow pass; the icon has its own outline, so skip it.
+				// Color.Black is the shadow pass; the icon has its own edge, so skip it.
 				if (justCheckingString || color == Color.Black)
 					return true;
 
-				Texture2D pixel = TextureAssets.MagicPixel.Value;
-				Rectangle one = new Rectangle(0, 0, 1, 1);
-				Vector2 origin = new Vector2(0.5f, 0.5f);
-				Vector2 center = position + new Vector2(size.X * 0.5f, 19f * scale);
-
-				spriteBatch.Draw(pixel, center, one, new Color(20, 20, 20) * 0.7f, MathHelper.PiOver4, origin, 9.5f * scale, SpriteEffects.None, 0f);
-				spriteBatch.Draw(pixel, center, one, new Color(255, 205, 70), MathHelper.PiOver4, origin, 7f * scale, SpriteEffects.None, 0f);
+				// Sits on the text's x-height line (about the middle of the lowercase letters).
+				Vector2 center = position + new Vector2(radius + 1f, 8f * scale);
+				DrawDiamond(spriteBatch, center, radius, 1f);
 				return true;
 			}
 		}
