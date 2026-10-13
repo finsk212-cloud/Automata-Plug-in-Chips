@@ -1266,8 +1266,16 @@ namespace Augments
 			Player.velocity = Vector2.Zero;
 			Player.fallStart = (int)(Player.position.Y / 16f);
 
+			// Position is client-authoritative and a player who is not "pressing" anything sends no update,
+			// so without this everyone else sees the pulled player sit still and then snap to the owner.
+			Player.netUpdate = true;
+
+			if (getOverHerePullTicks == 1 || getOverHerePullTicks % 15 == 0)
+				ModContent.GetInstance<Augments>().Logger.Info($"Get over here! pull tick {getOverHerePullTicks}: {Player.name} {distance:F0}px from landing, {getOverHerePullSpeed:F0}px/tick");
+
 			if (arrived || getOverHerePullTicks >= GetOverHereAugment.PullMaxTicks)
 			{
+				ModContent.GetInstance<Augments>().Logger.Info($"Get over here! pull over for {Player.name} after {getOverHerePullTicks} ticks ({(arrived ? "arrived" : "timed out")})");
 				getOverHerePullOwner = -1;
 				Player.oldPosition = Player.position;
 				getOverHereReductionTicks = GetOverHereAugment.ReductionTicks;
@@ -1787,18 +1795,12 @@ namespace Augments
 
 		// Fires on every melee/weapon hit - dispatches to whichever owned
 		// augments care about it (most won't override this and do nothing).
-		// Normalized boss key — Twins are two NPCs but one fight, so both segments
-		// map to Retinazer's type for participation and kill-count tracking.
-		private static int BossKey(int npcType)
-			=> npcType == NPCID.Spazmatism ? NPCID.Retinazer : npcType;
-
-		// Records that the local player dealt damage to a boss this fight.
+		// Records that the local player dealt damage to a boss this fight. Hits on any part of a
+		// multi-NPC boss (see BossFights) count towards that fight's leader.
 		// Sends a packet on the first hit so the server can populate its copy.
 		private void TryRegisterBossDamage(NPC target)
 		{
-			if (!target.boss) return;
-
-			int key = BossKey(target.type);
+			if (!BossFights.TryGetFightKey(target, out int key)) return;
 			if (DamagedBossesThisFight.Contains(key)) return; // already registered
 
 			DamagedBossesThisFight.Add(key);

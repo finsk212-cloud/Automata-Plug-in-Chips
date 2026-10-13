@@ -11,18 +11,16 @@ namespace Augments
 		public override void OnKill(NPC npc)
 		{
 			if (Main.netMode == NetmodeID.MultiplayerClient) return;
-			if (!npc.boss) return;
 
-			// Twins are two separate NPCs but one fight — normalize both segments
-			// to Retinazer's type so participation and kill count treat them as one boss.
-			// BossTierMap still uses npc.type directly (it maps both to the same bracket).
-			int bossKey = (npc.type == NPCID.Spazmatism) ? NPCID.Retinazer : npc.type;
+			// A boss fight can be several NPCs (Twins, worm segments, Slime God's paladins, Exo Mech arms...).
+			// BossFights works out which fight this NPC belongs to and whether its death should pay out;
+			// the key is the fight leader's NPC type, which is also what participation and kill counts use.
+			if (!BossFights.TryGetFightKey(npc, out int bossKey)) return;
+			if (!BossFights.IsRewardTrigger(npc, bossKey)) return;
 
-			RarityBracket bracket = BossTierMap.GetBracket(npc.type);
-			if (!BossTierMap.Brackets.ContainsKey(npc.type))
-			{
-				bracket = GetModdedBossBracket(npc);
-			}
+			RarityBracket bracket = BossTierMap.Brackets.ContainsKey(bossKey)
+				? BossTierMap.GetBracket(bossKey)
+				: GetModdedBossBracket(npc);
 
 			foreach (Player player in Main.player)
 			{
@@ -58,6 +56,7 @@ namespace Augments
 				if (chance <= 0f) continue;
 				if (Main.rand.NextFloat() > chance) continue;
 
+				ModContent.GetInstance<Augments>().Logger.Info($"Boss reward: {npc.TypeName} (key {bossKey}) kill #{killCount + 1} for {player.name}, {chance:P0} chance");
 				AugmentRewardLogic.GrantReward(player, bracket);
 			}
 
@@ -94,7 +93,8 @@ namespace Augments
 			// Post-Moon Lord
 			{ "AstrumDeusHead", RarityBracket.EarlyPostMoonLord },
 			{ "ProfanedGuardianCommander", RarityBracket.EarlyPostMoonLord },
-			{ "Bumblebirb", RarityBracket.EarlyPostMoonLord },
+			{ "Dragonfolly", RarityBracket.EarlyPostMoonLord },
+			{ "Bumblebirb", RarityBracket.EarlyPostMoonLord }, // pre-rename class name
 			// Late Endgame
 			{ "Providence", RarityBracket.LatePostMoonLord },
 			{ "StormWeaverHead", RarityBracket.LatePostMoonLord },
