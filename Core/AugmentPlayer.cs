@@ -433,6 +433,7 @@ namespace Augments
 		public int PhoenixHeartInvulnTicks;
 		public int PiedPiperCooldown;
 		public int PiedPiperDurationRemaining;
+		public int SiegeBatteryCooldown;
 		public int PotionRushTimer;
 		public int QuickRecoveryRegenTimer;
 		public int RavenousSwarmSlotsGranted;
@@ -1427,6 +1428,7 @@ namespace Augments
 			PhoenixHeartCooldown = 0;
 			PhoenixHeartArmedThisHit = false;
 			PiedPiperCooldown = 0;
+			SiegeBatteryCooldown = 0;
 			SecondWindCooldown = 0;
 
 			Player.ClearBuff(ModContent.BuffType<LastRitesCooldownBuff>());

@@ -79,6 +79,7 @@ namespace Augments
             Register(new InfernosHeartAugment());
             Register(new VitalEchoAugment());
             Register(new EternalLegionAugment());
+            Register(new SiegeBatteryAugment());
             Register(new BulwarkAugment());
             Register(new VolatileRoundsAugment());
             Register(new WildCardAugment());

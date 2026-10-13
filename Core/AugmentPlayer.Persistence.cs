@@ -148,6 +148,7 @@ namespace Augments
 			PhoenixHeartInvulnTicks = 0;
 			PiedPiperCooldown = 0;
 			PiedPiperDurationRemaining = 0;
+			SiegeBatteryCooldown = 0;
 			PotionRushTimer = 0;
 			QuickRecoveryRegenTimer = 0;
 			RavenousSwarmSlotsGranted = 0;
