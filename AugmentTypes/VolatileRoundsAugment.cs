@@ -1,4 +1,6 @@
+using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Augments.Core;
@@ -75,6 +77,8 @@ namespace Augments
         {
             int damage = System.Math.Max(1, (int)(hitDamage * ExplosionDamagePercent * effectiveness));
 
+            SpawnExplosionVisual(origin.Center);
+
             foreach (NPC npc in Main.npc)
             {
                 if (!npc.active || npc.friendly || npc.townNPC)
@@ -87,6 +91,35 @@ namespace Augments
                     if (player.whoAmI == Main.myPlayer)
                         AugmentDamageTracker.RecordChipHit("volatile_rounds", damage, false);
                 }
+            }
+        }
+
+        // Small blast at the target: a fiery burst, a bit of smoke and a ring marking the damage radius.
+        private static void SpawnExplosionVisual(Vector2 center)
+        {
+            if (Main.dedServ)
+                return;
+
+            SoundEngine.PlaySound(SoundID.Item14 with { Volume = 0.45f, Pitch = 0.25f }, center);
+
+            for (int i = 0; i < 12; i++)
+            {
+                Dust d = Dust.NewDustPerfect(center, DustID.Torch, Main.rand.NextVector2Circular(5f, 5f), 100, default, 1.6f);
+                d.noGravity = true;
+            }
+
+            for (int i = 0; i < 6; i++)
+            {
+                Dust d = Dust.NewDustPerfect(center, DustID.Smoke, Main.rand.NextVector2Circular(3f, 3f), 100, Color.DarkGray, 1.2f);
+                d.noGravity = true;
+            }
+
+            const int ringDust = 18;
+            for (int i = 0; i < ringDust; i++)
+            {
+                Vector2 dir = (i * MathHelper.TwoPi / ringDust).ToRotationVector2();
+                Dust d = Dust.NewDustPerfect(center + dir * ExplosionRange, DustID.Torch, dir * 1.5f, 100, default, 1.1f);
+                d.noGravity = true;
             }
         }
     }
