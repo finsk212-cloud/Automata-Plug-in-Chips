@@ -129,8 +129,6 @@ namespace Augments
             Register(new SoulLinkAugment());
             Register(new MartyrsResolveAugment());
             Register(new CombatMedicAugment());
-            Register(new SharedBrewAugment());
-            Register(new CalloutAugment());
             Register(new LastRitesAugment());
             Register(new LifelineAugment());
             Register(new UndyingBondAugment());

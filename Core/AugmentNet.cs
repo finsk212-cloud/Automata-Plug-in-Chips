@@ -593,8 +593,7 @@ namespace Augments
 			Slow,
 			Cracked,
 			Nanites,
-			KineticMark,
-			Callout
+			KineticMark
 		}
 
 		public static void SendApplyNPCEffectBleed(int npcIndex, int durationTicks, int dps)
@@ -665,20 +664,6 @@ namespace Augments
 			packet.Send();
 		}
 
-		public static void SendApplyNPCEffectCallout(int npcIndex, int durationTicks, int markerIndex)
-		{
-			if (Main.netMode != NetmodeID.MultiplayerClient || npcIndex < 0 || npcIndex >= Main.maxNPCs)
-				return;
-
-			ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
-			packet.Write((byte)AugmentPacketType.ApplyNPCEffect);
-			packet.Write((byte)NPCEffectType.Callout);
-			packet.Write((short)npcIndex);
-			packet.Write(durationTicks);
-			packet.Write((byte)markerIndex);
-			packet.Send();
-		}
-
 		private static void HandleApplyNPCEffect(BinaryReader reader, int whoAmI)
 		{
 			NPCEffectType effectType = (NPCEffectType)reader.ReadByte();
@@ -688,7 +673,6 @@ namespace Augments
 			int dps = 0;
 			float slowPercent = 0f;
 			int minionIdentity = -1;
-			int markerIndex = -1;
 
 			switch (effectType)
 			{
@@ -707,10 +691,6 @@ namespace Augments
 				case NPCEffectType.Nanites:
 					durationTicks = reader.ReadInt32();
 					minionIdentity = reader.ReadInt32();
-					break;
-				case NPCEffectType.Callout:
-					durationTicks = reader.ReadInt32();
-					markerIndex = reader.ReadByte();
 					break;
 			}
 
@@ -767,23 +747,6 @@ namespace Augments
 						relay.Write((byte)NPCEffectType.KineticMark);
 						relay.Write(npcIndex);
 						relay.Write(durationTicks);
-						relay.Send(-1, whoAmI);
-					}
-					break;
-				case NPCEffectType.Callout:
-					// The sender is the marking player; on clients the relayed packet carries it explicitly.
-					if (Main.netMode == NetmodeID.Server)
-						markerIndex = whoAmI;
-					npc.GetGlobalNPC<AugmentCalloutNPC>().ApplyMark(markerIndex, durationTicks);
-
-					if (Main.netMode == NetmodeID.Server)
-					{
-						ModPacket relay = ModContent.GetInstance<Augments>().GetPacket();
-						relay.Write((byte)AugmentPacketType.ApplyNPCEffect);
-						relay.Write((byte)NPCEffectType.Callout);
-						relay.Write(npcIndex);
-						relay.Write(durationTicks);
-						relay.Write((byte)markerIndex);
 						relay.Send(-1, whoAmI);
 					}
 					break;

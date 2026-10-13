@@ -14,8 +14,6 @@
 - **New Plugin: Phase Round** (Epic, Ranged): Your arrows and bullets pass through blocks, so you can hit enemies behind walls. Shots are removed after 1 second spent inside blocks. Rockets, grenades and other special projectiles are unaffected.
 - **New Plugin: Chaos Rounds** (Epic, Ranged): Ranged hits apply a random debuff for 3 seconds: On Fire, Frostburn, Poisoned, Venom or Ichor. Each hit picks a debuff the enemy doesn't already have and isn't immune to. Works with chips that look for damage-over-time effects, like Volatile Rounds.
 - **New Plugin: Siege Battery** (Legendary, Summon): Every 6 seconds, each sentry also fires a siege shell at the enemy with the most HP in its range (a boss over its minions). The shell deals 400% of that sentry's damage and explodes for the same damage on everything nearby.
-- **New Plugin: Shared Brew** (Rare, Support): Nearby teammates also get the potion buffs you have active (drinkable potions only, not food). They get a 5-second copy that keeps refreshing while they stay near you; the last 5 seconds of your own potion are not shared.
-- **New Plugin: Callout** (Rare, Support): Your hits mark enemies for 5 seconds. Marked enemies take +10% damage from your teammates (not from you).
 - **Volatile Rounds**: The explosion now has a small visual and sound effect, with a ring showing its radius.
 
 ### 1. New Feature: Automata Protocols (Chip Synergies)
