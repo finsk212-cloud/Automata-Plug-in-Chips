@@ -10,7 +10,7 @@ namespace Augments
         public override string Id => "twin_strike";
         public override string DisplayName => "Twin Strike";
         public override string Description =>
-            $"{AugmentText.Crit("Crits")} apply {AugmentText.OnHit("on-hit")} twice. Deal {AugmentText.SpecialDamage("15 damage")} {AugmentText.OnHit("on-hit")}, at most once every 0.5s.";
+            $"{AugmentText.Crit("Crits")} apply {AugmentText.OnHit("on-hit")} twice. Deal {AugmentText.SpecialDamage("15 damage")} {AugmentText.OnHit("on-hit")}, at most once every 0.3s.";
 
         public override AugmentRarity Rarity => AugmentRarity.Rare;
         public override AugmentClass Class => AugmentClass.Universal;
@@ -22,7 +22,7 @@ namespace Augments
         public override bool DuplicatesOnHitEffects => true;
 
         private const int ProcDamage = 15;
-        private const int ProcCooldownTicks = 30;
+        private const int ProcCooldownTicks = 18;
 
         public override (string label, int baseValue)[] GetScalingEntries()
         {
