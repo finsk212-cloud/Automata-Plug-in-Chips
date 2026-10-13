@@ -38,5 +38,10 @@ namespace Augments
 		[DefaultValue(7)]
 		[Range(1, 30)]
 		public int AdvisoryTipIntervalMinutes;
+
+		[Header("SoundSettings")]
+
+		[DefaultValue(true)]
+		public bool EnableGetOverHereSfx;
 	}
 }

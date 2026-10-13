@@ -280,6 +280,13 @@ Configs: {
 			Label: Tip Interval (Minutes)
 			Tooltip: How many minutes pass between automatic Pod 042 tips. Tips are paused during boss fights.
 		}
+
+		Headers.SoundSettings: Sound Settings
+
+		EnableGetOverHereSfx: {
+			Label: Custom "Get over here!" Sound Effects
+			Tooltip: Plays a random custom sound effect when a teammate is pulled by the Get over here! chip. When off, the normal vanilla hook sound plays instead.
+		}
 	}
 
 	AugmentServerConfig: {

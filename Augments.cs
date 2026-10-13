@@ -123,6 +123,7 @@ namespace Augments
 			CleanseKeybind = null;
 			ChronobreakKeybind = null;
 			GetOverHereKeybind = null;
+			GetOverHereAugment.UnloadSounds();
 			for (int i = 0; i < LoadoutKeybinds.Length; i++)
 				LoadoutKeybinds[i] = null;
 			UndoReforgeKeybind = null;
