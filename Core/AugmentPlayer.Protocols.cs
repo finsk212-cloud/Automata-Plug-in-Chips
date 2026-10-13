@@ -200,8 +200,12 @@ namespace Augments
 				AugmentNet.SendApplyNPCEffectNanites(target.whoAmI, 240, proj.identity);
 		}
 
-		public void ApplyHivemindFlatDamage(NPC target, ref NPC.HitModifiers modifiers)
+		public void ApplyHivemindFlatDamage(NPC target, ref NPC.HitModifiers modifiers, bool fromNecromancerGhost = false)
 		{
+			// Necromancer ghosts are free extra minion hits; they must not also collect the per-minion flat bonus.
+			if (fromNecromancerGhost)
+				return;
+
 			var naniteNPC = target.GetGlobalNPC<AugmentNaniteNPC>();
 			if (!naniteNPC.IsInfested)
 				return;

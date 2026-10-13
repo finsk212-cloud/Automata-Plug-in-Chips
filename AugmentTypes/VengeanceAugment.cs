@@ -9,13 +9,13 @@ namespace Augments
         public override string Id => "vengeance";
         public override string DisplayName => "Vengeance";
         public override string Description =>
-            $"When an enemy damages you, hit it back for {AugmentText.BonusDamage("8 damage")}.\n" +
+            $"When an enemy damages you, hit it back for {AugmentText.BonusDamage("20 damage")}.\n" +
             AugmentText.Note("(Enemy projectiles don't trigger this.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Rare;
         public override AugmentClass Class => AugmentClass.Universal;
 
-        private const int RetaliationDamage = 8;
+        private const int RetaliationDamage = 20;
 
         public override (string label, int baseValue)[] GetScalingEntries()
         {

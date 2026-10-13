@@ -1726,7 +1726,7 @@ namespace Augments
 				}
 			}
 
-			ApplyHivemindFlatDamage(target, ref modifiers);
+			ApplyHivemindFlatDamage(target, ref modifiers, proj.GetGlobalProjectile<AugmentProjectileTag>().NecromancersCourtGhost);
 			ApplyMarksmanArmorPenetration(target, proj.CountsAsClass(DamageClass.Ranged) || proj.DamageType == DamageClass.Ranged, ref modifiers);
 
 			AugmentProjectileTag tag = proj.GetGlobalProjectile<AugmentProjectileTag>();
