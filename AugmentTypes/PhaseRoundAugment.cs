@@ -1,7 +1,9 @@
 using Microsoft.Xna.Framework;
 using Terraria;
+using System.IO;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.ModLoader.IO;
 using Augments.Core;
 
 namespace Augments
@@ -36,6 +38,7 @@ namespace Augments
             PhaseRoundProjectile phase = projectile.GetGlobalProjectile<PhaseRoundProjectile>();
             phase.Active = true;
             projectile.tileCollide = false;
+            projectile.netUpdate = true; // send the phasing flag so every client draws the shot passing through walls
         }
 
         public override void OnHitNPCWithProj(Player player, Projectile proj, NPC target, NPC.HitInfo hit, AugmentHitSource source, float effectiveness)
@@ -93,6 +96,18 @@ namespace Augments
                 return false;
 
             return !p.GetGlobalProjectile<AugmentProjectileTag>().IsAugmentProcDamage;
+        }
+
+        public override void SendExtraAI(Projectile projectile, BitWriter bitWriter, BinaryWriter binaryWriter)
+        {
+            bitWriter.WriteBit(Active);
+        }
+
+        public override void ReceiveExtraAI(Projectile projectile, BitReader bitReader, BinaryReader binaryReader)
+        {
+            Active = bitReader.ReadBit();
+            if (Active)
+                projectile.tileCollide = false;
         }
 
         public override void PostAI(Projectile projectile)
