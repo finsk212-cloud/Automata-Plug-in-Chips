@@ -274,6 +274,54 @@ namespace Augments
 			Main.LocalPlayer.GetModPlayer<AugmentPlayer>().ApplyChronobreakRewind(owner);
 		}
 
+		public static void HandleGetOverHereRequest(int whoAmI)
+		{
+			if (!TryGetRequestOwner(whoAmI, "get_over_here", out Player owner))
+				return;
+			owner.GetModPlayer<AugmentPlayer>().TryTriggerGetOverHereServer();
+		}
+
+		// Tells the pulled ally's own client to move itself to the owner, and every client to draw
+		// the chain from the ally's old position to the owner.
+		public static void SendGetOverHere(Player target, Player owner)
+		{
+			if (Main.netMode != NetmodeID.Server)
+				return;
+
+			ModPacket apply = ModContent.GetInstance<Augments>().GetPacket();
+			apply.Write((byte)AugmentPacketType.GetOverHereApply);
+			apply.Write((byte)owner.whoAmI);
+			apply.Send(target.whoAmI);
+
+			ModPacket effect = ModContent.GetInstance<Augments>().GetPacket();
+			effect.Write((byte)AugmentPacketType.GetOverHereEffect);
+			effect.Write((byte)owner.whoAmI);
+			effect.Write(target.Center.X);
+			effect.Write(target.Center.Y);
+			effect.Send();
+		}
+
+		public static void HandleGetOverHereApply(int ownerIndex)
+		{
+			if (Main.netMode != NetmodeID.MultiplayerClient)
+				return;
+
+			Player owner = ownerIndex >= 0 && ownerIndex < Main.maxPlayers ? Main.player[ownerIndex] : null;
+			Main.LocalPlayer.GetModPlayer<AugmentPlayer>().ApplyGetOverHere(owner);
+		}
+
+		public static void HandleGetOverHereEffect(int ownerIndex, float fromX, float fromY)
+		{
+			if (Main.netMode != NetmodeID.MultiplayerClient || ownerIndex < 0 || ownerIndex >= Main.maxPlayers)
+				return;
+
+			Player owner = Main.player[ownerIndex];
+			if (!owner.active)
+				return;
+
+			GetOverHereAugment.SpawnPullEffect(new Vector2(fromX, fromY), owner.Center);
+		}
+
 		public static void HandleMediGunHealRequest(int senderWhoAmI, byte targetPlayerIndex, int healAmount)
 		{
 			if (Main.netMode != NetmodeID.Server || senderWhoAmI < 0 || senderWhoAmI >= Main.maxPlayers || targetPlayerIndex >= Main.maxPlayers)

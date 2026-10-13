@@ -90,6 +90,8 @@ namespace Augments
 				CleanseCooldown = 0;
 			else if (id == "chronobreak")
 				ChronobreakCooldown = 0;
+			else if (id == "get_over_here")
+				GetOverHereCooldown = 0;
 
 			RebuildOwnedCacheFromOwnedIdsOnly();
 			augment.OnAcquire(Player);
@@ -350,6 +352,11 @@ namespace Augments
 		private int chronobreakHead;
 		private int chronobreakCount;
 		private int chronobreakClock;
+
+		// Get over here!: cooldown on the owner, plus the short damage-reduction window the pulled
+		// player's own client keeps after landing.
+		public int GetOverHereCooldown;
+		private int getOverHereReductionTicks;
 
 		// Per-player cooldowns for triggered Support auras (Last Rites, Lifeline).
 		// Volatile — not saved to disk. 90s = 5400 ticks at 60 ticks/sec.
@@ -837,6 +844,9 @@ namespace Augments
 				chronobreakInvulnTicks--;
 			}
 
+			if (getOverHereReductionTicks > 0)
+				getOverHereReductionTicks--;
+
 			RecordChronobreakHistory();
 		}
 
@@ -861,6 +871,8 @@ namespace Augments
 				CleanseCooldown--;
 			if (ChronobreakCooldown > 0)
 				ChronobreakCooldown--;
+			if (GetOverHereCooldown > 0)
+				GetOverHereCooldown--;
 			if (LastRitesCooldown > 0)
 				LastRitesCooldown--;
 			if (LifelineCooldown > 0)
@@ -1135,13 +1147,7 @@ namespace Augments
 			if (Vector2.Distance(oldPosition, Player.position) <= ChronobreakMaxRewindDistance
 				&& !Collision.SolidCollision(oldPosition, Player.width, Player.height))
 			{
-				// A grappling hook would otherwise drag the player straight back out of the old spot.
-				for (int i = 0; i < Main.maxProjectiles; i++)
-				{
-					Projectile p = Main.projectile[i];
-					if (p.active && p.owner == Player.whoAmI && p.aiStyle == ProjAIStyleID.Hook)
-						p.Kill();
-				}
+				KillOwnGrapplingHooks();
 
 				Player.position = oldPosition;
 				Player.oldPosition = oldPosition;
@@ -1152,6 +1158,70 @@ namespace Augments
 			}
 
 			ChronobreakAugment.SpawnRewindEffect(from, Player.Center, moved);
+		}
+
+		// A grappling hook would otherwise drag a just-moved player straight back out of their new spot.
+		private void KillOwnGrapplingHooks()
+		{
+			for (int i = 0; i < Main.maxProjectiles; i++)
+			{
+				Projectile p = Main.projectile[i];
+				if (p.active && p.owner == Player.whoAmI && p.aiStyle == ProjAIStyleID.Hook)
+					p.Kill();
+			}
+		}
+
+		// Get over here!, server side: validates the press, picks the nearest ally in range and
+		// tells that ally's own client to move itself to the owner. With nobody in range nothing
+		// happens and the cooldown is not spent.
+		public bool TryTriggerGetOverHereServer()
+		{
+			if (Main.netMode != NetmodeID.Server || !HasAugment("get_over_here") || GetOverHereCooldown > 0 || Player.dead)
+				return false;
+
+			Player target = null;
+			float bestDistanceSquared = float.MaxValue;
+			foreach (Player other in Main.player)
+			{
+				if (!SupportEffects.IsAllyInRange(Player, other, GetOverHereAugment.RangePixels))
+					continue;
+
+				float distanceSquared = Vector2.DistanceSquared(Player.Center, other.Center);
+				if (distanceSquared < bestDistanceSquared)
+				{
+					bestDistanceSquared = distanceSquared;
+					target = other;
+				}
+			}
+
+			if (target == null)
+				return false;
+
+			GetOverHereCooldown = GetOverHereAugment.CooldownTicks;
+			SupportEffects.SendGetOverHere(target, Player);
+			AugmentNet.SendSyncPlayer(Player);
+			return true;
+		}
+
+		// Runs on the pulled player's own client: lands beside the owner, feet aligned, with their
+		// velocity and fall distance cleared, then gets the damage-reduction window.
+		public void ApplyGetOverHere(Player owner)
+		{
+			if (Player.whoAmI != Main.myPlayer || Player.dead || owner == null || !owner.active || owner.dead)
+				return;
+
+			Vector2 landing = new Vector2(owner.Center.X - Player.width / 2f, owner.position.Y + owner.height - Player.height);
+			if (Collision.SolidCollision(landing, Player.width, Player.height))
+				landing = owner.position;
+			if (Collision.SolidCollision(landing, Player.width, Player.height))
+				return;
+
+			KillOwnGrapplingHooks();
+			Player.position = landing;
+			Player.oldPosition = landing;
+			Player.velocity = Vector2.Zero;
+			Player.fallStart = (int)(landing.Y / 16f);
+			getOverHereReductionTicks = GetOverHereAugment.ReductionTicks;
 		}
 
 		public bool TryAuthorizeSoulLinkRequest()
@@ -1588,6 +1658,15 @@ namespace Augments
 				}
 			}
 
+			// The cooldown is only spent when the server finds a teammate to pull, and its sync sets it here.
+			if (HasAugment("get_over_here") && GetOverHereCooldown == 0 && Augments.GetOverHereKeybind?.JustPressed == true && !isTyping && !Player.dead
+				&& Main.netMode == NetmodeID.MultiplayerClient)
+			{
+				ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
+				packet.Write((byte)AugmentPacketType.GetOverHereRequest);
+				packet.Send();
+			}
+
 			if (HasAugment("reforgers_patience") && Augments.UndoReforgeKeybind?.JustPressed == true)
 			{
 				if (TryUndoLastReforge())
@@ -1635,6 +1714,7 @@ namespace Augments
 		{
 			CleanseCooldown = 0;
 			ChronobreakCooldown = 0;
+			GetOverHereCooldown = 0;
 			LastRitesCooldown = 0;
 			LifelineCooldown = 0;
 			soulLinkRequestCooldown = 0;
@@ -2170,6 +2250,7 @@ namespace Augments
 			RevitalizingWaveTimer = 1200;
 			CleanseCooldown = 0;
 			ChronobreakCooldown = 0;
+			GetOverHereCooldown = 0;
 			LastRitesCooldown = 0;
 			lastRitesInvulnTicks = 0;
 			LifelineCooldown = 0;

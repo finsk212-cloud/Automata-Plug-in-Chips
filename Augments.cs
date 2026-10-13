@@ -41,7 +41,10 @@ namespace Augments
 		ClientFullState,   // client -> server: whole disk-loaded state (stash, loadouts, sold list...) on world join
 		CalloutBonusDamage, // client -> server -> marker's client: extra damage a Callout mark made a teammate deal
 		ChronobreakRequest, // client -> server: the owner pressed Chronobreak
-		ChronobreakApply    // server -> client: rewind yourself (payload: owner index)
+		ChronobreakApply,   // server -> client: rewind yourself (payload: owner index)
+		GetOverHereRequest, // client -> server: the owner pressed Get over here!
+		GetOverHereApply,   // server -> pulled client: move yourself to the owner (payload: owner index)
+		GetOverHereEffect   // server -> all clients: chain visual (payload: owner index, pulled player's old position)
 	}
 
 	internal enum DebugAugmentCommandType : byte
@@ -62,6 +65,7 @@ namespace Augments
 		public static ModKeybind DebugToggleShopKeybind;
 		public static ModKeybind CleanseKeybind;
 		public static ModKeybind ChronobreakKeybind;
+		public static ModKeybind GetOverHereKeybind;
 		public static ModKeybind[] LoadoutKeybinds = new ModKeybind[3];
 		public static ModKeybind UndoReforgeKeybind;
 		public static ModKeybind ResetCooldownsKeybind;
@@ -84,6 +88,7 @@ namespace Augments
 			DebugToggleShopKeybind = KeybindLoader.RegisterKeybind(this, "DebugToggleShop", "OemQuotes");
 			CleanseKeybind = KeybindLoader.RegisterKeybind(this, "Cleanse", "None");
 			ChronobreakKeybind = KeybindLoader.RegisterKeybind(this, "Chronobreak", "None");
+			GetOverHereKeybind = KeybindLoader.RegisterKeybind(this, "GetOverHere", "None");
 			for (int i = 0; i < LoadoutKeybinds.Length; i++)
 				LoadoutKeybinds[i] = KeybindLoader.RegisterKeybind(this, "ApplyLoadout" + (i + 1), "None");
 			UndoReforgeKeybind = KeybindLoader.RegisterKeybind(this, "UndoReforge", "None");
@@ -117,6 +122,7 @@ namespace Augments
 			DebugToggleShopKeybind = null;
 			CleanseKeybind = null;
 			ChronobreakKeybind = null;
+			GetOverHereKeybind = null;
 			for (int i = 0; i < LoadoutKeybinds.Length; i++)
 				LoadoutKeybinds[i] = null;
 			UndoReforgeKeybind = null;
@@ -172,6 +178,18 @@ namespace Augments
 
 				case AugmentPacketType.ChronobreakApply:
 					SupportEffects.HandleChronobreakApply(reader.ReadByte());
+					break;
+
+				case AugmentPacketType.GetOverHereRequest:
+					SupportEffects.HandleGetOverHereRequest(whoAmI);
+					break;
+
+				case AugmentPacketType.GetOverHereApply:
+					SupportEffects.HandleGetOverHereApply(reader.ReadByte());
+					break;
+
+				case AugmentPacketType.GetOverHereEffect:
+					SupportEffects.HandleGetOverHereEffect(reader.ReadByte(), reader.ReadSingle(), reader.ReadSingle());
 					break;
 
 				case AugmentPacketType.MediGunHealRequest:

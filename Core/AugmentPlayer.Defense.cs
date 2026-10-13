@@ -37,6 +37,10 @@ namespace Augments
 			foreach (var a in Owned)
 				a.ModifyHurt(Player, ref modifiers);
 
+			// Get over here!: the pulled player takes reduced damage for a short while after landing.
+			if (getOverHereReductionTicks > 0)
+				modifiers.FinalDamage *= 1f - GetOverHereAugment.DamageReduction;
+
 			// Pull-based Martyr's Resolve: check nearby Support players for the augment
 			// and apply 15% incoming damage reduction to the local player.
 			// The Support player's corresponding self-penalty (+15% damage taken) is
