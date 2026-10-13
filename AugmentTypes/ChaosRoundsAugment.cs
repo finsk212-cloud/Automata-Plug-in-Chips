@@ -17,7 +17,8 @@ namespace Augments
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +
-            $"{AugmentText.Ichor("Ichor")} lowers the enemy's defense. Enemies that are immune to the rolled debuff simply don't get it.\n" +
+            $"{AugmentText.Ichor("Ichor")} lowers the enemy's defense. Each hit picks a debuff the enemy doesn't already have and isn't immune to; " +
+            $"once it has them all, a hit refreshes one of them.\n" +
             $"[c/94A3B8:(The burning, freezing and poison debuffs count as damage over time, so chips that look for one, like Volatile Rounds, will trigger.)]";
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
@@ -33,6 +34,8 @@ namespace Augments
             BuffID.Venom,
             BuffID.Ichor,
         };
+
+        private static readonly System.Collections.Generic.List<int> Candidates = new();
 
         public override void OnHitNPCWithProj(Player player, Projectile proj, NPC target, NPC.HitInfo hit, AugmentHitSource source, float effectiveness)
         {
@@ -64,10 +67,8 @@ namespace Augments
             if (target == null || !target.active || target.friendly || target.townNPC)
                 return;
 
-            int buffType = DebuffPool[Main.rand.Next(DebuffPool.Length)];
-
-            // Bosses that are immune to the rolled debuff just don't take it.
-            if (target.buffImmune[buffType])
+            int buffType = RollDebuff(target);
+            if (buffType < 0)
                 return;
 
             target.AddBuff(buffType, DebuffDurationTicks);
@@ -75,6 +76,29 @@ namespace Augments
                 NetMessage.SendData(MessageID.AddNPCBuff, -1, -1, null, target.whoAmI, buffType, DebuffDurationTicks);
 
             SpawnHitDust(target, buffType);
+        }
+
+        // Rolls only among debuffs the target can take and doesn't already have, so a roll is never wasted on a
+        // duplicate or an immunity. Once it has every debuff it can take, a hit refreshes a random one of them.
+        private static int RollDebuff(NPC target)
+        {
+            Candidates.Clear();
+            foreach (int buff in DebuffPool)
+            {
+                if (!target.buffImmune[buff] && !target.HasBuff(buff))
+                    Candidates.Add(buff);
+            }
+
+            if (Candidates.Count == 0)
+            {
+                foreach (int buff in DebuffPool)
+                {
+                    if (!target.buffImmune[buff])
+                        Candidates.Add(buff);
+                }
+            }
+
+            return Candidates.Count == 0 ? -1 : Candidates[Main.rand.Next(Candidates.Count)];
         }
 
         // A small burst in the rolled debuff's colour so you can see what the roll was.
