@@ -522,7 +522,7 @@ namespace Augments
 				{
 					foreach (var memberId in fam.MemberIds)
 					{
-						if (!HasAugment(memberId) && !soldAugmentIds.Contains(memberId))
+						if (!HasAugment(memberId) && !soldAugmentIds.Contains(memberId) && !stashedIds.Contains(memberId))
 						{
 							var aug = AugmentDatabase.GetById(memberId);
 							if (aug != null && aug.Class != AugmentClass.Support)
@@ -541,7 +541,7 @@ namespace Augments
 			{
 				if (augment.Rarity != rarity || augment.IsDebugOnly || HasAugment(augment.Id) || (excludedIds != null && excludedIds.Contains(augment.Id)))
 					continue;
-				if (soldAugmentIds.Contains(augment.Id))
+				if (soldAugmentIds.Contains(augment.Id) || stashedIds.Contains(augment.Id))
 					continue;
 
 				// Support class temporarily disabled from the reward pool - the
