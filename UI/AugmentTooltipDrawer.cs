@@ -117,21 +117,11 @@ namespace Augments
             string descToDraw = (isCtrlDown && player != null ? augment.GetDetailedDescription(player) : augment.LiveDescription);
             var descLines = AugmentColorText.Wrap(font, descToDraw, MaxContentWidth, DescScale);
 
-            // 4. Metadata (Fortune & Keybind)
+            // 4. Metadata (Fortune)
             var metaLines = new List<(string text, Color color)>();
             if (augment.FortuneBonus > 0f)
             {
                 metaLines.Add(($"• +{(int)Math.Round(augment.FortuneBonus * 100f)}% Fortune Bonus", new Color(255, 220, 120)));
-            }
-
-            if (augment.ActiveModKeybind != null)
-            {
-                var kb = augment.ActiveModKeybind;
-                string kbKey = kb.GetAssignedKeys().Count > 0 ? string.Join(", ", kb.GetAssignedKeys()) : null;
-                if (!string.IsNullOrEmpty(kbKey))
-                    metaLines.Add(($"• Keybind: [{kbKey}]", new Color(125, 215, 255)));
-                else
-                    metaLines.Add(("• Keybind: [Unassigned]", new Color(255, 135, 120)));
             }
 
             // 5. Protocol synergy section

@@ -368,6 +368,8 @@ namespace Augments
 				return true;
 			if (Main.CurrentInputTextTakerOverride != null)
 				return true;
+			if (KeybindEditor.BlocksInput)
+				return true;
 			if (listState != null && listState.IsSearchFocused)
 				return true;
 			if (analyticsState != null && analyticsState.IsSearchFocused)

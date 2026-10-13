@@ -17,7 +17,7 @@ namespace Augments
         public override string Id => "chronobreak";
         public override string DisplayName => "Chronobreak";
         public override string Description =>
-            $"{AugmentText.Active("Active:")} Press [Chronobreak] to rewind you and nearby teammates to where they stood " +
+            $"{AugmentText.Active("Active:")} Press [{AugmentText.Key(Augments.ChronobreakKeybind)}] to rewind you and nearby teammates to where they stood " +
             $"{AugmentText.Duration("4 seconds")} ago, restoring {AugmentText.HP("HP")} up to what they had then. " +
             $"It never lowers anyone's {AugmentText.HP("HP")}. Rewound players are invulnerable for {AugmentText.Duration("0.5s")}. " +
             $"{AugmentText.Cooldown("120s cooldown")}.";

@@ -85,6 +85,8 @@ namespace Augments
 		{
 			base.Update(gameTime);
 
+			KeybindEditor.Tick();
+
 			if (backPanel != null && backPanel.ContainsPoint(Main.MouseScreen))
 			{
 				Main.LocalPlayer.mouseInterface = true;
@@ -110,6 +112,7 @@ namespace Augments
 		public override void OnDeactivate()
 		{
 			base.OnDeactivate();
+			KeybindEditor.Cancel();
 			if (searchBar != null)
 				searchBar.IsFocused = false;
 		}
@@ -1116,6 +1119,10 @@ namespace Augments
 			private bool currentIsOwned;
 			private CodexFilterButton devEquipBtn;
 
+			// Where the clickable "[key]" in the description was drawn this frame (screen space).
+			private Rectangle keyLabelRect;
+			private bool hasKeyLabel;
+
 			public AugmentDetailPanel(AugmentListUIState parentState)
 			{
 				this.parentState = parentState;
@@ -1175,8 +1182,31 @@ namespace Augments
 				}
 			}
 
+			public override void LeftClick(UIMouseEvent evt)
+			{
+				base.LeftClick(evt);
+
+				if (currentAugment?.ActiveModKeybind == null)
+					return;
+
+				if (hasKeyLabel && keyLabelRect.Contains(evt.MousePosition.ToPoint()))
+				{
+					if (KeybindEditor.IsListeningFor(currentAugment.ActiveModKeybind))
+						KeybindEditor.Cancel();
+					else
+						KeybindEditor.Begin(currentAugment.ActiveModKeybind);
+				}
+				else if (KeybindEditor.IsListening)
+				{
+					KeybindEditor.Cancel();
+				}
+			}
+
 			protected override void DrawSelf(SpriteBatch spriteBatch)
 			{
+				hasKeyLabel = false;
+				KeybindEditor.HoldInput();
+
 				CalculatedStyle dims = GetDimensions();
 				var rect = new Rectangle((int)dims.X, (int)dims.Y, (int)dims.Width, (int)dims.Height);
 				Texture2D pixel = TextureAssets.MagicPixel.Value;
@@ -1498,24 +1528,48 @@ namespace Augments
 				// 6. Wrapped Description with chat colors (stripping inline cooldown clause)
 				ExtractDescriptionAndCooldown(currentAugment, out string effectText, out string cooldownText, isCtrlDown, Main.LocalPlayer);
 
-				var lines = AugmentColorText.Wrap(font, effectText, maxTextWidth, new Vector2(0.82f));
+				var descScale = new Vector2(0.82f);
+				var lines = AugmentColorText.Wrap(font, effectText, maxTextWidth, descScale);
+				bool canRebind = currentAugment.ActiveModKeybind != null;
 				foreach (var line in lines)
 				{
+					float lineHeight = ChatManager.GetStringSize(font, line, descScale).Y;
+
+					// The "[key]" inside the description is the rebind button: highlight it under the text.
+					if (canRebind && !hasKeyLabel && KeybindEditor.TryFindLabel(line, out int labelStart, out int labelLength))
+					{
+						float labelX = x + ChatManager.GetStringSize(font, line.Substring(0, labelStart), descScale).X;
+						float labelW = ChatManager.GetStringSize(font, line.Substring(labelStart, labelLength), descScale).X;
+						keyLabelRect = new Rectangle((int)labelX - 2, (int)y, (int)labelW + 4, (int)lineHeight);
+						hasKeyLabel = true;
+
+						bool listening = KeybindEditor.IsListeningFor(currentAugment.ActiveModKeybind);
+						bool hovered = keyLabelRect.Contains(Main.mouseX, Main.mouseY);
+						float pulse = (float)Math.Sin(time * 8f) * 0.5f + 0.5f;
+						Color accent = listening ? AugmentTextColors.Active : new Color(125, 211, 252);
+						float fillAlpha = listening ? 0.14f + pulse * 0.12f : (hovered ? 0.16f : 0.07f);
+
+						var pill = new Rectangle(keyLabelRect.X, (int)(y + lineHeight * 0.30f), keyLabelRect.Width, (int)(lineHeight * 0.66f));
+						spriteBatch.Draw(pixel, pill, accent * fillAlpha);
+						spriteBatch.Draw(pixel, new Rectangle(pill.X, pill.Bottom - 1, pill.Width, 1), accent * (listening || hovered ? 0.85f : 0.45f));
+
+						if (hovered && !listening)
+							Main.instance.MouseText("Click to change this key");
+					}
+
 					ChatManager.DrawColorCodedStringWithShadow(
-						spriteBatch, font, line, new Vector2(x, y), Color.White * 0.95f, 0f, Vector2.Zero, new Vector2(0.82f)
+						spriteBatch, font, line, new Vector2(x, y), Color.White * 0.95f, 0f, Vector2.Zero, descScale
 					);
-					y += ChatManager.GetStringSize(font, line, new Vector2(0.82f)).Y + 2f;
+					y += lineHeight + 2f;
 				}
 
-				// 7. Active Keybind note if any
-				var kb = currentAugment.ActiveModKeybind;
-				if (kb != null)
+				// 7. While a key is being picked, say so (the key itself lives in the description above)
+				if (canRebind && KeybindEditor.IsListeningFor(currentAugment.ActiveModKeybind))
 				{
-					y += 8f;
-					string kbText = kb.GetAssignedKeys().Count > 0 ? $"Keybind: {string.Join(", ", kb.GetAssignedKeys())}" : "No key bound to this plugin";
-					Color kbColor = kb.GetAssignedKeys().Count > 0 ? Color.SkyBlue : new Color(255, 120, 100);
+					y += 6f;
 					ChatManager.DrawColorCodedStringWithShadow(
-						spriteBatch, font, kbText, new Vector2(x, y), kbColor, 0f, Vector2.Zero, new Vector2(0.75f)
+						spriteBatch, font, "Press any key to bind it  •  Esc to cancel", new Vector2(x, y),
+						AugmentTextColors.Active * 0.9f, 0f, Vector2.Zero, new Vector2(0.72f)
 					);
 				}
 

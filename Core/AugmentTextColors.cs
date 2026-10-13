@@ -30,6 +30,8 @@ namespace Augments
         public const string BloodMoonHex = "FF6B6B";     // Blood Moon event keyword (Clean coral crimson)
         public const string SolarEclipseHex = "FACC15";  // Solar Eclipse event keyword (Solar gold)
         public const string NoteHex = "94A3B8";          // Technical / footnote text (Muted slate)
+        public const string KeybindHex = "7DD3FC";       // Assigned key of an active plugin, e.g. Press [Z] (Sky blue)
+        public const string KeybindUnboundHex = "FF7A66"; // Active plugin with no key assigned yet (Warning coral)
 
         public static readonly Color BonusDamage = new Color(255, 92, 92);
         public static readonly Color Crit = new Color(255, 200, 59);

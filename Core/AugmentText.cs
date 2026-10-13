@@ -37,5 +37,13 @@ namespace Augments
         public static string BloodMoon(string text) => Color(text, AugmentTextColors.BloodMoonHex);
         public static string SolarEclipse(string text) => Color(text, AugmentTextColors.SolarEclipseHex);
         public static string Note(string text) => Color(text, AugmentTextColors.NoteHex);
+
+        // The key a plugin is bound to, for descriptions: "Press [" + Key(kb) + "]" shows the live
+        // assigned key and is what the plugin list turns into a click-to-rebind button.
+        public static string Key(Terraria.ModLoader.ModKeybind keybind)
+        {
+            string label = KeybindEditor.GetLabel(keybind, out string hex);
+            return Color(label, hex);
+        }
     }
 }

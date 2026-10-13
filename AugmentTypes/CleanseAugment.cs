@@ -11,7 +11,7 @@ namespace Augments
 		public override string Id => "cleanse";
 		public override string DisplayName => "Cleanse";
 		public override string Description =>
-			$"{AugmentText.Active("Active:")} Press [Cleanse] to remove all debuffs from nearby teammates. {AugmentText.Cooldown("30s cooldown")}.";
+			$"{AugmentText.Active("Active:")} Press [{AugmentText.Key(Augments.CleanseKeybind)}] to remove all debuffs from nearby teammates. {AugmentText.Cooldown("30s cooldown")}.";
 		public override AugmentRarity Rarity => AugmentRarity.Rare;
 		public override AugmentClass Class => AugmentClass.Support;
 		public override bool HasAuraEffect => true;
