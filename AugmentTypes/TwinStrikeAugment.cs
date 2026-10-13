@@ -10,7 +10,7 @@ namespace Augments
         public override string Id => "twin_strike";
         public override string DisplayName => "Twin Strike";
         public override string Description =>
-            $"{AugmentText.Crit("Crits")} apply {AugmentText.OnHit("on-hit")} twice. Deal {AugmentText.SpecialDamage("15 damage")} {AugmentText.OnHit("on-hit")}.";
+            $"{AugmentText.Crit("Crits")} apply {AugmentText.OnHit("on-hit")} twice. Deal {AugmentText.SpecialDamage("15 damage")} {AugmentText.OnHit("on-hit")}, at most once every 0.5s.";
 
         public override AugmentRarity Rarity => AugmentRarity.Rare;
         public override AugmentClass Class => AugmentClass.Universal;
@@ -22,6 +22,7 @@ namespace Augments
         public override bool DuplicatesOnHitEffects => true;
 
         private const int ProcDamage = 15;
+        private const int ProcCooldownTicks = 30;
 
         public override (string label, int baseValue)[] GetScalingEntries()
         {
@@ -40,10 +41,14 @@ namespace Augments
         public override void OnHitNPCWithItem(Player player, Item item, NPC target, NPC.HitInfo hit)
         {
             var ap = player.GetModPlayer<AugmentPlayer>();
+            if (ap.TwinStrikeProcCooldown > 0 && !ap.TwinStrikeItemProcPending && !ap.TwinStrikeProjProcPending)
+                return;
+
             if (!hit.Crit)
             {
                 int dmg = ScaleHitEffect(AugmentScaling.Scale(ProcDamage));
                 ap.RecordOnHitDamage(dmg);
+                ap.TwinStrikeProcCooldown = ProcCooldownTicks;
                 Strike(player, target, dmg);
                 return;
             }
@@ -55,6 +60,7 @@ namespace Augments
             }
 
             ap.TwinStrikeItemProcPending = true;
+            ap.TwinStrikeProcCooldown = ProcCooldownTicks;
             int doubledDmg = ScaleHitEffect(AugmentScaling.Scale(ProcDamage) * 2);
             ap.RecordOnHitDamage(doubledDmg);
             Strike(player, target, doubledDmg);
@@ -63,10 +69,14 @@ namespace Augments
         public override void OnHitNPCWithProj(Player player, Projectile proj, NPC target, NPC.HitInfo hit)
         {
             var ap = player.GetModPlayer<AugmentPlayer>();
+            if (ap.TwinStrikeProcCooldown > 0 && !ap.TwinStrikeItemProcPending && !ap.TwinStrikeProjProcPending)
+                return;
+
             if (!hit.Crit)
             {
                 int dmg = ScaleHitEffect(AugmentScaling.Scale(ProcDamage));
                 ap.RecordOnHitDamage(dmg);
+                ap.TwinStrikeProcCooldown = ProcCooldownTicks;
                 Strike(player, target, dmg);
                 return;
             }
@@ -78,6 +88,7 @@ namespace Augments
             }
 
             ap.TwinStrikeProjProcPending = true;
+            ap.TwinStrikeProcCooldown = ProcCooldownTicks;
             int doubledDmg = ScaleHitEffect(AugmentScaling.Scale(ProcDamage) * 2);
             ap.RecordOnHitDamage(doubledDmg);
             Strike(player, target, doubledDmg);

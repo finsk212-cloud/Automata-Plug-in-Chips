@@ -439,6 +439,7 @@ namespace Augments
 		public int FortuneCoinBurstCooldown;
 		public int ChainLightningCooldown;
 		public int KineticShrapnelCooldown;
+		public int TwinStrikeProcCooldown;
 		public int AstralMatrixManaSpent;
 		public int AstralMatrixStacks;
 		public int GunslingerContinuousFireTicks;
@@ -689,6 +690,8 @@ namespace Augments
 				ChainLightningCooldown--;
 			if (KineticShrapnelCooldown > 0)
 				KineticShrapnelCooldown--;
+			if (TwinStrikeProcCooldown > 0)
+				TwinStrikeProcCooldown--;
 
 			if (AstralMatrixStacks > 0 && AugmentFamilyRegistry.GetOwnedCount(this, AugmentFamilyRegistry.ArcaneSurgeId) >= 2)
 			{
