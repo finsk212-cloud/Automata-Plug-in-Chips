@@ -39,7 +39,9 @@ namespace Augments
 		SyncBossKills,     // client -> server: saved boss reward kill counts (merged by max)
 		DebugGivePlugin,  // client -> server: dev command, give a chip to a target player
 		ClientFullState,   // client -> server: whole disk-loaded state (stash, loadouts, sold list...) on world join
-		CalloutBonusDamage // client -> server -> marker's client: extra damage a Callout mark made a teammate deal
+		CalloutBonusDamage, // client -> server -> marker's client: extra damage a Callout mark made a teammate deal
+		ChronobreakRequest, // client -> server: the owner pressed Chronobreak
+		ChronobreakApply    // server -> client: rewind yourself (payload: owner index)
 	}
 
 	internal enum DebugAugmentCommandType : byte
@@ -59,6 +61,7 @@ namespace Augments
 		public static ModKeybind DebugSpawnVendorKeybind;
 		public static ModKeybind DebugToggleShopKeybind;
 		public static ModKeybind CleanseKeybind;
+		public static ModKeybind ChronobreakKeybind;
 		public static ModKeybind[] LoadoutKeybinds = new ModKeybind[3];
 		public static ModKeybind UndoReforgeKeybind;
 		public static ModKeybind ResetCooldownsKeybind;
@@ -80,6 +83,7 @@ namespace Augments
 			DebugSpawnVendorKeybind = KeybindLoader.RegisterKeybind(this, "DebugSpawnVendor", "OemSemicolon");
 			DebugToggleShopKeybind = KeybindLoader.RegisterKeybind(this, "DebugToggleShop", "OemQuotes");
 			CleanseKeybind = KeybindLoader.RegisterKeybind(this, "Cleanse", "None");
+			ChronobreakKeybind = KeybindLoader.RegisterKeybind(this, "Chronobreak", "None");
 			for (int i = 0; i < LoadoutKeybinds.Length; i++)
 				LoadoutKeybinds[i] = KeybindLoader.RegisterKeybind(this, "ApplyLoadout" + (i + 1), "None");
 			UndoReforgeKeybind = KeybindLoader.RegisterKeybind(this, "UndoReforge", "None");
@@ -112,6 +116,7 @@ namespace Augments
 			DebugSpawnVendorKeybind = null;
 			DebugToggleShopKeybind = null;
 			CleanseKeybind = null;
+			ChronobreakKeybind = null;
 			for (int i = 0; i < LoadoutKeybinds.Length; i++)
 				LoadoutKeybinds[i] = null;
 			UndoReforgeKeybind = null;
@@ -159,6 +164,14 @@ namespace Augments
 
 				case AugmentPacketType.CleanseClearDebuffs:
 					SupportEffects.HandleCleanseClearDebuffs();
+					break;
+
+				case AugmentPacketType.ChronobreakRequest:
+					SupportEffects.HandleChronobreakRequest(whoAmI);
+					break;
+
+				case AugmentPacketType.ChronobreakApply:
+					SupportEffects.HandleChronobreakApply(reader.ReadByte());
 					break;
 
 				case AugmentPacketType.MediGunHealRequest:

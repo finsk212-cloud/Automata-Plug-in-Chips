@@ -137,6 +137,7 @@ namespace Augments
             Register(new RevitalizingWaveAugment());
             Register(new TauntAugment());
             Register(new CleanseAugment());
+            Register(new ChronobreakAugment());
             Register(new SwiftReturnAugment());
             Register(new PiercingShotAugment());
             Register(new RapidFireAugment());

@@ -241,6 +241,39 @@ namespace Augments
 			owner.GetModPlayer<AugmentPlayer>().TryTriggerCleanseServer();
 		}
 
+		public static void HandleChronobreakRequest(int whoAmI)
+		{
+			if (!TryGetRequestOwner(whoAmI, "chronobreak", out Player owner))
+				return;
+			owner.GetModPlayer<AugmentPlayer>().TryTriggerChronobreakServer();
+		}
+
+		// Tells one ally's own client to rewind itself. In singleplayer the only ally is the owner,
+		// so the rewind runs directly.
+		public static void SendChronobreakApply(Player target, Player owner)
+		{
+			if (Main.netMode == NetmodeID.Server)
+			{
+				ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
+				packet.Write((byte)AugmentPacketType.ChronobreakApply);
+				packet.Write((byte)owner.whoAmI);
+				packet.Send(target.whoAmI);
+			}
+			else if (Main.netMode == NetmodeID.SinglePlayer)
+			{
+				target.GetModPlayer<AugmentPlayer>().ApplyChronobreakRewind(owner);
+			}
+		}
+
+		public static void HandleChronobreakApply(int ownerIndex)
+		{
+			if (Main.netMode != NetmodeID.MultiplayerClient)
+				return;
+
+			Player owner = ownerIndex >= 0 && ownerIndex < Main.maxPlayers ? Main.player[ownerIndex] : null;
+			Main.LocalPlayer.GetModPlayer<AugmentPlayer>().ApplyChronobreakRewind(owner);
+		}
+
 		public static void HandleMediGunHealRequest(int senderWhoAmI, byte targetPlayerIndex, int healAmount)
 		{
 			if (Main.netMode != NetmodeID.Server || senderWhoAmI < 0 || senderWhoAmI >= Main.maxPlayers || targetPlayerIndex >= Main.maxPlayers)

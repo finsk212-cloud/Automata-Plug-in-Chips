@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
@@ -14,6 +15,38 @@ namespace Augments
 	{
 		private const float AuraRadius = 600f;
 		private const int CircleSteps = 64;
+		private const int ChronobreakRingTicks = 40;
+
+		// Chronobreak shockwaves: world position plus the game tick they started on.
+		private static readonly List<(Vector2 Center, uint Start)> chronobreakRings = new List<(Vector2 Center, uint Start)>();
+
+		public static void AddChronobreakRing(Vector2 worldCenter)
+		{
+			if (Main.dedServ)
+				return;
+			chronobreakRings.Add((worldCenter, Main.GameUpdateCount));
+		}
+
+		// A single pale cyan-violet ring that expands from the Chronobreak owner out to the
+		// 600px aura radius while fading. Drawn regardless of the aura circle's own conditions.
+		public static void DrawChronobreakRings(SpriteBatch spriteBatch)
+		{
+			for (int i = chronobreakRings.Count - 1; i >= 0; i--)
+			{
+				var ring = chronobreakRings[i];
+				float t = (Main.GameUpdateCount - ring.Start) / (float)ChronobreakRingTicks;
+				if (t >= 1f)
+				{
+					chronobreakRings.RemoveAt(i);
+					continue;
+				}
+
+				float eased = 1f - (1f - t) * (1f - t);
+				float fade = 1f - t;
+				DrawCircle(spriteBatch, ring.Center, 7f, new Color(150, 120, 255) * (0.10f * fade), AuraRadius * eased);
+				DrawCircle(spriteBatch, ring.Center, 2f, new Color(190, 240, 255) * (0.40f * fade), AuraRadius * eased);
+			}
+		}
 
 		public static void DrawAuras(SpriteBatch spriteBatch)
 		{
@@ -45,13 +78,13 @@ namespace Augments
 			DrawCircle(spriteBatch, center, 1.5f, new Color(210, 255, 225) * (0.22f + pulse * 0.08f));
 		}
 
-		private static void DrawCircle(SpriteBatch spriteBatch, Vector2 worldCenter, float thickness, Color color)
+		private static void DrawCircle(SpriteBatch spriteBatch, Vector2 worldCenter, float thickness, Color color, float radius = AuraRadius)
 		{
 			float uiScale = Main.UIScale;
 			// Convert center to screen space; scale radius by zoom so the circle
 			// tracks the actual 600-world-pixel boundary regardless of zoom level.
 			Vector2 screenCenter = (worldCenter - Main.screenPosition) / uiScale;
-			float screenRadius = AuraRadius / Main.GameZoomTarget / uiScale;
+			float screenRadius = radius / Main.GameZoomTarget / uiScale;
 
 			for (int s = 0; s < CircleSteps; s++)
 			{

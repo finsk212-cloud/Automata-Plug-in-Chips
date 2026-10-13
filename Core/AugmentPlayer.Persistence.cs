@@ -175,6 +175,10 @@ namespace Augments
 		public override void OnEnterWorld()
 		{
 			DamagedBossesThisFight.Clear();
+			// Chronobreak history from a previous world must never be rewound to.
+			chronobreakCount = 0;
+			chronobreakHead = 0;
+			chronobreakClock = 0;
 			// A Pause clicked in an earlier session would otherwise silently drop every hit.
 			AugmentDamageTracker.IsPaused = false;
 			// Push our disk-loaded owned list to the server FIRST so it has the
@@ -278,6 +282,7 @@ namespace Augments
 
 			writer.Write(RevitalizingWaveTimer);
 			writer.Write(CleanseCooldown);
+			writer.Write(ChronobreakCooldown);
 			writer.Write(LastRitesCooldown);
 			writer.Write(lastRitesInvulnTicks);
 			writer.Write(LifelineCooldown);
@@ -326,6 +331,7 @@ namespace Augments
 
 			RevitalizingWaveTimer = reader.ReadInt32();
 			CleanseCooldown = reader.ReadInt32();
+			ChronobreakCooldown = reader.ReadInt32();
 			LastRitesCooldown = reader.ReadInt32();
 			lastRitesInvulnTicks = reader.ReadInt32();
 			LifelineCooldown = reader.ReadInt32();
@@ -368,6 +374,7 @@ namespace Augments
 				tag["loadout" + s] = new List<string>(loadouts[s]);
 			tag["revitalizingWaveTimer"] = RevitalizingWaveTimer;
 			tag["cleanseCooldown"] = CleanseCooldown;
+			tag["chronobreakCooldown"] = ChronobreakCooldown;
 			tag["lastRitesCooldown"] = LastRitesCooldown;
 			tag["lastRitesInvulnTicks"] = lastRitesInvulnTicks;
 			tag["lifelineCooldown"] = LifelineCooldown;
@@ -480,6 +487,7 @@ namespace Augments
 
 			RevitalizingWaveTimer = tag.ContainsKey("revitalizingWaveTimer") ? tag.GetInt("revitalizingWaveTimer") : 1200;
 			CleanseCooldown = tag.ContainsKey("cleanseCooldown") ? tag.GetInt("cleanseCooldown") : 0;
+			ChronobreakCooldown = tag.ContainsKey("chronobreakCooldown") ? tag.GetInt("chronobreakCooldown") : 0;
 			LastRitesCooldown = tag.ContainsKey("lastRitesCooldown") ? tag.GetInt("lastRitesCooldown") : 0;
 			lastRitesInvulnTicks = tag.ContainsKey("lastRitesInvulnTicks") ? tag.GetInt("lastRitesInvulnTicks") : 0;
 			LifelineCooldown = tag.ContainsKey("lifelineCooldown") ? tag.GetInt("lifelineCooldown") : 0;

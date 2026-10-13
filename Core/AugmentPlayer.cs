@@ -88,6 +88,8 @@ namespace Augments
 				RevitalizingWaveTimer = 1200;
 			else if (id == "cleanse")
 				CleanseCooldown = 0;
+			else if (id == "chronobreak")
+				ChronobreakCooldown = 0;
 
 			RebuildOwnedCacheFromOwnedIdsOnly();
 			augment.OnAcquire(Player);
@@ -331,6 +333,23 @@ namespace Augments
 		public bool ReceivedCombatMedic;
 		public int RevitalizingWaveTimer = 1200;
 		public int CleanseCooldown;
+
+		// Chronobreak: cooldown plus the short post-rewind invulnerability. Every player's own
+		// client records its own position/HP history (about every 5 ticks, last ~5 seconds) so a
+		// Chronobreak owner's press can tell each teammate's client to rewind itself.
+		public int ChronobreakCooldown;
+		private int chronobreakInvulnTicks;
+		private const int ChronobreakSamples = 64;
+		private const int ChronobreakSampleInterval = 5;
+		private const int ChronobreakLookbackTicks = 240;
+		private const int ChronobreakInvulnDuration = 30;
+		private const float ChronobreakMaxRewindDistance = 1500f;
+		private readonly Vector2[] chronobreakPositions = new Vector2[ChronobreakSamples];
+		private readonly int[] chronobreakLives = new int[ChronobreakSamples];
+		private readonly int[] chronobreakStamps = new int[ChronobreakSamples];
+		private int chronobreakHead;
+		private int chronobreakCount;
+		private int chronobreakClock;
 
 		// Per-player cooldowns for triggered Support auras (Last Rites, Lifeline).
 		// Volatile — not saved to disk. 90s = 5400 ticks at 60 ticks/sec.
@@ -810,6 +829,15 @@ namespace Augments
 				Player.immuneTime = lifelineInvulnTicks;
 				lifelineInvulnTicks--;
 			}
+
+			if (chronobreakInvulnTicks > 0)
+			{
+				Player.immune = true;
+				Player.immuneTime = chronobreakInvulnTicks;
+				chronobreakInvulnTicks--;
+			}
+
+			RecordChronobreakHistory();
 		}
 
 		public override void ModifyLuck(ref float luck)
@@ -831,6 +859,8 @@ namespace Augments
 		{
 			if (CleanseCooldown > 0)
 				CleanseCooldown--;
+			if (ChronobreakCooldown > 0)
+				ChronobreakCooldown--;
 			if (LastRitesCooldown > 0)
 				LastRitesCooldown--;
 			if (LifelineCooldown > 0)
@@ -1003,6 +1033,125 @@ namespace Augments
 			if (Main.netMode == NetmodeID.Server)
 				AugmentNet.SendSyncPlayer(Player);
 			return true;
+		}
+
+		// Chronobreak, server / singleplayer side: validates the press and tells every ally in
+		// range (owner included) to rewind itself. The positions and HP being restored live on
+		// each player's own client, so nothing is rewound here.
+		public bool TryTriggerChronobreakServer()
+		{
+			if (Main.netMode == NetmodeID.MultiplayerClient || !HasAugment("chronobreak") || ChronobreakCooldown > 0 || Player.dead)
+				return false;
+
+			ChronobreakCooldown = ChronobreakAugment.CooldownTicks;
+			foreach (Player target in Main.player)
+			{
+				if (SupportEffects.IsAllyInRange(Player, target, SupportEffects.AuraRadius, includeOwner: true))
+					SupportEffects.SendChronobreakApply(target, Player);
+			}
+
+			if (Main.netMode == NetmodeID.Server)
+				AugmentNet.SendSyncPlayer(Player);
+			return true;
+		}
+
+		// Called every tick on the local player. Dead players keep no history, so a respawn never
+		// rewinds to a spot from before the death.
+		private void RecordChronobreakHistory()
+		{
+			if (Main.netMode == NetmodeID.Server || Player.whoAmI != Main.myPlayer)
+				return;
+
+			if (Player.dead)
+			{
+				chronobreakCount = 0;
+				return;
+			}
+
+			chronobreakClock++;
+			if (chronobreakClock % ChronobreakSampleInterval != 0)
+				return;
+
+			chronobreakPositions[chronobreakHead] = Player.position;
+			chronobreakLives[chronobreakHead] = Player.statLife;
+			chronobreakStamps[chronobreakHead] = chronobreakClock;
+			chronobreakHead = (chronobreakHead + 1) % ChronobreakSamples;
+			if (chronobreakCount < ChronobreakSamples)
+				chronobreakCount++;
+		}
+
+		// Newest recorded sample that is at least `lookbackTicks` old. If there is not that much
+		// history yet (just joined or respawned), the oldest sample is used instead.
+		private bool TryGetChronobreakSample(int lookbackTicks, out Vector2 position, out int life)
+		{
+			position = default;
+			life = 0;
+			if (chronobreakCount == 0)
+				return false;
+
+			int targetStamp = chronobreakClock - lookbackTicks;
+			int best = -1;
+			for (int n = 0; n < chronobreakCount; n++)
+			{
+				int idx = (chronobreakHead - chronobreakCount + n + ChronobreakSamples * 2) % ChronobreakSamples;
+				if (n == 0 || chronobreakStamps[idx] <= targetStamp)
+					best = idx;
+				else
+					break;
+			}
+
+			position = chronobreakPositions[best];
+			life = chronobreakLives[best];
+			return true;
+		}
+
+		// Runs on the rewound player's own client (or in singleplayer). HP is only ever raised.
+		// If the old spot is far away (a mirror or teleport since) or now inside blocks, only the
+		// HP is restored and the player stays where they are.
+		public void ApplyChronobreakRewind(Player owner)
+		{
+			if (Player.whoAmI != Main.myPlayer || Player.dead)
+				return;
+
+			Vector2 ringCenter = owner != null && owner.active ? owner.Center : Player.Center;
+			AugmentAuraDrawer.AddChronobreakRing(ringCenter);
+
+			if (!TryGetChronobreakSample(ChronobreakLookbackTicks, out Vector2 oldPosition, out int oldLife))
+				return;
+
+			int maxLife = Math.Max(Player.statLifeMax2, Player.statLifeMax);
+			int restoredLife = Math.Min(maxLife, Math.Max(Player.statLife, oldLife));
+			int healed = restoredLife - Player.statLife;
+			if (healed > 0)
+			{
+				Player.statLife = restoredLife;
+				Player.HealEffect(healed, true);
+				if (Main.netMode == NetmodeID.MultiplayerClient)
+					NetMessage.SendData(MessageID.PlayerLifeMana, -1, -1, null, Player.whoAmI);
+			}
+
+			Vector2 from = Player.Center;
+			bool moved = false;
+			if (Vector2.Distance(oldPosition, Player.position) <= ChronobreakMaxRewindDistance
+				&& !Collision.SolidCollision(oldPosition, Player.width, Player.height))
+			{
+				// A grappling hook would otherwise drag the player straight back out of the old spot.
+				for (int i = 0; i < Main.maxProjectiles; i++)
+				{
+					Projectile p = Main.projectile[i];
+					if (p.active && p.owner == Player.whoAmI && p.aiStyle == ProjAIStyleID.Hook)
+						p.Kill();
+				}
+
+				Player.position = oldPosition;
+				Player.oldPosition = oldPosition;
+				Player.velocity = Vector2.Zero;
+				Player.fallStart = (int)(oldPosition.Y / 16f);
+				chronobreakInvulnTicks = ChronobreakInvulnDuration;
+				moved = true;
+			}
+
+			ChronobreakAugment.SpawnRewindEffect(from, Player.Center, moved);
 		}
 
 		public bool TryAuthorizeSoulLinkRequest()
@@ -1424,6 +1573,21 @@ namespace Augments
 				}
 			}
 
+			if (HasAugment("chronobreak") && ChronobreakCooldown == 0 && Augments.ChronobreakKeybind?.JustPressed == true && !isTyping && !Player.dead)
+			{
+				if (Main.netMode == NetmodeID.SinglePlayer)
+				{
+					TryTriggerChronobreakServer();
+				}
+				else if (Main.netMode == NetmodeID.MultiplayerClient)
+				{
+					ChronobreakCooldown = ChronobreakAugment.CooldownTicks;
+					ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
+					packet.Write((byte)AugmentPacketType.ChronobreakRequest);
+					packet.Send();
+				}
+			}
+
 			if (HasAugment("reforgers_patience") && Augments.UndoReforgeKeybind?.JustPressed == true)
 			{
 				if (TryUndoLastReforge())
@@ -1470,6 +1634,7 @@ namespace Augments
 		public void ResetAllCooldowns()
 		{
 			CleanseCooldown = 0;
+			ChronobreakCooldown = 0;
 			LastRitesCooldown = 0;
 			LifelineCooldown = 0;
 			soulLinkRequestCooldown = 0;
@@ -2004,6 +2169,7 @@ namespace Augments
 			owned.Clear();
 			RevitalizingWaveTimer = 1200;
 			CleanseCooldown = 0;
+			ChronobreakCooldown = 0;
 			LastRitesCooldown = 0;
 			lastRitesInvulnTicks = 0;
 			LifelineCooldown = 0;

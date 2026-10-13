@@ -269,6 +269,7 @@ namespace Augments
 				delegate
 				{
 					AugmentAuraDrawer.DrawAuras(Main.spriteBatch);
+					AugmentAuraDrawer.DrawChronobreakRings(Main.spriteBatch);
 					return true;
 				},
 				InterfaceScaleType.UI)

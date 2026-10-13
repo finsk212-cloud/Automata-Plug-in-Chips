@@ -4,6 +4,7 @@ Keybinds: {
 	DebugSpawnVendor.DisplayName: Spawn Mistress 2B (Vendor)
 	DebugToggleShop.DisplayName: Open Mistress 2B Shop
 	Cleanse.DisplayName: Cleanse
+	Chronobreak.DisplayName: Chronobreak
 	ApplyLoadout1.DisplayName: Apply Loadout 1
 	ApplyLoadout2.DisplayName: Apply Loadout 2
 	ApplyLoadout3.DisplayName: Apply Loadout 3
