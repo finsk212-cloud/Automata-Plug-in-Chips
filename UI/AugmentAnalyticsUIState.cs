@@ -62,6 +62,7 @@ namespace Augments
 		private long lastSeenTotalDamage = -1;
 		private long lastSeenBlockedDamage = -1;
 		private long lastSeenHealing = -1;
+		private long lastSeenTeamBonus = -1;
 		private AnalyticsViewMode lastSeenMode = AnalyticsViewMode.Last10Minutes;
 		private int lastSeenOwnedCount = -1;
 
@@ -624,11 +625,13 @@ namespace Augments
 
 				int ownedCount = ap?.Owned?.Count ?? 0;
 				long viewHealing = AugmentDamageTracker.GetViewHealing();
-				if (viewDmg != lastSeenTotalDamage || viewBlocked != lastSeenBlockedDamage || viewHealing != lastSeenHealing || AugmentDamageTracker.ViewMode != lastSeenMode || ownedCount != lastSeenOwnedCount)
+				long viewTeamBonus = AugmentDamageTracker.GetViewTeamBonus();
+				if (viewDmg != lastSeenTotalDamage || viewBlocked != lastSeenBlockedDamage || viewHealing != lastSeenHealing || viewTeamBonus != lastSeenTeamBonus || AugmentDamageTracker.ViewMode != lastSeenMode || ownedCount != lastSeenOwnedCount)
 				{
 					lastSeenTotalDamage = viewDmg;
 					lastSeenBlockedDamage = viewBlocked;
 					lastSeenHealing = viewHealing;
+					lastSeenTeamBonus = viewTeamBonus;
 					lastSeenMode = AugmentDamageTracker.ViewMode;
 					lastSeenOwnedCount = ownedCount;
 					PopulateRecords();
@@ -741,7 +744,7 @@ namespace Augments
 
 			foreach (var rec in filteredRecords)
 			{
-				var row = new AnalyticsRowEntry(rec, viewDamage, viewBlocked, AugmentDamageTracker.GetViewHealing());
+				var row = new AnalyticsRowEntry(rec, viewDamage, viewBlocked, AugmentDamageTracker.GetViewHealing(), AugmentDamageTracker.GetViewTeamBonus());
 				recordsList.Add(row);
 			}
 		}
@@ -786,11 +789,14 @@ namespace Augments
 				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, footerLeft, new Vector2(bRect.X + 20f, footerY + 8f), new Color(130, 150, 185) * 0.70f, 0f, Vector2.Zero, new Vector2(0.58f));
 
 				long healingTotal = AugmentDamageTracker.GetViewHealing();
-				if (healingTotal > 0)
+				long teamBonusTotal = AugmentDamageTracker.GetViewTeamBonus();
+				if (healingTotal > 0 || teamBonusTotal > 0)
 				{
-					string healFooter = $"Healing Done: {healingTotal:N0}";
-					Vector2 hfSz = ChatManager.GetStringSize(font, healFooter, new Vector2(0.62f));
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, healFooter, new Vector2(bRect.X + bRect.Width * 0.5f - hfSz.X * 0.5f + 150f, footerY + 7f), new Color(74, 222, 128), 0f, Vector2.Zero, new Vector2(0.62f));
+					string statFooter = healingTotal > 0 ? $"[c/4ADE80:Healing Done: {healingTotal:N0}]" : "";
+					if (teamBonusTotal > 0)
+						statFooter += (statFooter.Length > 0 ? "   " : "") + $"[c/FFCD46:Team Bonus: {teamBonusTotal:N0}]";
+					Vector2 hfSz = ChatManager.GetStringSize(font, statFooter, new Vector2(0.62f));
+					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, statFooter, new Vector2(bRect.X + bRect.Width * 0.5f - hfSz.X * 0.5f + 150f, footerY + 7f), Color.White, 0f, Vector2.Zero, new Vector2(0.62f));
 				}
 
 				Vector2 rSz = ChatManager.GetStringSize(font, footerRight, new Vector2(0.58f));
@@ -1402,15 +1408,17 @@ namespace Augments
 		private readonly long totalSessionDamage;
 		private readonly long totalSessionBlocked;
 		private readonly long totalSessionHealing;
+		private readonly long totalSessionTeamBonus;
 		private readonly Augment augmentRef;
 		private bool isHovered;
 
-		public AnalyticsRowEntry(DamageSourceRecord record, long totalSessionDamage, long totalSessionBlocked, long totalSessionHealing = 0)
+		public AnalyticsRowEntry(DamageSourceRecord record, long totalSessionDamage, long totalSessionBlocked, long totalSessionHealing = 0, long totalSessionTeamBonus = 0)
 		{
 			this.record = record;
 			this.totalSessionDamage = totalSessionDamage;
 			this.totalSessionBlocked = totalSessionBlocked;
 			this.totalSessionHealing = totalSessionHealing;
+			this.totalSessionTeamBonus = totalSessionTeamBonus;
 			this.augmentRef = AugmentDatabase.GetById(record.Id);
 
 			SetPadding(0f);
@@ -1551,6 +1559,11 @@ namespace Augments
 				subTag += $"  •  [c/4ADE80:+ {record.HealingDone:N0} Healed]";
 			}
 
+			if (record.TeamBonusDamage > 0)
+			{
+				subTag += $"  •  [c/FFCD46:+ {record.TeamBonusDamage:N0} Team Bonus]";
+			}
+
 			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, subTag, new Vector2(textX, rect.Y + 26f), Color.White, 0f, Vector2.Zero, new Vector2(0.65f));
 
 			// 3. Hits & Crits (aligned to 330f)
@@ -1577,6 +1590,11 @@ namespace Augments
 				hitsText = $"{record.HealCount:N0} Heal Pulses";
 				hitsCol = new Color(74, 222, 128);
 			}
+			else if (record.TeamBonusCount > 0)
+			{
+				hitsText = $"{record.TeamBonusCount:N0} Boosted Hits";
+				hitsCol = new Color(255, 205, 70);
+			}
 			else
 			{
 				hitsText = "--";
@@ -1591,7 +1609,16 @@ namespace Augments
 			// 5. Total Damage & Share Percentage (aligned to 630f)
 			float rightColX = rect.X + 630f;
 			bool healingOnly = record.TotalDamage == 0 && record.DamageBlocked == 0 && record.HealingDone > 0;
-			if (healingOnly)
+			bool teamBonusOnly = record.TotalDamage == 0 && record.DamageBlocked == 0 && record.HealingDone == 0 && record.TeamBonusDamage > 0;
+			if (teamBonusOnly)
+			{
+				Color goldCol = new Color(255, 205, 70);
+				string bonusText = $"{record.TeamBonusDamage:N0}";
+				Vector2 bonusSz = ChatManager.GetStringSize(font, bonusText, new Vector2(0.82f));
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, bonusText, new Vector2(rightColX, rect.Y + 14f), goldCol, 0f, Vector2.Zero, new Vector2(0.82f));
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "(Team Bonus)", new Vector2(rightColX + bonusSz.X + 6f, rect.Y + 16f), goldCol * 0.9f, 0f, Vector2.Zero, new Vector2(0.72f));
+			}
+			else if (healingOnly)
 			{
 				float healShare = totalSessionHealing > 0 ? (float)record.HealingDone / totalSessionHealing : 0f;
 				string healText = $"{record.HealingDone:N0}";
@@ -1620,7 +1647,9 @@ namespace Augments
 			}
 
 			// 6. Sleek 2px Progress Fill Bar across the bottom of the row
-			Color barAccent = healingOnly
+			Color barAccent = teamBonusOnly
+				? new Color(255, 205, 70)
+				: healingOnly
 				? new Color(74, 222, 128)
 				: (record.TotalDamage == 0 && record.DamageBlocked > 0)
 					? new Color(52, 211, 153)
@@ -1633,11 +1662,13 @@ namespace Augments
 				fillRatio = (float)record.DamageBlocked / totalSessionBlocked;
 			else if (healingOnly && totalSessionHealing > 0)
 				fillRatio = (float)record.HealingDone / totalSessionHealing;
+			else if (teamBonusOnly && totalSessionTeamBonus > 0)
+				fillRatio = (float)record.TeamBonusDamage / totalSessionTeamBonus;
 
 			Rectangle barBg = new Rectangle(rect.X + 6, rect.Bottom - 3, rect.Width - 12, 2);
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, barBg, new Color(10, 14, 26, 200));
 
-			int fillW = Math.Max((record.TotalDamage > 0 || record.DamageBlocked > 0 || record.HealingDone > 0) ? 3 : 0, (int)((rect.Width - 12) * Math.Min(1f, fillRatio)));
+			int fillW = Math.Max((record.TotalDamage > 0 || record.DamageBlocked > 0 || record.HealingDone > 0 || record.TeamBonusDamage > 0) ? 3 : 0, (int)((rect.Width - 12) * Math.Min(1f, fillRatio)));
 			Rectangle barFill = new Rectangle(rect.X + 6, rect.Bottom - 3, fillW, 2);
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, barFill, barAccent * 0.85f);
 
@@ -1653,6 +1684,10 @@ namespace Augments
 				if (record.HealingDone > 0)
 				{
 					tip += $"\nHealing Done: {record.HealingDone:N0} ({record.HealCount:N0} pulses)";
+				}
+				if (record.TeamBonusDamage > 0)
+				{
+					tip += $"\nTeam Bonus: {record.TeamBonusDamage:N0} ({record.TeamBonusCount:N0} boosted hits)";
 				}
 				Main.instance.MouseText(tip);
 			}

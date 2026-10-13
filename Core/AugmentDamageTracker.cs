@@ -25,6 +25,9 @@ namespace Augments.Core
 		public int BlockCount { get; set; }
 		public long HealingDone { get; set; }
 		public int HealCount { get; set; }
+		// Extra damage this source made teammates deal (Callout). Kept apart from TotalDamage so it never inflates the owner's own DPS.
+		public long TeamBonusDamage { get; set; }
+		public int TeamBonusCount { get; set; }
 		public AugmentRarity? Rarity { get; set; }
 		public AugmentClass? SourceClass { get; set; }
 		public bool IsProtocol { get; set; }
@@ -53,6 +56,13 @@ namespace Augments.Core
 		public int Amount;
 	}
 
+	public struct TimedTeamBonus
+	{
+		public float Timestamp;
+		public string SourceId;
+		public int Amount;
+	}
+
 	public static class AugmentDamageTracker
 	{
 		private const float InactivityTimeout = 4.0f;
@@ -64,6 +74,7 @@ namespace Augments.Core
 		public static long TotalSessionDamage { get; private set; } = 0;
 		public static long TotalSessionDamageBlocked { get; private set; } = 0;
 		public static long TotalSessionHealing { get; private set; } = 0;
+		public static long TotalSessionTeamBonus { get; private set; } = 0;
 		public static AnalyticsViewMode ViewMode { get; set; } = AnalyticsViewMode.Last10Minutes;
 
 		private static float timeSinceLastHit = 999f;
@@ -71,6 +82,7 @@ namespace Augments.Core
 		private static readonly Queue<TimedHit> historyQueue = new();
 		private static readonly Queue<TimedBlockedHit> historyBlockedQueue = new();
 		private static readonly Queue<TimedHeal> historyHealQueue = new();
+		private static readonly Queue<TimedTeamBonus> historyTeamBonusQueue = new();
 		private static float globalTime = 0f;
 
 		public static IReadOnlyDictionary<string, DamageSourceRecord> TotalRecords => totalRecords;
@@ -105,6 +117,11 @@ namespace Augments.Core
 			while (historyHealQueue.Count > 0 && historyHealQueue.Peek().Timestamp < pruneCutoff)
 			{
 				historyHealQueue.Dequeue();
+			}
+
+			while (historyTeamBonusQueue.Count > 0 && historyTeamBonusQueue.Peek().Timestamp < pruneCutoff)
+			{
+				historyTeamBonusQueue.Dequeue();
 			}
 		}
 
@@ -347,6 +364,72 @@ namespace Augments.Core
 			rec.HealCount++;
 		}
 
+		// Records extra damage a plugin made your teammates deal (Callout's +10% on marked enemies).
+		// It is not added to your own damage or DPS: the teammate already counts it in theirs.
+		public static void RecordTeamBonus(string sourceId, int amount)
+		{
+			if (IsPaused || amount <= 0 || string.IsNullOrEmpty(sourceId))
+				return;
+
+			Augment aug = AugmentDatabase.GetById(sourceId);
+			string displayName = aug != null ? aug.DisplayName : sourceId;
+			Color sourceColor = Color.White;
+			if (aug != null)
+			{
+				sourceColor = aug.Rarity switch
+				{
+					AugmentRarity.Legendary => new Color(255, 200, 50),
+					AugmentRarity.Epic => new Color(185, 115, 255),
+					AugmentRarity.Rare => new Color(60, 195, 255),
+					_ => new Color(210, 215, 225)
+				};
+			}
+
+			timeSinceLastHit = 0f;
+			TotalSessionTeamBonus += amount;
+
+			historyTeamBonusQueue.Enqueue(new TimedTeamBonus
+			{
+				Timestamp = globalTime,
+				SourceId = sourceId,
+				Amount = amount
+			});
+
+			if (!totalRecords.TryGetValue(sourceId, out var rec))
+			{
+				rec = new DamageSourceRecord
+				{
+					Id = sourceId,
+					DisplayName = displayName,
+					Color = sourceColor,
+					Rarity = aug?.Rarity,
+					SourceClass = aug?.Class,
+					IsProtocol = false,
+					IsWeapon = false
+				};
+				totalRecords[sourceId] = rec;
+			}
+
+			rec.TeamBonusDamage += amount;
+			rec.TeamBonusCount++;
+		}
+
+		// Total team bonus damage in the current view (session total or last 10 minutes).
+		public static long GetViewTeamBonus()
+		{
+			if (ViewMode == AnalyticsViewMode.TotalSession)
+				return TotalSessionTeamBonus;
+
+			float cutoff = globalTime - TenMinutesSeconds;
+			long total = 0;
+			foreach (var b in historyTeamBonusQueue)
+			{
+				if (b.Timestamp >= cutoff)
+					total += b.Amount;
+			}
+			return total;
+		}
+
 		// Total healing in the current view (session total or last 10 minutes).
 		public static long GetViewHealing()
 		{
@@ -469,6 +552,8 @@ namespace Augments.Core
 					existing.BlockCount = kvp.Value.BlockCount;
 					existing.HealingDone = kvp.Value.HealingDone;
 					existing.HealCount = kvp.Value.HealCount;
+					existing.TeamBonusDamage = kvp.Value.TeamBonusDamage;
+					existing.TeamBonusCount = kvp.Value.TeamBonusCount;
 				}
 			}
 			else
@@ -587,10 +672,42 @@ namespace Augments.Core
 					rec.HealingDone += heal.Amount;
 					rec.HealCount++;
 				}
+
+				// Team bonus damage in the 10-minute window
+				foreach (var bonus in historyTeamBonusQueue)
+				{
+					if (bonus.Timestamp < cutoff)
+						continue;
+
+					if (!resultDict.TryGetValue(bonus.SourceId, out var rec))
+					{
+						if (totalRecords.TryGetValue(bonus.SourceId, out var meta))
+						{
+							rec = new DamageSourceRecord
+							{
+								Id = meta.Id,
+								DisplayName = meta.DisplayName,
+								Color = meta.Color,
+								Rarity = meta.Rarity,
+								SourceClass = meta.SourceClass,
+								IsProtocol = meta.IsProtocol,
+								IsWeapon = meta.IsWeapon
+							};
+						}
+						else
+						{
+							rec = new DamageSourceRecord { Id = bonus.SourceId, DisplayName = bonus.SourceId, Color = Color.White };
+						}
+						resultDict[bonus.SourceId] = rec;
+					}
+
+					rec.TeamBonusDamage += bonus.Amount;
+					rec.TeamBonusCount++;
+				}
 			}
 
 			var sortedList = resultDict.Values
-				.OrderByDescending(r => r.TotalDamage + r.DamageBlocked + r.HealingDone)
+				.OrderByDescending(r => r.TotalDamage + r.DamageBlocked + r.HealingDone + r.TeamBonusDamage)
 				.ThenBy(r => r.DisplayName)
 				.ToList();
 
@@ -603,7 +720,9 @@ namespace Augments.Core
 			historyQueue.Clear();
 			historyBlockedQueue.Clear();
 			historyHealQueue.Clear();
+			historyTeamBonusQueue.Clear();
 			TotalSessionHealing = 0;
+			TotalSessionTeamBonus = 0;
 			TotalSessionDamage = 0;
 			TotalSessionDamageBlocked = 0;
 			SessionDuration = 0f;

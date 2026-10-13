@@ -71,6 +71,9 @@ namespace Augments
 				case AugmentPacketType.ApplyNPCEffect:
 					HandleApplyNPCEffect(reader, whoAmI);
 					return true;
+				case AugmentPacketType.CalloutBonusDamage:
+					HandleCalloutBonusDamage(reader, whoAmI);
+					return true;
 			}
 
 			return false;
@@ -677,6 +680,46 @@ namespace Augments
 			packet.Write(durationTicks);
 			packet.Write((byte)markerIndex);
 			packet.Send();
+		}
+
+		// The attacker's client reports how much extra damage a mark added; the server passes it on to the player
+		// who placed the mark, so it can show up in their Combat Analytics.
+		public static void SendCalloutBonusDamage(int markerIndex, int amount)
+		{
+			if (Main.netMode != NetmodeID.MultiplayerClient || markerIndex < 0 || markerIndex >= Main.maxPlayers || amount <= 0)
+				return;
+
+			ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
+			packet.Write((byte)AugmentPacketType.CalloutBonusDamage);
+			packet.Write((byte)markerIndex);
+			packet.Write(amount);
+			packet.Send();
+		}
+
+		private static void HandleCalloutBonusDamage(BinaryReader reader, int whoAmI)
+		{
+			int markerIndex = reader.ReadByte();
+			int amount = reader.ReadInt32();
+
+			if (markerIndex >= Main.maxPlayers || amount <= 0)
+				return;
+
+			if (Main.netMode == NetmodeID.Server)
+			{
+				// whoAmI is the attacker; the marker is never the attacker (the owner gets no bonus from their own mark).
+				if (markerIndex == whoAmI || !Main.player[markerIndex].active)
+					return;
+
+				ModPacket relay = ModContent.GetInstance<Augments>().GetPacket();
+				relay.Write((byte)AugmentPacketType.CalloutBonusDamage);
+				relay.Write((byte)markerIndex);
+				relay.Write(amount);
+				relay.Send(markerIndex);
+			}
+			else if (Main.netMode == NetmodeID.MultiplayerClient && markerIndex == Main.myPlayer)
+			{
+				AugmentDamageTracker.RecordTeamBonus("callout", amount);
+			}
 		}
 
 		private static void HandleApplyNPCEffect(BinaryReader reader, int whoAmI)

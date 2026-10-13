@@ -1266,9 +1266,19 @@ namespace Augments
 
 		}
 
+		// What Callout's bonus added to the hit being built, so the marker can see it in their Combat Analytics.
+		// Measured here (attacker's client) and sent once the hit has landed.
+		private int pendingCalloutMarker = -1;
+		private int pendingCalloutDelta;
+		private int pendingCalloutBaseline;
+
 		// Callout: enemies marked by an ally who owns the chip take extra damage from everyone else on their team.
-		public void ApplyCalloutBonus(NPC target, ref NPC.HitModifiers modifiers)
+		public void ApplyCalloutBonus(NPC target, float baseDmg, ref NPC.HitModifiers modifiers)
 		{
+			pendingCalloutMarker = -1;
+			pendingCalloutDelta = 0;
+			pendingCalloutBaseline = 0;
+
 			var mark = target.GetGlobalNPC<AugmentCalloutNPC>();
 			if (!mark.IsMarked || mark.MarkedByPlayer < 0 || mark.MarkedByPlayer >= Main.maxPlayers || mark.MarkedByPlayer == Player.whoAmI)
 				return;
@@ -1279,7 +1289,35 @@ namespace Augments
 			if (!marker.GetModPlayer<AugmentPlayer>().HasAugment("callout"))
 				return;
 
+			bool track = Player.whoAmI == Main.myPlayer;
+			int before = track ? modifiers.GetDamage(baseDmg, false) : 0;
+
 			modifiers.SourceDamage *= 1f + AugmentCalloutNPC.TeammateDamageBonus;
+
+			if (track)
+			{
+				pendingCalloutMarker = marker.whoAmI;
+				pendingCalloutBaseline = modifiers.GetDamage(baseDmg, false);
+				pendingCalloutDelta = pendingCalloutBaseline - before;
+			}
+		}
+
+		// Sends the marker their share once the hit is final: the bonus's part of the damage actually dealt.
+		private void ReportCalloutBonus(int damageDone)
+		{
+			int marker = pendingCalloutMarker;
+			int delta = pendingCalloutDelta;
+			int baseline = pendingCalloutBaseline;
+			pendingCalloutMarker = -1;
+			pendingCalloutDelta = 0;
+			pendingCalloutBaseline = 0;
+
+			if (Player.whoAmI != Main.myPlayer || marker < 0 || delta <= 0 || damageDone <= 0)
+				return;
+
+			int extra = (int)Math.Round((double)damageDone * delta / Math.Max(baseline, delta));
+			if (extra > 0)
+				AugmentNet.SendCalloutBonusDamage(marker, extra);
 		}
 
 		public override void UpdateLifeRegen()
@@ -1482,6 +1520,7 @@ namespace Augments
 		public override void OnHitNPCWithItem(Item item, NPC target, NPC.HitInfo hit, int damageDone)
 		{
 			TryRegisterBossDamage(target);
+			ReportCalloutBonus(damageDone);
 
 			if (Player.whoAmI == Main.myPlayer)
 			{
@@ -1545,6 +1584,7 @@ namespace Augments
 		public override void OnHitNPCWithProj(Projectile proj, NPC target, NPC.HitInfo hit, int damageDone)
 		{
 			TryRegisterBossDamage(target);
+			ReportCalloutBonus(damageDone);
 
 			AugmentProjectileTag tag = proj.GetGlobalProjectile<AugmentProjectileTag>();
 
@@ -1696,10 +1736,10 @@ namespace Augments
 
 			ApplyHivemindFlatDamage(target, ref modifiers);
 			ApplyMarksmanArmorPenetration(target, item.CountsAsClass(DamageClass.Ranged) || item.DamageType == DamageClass.Ranged, ref modifiers);
-			ApplyCalloutBonus(target, ref modifiers);
+			float baseDmg = Math.Max(1, item.damage);
+			ApplyCalloutBonus(target, baseDmg, ref modifiers);
 
 			bool trackContrib = Player.whoAmI == Main.myPlayer;
-			float baseDmg = Math.Max(1, item.damage);
 			foreach (var a in Owned)
 			{
 				int before = trackContrib ? modifiers.GetDamage(baseDmg, false) : 0;
@@ -1712,6 +1752,8 @@ namespace Augments
 				}
 			}
 			pendingContributionBaseline = trackContrib ? modifiers.GetDamage(baseDmg, false) : 0;
+			if (pendingCalloutMarker >= 0)
+				pendingCalloutBaseline = pendingContributionBaseline;
 		}
 
 		public override void ModifyHitNPCWithProj(Projectile proj, NPC target, ref NPC.HitModifiers modifiers)
@@ -1748,7 +1790,7 @@ namespace Augments
 
 			ApplyHivemindFlatDamage(target, ref modifiers, proj.GetGlobalProjectile<AugmentProjectileTag>().NecromancersCourtGhost);
 			ApplyMarksmanArmorPenetration(target, proj.CountsAsClass(DamageClass.Ranged) || proj.DamageType == DamageClass.Ranged, ref modifiers);
-			ApplyCalloutBonus(target, ref modifiers);
+			ApplyCalloutBonus(target, Math.Max(1, proj.damage), ref modifiers);
 
 			AugmentProjectileTag tag = proj.GetGlobalProjectile<AugmentProjectileTag>();
 			if (tag.IsAugmentProcDamage && !tag.CanTriggerOnHitAugments)
@@ -1771,6 +1813,8 @@ namespace Augments
 				}
 			}
 			pendingContributionBaseline = trackContrib ? modifiers.GetDamage(baseDmg, false) : 0;
+			if (pendingCalloutMarker >= 0)
+				pendingCalloutBaseline = pendingContributionBaseline;
 		}
 
 		public override void ModifyShootStats(Item item, ref Vector2 position, ref Vector2 velocity, ref int type, ref int damage, ref float knockback)
