@@ -1263,6 +1263,72 @@ namespace Augments
 				Player.lifeRegen += 3;
 				ReceivedCombatMedic = true;
 			}
+
+			ApplySharedBrew();
+		}
+
+		// Pull-based Shared Brew: this client copies potion buffs from nearby allies who own the chip. Only buffs the
+		// ally has more than SharedBrewTicks left on are copied, and copies last exactly SharedBrewTicks, so a copy
+		// is never passed on again (two Shared Brew players can't keep each other's potions alive forever).
+		private const int SharedBrewTicks = 300;
+		private static System.Collections.Generic.HashSet<int> sharedBrewBuffTypes;
+
+		private static System.Collections.Generic.HashSet<int> GetSharedBrewBuffTypes()
+		{
+			if (sharedBrewBuffTypes != null)
+				return sharedBrewBuffTypes;
+
+			var set = new System.Collections.Generic.HashSet<int>();
+			for (int type = 1; type < ItemLoader.ItemCount; type++)
+			{
+				Item sample = ContentSamples.ItemsByType[type];
+				if (sample.consumable && sample.useStyle == ItemUseStyleID.DrinkLiquid && sample.buffType > 0 && sample.buffTime > 0)
+					set.Add(sample.buffType);
+			}
+
+			sharedBrewBuffTypes = set;
+			return set;
+		}
+
+		private void ApplySharedBrew()
+		{
+			if (Player.whoAmI != Main.myPlayer || Main.GameUpdateCount % 30 != 0)
+				return;
+
+			for (int i = 0; i < Main.maxPlayers; i++)
+			{
+				Player other = Main.player[i];
+				if (!SupportEffects.IsAllyInRange(other, Player, AuraRadius))
+					continue;
+				if (!other.GetModPlayer<AugmentPlayer>().HasAugment("shared_brew"))
+					continue;
+
+				var potionBuffs = GetSharedBrewBuffTypes();
+				for (int slot = 0; slot < Player.MaxBuffs; slot++)
+				{
+					int type = other.buffType[slot];
+					if (type <= 0 || other.buffTime[slot] <= SharedBrewTicks || !potionBuffs.Contains(type))
+						continue;
+
+					Player.AddBuff(type, SharedBrewTicks);
+				}
+			}
+		}
+
+		// Callout: enemies marked by an ally who owns the chip take extra damage from everyone else on their team.
+		public void ApplyCalloutBonus(NPC target, ref NPC.HitModifiers modifiers)
+		{
+			var mark = target.GetGlobalNPC<AugmentCalloutNPC>();
+			if (!mark.IsMarked || mark.MarkedByPlayer < 0 || mark.MarkedByPlayer >= Main.maxPlayers || mark.MarkedByPlayer == Player.whoAmI)
+				return;
+
+			Player marker = Main.player[mark.MarkedByPlayer];
+			if (!marker.active || marker.dead || !SupportEffects.AreAllies(marker, Player))
+				return;
+			if (!marker.GetModPlayer<AugmentPlayer>().HasAugment("callout"))
+				return;
+
+			modifiers.SourceDamage *= 1f + AugmentCalloutNPC.TeammateDamageBonus;
 		}
 
 		public override void UpdateLifeRegen()
@@ -1679,6 +1745,7 @@ namespace Augments
 
 			ApplyHivemindFlatDamage(target, ref modifiers);
 			ApplyMarksmanArmorPenetration(target, item.CountsAsClass(DamageClass.Ranged) || item.DamageType == DamageClass.Ranged, ref modifiers);
+			ApplyCalloutBonus(target, ref modifiers);
 
 			bool trackContrib = Player.whoAmI == Main.myPlayer;
 			float baseDmg = Math.Max(1, item.damage);
@@ -1730,6 +1797,7 @@ namespace Augments
 
 			ApplyHivemindFlatDamage(target, ref modifiers, proj.GetGlobalProjectile<AugmentProjectileTag>().NecromancersCourtGhost);
 			ApplyMarksmanArmorPenetration(target, proj.CountsAsClass(DamageClass.Ranged) || proj.DamageType == DamageClass.Ranged, ref modifiers);
+			ApplyCalloutBonus(target, ref modifiers);
 
 			AugmentProjectileTag tag = proj.GetGlobalProjectile<AugmentProjectileTag>();
 			if (tag.IsAugmentProcDamage && !tag.CanTriggerOnHitAugments)
