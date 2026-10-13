@@ -72,6 +72,7 @@ namespace Augments
             Register(new VoidStepAugment());
             Register(new RavenousSwarmAugment());
             Register(new DeadeyeAugment());
+            Register(new PhaseRoundAugment());
             Register(new IroncladWillAugment());
             Register(new ApexHunterAugment());
             Register(new InfernosHeartAugment());
