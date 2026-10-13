@@ -43,8 +43,8 @@ namespace Augments
 		ChronobreakRequest, // client -> server: the owner pressed Chronobreak
 		ChronobreakApply,   // server -> client: rewind yourself (payload: owner index)
 		GetOverHereRequest, // client -> server: the owner pressed Get over here!
-		GetOverHereApply,   // server -> pulled client: move yourself to the owner (payload: owner index)
-		GetOverHereEffect   // server -> all clients: chain visual (payload: owner index, pulled player's old position)
+		GetOverHereApply,   // server -> pulled client: haul yourself to the owner (payload: owner index)
+		GetOverHereEffect   // server -> all clients: hook and chain visual (payload: owner index, pulled player index)
 	}
 
 	internal enum DebugAugmentCommandType : byte
@@ -190,7 +190,7 @@ namespace Augments
 					break;
 
 				case AugmentPacketType.GetOverHereEffect:
-					SupportEffects.HandleGetOverHereEffect(reader.ReadByte(), reader.ReadSingle(), reader.ReadSingle());
+					SupportEffects.HandleGetOverHereEffect(reader.ReadByte(), reader.ReadByte());
 					break;
 
 				case AugmentPacketType.MediGunHealRequest:

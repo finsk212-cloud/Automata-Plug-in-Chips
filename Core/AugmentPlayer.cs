@@ -358,6 +358,13 @@ namespace Augments
 		public int GetOverHereCooldown;
 		private int getOverHereReductionTicks;
 
+		// The pull itself, only ever set on the pulled player's own client: who is pulling, how many
+		// ticks the hook is still flying out, and how far into the drag we are.
+		private int getOverHerePullOwner = -1;
+		private int getOverHereWindup;
+		private int getOverHerePullTicks;
+		private float getOverHerePullSpeed;
+
 		// Per-player cooldowns for triggered Support auras (Last Rites, Lifeline).
 		// Volatile — not saved to disk. 90s = 5400 ticks at 60 ticks/sec.
 		public int LastRitesCooldown;
@@ -1203,25 +1210,67 @@ namespace Augments
 			return true;
 		}
 
-		// Runs on the pulled player's own client: lands beside the owner, feet aligned, with their
-		// velocity and fall distance cleared, then gets the damage-reduction window.
+		// Runs on the pulled player's own client. Starts the drag: once the hook has connected
+		// (a few ticks) they are hauled to the owner in real time by PreUpdateMovement below.
 		public void ApplyGetOverHere(Player owner)
 		{
 			if (Player.whoAmI != Main.myPlayer || Player.dead || owner == null || !owner.active || owner.dead)
 				return;
 
+			KillOwnGrapplingHooks();
+			getOverHerePullOwner = owner.whoAmI;
+			getOverHereWindup = GetOverHereAugment.ThrowTicks(Vector2.Distance(owner.Center, Player.Center));
+			getOverHerePullTicks = 0;
+			getOverHerePullSpeed = GetOverHereAugment.PullStartSpeed;
+		}
+
+		// Moves the pulled player a step toward the owner every tick, speeding up as they go, instead
+		// of teleporting. Tiles are ignored on the way (the chain hauls them straight in); they land
+		// feet-aligned beside the owner with velocity and fall distance cleared, and only then get
+		// the damage-reduction window.
+		public override void PreUpdateMovement()
+		{
+			if (getOverHerePullOwner < 0)
+				return;
+
+			Player owner = Main.player[getOverHerePullOwner];
+			if (Player.whoAmI != Main.myPlayer || Player.dead || !owner.active || owner.dead)
+			{
+				getOverHerePullOwner = -1;
+				return;
+			}
+
+			// The hook is still flying out; the drag starts when it connects.
+			if (getOverHereWindup > 0)
+			{
+				getOverHereWindup--;
+				return;
+			}
+
 			Vector2 landing = new Vector2(owner.Center.X - Player.width / 2f, owner.position.Y + owner.height - Player.height);
 			if (Collision.SolidCollision(landing, Player.width, Player.height))
 				landing = owner.position;
-			if (Collision.SolidCollision(landing, Player.width, Player.height))
-				return;
 
+			getOverHerePullTicks++;
+			getOverHerePullSpeed = Math.Min(GetOverHereAugment.PullMaxSpeed, getOverHerePullSpeed + GetOverHereAugment.PullAcceleration);
+
+			Vector2 toLanding = landing - Player.position;
+			float distance = toLanding.Length();
+			bool arrived = distance <= getOverHerePullSpeed;
+			Vector2 step = arrived ? toLanding : toLanding / distance * getOverHerePullSpeed;
+
+			// A grappling hook (or anything else) would fight the drag, so the player is held to it.
 			KillOwnGrapplingHooks();
-			Player.position = landing;
-			Player.oldPosition = landing;
+			Player.position += step;
 			Player.velocity = Vector2.Zero;
-			Player.fallStart = (int)(landing.Y / 16f);
-			getOverHereReductionTicks = GetOverHereAugment.ReductionTicks;
+			Player.fallStart = (int)(Player.position.Y / 16f);
+
+			if (arrived || getOverHerePullTicks >= GetOverHereAugment.PullMaxTicks)
+			{
+				getOverHerePullOwner = -1;
+				Player.oldPosition = Player.position;
+				getOverHereReductionTicks = GetOverHereAugment.ReductionTicks;
+			}
 		}
 
 		public bool TryAuthorizeSoulLinkRequest()

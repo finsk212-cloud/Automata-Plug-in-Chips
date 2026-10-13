@@ -281,8 +281,8 @@ namespace Augments
 			owner.GetModPlayer<AugmentPlayer>().TryTriggerGetOverHereServer();
 		}
 
-		// Tells the pulled ally's own client to move itself to the owner, and every client to draw
-		// the chain from the ally's old position to the owner.
+		// Tells the pulled ally's own client to haul itself to the owner, and every client to show
+		// the hook and chain between the two.
 		public static void SendGetOverHere(Player target, Player owner)
 		{
 			if (Main.netMode != NetmodeID.Server)
@@ -296,8 +296,7 @@ namespace Augments
 			ModPacket effect = ModContent.GetInstance<Augments>().GetPacket();
 			effect.Write((byte)AugmentPacketType.GetOverHereEffect);
 			effect.Write((byte)owner.whoAmI);
-			effect.Write(target.Center.X);
-			effect.Write(target.Center.Y);
+			effect.Write((byte)target.whoAmI);
 			effect.Send();
 		}
 
@@ -310,16 +309,18 @@ namespace Augments
 			Main.LocalPlayer.GetModPlayer<AugmentPlayer>().ApplyGetOverHere(owner);
 		}
 
-		public static void HandleGetOverHereEffect(int ownerIndex, float fromX, float fromY)
+		public static void HandleGetOverHereEffect(int ownerIndex, int targetIndex)
 		{
-			if (Main.netMode != NetmodeID.MultiplayerClient || ownerIndex < 0 || ownerIndex >= Main.maxPlayers)
+			if (Main.netMode != NetmodeID.MultiplayerClient || ownerIndex < 0 || ownerIndex >= Main.maxPlayers
+				|| targetIndex < 0 || targetIndex >= Main.maxPlayers)
 				return;
 
 			Player owner = Main.player[ownerIndex];
-			if (!owner.active)
+			Player target = Main.player[targetIndex];
+			if (!owner.active || !target.active)
 				return;
 
-			GetOverHereAugment.SpawnPullEffect(new Vector2(fromX, fromY), owner.Center);
+			GetOverHereAugment.BeginPullEffect(owner, target);
 		}
 
 		public static void HandleMediGunHealRequest(int senderWhoAmI, byte targetPlayerIndex, int healAmount)
