@@ -13,19 +13,15 @@ namespace Augments
         public override string Id          => "phase_round";
         public override string DisplayName => "Phase Round";
         public override string Description =>
-            $"Your arrows and bullets pass through {AugmentText.Trigger("tiles")}. " +
-            $"A shot that passed through at least one tile deals {AugmentText.BonusDamage("+30% bonus damage")}.";
+            $"Your arrows and bullets pass through {AugmentText.Trigger("tiles")}, so you can hit enemies behind walls.";
 
         public override string GetDetailedDescription(Player player) =>
-            $"Your arrows and bullets pass through {AugmentText.Trigger("tiles")}, and are removed after " +
-            $"{AugmentText.Duration("1 second")} spent inside blocks. " +
-            $"A shot that passed through at least one tile deals {AugmentText.BonusDamage("+30% bonus damage")}.\n" +
-            $"[c/94A3B8:(Bonus = Base Hit Damage × 0.30, dealt as a secondary strike with DPS tracking. Rockets, grenades and other special projectiles are not affected.)]";
+            $"Your arrows and bullets pass through {AugmentText.Trigger("tiles")}, so you can hit enemies behind walls. " +
+            $"A shot is removed after {AugmentText.Duration("1 second")} spent inside blocks.\n" +
+            $"[c/94A3B8:(Rockets, grenades and other special projectiles are not affected.)]";
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass  Class  => AugmentClass.Ranged;
-
-        private const float DamageBonus = 0.30f;
 
         public override void OnProjectileSpawn(Player player, Projectile projectile)
         {
@@ -40,45 +36,14 @@ namespace Augments
             projectile.tileCollide = false;
             projectile.netUpdate = true; // send the phasing flag so every client draws the shot passing through walls
         }
-
-        public override void OnHitNPCWithProj(Player player, Projectile proj, NPC target, NPC.HitInfo hit, AugmentHitSource source, float effectiveness)
-        {
-            if (source == AugmentHitSource.AugmentProc)
-                return;
-
-            if (!proj.GetGlobalProjectile<PhaseRoundProjectile>().PassedThroughTile)
-                return;
-
-            int bonus = System.Math.Max(1, (int)(hit.Damage * DamageBonus));
-
-            var bonusHit = new NPC.HitInfo
-            {
-                Damage       = bonus,
-                SourceDamage = bonus,
-                HitDirection = hit.HitDirection,
-                DamageType   = DamageClass.Ranged,
-                HideCombatText = true
-            };
-
-            target.StrikeNPC(bonusHit);
-
-            if (Main.netMode != NetmodeID.SinglePlayer)
-                NetMessage.SendStrikeNPC(target, in bonusHit);
-
-            if (player.whoAmI == Main.myPlayer)
-                AugmentDamageTracker.RecordChipHit("phase_round", bonus, false);
-
-            CombatText.NewText(target.Hitbox, AugmentTextColors.BonusDamage, bonus);
-        }
     }
 
-    // Tracks which projectiles are phasing and whether they have been inside a solid tile.
+    // Marks projectiles that are phasing and removes them after too long inside blocks.
     public class PhaseRoundProjectile : GlobalProjectile
     {
         public override bool InstancePerEntity => true;
 
         public bool Active;
-        public bool PassedThroughTile;
         private int ticksInsideTiles;
 
         private const int MaxTicksInsideTiles = 60;
@@ -118,7 +83,6 @@ namespace Augments
             if (!Collision.SolidCollision(projectile.position, projectile.width, projectile.height))
                 return;
 
-            PassedThroughTile = true;
             ticksInsideTiles++;
 
             if (ticksInsideTiles > MaxTicksInsideTiles)
