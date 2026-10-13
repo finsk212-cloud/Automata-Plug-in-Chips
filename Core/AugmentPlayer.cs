@@ -1266,6 +1266,11 @@ namespace Augments
 			Player.velocity = Vector2.Zero;
 			Player.fallStart = (int)(Player.position.Y / 16f);
 
+			// Position is client-authoritative, so only this client knows it is moving. Without a packet each
+			// tick, everyone else sees the pulled player sit still and then snap to the owner.
+			if (Main.netMode == NetmodeID.MultiplayerClient)
+				NetMessage.SendData(MessageID.PlayerControls, -1, -1, null, Player.whoAmI);
+
 			if (getOverHerePullTicks == 1 || getOverHerePullTicks % 15 == 0)
 				ModContent.GetInstance<Augments>().Logger.Info($"Get over here! pull tick {getOverHerePullTicks}: {Player.name} {distance:F0}px from landing, {getOverHerePullSpeed:F0}px/tick");
 
