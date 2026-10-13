@@ -7,7 +7,7 @@ namespace Augments
         public override string Id => "callout";
         public override string DisplayName => "Callout";
         public override string Description =>
-            $"Your hits {AugmentText.Trigger("mark")} enemies for {AugmentText.Duration("5s")}, shown as a {AugmentText.Color("gold diamond", "#FFCD46")} above them. " +
+            $"Your hits {AugmentText.Trigger("mark")} enemies for {AugmentText.Duration("5s")}, shown as a {AugmentText.Color("gold diamond", "FFCD46")} above them. " +
             $"Marked enemies take {AugmentText.BonusDamage("+10% damage")} from your teammates.";
 
         public override string GetDetailedDescription(Player player) =>
