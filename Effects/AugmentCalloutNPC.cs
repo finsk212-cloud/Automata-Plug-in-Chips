@@ -1,7 +1,8 @@
 using System;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Terraria;
-using Terraria.ID;
+using Terraria.GameContent;
 using Terraria.ModLoader;
 
 namespace Augments
@@ -34,16 +35,25 @@ namespace Augments
 			}
 
 			MarkTimer--;
+		}
 
-			if (npc.friendly || npc.townNPC)
+		// Small gold diamond bobbing above the marked enemy. It stays on for the whole mark and blinks in the last second.
+		public override void PostDraw(NPC npc, SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
+		{
+			if (!IsMarked || npc.friendly || npc.townNPC || npc.dontTakeDamage)
 				return;
 
-			// Subtle indicator: one small spark floating above the enemy every half second.
-			if (MarkTimer % 30 == 0)
-			{
-				Dust d = Dust.NewDustPerfect(new Vector2(npc.Center.X, npc.position.Y - 10f), DustID.YellowTorch, new Vector2(0f, -0.4f), 150, default, 0.8f);
-				d.noGravity = true;
-			}
+			if (MarkTimer < 60 && (MarkTimer / 6) % 2 == 0)
+				return;
+
+			float bob = (float)Math.Sin(Main.GlobalTimeWrappedHourly * 4f) * 2f;
+			Vector2 pos = new Vector2(npc.Center.X, npc.position.Y) - screenPos + new Vector2(0f, -16f + bob);
+			Texture2D pixel = TextureAssets.MagicPixel.Value;
+			Rectangle one = new Rectangle(0, 0, 1, 1);
+			Vector2 origin = new Vector2(0.5f, 0.5f);
+
+			spriteBatch.Draw(pixel, pos, one, new Color(20, 20, 20) * 0.6f, MathHelper.PiOver4, origin, 11f, SpriteEffects.None, 0f);
+			spriteBatch.Draw(pixel, pos, one, new Color(255, 205, 70) * 0.85f, MathHelper.PiOver4, origin, 8f, SpriteEffects.None, 0f);
 		}
 	}
 }
