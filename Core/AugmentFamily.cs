@@ -279,7 +279,7 @@ namespace Augments.Core
 						{
 							"Ranged projectile velocity is increased by +25%",
 							"Ranged hits from beyond 350 pixels mark the target with a Kinetic Mark for 4s",
-							"Critical strikes against marked targets gain +15 Armor Penetration and detonate 3 kinetic shrapnel flechettes (35 damage)"
+							"Critical strikes against marked targets gain +15 Armor Penetration and detonate 3 kinetic shrapnel flechettes (35 damage, at most once per second)"
 						}
 					)
 				}

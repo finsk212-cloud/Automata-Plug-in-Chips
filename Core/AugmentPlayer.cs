@@ -2151,7 +2151,7 @@ namespace Augments
 			// 2. Kinetic Shrapnel Detonation: Critical strike against a marked target
 			if (hit.Crit && marksmanNPC.IsMarked && KineticShrapnelCooldown <= 0 && Main.myPlayer == Player.whoAmI)
 			{
-				KineticShrapnelCooldown = 15;
+				KineticShrapnelCooldown = 60;
 
 				SoundEngine.PlaySound(SoundID.Item89 with { Volume = 0.55f, Pitch = 0.4f }, target.Center);
 

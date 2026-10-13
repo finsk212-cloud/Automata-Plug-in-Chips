@@ -48,7 +48,7 @@
     - Ranged weapon projectile flight velocity increased by **+25%**, giving arrows and bullets flatter, high-velocity trajectories.
     - Ranged hits landing from beyond 350 pixels mark the target with a **Kinetic Mark** for 4 seconds, displaying laser ruby tracking particles and a glowing scope reticle.
     - Attacks against Kinetic Marked targets gain **+15 Armor Penetration**.
-    - Critical strikes on marked targets detonate the mark, releasing **3 high-velocity kinetic shrapnel flechettes** (dealing 35 piercing damage with ricochet audio and spark trails).
+    - Critical strikes on marked targets detonate the mark, releasing **3 high-velocity kinetic shrapnel flechettes** (dealing 35 piercing damage with ricochet audio and spark trails), at most once per second.
   - Custom procedural pixel-art Sniper Crosshairs / Reticle Targeting Matrix HUD icon in Laser Ruby / Scope Crimson (`#F43F5E`).
 - **Arcane Surge Protocol** (2-Piece Magic Duo: Overcharge + Spell Echo):
   - **Astral Discharge**:
