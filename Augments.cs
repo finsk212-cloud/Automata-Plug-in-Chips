@@ -67,6 +67,13 @@ namespace Augments
 		public override void Load()
 		{
 			AugmentDatabase.Load();
+
+			// Inline marker icon used by the Callout description.
+			if (!Main.dedServ)
+			{
+				try { Terraria.UI.Chat.ChatManager.Register<CalloutMarkTagHandler>(CalloutMarkTagHandler.TagName); }
+				catch (System.Exception e) { Logger.Warn("Could not register the Callout marker tag.", e); }
+			}
 			OpenAugmentListKeybind = KeybindLoader.RegisterKeybind(this, "OpenAugmentList", "P");
 			DebugTriggerPopupKeybind = KeybindLoader.RegisterKeybind(this, "DebugTriggerPopup", "OemCloseBrackets");
 			DebugSpawnVendorKeybind = KeybindLoader.RegisterKeybind(this, "DebugSpawnVendor", "OemSemicolon");
@@ -90,6 +97,15 @@ namespace Augments
 
 		public override void Unload()
 		{
+			// ChatManager keeps handlers for the whole game session, so drop ours to let a reload register it again.
+			try
+			{
+				var handlers = typeof(Terraria.UI.Chat.ChatManager).GetField("_handlers", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)?.GetValue(null)
+					as System.Collections.Generic.Dictionary<string, Terraria.UI.Chat.ITagHandler>;
+				handlers?.Remove(CalloutMarkTagHandler.TagName);
+			}
+			catch { }
+
 			OpenAugmentListKeybind = null;
 			DebugTriggerPopupKeybind = null;
 			DebugSpawnVendorKeybind = null;
