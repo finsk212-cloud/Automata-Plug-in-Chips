@@ -1263,6 +1263,23 @@ namespace Augments
 				Player.lifeRegen += 3;
 				ReceivedCombatMedic = true;
 			}
+
+		}
+
+		// Callout: enemies marked by an ally who owns the chip take extra damage from everyone else on their team.
+		public void ApplyCalloutBonus(NPC target, ref NPC.HitModifiers modifiers)
+		{
+			var mark = target.GetGlobalNPC<AugmentCalloutNPC>();
+			if (!mark.IsMarked || mark.MarkedByPlayer < 0 || mark.MarkedByPlayer >= Main.maxPlayers || mark.MarkedByPlayer == Player.whoAmI)
+				return;
+
+			Player marker = Main.player[mark.MarkedByPlayer];
+			if (!marker.active || marker.dead || !SupportEffects.AreAllies(marker, Player))
+				return;
+			if (!marker.GetModPlayer<AugmentPlayer>().HasAugment("callout"))
+				return;
+
+			modifiers.SourceDamage *= 1f + AugmentCalloutNPC.TeammateDamageBonus;
 		}
 
 		public override void UpdateLifeRegen()
@@ -1679,6 +1696,7 @@ namespace Augments
 
 			ApplyHivemindFlatDamage(target, ref modifiers);
 			ApplyMarksmanArmorPenetration(target, item.CountsAsClass(DamageClass.Ranged) || item.DamageType == DamageClass.Ranged, ref modifiers);
+			ApplyCalloutBonus(target, ref modifiers);
 
 			bool trackContrib = Player.whoAmI == Main.myPlayer;
 			float baseDmg = Math.Max(1, item.damage);
@@ -1730,6 +1748,7 @@ namespace Augments
 
 			ApplyHivemindFlatDamage(target, ref modifiers, proj.GetGlobalProjectile<AugmentProjectileTag>().NecromancersCourtGhost);
 			ApplyMarksmanArmorPenetration(target, proj.CountsAsClass(DamageClass.Ranged) || proj.DamageType == DamageClass.Ranged, ref modifiers);
+			ApplyCalloutBonus(target, ref modifiers);
 
 			AugmentProjectileTag tag = proj.GetGlobalProjectile<AugmentProjectileTag>();
 			if (tag.IsAugmentProcDamage && !tag.CanTriggerOnHitAugments)
