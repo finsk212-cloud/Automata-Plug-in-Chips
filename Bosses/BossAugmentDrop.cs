@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -69,22 +70,54 @@ namespace Augments
 			}
 		}
 
+		// Calamity bosses by internal NPC name. Anything not listed falls back to the world-progress guess below.
+		private static readonly Dictionary<string, RarityBracket> CalamityBrackets = new Dictionary<string, RarityBracket>
+		{
+			// Pre-Hardmode
+			{ "DesertScourgeHead", RarityBracket.PreHardmode },
+			{ "Crabulon", RarityBracket.PreHardmode },
+			{ "HiveMind", RarityBracket.PreHardmode },
+			{ "PerforatorHive", RarityBracket.PreHardmode },
+			{ "SlimeGodCore", RarityBracket.PreHardmode },
+			// Early Hardmode
+			{ "Cryogen", RarityBracket.EarlyHardmode },
+			{ "AquaticScourgeHead", RarityBracket.EarlyHardmode },
+			// Post-Mechanical
+			{ "BrimstoneElemental", RarityBracket.PostMechs },
+			{ "CalamitasClone", RarityBracket.PostMechs },
+			// Post-Plantera
+			{ "Leviathan", RarityBracket.PostPlantera },
+			{ "Anahita", RarityBracket.PostPlantera },
+			{ "AstrumAureus", RarityBracket.PostPlantera },
+			{ "PlaguebringerGoliath", RarityBracket.PostPlantera },
+			{ "RavagerBody", RarityBracket.PostPlantera },
+			// Post-Moon Lord
+			{ "AstrumDeusHead", RarityBracket.EarlyPostMoonLord },
+			{ "ProfanedGuardianCommander", RarityBracket.EarlyPostMoonLord },
+			{ "Bumblebirb", RarityBracket.EarlyPostMoonLord },
+			// Late Endgame
+			{ "Providence", RarityBracket.LatePostMoonLord },
+			{ "StormWeaverHead", RarityBracket.LatePostMoonLord },
+			{ "CeaselessVoid", RarityBracket.LatePostMoonLord },
+			{ "Signus", RarityBracket.LatePostMoonLord },
+			{ "Polterghast", RarityBracket.LatePostMoonLord },
+			{ "OldDuke", RarityBracket.LatePostMoonLord },
+			{ "DevourerofGodsHead", RarityBracket.LatePostMoonLord },
+			{ "Yharon", RarityBracket.LatePostMoonLord },
+			// Final Protocol
+			{ "SupremeCalamitas", RarityBracket.FinalCalamity },
+			{ "AresBody", RarityBracket.FinalCalamity },
+			{ "ThanatosHead", RarityBracket.FinalCalamity },
+			{ "Apollo", RarityBracket.FinalCalamity },
+			{ "Artemis", RarityBracket.FinalCalamity },
+		};
+
 		private static RarityBracket GetModdedBossBracket(NPC npc)
 		{
 			if (npc.ModNPC?.Mod?.Name == "CalamityMod")
 			{
-				switch (npc.ModNPC.Name)
-				{
-					case "SupremeCalamitas":
-					case "AresBody":
-					case "ThanatosHead":
-					case "Apollo":
-					case "Artemis":
-						return RarityBracket.FinalCalamity;
-					case "DevourerofGodsHead":
-					case "Yharon":
-						return RarityBracket.LatePostMoonLord;
-				}
+				if (CalamityBrackets.TryGetValue(npc.ModNPC.Name, out RarityBracket calamityBracket))
+					return calamityBracket;
 			}
 
 			if (!Main.hardMode)

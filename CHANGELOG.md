@@ -114,6 +114,7 @@
 
 ### 3. Balance Changes
 - **Damage scaling by world progression**: Every chip with a fixed damage number (Twin Strike, Arcane Spark, Iron Rhythm, Chain Lightning, Overcharge Round, Queen's Swarm, Arcane Singularity, Necromancer's Court, Focus Directive, Vengeance, Bloodletter, Eldritch Covenant, Whip Cracker, War God's Tempo, Avatar of the Wall's shockwave, Inferno's Heart, plus the Fortune, Volt, Cryo, Marksman and Arcane Surge protocol bonuses) now multiplies that number by one shared curve based on the furthest boss defeated in the world: x1 start, x1.25 Skeletron, x2 Wall of Flesh, x3 all mech bosses, x3.5 Plantera, x4 Golem, x5 Moon Lord, then with Calamity x6 Providence, x7.5 Devourer of Gods, x9 Yharon, x10 Exo Mechs / Supreme Calamitas.
+- **Calamity boss reward tiers**: Calamity bosses now have their own reward tier table (from Desert Scourge up to Supreme Calamitas) instead of guessing from world progress. For example Providence, Polterghast and Old Duke roll Late Endgame odds. Bosses not in the table still use the old guess.
   - Each stage multiplier is a slider in the server config (vanilla and Calamity groups). Calamity stages need Calamity loaded.
   - Hold **Ctrl** over a chip in the Plugins list to see the calculation (base damage x multiplier = result).
   - A small world tracker remembers the late Calamity bosses (synced to clients) next to Calamity's own flags. Dev command: `/augmentstage [list|set <stage>|clear]`.
