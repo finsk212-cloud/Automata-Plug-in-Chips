@@ -53,10 +53,12 @@ namespace Augments
 					AugmentNet.SendSyncPlayer(player, player.whoAmI);
 				AugmentAdvisoryHUD.TriggerSmartAdvisory(ap, "first_boss", "[POD 042]", "Combat analytics are online. Press [L] or click the DPS button on the right edge of your screen to review live damage stats and damage blocked.");
 
+				ModContent.GetInstance<Augments>().Logger.Info($"Boss kill: {npc.TypeName} (key {bossKey}) kill #{killCount + 1} for {player.name}, {chance:P0} reward chance");
+
 				if (chance <= 0f) continue;
 				if (Main.rand.NextFloat() > chance) continue;
 
-				ModContent.GetInstance<Augments>().Logger.Info($"Boss reward: {npc.TypeName} (key {bossKey}) kill #{killCount + 1} for {player.name}, {chance:P0} chance");
+				ModContent.GetInstance<Augments>().Logger.Info($"Boss reward granted to {player.name} for {npc.TypeName}");
 				AugmentRewardLogic.GrantReward(player, bracket);
 			}
 
