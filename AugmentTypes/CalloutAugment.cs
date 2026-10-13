@@ -7,13 +7,13 @@ namespace Augments
         public override string Id => "callout";
         public override string DisplayName => "Callout";
         public override string Description =>
-            $"Your hits {AugmentText.Trigger("mark")} enemies for {AugmentText.Duration("5s")}. " +
+            $"Your hits {AugmentText.Trigger("mark")} enemies for {AugmentText.Duration("5s")}, shown as a {AugmentText.Color("gold diamond", "#FFCD46")} above them. " +
             $"Marked enemies take {AugmentText.BonusDamage("+10% damage")} from your teammates.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +
             "The bonus applies to every teammate's damage, including their minions, but not to your own. " +
-            "Hitting a marked enemy again refreshes the mark.";
+            "Hitting a marked enemy again refreshes the mark. The diamond blinks during the last second.";
 
         public override AugmentRarity Rarity => AugmentRarity.Rare;
         public override AugmentClass Class => AugmentClass.Support;
