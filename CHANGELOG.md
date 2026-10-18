@@ -21,6 +21,7 @@
 - **Volatile Rounds**: The explosion now has a small visual and sound effect, with a ring showing its radius.
 - **Boss rewards fixed for multi-part bosses**: Hitting only a boss's parts used to count for nothing, so the Slime God (whose Core can't be damaged, only its two paladins can) never gave a roll. Hits on any part now count towards that boss's fight: Slime God, Aquatic Scourge, the worm bosses' bodies, Ares' arms, the Profaned Guardians, Ravager, Perforator Hive, and the vanilla Eater of Worlds, Destroyer, Wall of Flesh, Skeletron and Prime hands, Golem and Moon Lord parts. The Twins now give one roll when the last twin dies, instead of one per twin. Added the current Calamity name for Dragonfolly.
 - **Balance**: Twin Strike's 15 on-hit damage now fires at most once every 0.3s (it used to fire on every hit, which let minions and other rapid hitters get a huge share of their damage from it; crits still apply on-hit effects twice). Marksman Protocol's Kinetic Shrapnel now detonates at most once per second instead of every 0.25s.
+- **Support plugins drop again**: Support plugins were left out of boss rewards and the gacha, so none of them could be found. They are back in the pool (and can be bought back from 2B's archive).
 - **Stash duplicates fixed**: Plugins sitting in Mistress 2B's stash are no longer offered again by boss rewards, rerolls, the gacha, or as missing protocol partners.
 
 ### 1. New Feature: Automata Protocols (Chip Synergies)

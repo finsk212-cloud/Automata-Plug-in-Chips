@@ -525,7 +525,7 @@ namespace Augments
 						if (!HasAugment(memberId) && !soldAugmentIds.Contains(memberId) && !stashedIds.Contains(memberId))
 						{
 							var aug = AugmentDatabase.GetById(memberId);
-							if (aug != null && aug.Class != AugmentClass.Support)
+							if (aug != null)
 								list.Add(aug);
 						}
 					}
@@ -542,13 +542,6 @@ namespace Augments
 				if (augment.Rarity != rarity || augment.IsDebugOnly || HasAugment(augment.Id) || (excludedIds != null && excludedIds.Contains(augment.Id)))
 					continue;
 				if (soldAugmentIds.Contains(augment.Id) || stashedIds.Contains(augment.Id))
-					continue;
-
-				// Support class temporarily disabled from the reward pool - the
-				// cross-player packet flow (Soul Link, Lifeline, Undying Bond,
-				// Revitalizing Wave) is not working correctly in multiplayer yet.
-				// Remove this check once the root cause is found and fixed.
-				if (augment.Class == AugmentClass.Support)
 					continue;
 
 				// Keystones never appear through this normal per-slot roll at

@@ -350,7 +350,7 @@ namespace Augments
 			foreach (var id in augmentPlayer.SoldAugmentIds)
 			{
 				var augment = AugmentDatabase.GetById(id);
-				if (augment == null || augment.Class == AugmentClass.Support)
+				if (augment == null)
 					continue;
 
 				int buyBackCost = AugmentPlayer.GetBuyBackCost(augment.Rarity);
