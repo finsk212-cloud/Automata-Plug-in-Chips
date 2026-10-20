@@ -117,6 +117,7 @@ namespace Augments
 			GetExcitedTimer = 0;
 			GetExcitedStacks = 0;
 			GodslayerBladeCooldown = 0;
+			DeadWeightCooldown = 0;
 			GrappleMasterWasGrappling = false;
 			GrappleMasterSpeedBurstTicks = 0;
 			HuntersPaceSpeedTimer = 0;

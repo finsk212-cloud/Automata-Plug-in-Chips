@@ -51,6 +51,7 @@ namespace Augments
             Register(new AfterburnerAugment());
             Register(new TrickShotAugment());
             Register(new WhiplashWaveAugment());
+            Register(new DeadWeightAugment());
             Register(new MeteorStrikeAugment());
             Register(new SwarmTacticsAugment());
             Register(new FrostboundAugment());

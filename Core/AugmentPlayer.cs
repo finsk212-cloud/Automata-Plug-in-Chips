@@ -418,6 +418,7 @@ namespace Augments
 		public int GetExcitedTimer;
 		public int GetExcitedStacks;
 		public int GodslayerBladeCooldown;
+		public int DeadWeightCooldown;
 		public bool GrappleMasterWasGrappling;
 		public int GrappleMasterSpeedBurstTicks;
 		public int HuntersPaceSpeedTimer;
@@ -1776,6 +1777,7 @@ namespace Augments
 			FinalStandCooldown = 0;
 			FinalStandActiveTicks = 0;
 			GodslayerBladeCooldown = 0;
+			DeadWeightCooldown = 0;
 			IronWillCooldown = 0;
 			IronWillDurationRemaining = 0;
 			LastStandCooldown = 0;
