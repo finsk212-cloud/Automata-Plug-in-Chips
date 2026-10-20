@@ -150,6 +150,7 @@ namespace Augments
             Register(new SharpenedFocusAugment());
             Register(new SuperchargerAugment());
             Register(new AutopilotAugment());
+            Register(new HexDetonationAugment());
         }
 
         private static void Register(Augment augment)
