@@ -17,16 +17,16 @@ namespace Augments
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +
-            AugmentText.Note("(Bonus starts at 30 use time and maxes at 60. Slam needs 45+ use time, deals no damage, ignores knockback resistance and never moves bosses.)");
+            AugmentText.Note("(Bonus starts at 25 use time and maxes at 45. Slam needs 35+ use time, deals no damage, ignores knockback resistance and never moves bosses.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Melee;
         public override int CooldownRemaining => LocalPlayerState.DeadWeightCooldown;
 
-        private const float BonusStartTicks = 30f;
-        private const float BonusMaxTicks = 60f;
+        private const float BonusStartTicks = 25f;
+        private const float BonusMaxTicks = 45f;
         private const float MaxBonus = 0.4f;
-        private const int SlamMinTicks = 45;
+        private const int SlamMinTicks = 35;
         private const float SlamRadius = 250f;
         private const float MinSlamSpeed = 7f;
         private const float MaxSlamSpeed = 10f;
@@ -43,7 +43,7 @@ namespace Augments
         public override void ModifyHitNPCWithItem(Player player, Item item, NPC target, ref NPC.HitModifiers modifiers)
         {
             if (item.CountsAsClass(DamageClass.Melee))
-                modifiers.FinalDamage *= 1f + DamageBonus(item.useAnimation);
+                modifiers.FinalDamage *= 1f + DamageBonus(BaseUseTicks(item));
         }
 
         public override void ModifyHitNPCWithProj(Player player, Projectile proj, NPC target, ref NPC.HitModifiers modifiers)
@@ -56,7 +56,7 @@ namespace Augments
         public override void OnHitNPCWithItem(Player player, Item item, NPC target, NPC.HitInfo hit)
         {
             if (item.CountsAsClass(DamageClass.Melee))
-                TrySlam(player, target, item.useAnimation);
+                TrySlam(player, target, BaseUseTicks(item));
         }
 
         public override void OnHitNPCWithProj(Player player, Projectile proj, NPC target, NPC.HitInfo hit)
@@ -75,8 +75,17 @@ namespace Augments
             if (held == null || held.IsAir || held.damage <= 0 || !held.CountsAsClass(DamageClass.Melee))
                 return false;
 
-            weight = held.useAnimation;
+            weight = BaseUseTicks(held);
             return true;
+        }
+
+        // Speed prefixes change an item's own use time, so the weight is read from the unmodified weapon.
+        private static int BaseUseTicks(Item item)
+        {
+            if (ContentSamples.ItemsByType.TryGetValue(item.type, out Item sample))
+                return sample.useAnimation;
+
+            return item.useAnimation;
         }
 
         private static float DamageBonus(int useTicks)
