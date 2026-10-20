@@ -80,7 +80,7 @@ namespace Augments
 				case AugmentPacketType.BannerStationWithdraw:
 				case AugmentPacketType.BannerStationUpgrade:
 				case AugmentPacketType.BannerStationReply:
-					Augments.Tiles.BannerStationNet.Handle(type, reader, whoAmI);
+					global::Augments.Tiles.BannerStationNet.Handle(type, reader, whoAmI);
 					return true;
 			}
 
