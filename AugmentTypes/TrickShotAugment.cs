@@ -19,7 +19,7 @@ namespace Augments
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +
-            AugmentText.Note("(A shot disappears 3 seconds after its last bounce. Rockets, grenades and other special projectiles are unaffected. If you also have Phase Round, shots pass through walls instead of bouncing.)");
+            AugmentText.Note("(A shot disappears 3 seconds after its last bounce. Echo Chamber echoes bounce too, but get no bonus damage, crit or armor penetration. Rockets, grenades and other special projectiles are unaffected. If you also have Phase Round, shots pass through walls instead of bouncing.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Ranged;
@@ -44,6 +44,10 @@ namespace Augments
         public override void ModifyHitNPCWithProj(Player player, Projectile proj, NPC target, ref NPC.HitModifiers modifiers, AugmentHitSource source, float effectiveness)
         {
             if (source == AugmentHitSource.AugmentProc)
+                return;
+
+            // Echo Chamber echoes bounce too, but only the normal shot gets the bounce bonuses.
+            if (proj.GetGlobalProjectile<AugmentProjectileTag>().IsEchoChamberEcho)
                 return;
 
             TrickShotProjectile shot = proj.GetGlobalProjectile<TrickShotProjectile>();
