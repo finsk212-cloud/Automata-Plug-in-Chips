@@ -12,8 +12,8 @@ namespace Augments
         public override string Id => "dead_weight";
         public override string DisplayName => "Dead Weight";
         public override string Description =>
-            $"The slower your melee weapon, the harder it hits, up to {AugmentText.BonusDamage("+40% damage")}. " +
-            $"Hits with very slow weapons also slam the ground, hurling nearby enemies away. {AugmentText.Cooldown("0.6s cooldown")}.";
+            $"The slower your melee weapon, the harder it hits, up to {AugmentText.BonusDamage("+30% damage")} and {AugmentText.BonusDamage("10 armor penetration")}. " +
+            $"Hits with slow weapons also slam the ground, hurling nearby enemies away. {AugmentText.Cooldown("0.6s cooldown")}.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +
@@ -24,7 +24,8 @@ namespace Augments
 
         private const float BonusStartTicks = 25f;
         private const float BonusMaxTicks = 45f;
-        private const float MaxBonus = 0.4f;
+        private const float MaxBonus = 0.3f;
+        private const float ArmorPenetration = 10f;
         private const int SlamMinTicks = 35;
         private const float SlamRadius = 250f;
         private const float MinSlamSpeed = 7f;
@@ -42,14 +43,14 @@ namespace Augments
         public override void ModifyHitNPCWithItem(Player player, Item item, NPC target, ref NPC.HitModifiers modifiers)
         {
             if (item.CountsAsClass(DamageClass.Melee))
-                modifiers.FinalDamage *= 1f + DamageBonus(BaseUseTicks(item));
+                ApplyWeight(BaseUseTicks(item), ref modifiers);
         }
 
         public override void ModifyHitNPCWithProj(Player player, Projectile proj, NPC target, ref NPC.HitModifiers modifiers)
         {
             // Thrust and flail style weapons hit through a projectile, so the weight comes from the held weapon.
             if (TryGetHeldMeleeWeight(player, proj, out int weight))
-                modifiers.FinalDamage *= 1f + DamageBonus(weight);
+                ApplyWeight(weight, ref modifiers);
         }
 
         public override void OnHitNPCWithItem(Player player, Item item, NPC target, NPC.HitInfo hit)
@@ -85,6 +86,16 @@ namespace Augments
                 return sample.useAnimation;
 
             return item.useAnimation;
+        }
+
+        private static void ApplyWeight(int useTicks, ref NPC.HitModifiers modifiers)
+        {
+            float bonus = DamageBonus(useTicks);
+            if (bonus <= 0f)
+                return;
+
+            modifiers.FinalDamage *= 1f + bonus;
+            modifiers.ArmorPenetration += ArmorPenetration;
         }
 
         private static float DamageBonus(int useTicks)
