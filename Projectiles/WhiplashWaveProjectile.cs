@@ -14,6 +14,10 @@ namespace Augments
         private const int LifetimeTicks = 30;
         private const int FadeTicks = 8;
         private const int TrailCopies = 4;
+        private const int BaseSize = 36;
+
+        // ai[0] carries the whip-range scale the wave was spawned with (1 = reference reach).
+        private float Scale => Projectile.ai[0] > 0f ? Projectile.ai[0] : 1f;
 
         public override string Texture => "Terraria/Images/MagicPixel";
 
@@ -47,6 +51,13 @@ namespace Augments
             if (Projectile.localAI[0] == 0f)
             {
                 Projectile.localAI[0] = 1f;
+
+                // Longer whips make a bigger wave that flies farther.
+                Vector2 center = Projectile.Center;
+                Projectile.width = Projectile.height = (int)(BaseSize * Scale);
+                Projectile.Center = center;
+                Projectile.timeLeft = (int)(LifetimeTicks * Scale);
+
                 SpawnSonicBoom();
             }
 
@@ -59,7 +70,7 @@ namespace Augments
                     continue;
 
                 Dust dust = Dust.NewDustPerfect(
-                    Projectile.Center + perpendicular * (side * 20f),
+                    Projectile.Center + perpendicular * (side * 20f * Scale),
                     Main.rand.NextBool(3) ? DustID.Smoke : DustID.GoldFlame,
                     -Projectile.velocity * 0.12f,
                     80,
@@ -80,9 +91,9 @@ namespace Augments
             {
                 Vector2 direction = (MathHelper.TwoPi * i / 20f).ToRotationVector2();
                 Dust dust = Dust.NewDustPerfect(
-                    Projectile.Center + direction * 6f,
+                    Projectile.Center + direction * (6f * Scale),
                     i % 4 == 0 ? DustID.Smoke : DustID.GoldFlame,
-                    direction * Main.rand.NextFloat(4f, 6.5f),
+                    direction * Main.rand.NextFloat(4f, 6.5f) * Scale,
                     60,
                     default,
                     Main.rand.NextFloat(1f, 1.4f)
@@ -128,13 +139,14 @@ namespace Augments
             Texture2D pixel = TextureAssets.MagicPixel.Value;
             Vector2 direction = Projectile.rotation.ToRotationVector2();
             float fade = Math.Min(1f, Projectile.timeLeft / (float)FadeTicks);
+            float size = Scale;
 
             // Faint copies behind the crescent give it a motion trail.
             for (int i = TrailCopies - 1; i >= 0; i--)
             {
-                Vector2 center = Projectile.Center - direction * (i * 10f);
+                Vector2 center = Projectile.Center - direction * (i * 10f * size);
                 float strength = fade * (1f - i * 0.22f);
-                float scale = 1f - i * 0.12f;
+                float scale = (1f - i * 0.12f) * size;
                 DrawCrescent(pixel, center, 26f * scale, 7f * scale, new Color(255, 140, 35, 0) * (strength * 0.5f));
                 DrawCrescent(pixel, center, 26f * scale, 3f * scale, new Color(255, 235, 170, 0) * strength);
             }

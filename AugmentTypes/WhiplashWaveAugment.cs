@@ -12,7 +12,7 @@ namespace Augments
         public override string Id => "whiplash_wave";
         public override string DisplayName => "Whiplash Wave";
         public override string Description =>
-            $"When your whip cracks, a sonic wave flies out from its tip for {AugmentText.BonusDamage("40% of the whip's damage")}. It pierces 3 enemies and triggers {AugmentText.OnHit("on-hit")} effects at 50% effectiveness.";
+            $"When your whip cracks, a sonic wave flies out from its tip for {AugmentText.BonusDamage("40% of the whip's damage")}. It pierces 3 enemies and triggers {AugmentText.OnHit("on-hit")} effects at 50% effectiveness. Wave size and distance scale with your whip's range.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +
@@ -23,6 +23,11 @@ namespace Augments
 
         private const float DamageMultiplier = 0.4f;
         private const float WaveSpeed = 16f;
+        private const float ReferenceReach = 200f;
+        private const float MinScale = 0.8f;
+        private const float MaxScale = 3f;
+
+        internal static float ScaleForReach(float reach) => MathHelper.Clamp(reach / ReferenceReach, MinScale, MaxScale);
 
         public override void OnShootProjectile(Player player, Item item, Projectile projectile)
         {
@@ -41,7 +46,7 @@ namespace Augments
             whip.CrackTick = Math.Max(1, (int)(player.itemAnimationMax * (projectile.extraUpdates + 1) / 2f));
         }
 
-        internal static void SpawnWave(Projectile whip, Vector2 position, Vector2 direction)
+        internal static void SpawnWave(Projectile whip, Vector2 position, Vector2 direction, float scale)
         {
             Player player = Main.player[whip.owner];
             int damage = Math.Max(1, (int)(whip.damage * DamageMultiplier));
@@ -53,7 +58,8 @@ namespace Augments
                 ModContent.ProjectileType<WhiplashWaveProjectile>(),
                 damage,
                 whip.knockBack * 0.5f,
-                player.whoAmI
+                player.whoAmI,
+                scale
             );
 
             if (index < 0 || index >= Main.maxProjectiles)
@@ -105,7 +111,7 @@ namespace Augments
             direction.Normalize();
 
             // Lifted slightly so a whip cracked along the ground does not spawn the wave inside the terrain.
-            WhiplashWaveAugment.SpawnWave(projectile, center + direction * reach + new Vector2(0f, -14f), direction);
+            WhiplashWaveAugment.SpawnWave(projectile, center + direction * reach + new Vector2(0f, -14f), direction, WhiplashWaveAugment.ScaleForReach(reach));
         }
     }
 }
