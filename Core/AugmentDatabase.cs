@@ -50,6 +50,7 @@ namespace Augments
             Register(new SteadyHandsAugment());
             Register(new AfterburnerAugment());
             Register(new TrickShotAugment());
+            Register(new WhiplashWaveAugment());
             Register(new MeteorStrikeAugment());
             Register(new SwarmTacticsAugment());
             Register(new FrostboundAugment());

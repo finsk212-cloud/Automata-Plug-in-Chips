@@ -195,6 +195,10 @@ namespace Augments
 			if (!isMinionOrSentry)
 				return;
 
+			// Whiplash Wave is the player's own whip attack, not a minion hit.
+			if (proj.GetGlobalProjectile<AugmentProjectileTag>().SourceAugmentId == "whiplash_wave")
+				return;
+
 			target.GetGlobalNPC<AugmentNaniteNPC>().ApplyNanites(Player.whoAmI, proj.identity);
 			if (Main.netMode == NetmodeID.MultiplayerClient)
 				AugmentNet.SendApplyNPCEffectNanites(target.whoAmI, 240, proj.identity);
