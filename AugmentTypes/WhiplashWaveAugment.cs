@@ -91,14 +91,21 @@ namespace Augments
             Projectile.FillWhipControlPoints(projectile, points);
             Vector2 tip = points.Count > 0 ? points[points.Count - 1] : projectile.Center;
 
-            // Fly along the whip itself (owner to tip) so the wave stays at the whip's height, not the cursor's.
-            Vector2 direction = tip - Main.player[projectile.owner].MountedCenter;
+            Player owner = Main.player[projectile.owner];
+            Vector2 center = owner.MountedCenter;
+
+            // The wave leaves at the whip's reach but always flies toward the cursor.
+            float reach = Vector2.Distance(center, tip);
+            if (reach < 16f)
+                reach = 16f;
+
+            Vector2 direction = Main.MouseWorld - center;
             if (direction.LengthSquared() < 1f)
                 direction = Direction;
             direction.Normalize();
 
             // Lifted slightly so a whip cracked along the ground does not spawn the wave inside the terrain.
-            WhiplashWaveAugment.SpawnWave(projectile, tip + new Vector2(0f, -14f), direction);
+            WhiplashWaveAugment.SpawnWave(projectile, center + direction * reach + new Vector2(0f, -14f), direction);
         }
     }
 }
