@@ -114,6 +114,81 @@ Items: {
 			Tether breaks if line of sight is obstructed or distance exceeds range
 			'''
 	}
+
+	BannerStationMk1Item: {
+		DisplayName: Banner Station Mk I
+		Tooltip:
+			'''
+			Place it anywhere solid, or on a platform, then right-click it to fill it with banners
+			While you are nearby, you get the buff of [c/A5C8E8:every banner stored inside]
+			Covers [c/A5C8E8:the same area as vanilla banners] around it
+			Break it to pick it up. The banners stay inside, wherever you place it next
+			'''
+	}
+
+	BannerStationMk2Item: {
+		DisplayName: Banner Station Mk II
+		Tooltip:
+			'''
+			Place it anywhere solid, or on a platform, then right-click it to fill it with banners
+			While you are nearby, you get the buff of [c/A5C8E8:every banner stored inside]
+			Covers [c/A5C8E8:25% more area] around it
+			Break it to pick it up. The banners stay inside, wherever you place it next
+			'''
+	}
+
+	BannerStationMk3Item: {
+		DisplayName: Banner Station Mk III
+		Tooltip:
+			'''
+			Place it anywhere solid, or on a platform, then right-click it to fill it with banners
+			While you are nearby, you get the buff of [c/A5C8E8:every banner stored inside]
+			Covers [c/A5C8E8:50% more area] around it
+			Break it to pick it up. The banners stay inside, wherever you place it next
+			'''
+	}
+
+	BannerStationMk4Item: {
+		DisplayName: Banner Station Mk IV
+		Tooltip:
+			'''
+			Place it anywhere solid, or on a platform, then right-click it to fill it with banners
+			While you are nearby, you get the buff of [c/A5C8E8:every banner stored inside]
+			Covers [c/A5C8E8:double the area] around it
+			Break it to pick it up. The banners stay inside, wherever you place it next
+			'''
+	}
+
+	BannerStationKitMk2Item: {
+		DisplayName: Banner Station Kit Mk II
+		Tooltip:
+			'''
+			Right-click a placed [c/A5C8E8:Banner Station Mk I] while holding this to upgrade it to Mk II
+			The banners inside stay where they are
+			'''
+	}
+
+	BannerStationKitMk3Item: {
+		DisplayName: Banner Station Kit Mk III
+		Tooltip:
+			'''
+			Right-click a placed [c/A5C8E8:Banner Station Mk II] while holding this to upgrade it to Mk III
+			The banners inside stay where they are
+			'''
+	}
+
+	BannerStationKitMk4Item: {
+		DisplayName: Banner Station Kit Mk IV
+		Tooltip:
+			'''
+			Right-click a placed [c/A5C8E8:Banner Station Mk III] while holding this to upgrade it to Mk IV
+			The banners inside stay where they are
+			'''
+	}
+}
+
+Tiles: {
+	BannerStationTile.MapEntry: Banner Station
 }
 
 Buffs: {

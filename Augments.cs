@@ -44,7 +44,12 @@ namespace Augments
 		ChronobreakApply,   // server -> client: rewind yourself (payload: owner index)
 		GetOverHereRequest, // client -> server: the owner pressed Get over here!
 		GetOverHereApply,   // server -> pulled client: haul yourself to the owner (payload: owner index)
-		GetOverHereEffect   // server -> all clients: hook and chain visual (payload: owner index, pulled player index)
+		GetOverHereEffect,  // server -> all clients: hook and chain visual (payload: owner index, pulled player index)
+		BannerStationInit,     // client -> server: fill a freshly placed station with the item's tier and banners
+		BannerStationDeposit,  // client -> server: put one banner into a station
+		BannerStationWithdraw, // client -> server: take one banner out of a station
+		BannerStationUpgrade,  // client -> server: upgrade a station with a kit
+		BannerStationReply     // server -> one client: a banner or kit to hand back (payload: kind, item type)
 	}
 
 	internal enum DebugAugmentCommandType : byte

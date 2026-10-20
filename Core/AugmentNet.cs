@@ -75,6 +75,13 @@ namespace Augments
 				case AugmentPacketType.CalloutBonusDamage:
 					HandleCalloutBonusDamage(reader, whoAmI);
 					return true;
+				case AugmentPacketType.BannerStationInit:
+				case AugmentPacketType.BannerStationDeposit:
+				case AugmentPacketType.BannerStationWithdraw:
+				case AugmentPacketType.BannerStationUpgrade:
+				case AugmentPacketType.BannerStationReply:
+					Augments.Tiles.BannerStationNet.Handle(type, reader, whoAmI);
+					return true;
 			}
 
 			return false;

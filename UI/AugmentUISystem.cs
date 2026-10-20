@@ -30,6 +30,10 @@ namespace Augments
 		private UserInterface analyticsInterface;
 		private AugmentAnalyticsUIState analyticsState;
 
+		// --- Banner Station slot window ---
+		private UserInterface bannerInterface;
+		private BannerStationUIState bannerState;
+
 		private GameTime lastUpdateUiGameTime;
 
 		public override void Load()
@@ -56,6 +60,10 @@ namespace Augments
 			analyticsInterface = new UserInterface();
 			analyticsState = new AugmentAnalyticsUIState();
 			analyticsState.Activate();
+
+			bannerInterface = new UserInterface();
+			bannerState = new BannerStationUIState();
+			bannerState.Activate();
 		}
 
 		// Called every frame - keeps both panels' buttons/hover states responsive.
@@ -77,6 +85,9 @@ namespace Augments
 
 			if (analyticsInterface?.CurrentState != null)
 				analyticsInterface.Update(gameTime);
+
+			if (bannerInterface?.CurrentState != null)
+				bannerInterface.Update(gameTime);
 
 			AugmentFamilyHUD.Update(gameTime);
 			AugmentPinnedHUD.Update(gameTime);
@@ -225,6 +236,17 @@ namespace Augments
 				{
 					if (lastUpdateUiGameTime != null && augmentInterface?.CurrentState != null)
 						augmentInterface.Draw(Main.spriteBatch, lastUpdateUiGameTime);
+					return true;
+				},
+				InterfaceScaleType.UI)
+			);
+
+			layers.Insert(mouseTextIndex, new LegacyGameInterfaceLayer(
+				"Augments: Banner Station UI",
+				delegate
+				{
+					if (lastUpdateUiGameTime != null && bannerInterface?.CurrentState != null)
+						bannerInterface.Draw(Main.spriteBatch, lastUpdateUiGameTime);
 					return true;
 				},
 				InterfaceScaleType.UI)
@@ -545,5 +567,36 @@ namespace Augments
 		}
 
 		public bool IsGachaOpen => gachaInterface?.CurrentState != null;
+
+		// --- Banner Station slot window controls ---
+
+		public bool IsBannerStationOpen => bannerInterface?.CurrentState != null;
+
+		public void ShowBannerStation(int left, int top)
+		{
+			if (bannerState == null)
+				return;
+
+			// Right-clicking the station that is already open closes it, like a chest.
+			if (IsBannerStationOpen && bannerState.StationLeft == left && bannerState.StationTop == top)
+			{
+				HideBannerStation();
+				return;
+			}
+
+			Main.playerInventory = true;
+			bannerState.Open(left, top);
+			bannerInterface.SetState(bannerState);
+			SoundEngine.PlaySound(SoundID.MenuOpen);
+		}
+
+		public void HideBannerStation()
+		{
+			if (!IsBannerStationOpen)
+				return;
+
+			bannerInterface.SetState(null);
+			SoundEngine.PlaySound(SoundID.MenuClose);
+		}
 	}
 }
