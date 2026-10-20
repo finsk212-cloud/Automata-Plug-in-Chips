@@ -75,8 +75,8 @@ namespace Augments.Core
 						"Triage Efficiency",
 						new string[]
 						{
-							"Potion sickness duration is reduced by -20%",
-							"Heart pickups restore +20% more health (+4 HP)"
+							$"Potion sickness duration is reduced by {AugmentText.Duration("-20%")}",
+							$"Heart pickups restore {AugmentText.Healing("+20% more health (+4 HP)")}"
 						}
 					)
 				}
@@ -101,8 +101,8 @@ namespace Augments.Core
 						"Exsanguination",
 						new string[]
 						{
-							"Bleed damage over time is increased by +50%",
-							"Attacks against bleeding targets gain +8% Critical Strike Chance"
+							$"{AugmentText.Bleed("Bleed")} damage over time is increased by {AugmentText.BonusDamage("+50%")}",
+							$"Attacks against {AugmentText.Bleed("bleeding")} targets gain {AugmentText.Crit("+8% Critical Strike Chance")}"
 						}
 					)
 				}
@@ -127,8 +127,8 @@ namespace Augments.Core
 						"Kinetic Momentum",
 						new string[]
 						{
-							"Dashing or sprinting at full speed releases a kinetic shockwave on impact dealing 75% base weapon damage",
-							"Melee attack speed scales up by +1% per 2 mph of current movement speed (up to +15%)"
+							$"Dashing or sprinting at full speed releases a kinetic shockwave on impact dealing {AugmentText.SpecialDamage("75% base weapon damage")}",
+							$"Melee {AugmentText.AttackSpeed("attack speed")} scales up by {AugmentText.AttackSpeed("+1%")} per 2 mph of current movement speed (up to {AugmentText.AttackSpeed("+15%")})"
 						}
 					)
 				}
@@ -156,24 +156,24 @@ namespace Augments.Core
 						"Lucky Streak",
 						new string[]
 						{
-							"Increases character's World Luck by +0.15",
-							"Fortune scaling and lucky procs gain +20% effectiveness"
+							$"Increases character's World Luck by {AugmentText.Crit("+0.15")}",
+							$"Fortune scaling and lucky procs gain {AugmentText.Crit("+20% effectiveness")}"
 						}
 					),
 					[4] = new FamilyThresholdBonus(
 						"Jackpot Calibration",
 						new string[]
 						{
-							"Increases character's World Luck by an additional +0.20 (+0.35 total)",
-							"Fortune scaling and lucky procs gain an additional +25% effectiveness (+45% total)"
+							$"Increases character's World Luck by an additional {AugmentText.Crit("+0.20")} (+0.35 total)",
+							$"Fortune scaling and lucky procs gain an additional {AugmentText.Crit("+25% effectiveness")} (+45% total)"
 						}
 					),
 					[5] = new FamilyThresholdBonus(
 						"House Edge",
 						new string[]
 						{
-							"Increases character's World Luck by an additional +0.15 (+0.50 total)",
-							"Critical strikes release a radial shower of gold coins dealing 50 damage to nearby enemies"
+							$"Increases character's World Luck by an additional {AugmentText.Crit("+0.15")} (+0.50 total)",
+							$"{AugmentText.Crit("Critical strikes")} release a radial shower of gold coins dealing {AugmentText.SpecialDamage("50 damage")} to nearby enemies"
 						}
 					)
 				}
@@ -198,8 +198,8 @@ namespace Augments.Core
 						"Absolute Zero",
 						new string[]
 						{
-							"Enemies afflicted with Frostburn are slowed by 20%",
-							"Slaying a chilled or Frostburned enemy shatters them into 3 homing ice shards (40 damage)"
+							$"Enemies afflicted with {AugmentText.Frostburn("Frostburn")} are {AugmentText.Immobilize("slowed by 20%")}",
+							$"Slaying a chilled or {AugmentText.Frostburn("Frostburned")} enemy shatters them into 3 homing ice shards ({AugmentText.SpecialDamage("40 damage")})"
 						}
 					)
 				}
@@ -224,9 +224,9 @@ namespace Augments.Core
 						"Superconductor",
 						new string[]
 						{
-							"Lightning and electrical procs inflict Electrified",
-							"Attacks against Electrified enemies gain +8% Critical Strike Chance",
-							"Attacks against Electrified enemies have a 25% chance to arc static electricity dealing 25 damage"
+							$"Lightning and electrical procs inflict {AugmentText.SpecialDamage("Electrified")}",
+							$"Attacks against {AugmentText.SpecialDamage("Electrified")} enemies gain {AugmentText.Crit("+8% Critical Strike Chance")}",
+							$"Attacks against {AugmentText.SpecialDamage("Electrified")} enemies have a 25% chance to arc static electricity dealing {AugmentText.SpecialDamage("25 damage")}"
 						}
 					)
 				}
@@ -251,8 +251,8 @@ namespace Augments.Core
 						"Swarm Coordination",
 						new string[]
 						{
-							"Minion and sentry attacks inject Micro-Nanites into enemies (4s duration)",
-							"Target takes +3 flat bonus damage per hit from all sources for each active minion attacking it"
+							$"Minion and sentry attacks inject Micro-Nanites into enemies ({AugmentText.Duration("4s duration")})",
+							$"Target takes {AugmentText.BonusDamage("+3 flat bonus damage")} per hit from all sources for each active minion attacking it"
 						}
 					)
 				}
@@ -277,9 +277,9 @@ namespace Augments.Core
 						"Pinpoint Ballistics",
 						new string[]
 						{
-							"Ranged projectile velocity is increased by +25%",
-							"Ranged hits from beyond 350 pixels mark the target with a Kinetic Mark for 4s",
-							"Critical strikes against marked targets gain +15 Armor Penetration and detonate 3 kinetic shrapnel flechettes (35 damage, at most once per second)"
+							$"Ranged projectile velocity is increased by {AugmentText.AttackSpeed("+25%")}",
+							$"Ranged hits from beyond 350 pixels mark the target with a Kinetic Mark for {AugmentText.Duration("4s")}",
+							$"{AugmentText.Crit("Critical strikes")} against marked targets gain {AugmentText.Defense("+15 Armor Penetration")} and detonate 3 kinetic shrapnel flechettes ({AugmentText.SpecialDamage("35 damage")}, at most once per second)"
 						}
 					)
 				}
@@ -304,8 +304,8 @@ namespace Augments.Core
 						"Astral Discharge",
 						new string[]
 						{
-							"Spending mana builds Astral Charge (1 stack per 20 mana spent, max 5 stacks)",
-							"At 5 stacks (100 mana spent), your next magic hit releases an Arcane Nova shockwave dealing 65 damage and refunds 30 mana"
+							$"Spending {AugmentText.Mana("mana")} builds Astral Charge (1 stack per {AugmentText.Mana("20 mana")} spent, max {AugmentText.Trigger("5 stacks")})",
+							$"At {AugmentText.Trigger("5 stacks")} (100 mana spent), your next magic hit releases an Arcane Nova shockwave dealing {AugmentText.SpecialDamage("65 damage")} and refunds {AugmentText.Mana("30 mana")}"
 						}
 					)
 				}
@@ -330,9 +330,9 @@ namespace Augments.Core
 						"Kinetic Hardening & Concussive Deflection",
 						new string[]
 						{
-							"Bulwark absorbs damage before armor plating is compromised, preserving all Adaptive Armor defense stacks",
-							"Blocking a hit with Bulwark detonates a Concussive Deflection shockwave (160px radius) dealing 50 flat kinetic damage + 5 per Adaptive Armor stack (up to 100) with violent knockback",
-							"While Adaptive Armor is at maximum stacks (+10 defense), Bulwark's shield recharge time is accelerated by 25% (7.5s instead of 10s)"
+							$"Bulwark absorbs damage before armor plating is compromised, preserving all Adaptive Armor {AugmentText.Defense("defense stacks")}",
+							$"Blocking a hit with Bulwark detonates a Concussive Deflection shockwave (160px radius) dealing {AugmentText.SpecialDamage("50 flat kinetic damage")} + 5 per Adaptive Armor stack (up to 100) with violent knockback",
+							$"While Adaptive Armor is at maximum stacks ({AugmentText.Defense("+10 defense")}), Bulwark's shield recharge time is accelerated by {AugmentText.Cooldown("25% (7.5s instead of 10s)")}"
 						}
 					)
 				}
@@ -357,9 +357,9 @@ namespace Augments.Core
 						"Rotary Acceleration & Lead Storm",
 						new string[]
 						{
-							"Continuously firing any ranged weapon ramps up attack speed by +2.5% per second (up to +10% bonus attack speed after 4s)",
-							"Ceasing fire for 1 second resets the rotary spin-up",
-							"While maintaining maximum spin-up (Lead Storm), ranged attacks gain +8% Critical Strike Chance"
+							$"Continuously firing any ranged weapon ramps up {AugmentText.AttackSpeed("attack speed")} by {AugmentText.AttackSpeed("+2.5%")} per second (up to {AugmentText.AttackSpeed("+10% bonus attack speed")} after {AugmentText.Duration("4s")})",
+							$"Ceasing fire for {AugmentText.Duration("1 second")} resets the rotary spin-up",
+							$"While maintaining maximum spin-up (Lead Storm), ranged attacks gain {AugmentText.Crit("+8% Critical Strike Chance")}"
 						}
 					)
 				}
@@ -384,8 +384,8 @@ namespace Augments.Core
 						"Sonic Crack & Predatory Command",
 						new string[]
 						{
-							"Striking an enemy at maximum (5) Whip Cracker stacks detonates a Sonic Crack shockwave (130px radius) dealing 45 flat summon damage and refreshes the debuff duration back to 4s",
-							"Friendly minions attacking an enemy at maximum (5) Whip Cracker stacks gain +12% Critical Strike Chance against that target"
+							$"Striking an enemy at maximum ({AugmentText.Trigger("5")}) Whip Cracker stacks detonates a Sonic Crack shockwave (130px radius) dealing {AugmentText.SpecialDamage("45 flat summon damage")} and refreshes the debuff duration back to {AugmentText.Duration("4s")}",
+							$"Friendly minions attacking an enemy at maximum ({AugmentText.Trigger("5")}) Whip Cracker stacks gain {AugmentText.Crit("+12% Critical Strike Chance")} against that target"
 						}
 					)
 				}

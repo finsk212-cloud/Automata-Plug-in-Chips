@@ -151,6 +151,7 @@
   - Added electric zap sounds and spark arcs connecting chained enemies, with guaranteed hit registration on Target Dummies and in multiplayer.
 
 ### 4. UI & Visual Polish
+- **Colored Protocol Descriptions**: Protocol bonus lines now use the same colors as plugin descriptions (damage, crit, defense, attack speed, mana, duration, cooldown, debuff names), in the tooltip, the Protocol sidebar and the choice cards.
 - **Dedicated "On-Hit" Proc Color**:
   - Replaced the previous amber/orange trigger color on `on-hit` text with a dedicated **Vivid Electric Fuchsia** (`#FF3EA5`).
   - Standardized all chip descriptions to use `on-hit` (with hyphen) consistently (fixing `Chain Lightning`).
