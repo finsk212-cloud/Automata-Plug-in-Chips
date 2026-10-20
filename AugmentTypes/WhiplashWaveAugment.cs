@@ -82,6 +82,7 @@ namespace Augments
         public Vector2 Direction;
         public int CrackTick;
         private int ticks;
+        private float maxTipDistance;
 
         public override void PostAI(Projectile projectile)
         {
@@ -89,10 +90,6 @@ namespace Augments
                 return;
 
             ticks++;
-            if (ticks < CrackTick)
-                return;
-
-            Armed = false;
 
             List<Vector2> points = new List<Vector2>();
             Projectile.FillWhipControlPoints(projectile, points);
@@ -101,8 +98,17 @@ namespace Augments
             Player owner = Main.player[projectile.owner];
             Vector2 center = owner.MountedCenter;
 
-            // The wave leaves at the whip's reach but always flies toward the cursor.
-            float reach = Vector2.Distance(center, tip);
+            // Track how far the tip gets from the player, so the range is the whip's farthest tip position
+            // and does not depend on the exact frame of the crack.
+            maxTipDistance = Math.Max(maxTipDistance, Vector2.Distance(center, tip));
+
+            if (ticks < CrackTick)
+                return;
+
+            Armed = false;
+
+            // The wave leaves at the whip's tip range but always flies toward the cursor.
+            float reach = maxTipDistance;
             if (reach < 16f)
                 reach = 16f;
 
