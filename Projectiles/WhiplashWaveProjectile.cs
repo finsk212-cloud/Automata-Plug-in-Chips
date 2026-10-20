@@ -47,7 +47,7 @@ namespace Augments
             if (Projectile.localAI[0] == 0f)
             {
                 Projectile.localAI[0] = 1f;
-                SoundEngine.PlaySound(SoundID.Item105 with { Volume = 0.3f, Pitch = 0.1f }, Projectile.Center);
+                SpawnSonicBoom();
             }
 
             Lighting.AddLight(Projectile.Center, 0.55f, 0.38f, 0.1f);
@@ -65,6 +65,27 @@ namespace Augments
                     80,
                     default,
                     Main.rand.NextFloat(0.8f, 1.15f)
+                );
+                dust.noGravity = true;
+            }
+        }
+
+        // Plays on every client when the wave appears at the whip's tip, so the crack looks and sounds like a boom.
+        private void SpawnSonicBoom()
+        {
+            SoundEngine.PlaySound(SoundID.Item105 with { Volume = 0.55f, Pitch = 0.15f }, Projectile.Center);
+            SoundEngine.PlaySound(SoundID.Item38 with { Volume = 0.4f, Pitch = 0.4f }, Projectile.Center);
+
+            for (int i = 0; i < 20; i++)
+            {
+                Vector2 direction = (MathHelper.TwoPi * i / 20f).ToRotationVector2();
+                Dust dust = Dust.NewDustPerfect(
+                    Projectile.Center + direction * 6f,
+                    i % 4 == 0 ? DustID.Smoke : DustID.GoldFlame,
+                    direction * Main.rand.NextFloat(4f, 6.5f),
+                    60,
+                    default,
+                    Main.rand.NextFloat(1f, 1.4f)
                 );
                 dust.noGravity = true;
             }

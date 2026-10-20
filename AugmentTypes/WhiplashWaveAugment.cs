@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ModLoader;
@@ -11,18 +12,17 @@ namespace Augments
         public override string Id => "whiplash_wave";
         public override string DisplayName => "Whiplash Wave";
         public override string Description =>
-            $"Whip swings also fire a wave for {AugmentText.BonusDamage("40% of the whip's damage")}. The wave pierces up to 3 enemies and flies far beyond the whip's reach. Wave hits trigger {AugmentText.OnHit("on-hit")} effects at 50% effectiveness.";
+            $"When your whip cracks, a sonic wave flies out from its tip for {AugmentText.BonusDamage("40% of the whip's damage")}. It pierces 3 enemies and triggers {AugmentText.OnHit("on-hit")} effects at 50% effectiveness.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +
-            AugmentText.Note("(The wave flies about 30 tiles toward your cursor and disappears when it hits a wall. It does not apply Whip Cracker stacks or Focus Directive tags, and it does not inject Micro-Nanites.)");
+            AugmentText.Note("(Stops at walls. Applies no Whip Cracker stacks, Focus tags or Nanites.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Summon;
 
         private const float DamageMultiplier = 0.4f;
         private const float WaveSpeed = 16f;
-        private const float SpawnOffset = 24f;
 
         public override void OnShootProjectile(Player player, Item item, Projectile projectile)
         {
@@ -34,15 +34,25 @@ namespace Augments
                 direction = new Vector2(player.direction, 0f);
             direction.Normalize();
 
-            int damage = Math.Max(1, (int)(projectile.damage * DamageMultiplier));
+            // The whip cracks (and plays its sound) halfway through the swing, when it is fully extended.
+            WhiplashWaveWhip whip = projectile.GetGlobalProjectile<WhiplashWaveWhip>();
+            whip.Armed = true;
+            whip.Direction = direction;
+            whip.CrackTick = Math.Max(1, (int)(player.itemAnimationMax * (projectile.extraUpdates + 1) / 2f));
+        }
+
+        internal static void SpawnWave(Projectile whip, Vector2 position, Vector2 direction)
+        {
+            Player player = Main.player[whip.owner];
+            int damage = Math.Max(1, (int)(whip.damage * DamageMultiplier));
 
             int index = Projectile.NewProjectile(
                 player.GetSource_FromThis(),
-                player.MountedCenter + direction * SpawnOffset,
+                position,
                 direction * WaveSpeed,
                 ModContent.ProjectileType<WhiplashWaveProjectile>(),
                 damage,
-                projectile.knockBack * 0.5f,
+                whip.knockBack * 0.5f,
                 player.whoAmI
             );
 
@@ -51,8 +61,37 @@ namespace Augments
 
             Projectile wave = Main.projectile[index];
             wave.originalDamage = damage;
-            wave.CritChance = projectile.CritChance;
-            wave.ArmorPenetration = projectile.ArmorPenetration;
+            wave.CritChance = whip.CritChance;
+            wave.ArmorPenetration = whip.ArmorPenetration;
+        }
+    }
+
+    // Counts a whip's updates and fires the wave from its tip at the moment of the crack.
+    public class WhiplashWaveWhip : GlobalProjectile
+    {
+        public override bool InstancePerEntity => true;
+
+        public bool Armed;
+        public Vector2 Direction;
+        public int CrackTick;
+        private int ticks;
+
+        public override void PostAI(Projectile projectile)
+        {
+            if (!Armed)
+                return;
+
+            ticks++;
+            if (ticks < CrackTick)
+                return;
+
+            Armed = false;
+
+            List<Vector2> points = new List<Vector2>();
+            Projectile.FillWhipControlPoints(projectile, points);
+            Vector2 tip = points.Count > 0 ? points[points.Count - 1] : projectile.Center;
+
+            WhiplashWaveAugment.SpawnWave(projectile, tip, Direction);
         }
     }
 }
