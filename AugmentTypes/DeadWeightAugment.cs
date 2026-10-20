@@ -21,7 +21,6 @@ namespace Augments
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Melee;
-        public override int CooldownRemaining => LocalPlayerState.DeadWeightCooldown;
 
         private const float BonusStartTicks = 25f;
         private const float BonusMaxTicks = 45f;
