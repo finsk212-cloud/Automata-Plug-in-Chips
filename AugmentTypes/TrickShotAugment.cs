@@ -13,10 +13,12 @@ namespace Augments
         public override string Id => "trick_shot";
         public override string DisplayName => "Trick Shot";
         public override string Description =>
-            $"Your arrows and bullets {AugmentText.Trigger("bounce off walls")} up to 3 times instead of vanishing.\n" +
-            $"Each bounce gives the shot {AugmentText.BonusDamage("+30% damage")} (stacking).\n" +
-            $"A shot that has bounced always {AugmentText.Crit("crits")} and gains {AugmentText.Defense("+8 armor penetration")}.\n" +
-            $"Your arrows and bullets also fly {AugmentText.MovementSpeed("10% faster")}.\n" +
+            $"Arrows and bullets {AugmentText.Trigger("bounce off walls")} up to 3 times, gaining {AugmentText.BonusDamage("+30% damage")} per bounce. " +
+            $"Bounced shots always {AugmentText.Crit("crit")} and gain {AugmentText.Defense("+8 armor penetration")}. " +
+            $"Arrows and bullets fly {AugmentText.MovementSpeed("10% faster")}.";
+
+        public override string GetDetailedDescription(Player player) =>
+            Description + "\n" +
             AugmentText.Note("(A shot disappears 3 seconds after its last bounce. Rockets, grenades and other special projectiles are unaffected. If you also have Phase Round, shots pass through walls instead of bouncing.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
