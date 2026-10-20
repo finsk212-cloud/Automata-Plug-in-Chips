@@ -23,7 +23,7 @@ namespace Augments
 		private const int MaxVisibleRows = 5;
 		private const float PanelWidth = Columns * Cell + 40f;
 		private const float HeaderHeight = 56f;
-		private const float FooterHeight = 92f;
+		private const float FooterHeight = 128f;
 
 		private StationPanel panel;
 		private StationGrid grid;
@@ -86,7 +86,7 @@ namespace Augments
 			panel.Width.Set(PanelWidth, 0f);
 			panel.Height.Set(HeaderHeight + gridHeight + FooterHeight, 0f);
 
-			depositAll.Top.Set(HeaderHeight + gridHeight + FooterHeight - 40f, 0f);
+			depositAll.Top.Set(HeaderHeight + gridHeight + FooterHeight - 44f, 0f);
 			panel.Recalculate();
 		}
 
@@ -174,7 +174,7 @@ namespace Augments
 				string count = $"{station.Banners.Count} / {station.SlotCount}";
 				Utils.DrawBorderString(spriteBatch, count, new Vector2(rect.Right - 60 - font.MeasureString(count).X * 0.9f, rect.Y + 15), PanelChrome.Accent, 0.9f);
 
-				int footerY = rect.Bottom - 84;
+				int footerY = rect.Bottom - 120;
 				string range = $"Range: {BannerStationData.RangeTilesX(tier)} x {BannerStationData.RangeTilesY(tier)} tiles around the station";
 				Utils.DrawBorderString(spriteBatch, range, new Vector2(rect.X + 22, footerY), Color.LightGray, 0.8f);
 				Utils.DrawBorderString(spriteBatch, "Click a slot holding a banner on your cursor to store it.", new Vector2(rect.X + 22, footerY + 18), Color.Gray, 0.75f);
