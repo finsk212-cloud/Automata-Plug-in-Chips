@@ -61,17 +61,35 @@ namespace Augments
                 return;
             }
 
-            if (Main.GameUpdateCount % 4 != 0)
+            if (Main.GameUpdateCount % 2 != 0)
                 return;
 
-            // One violet pip per stack above the enemy's head, turning gold at full stacks.
-            int dustType = stacks >= StacksRequired ? DustID.GoldFlame : DustID.PurpleTorch;
+            // One large violet pip per stack above the enemy's head, turning gold and bigger at full stacks.
+            bool full = stacks >= StacksRequired;
+            int dustType = full ? DustID.GoldFlame : DustID.PurpleTorch;
+            float scale = full ? 2.3f : 1.8f;
+            float headY = npc.Top.Y - 26f;
             for (int i = 0; i < stacks; i++)
             {
-                float offset = (i - (stacks - 1) * 0.5f) * 10f;
-                Vector2 position = new Vector2(npc.Center.X + offset, npc.Top.Y - 14f);
-                Dust dust = Dust.NewDustPerfect(position, dustType, Vector2.Zero, 100, default, 0.9f);
+                float offset = (i - (stacks - 1) * 0.5f) * 18f;
+                Vector2 position = new Vector2(npc.Center.X + offset, headY);
+                Dust dust = Dust.NewDustPerfect(position, dustType, Vector2.Zero, 0, default, scale);
                 dust.noGravity = true;
+                dust.fadeIn = 1.1f;
+                Lighting.AddLight(position, full ? new Vector3(0.9f, 0.7f, 0.2f) : new Vector3(0.5f, 0.2f, 0.8f));
+            }
+
+            // A gold ring circling the enemy marks it as ready to detonate.
+            if (full)
+            {
+                float radius = System.Math.Max(npc.width, npc.height) * 0.5f + 12f;
+                for (int i = 0; i < 2; i++)
+                {
+                    float angle = Main.GameUpdateCount * 0.18f + MathHelper.Pi * i;
+                    Vector2 position = npc.Center + angle.ToRotationVector2() * radius;
+                    Dust orbit = Dust.NewDustPerfect(position, DustID.GoldFlame, Vector2.Zero, 0, default, 1.6f);
+                    orbit.noGravity = true;
+                }
             }
         }
     }
