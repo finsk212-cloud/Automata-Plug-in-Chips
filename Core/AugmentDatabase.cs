@@ -49,6 +49,7 @@ namespace Augments
             Register(new LuckyFindAugment());
             Register(new SteadyHandsAugment());
             Register(new AfterburnerAugment());
+            Register(new TrickShotAugment());
             Register(new MeteorStrikeAugment());
             Register(new SwarmTacticsAugment());
             Register(new FrostboundAugment());
