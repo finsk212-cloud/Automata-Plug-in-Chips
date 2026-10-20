@@ -15,7 +15,7 @@ namespace Augments
         private const int FadeTicks = 8;
         private const int TrailCopies = 4;
         private const int BaseSize = 36;
-        private const float DistancePerReach = 6f;
+        private const float DistancePerReach = 16f;
         private const int MaxLifetimeTicks = 240;
 
         // ai[0] carries the size scale and ai[1] the whip's reach in pixels when the wave was spawned.
@@ -60,8 +60,8 @@ namespace Augments
                 Projectile.Center = center;
                 if (Projectile.ai[1] > 0f)
                 {
-                    // Distance grows with the square of the reach, so a long whip flies far more than a short one.
-                    float distance = Projectile.ai[1] * DistancePerReach * (Projectile.ai[1] / WhiplashWaveAugment.ReferenceReach);
+                    // Measured tip ranges are small (Leather Whip ~43 px, Morning Star ~86 px), so the multiplier is large.
+                    float distance = Projectile.ai[1] * DistancePerReach;
                     Projectile.timeLeft = Math.Min(MaxLifetimeTicks, Math.Max(LifetimeTicks, (int)(distance / Projectile.velocity.Length())));
                 }
 
