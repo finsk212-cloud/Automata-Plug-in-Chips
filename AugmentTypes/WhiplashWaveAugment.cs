@@ -117,6 +117,9 @@ namespace Augments
                 direction = Direction;
             direction.Normalize();
 
+            // TEMPORARY DEBUG: shows the measured whip range so whips can be compared. Remove once tuned.
+            Main.NewText($"[Whiplash Wave] {Lang.GetItemNameValue(owner.HeldItem.type)}: tip range {reach:0} px ({reach / 16f:0.0} tiles), segments {projectile.WhipSettings.Segments}, range mult {projectile.WhipSettings.RangeMultiplier:0.00}", new Color(255, 200, 90));
+
             // Lifted slightly so a whip cracked along the ground does not spawn the wave inside the terrain.
             WhiplashWaveAugment.SpawnWave(projectile, center + direction * reach + new Vector2(0f, -14f), direction, reach);
         }
