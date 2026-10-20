@@ -60,8 +60,8 @@ namespace Augments
                 Projectile.Center = center;
                 if (Projectile.ai[1] > 0f)
                 {
-                    // Flies DistancePerReach times the whip's reach, so longer whips send it much farther.
-                    float distance = Projectile.ai[1] * DistancePerReach;
+                    // Distance grows with the square of the reach, so a long whip flies far more than a short one.
+                    float distance = Projectile.ai[1] * DistancePerReach * (Projectile.ai[1] / WhiplashWaveAugment.ReferenceReach);
                     Projectile.timeLeft = Math.Min(MaxLifetimeTicks, Math.Max(LifetimeTicks, (int)(distance / Projectile.velocity.Length())));
                 }
 

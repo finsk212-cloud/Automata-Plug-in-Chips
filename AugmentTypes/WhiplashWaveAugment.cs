@@ -23,7 +23,7 @@ namespace Augments
 
         private const float DamageMultiplier = 0.4f;
         private const float WaveSpeed = 16f;
-        private const float ReferenceReach = 150f;
+        internal const float ReferenceReach = 150f;
         private const float MinScale = 0.8f;
         private const float MaxScale = 3f;
 
