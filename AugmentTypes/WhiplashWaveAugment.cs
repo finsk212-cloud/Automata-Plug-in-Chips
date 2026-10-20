@@ -23,7 +23,7 @@ namespace Augments
 
         private const float DamageMultiplier = 0.4f;
         private const float WaveSpeed = 16f;
-        private const float ReferenceReach = 200f;
+        private const float ReferenceReach = 150f;
         private const float MinScale = 0.8f;
         private const float MaxScale = 3f;
 
@@ -46,7 +46,7 @@ namespace Augments
             whip.CrackTick = Math.Max(1, (int)(player.itemAnimationMax * (projectile.extraUpdates + 1) / 2f));
         }
 
-        internal static void SpawnWave(Projectile whip, Vector2 position, Vector2 direction, float scale)
+        internal static void SpawnWave(Projectile whip, Vector2 position, Vector2 direction, float reach)
         {
             Player player = Main.player[whip.owner];
             int damage = Math.Max(1, (int)(whip.damage * DamageMultiplier));
@@ -59,7 +59,8 @@ namespace Augments
                 damage,
                 whip.knockBack * 0.5f,
                 player.whoAmI,
-                scale
+                ScaleForReach(reach),
+                reach
             );
 
             if (index < 0 || index >= Main.maxProjectiles)
@@ -111,7 +112,7 @@ namespace Augments
             direction.Normalize();
 
             // Lifted slightly so a whip cracked along the ground does not spawn the wave inside the terrain.
-            WhiplashWaveAugment.SpawnWave(projectile, center + direction * reach + new Vector2(0f, -14f), direction, WhiplashWaveAugment.ScaleForReach(reach));
+            WhiplashWaveAugment.SpawnWave(projectile, center + direction * reach + new Vector2(0f, -14f), direction, reach);
         }
     }
 }

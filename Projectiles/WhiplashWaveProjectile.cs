@@ -15,8 +15,10 @@ namespace Augments
         private const int FadeTicks = 8;
         private const int TrailCopies = 4;
         private const int BaseSize = 36;
+        private const float DistancePerReach = 6f;
+        private const int MaxLifetimeTicks = 240;
 
-        // ai[0] carries the whip-range scale the wave was spawned with (1 = reference reach).
+        // ai[0] carries the size scale and ai[1] the whip's reach in pixels when the wave was spawned.
         private float Scale => Projectile.ai[0] > 0f ? Projectile.ai[0] : 1f;
 
         public override string Texture => "Terraria/Images/MagicPixel";
@@ -56,7 +58,12 @@ namespace Augments
                 Vector2 center = Projectile.Center;
                 Projectile.width = Projectile.height = (int)(BaseSize * Scale);
                 Projectile.Center = center;
-                Projectile.timeLeft = (int)(LifetimeTicks * Scale);
+                if (Projectile.ai[1] > 0f)
+                {
+                    // Flies DistancePerReach times the whip's reach, so longer whips send it much farther.
+                    float distance = Projectile.ai[1] * DistancePerReach;
+                    Projectile.timeLeft = Math.Min(MaxLifetimeTicks, Math.Max(LifetimeTicks, (int)(distance / Projectile.velocity.Length())));
+                }
 
                 SpawnSonicBoom();
             }
