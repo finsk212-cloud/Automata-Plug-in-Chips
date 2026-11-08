@@ -28,6 +28,9 @@ namespace Augments
 
         private static void TryDropHeart(Player player, NPC target, float effectiveness)
         {
+            if (Main.netMode == NetmodeID.MultiplayerClient)
+                return;
+
             if (target.friendly || player.statLife >= player.statLifeMax2 ||
                 !player.GetModPlayer<AugmentPlayer>().HasAugment("heart_drop"))
                 return;

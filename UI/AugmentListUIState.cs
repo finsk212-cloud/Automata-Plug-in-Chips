@@ -23,14 +23,17 @@ namespace Augments
 		NameZA,
 		RarityHighLow,
 		RarityLowHigh,
-		Class
+		Class,
+		Newest,
+		Oldest
 	}
 
 	public enum AugmentStatusFilter
 	{
 		All,
 		Equipped,
-		Unequipped
+		Unequipped,
+		NewOnly
 	}
 
 	// Clean, Terraria-style in-game Augment Codex & Inventory Slot List.
@@ -286,7 +289,7 @@ namespace Augments
 			filterPanel.Left.Set(542f, 0f);
 			filterPanel.Top.Set(68f, 0f);
 			filterPanel.Width.Set(320f, 0f);
-			filterPanel.Height.Set(330f, 0f);
+			filterPanel.Height.Set(365f, 0f);
 		}
 
 		// Bottom-right: three loadout apply buttons under the detail panel.
@@ -603,14 +606,16 @@ namespace Augments
 
 		private void CycleSortForward()
 		{
-			currentSortMode = (AugmentSortMode)(((int)currentSortMode + 1) % 5);
+			const int totalSortModes = 7;
+			currentSortMode = (AugmentSortMode)(((int)currentSortMode + 1) % totalSortModes);
 			UpdateFilterControlStates();
 			PopulateGrid();
 		}
 
 		private void CycleSortBackward()
 		{
-			currentSortMode = (AugmentSortMode)(((int)currentSortMode - 1 + 5) % 5);
+			const int totalSortModes = 7;
+			currentSortMode = (AugmentSortMode)(((int)currentSortMode - 1 + totalSortModes) % totalSortModes);
 			UpdateFilterControlStates();
 			PopulateGrid();
 		}
@@ -745,6 +750,8 @@ namespace Augments
 				AugmentSortMode.RarityHighLow => "Sort: Rarity ▼",
 				AugmentSortMode.RarityLowHigh => "Sort: Rarity ▲",
 				AugmentSortMode.Class => "Sort: Class ▾",
+				AugmentSortMode.Newest => "Sort: Newest ▾",
+				AugmentSortMode.Oldest => "Sort: Oldest ▾",
 				_ => "Sort: A → Z ▾"
 			};
 		}
@@ -834,10 +841,12 @@ namespace Augments
 				if (aug.Id == "debug_full_crit")
 					continue;
 
-				// Status filter (Equipped / Unequipped)
+				// Status filter (Equipped / Unequipped / NewOnly)
 				if (currentStatusFilter == AugmentStatusFilter.Equipped && !ap.HasAugment(aug.Id))
 					continue;
 				if (currentStatusFilter == AugmentStatusFilter.Unequipped && ap.HasAugment(aug.Id))
+					continue;
+				if (currentStatusFilter == AugmentStatusFilter.NewOnly && !aug.IsRecent)
 					continue;
 
 				// Rarity filter
@@ -848,14 +857,22 @@ namespace Augments
 				if (currentClassFilter.HasValue && aug.Class != currentClassFilter.Value)
 					continue;
 
-				// Search query filter (matches DisplayName or clean Description)
+				// Search query filter (matches DisplayName, clean Description, or #new / tag:new)
 				if (hasQuery)
 				{
-					string cleanDesc = CleanSearchText(aug.Description);
-					bool nameMatch = aug.DisplayName.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
-					bool descMatch = cleanDesc.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
-					if (!nameMatch && !descMatch)
-						continue;
+					if (query.Equals("#new", StringComparison.OrdinalIgnoreCase) || query.Equals("tag:new", StringComparison.OrdinalIgnoreCase))
+					{
+						if (!aug.IsRecent)
+							continue;
+					}
+					else
+					{
+						string cleanDesc = CleanSearchText(aug.Description);
+						bool nameMatch = aug.DisplayName.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
+						bool descMatch = cleanDesc.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
+						if (!nameMatch && !descMatch)
+							continue;
+					}
 				}
 
 				filtered.Add(aug);
@@ -885,6 +902,8 @@ namespace Augments
 					AugmentSortMode.Class => a.Class.CompareTo(b.Class) != 0
 						? a.Class.CompareTo(b.Class)
 						: string.Compare(a.DisplayName, b.DisplayName, StringComparison.OrdinalIgnoreCase),
+					AugmentSortMode.Newest => b.RegistrationOrder.CompareTo(a.RegistrationOrder),
+					AugmentSortMode.Oldest => a.RegistrationOrder.CompareTo(b.RegistrationOrder),
 					_ => string.Compare(a.DisplayName, b.DisplayName, StringComparison.OrdinalIgnoreCase)
 				};
 			});
@@ -1508,6 +1527,15 @@ namespace Augments
 				ChatManager.DrawColorCodedStringWithShadow(
 					spriteBatch, font, statusText, new Vector2(x, y), statusColor, 0f, Vector2.Zero, new Vector2(0.80f)
 				);
+
+				if (currentAugment.IsRecent)
+				{
+					float statusWidth = ChatManager.GetStringSize(font, statusText, new Vector2(0.80f)).X;
+					string recentTag = "★ RECENT (v1.3)";
+					ChatManager.DrawColorCodedStringWithShadow(
+						spriteBatch, font, recentTag, new Vector2(x + statusWidth + 14f, y), new Color(250, 204, 21), 0f, Vector2.Zero, new Vector2(0.80f)
+					);
+				}
 				y += ChatManager.GetStringSize(font, statusText, new Vector2(0.80f)).Y + 8f;
 
 				// 4. Subtle Divider Line (matches rarity tier)
@@ -2230,6 +2258,20 @@ namespace Augments
 					sortButtons.Add((def.sort, btn));
 					rowX += def.w + 10f;
 				}
+				curY += 25f;
+
+				(AugmentSortMode sort, string name, float w)[] sortDefsRow3 = {
+					(AugmentSortMode.Newest, "★ Newest First", 146f),
+					(AugmentSortMode.Oldest, "Oldest / Release", 146f)
+				};
+				rowX = 4f;
+				foreach (var def in sortDefsRow3)
+				{
+					var btn = CreatePill(def.name, def.w, 22f, rowX, curY);
+					btn.Clicked += () => state.SetSortMode(def.sort);
+					sortButtons.Add((def.sort, btn));
+					rowX += def.w + 10f;
+				}
 				curY += 30f;
 
 				// 4. STATUS
@@ -2237,9 +2279,10 @@ namespace Augments
 				curY += 16f;
 
 				(AugmentStatusFilter st, string name, float w)[] statusDefs = {
-					(AugmentStatusFilter.All, "All", 86f),
-					(AugmentStatusFilter.Equipped, "Equipped Only", 110f),
-					(AugmentStatusFilter.Unequipped, "Unequipped", 98f)
+					(AugmentStatusFilter.All, "All", 60f),
+					(AugmentStatusFilter.Equipped, "Equipped", 74f),
+					(AugmentStatusFilter.Unequipped, "Unequipped", 80f),
+					(AugmentStatusFilter.NewOnly, "★ New Only", 88f)
 				};
 				rowX = 4f;
 				foreach (var def in statusDefs)

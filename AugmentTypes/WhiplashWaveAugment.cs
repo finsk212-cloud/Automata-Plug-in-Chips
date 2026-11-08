@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 using Augments.Core;
 
@@ -70,6 +71,8 @@ namespace Augments
             wave.originalDamage = damage;
             wave.CritChance = whip.CritChance;
             wave.ArmorPenetration = whip.ArmorPenetration;
+            if (Main.netMode != NetmodeID.SinglePlayer)
+                wave.netUpdate = true;
         }
     }
 

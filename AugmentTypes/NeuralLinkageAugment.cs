@@ -99,6 +99,8 @@ namespace Augments
             {
                 dashDir.Normalize();
                 closestMinion.velocity = dashDir * CounterDashSpeed;
+                if (Main.netMode != NetmodeID.SinglePlayer)
+                    closestMinion.netUpdate = true;
             }
 
             // Play NieR electric clink audio & laser particle effects

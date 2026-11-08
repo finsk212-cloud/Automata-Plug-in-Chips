@@ -100,6 +100,11 @@ namespace Augments
             if (!player.active)
                 return;
 
+            // In multiplayer client mode, only execute kill procs if this client is the one that scored the kill!
+            // This prevents all peer clients from running duplicate procs, modifying ghost players, or flooding packets.
+            if (Main.netMode == NetmodeID.MultiplayerClient && player.whoAmI != Main.myPlayer)
+                return;
+
             var ap = player.GetModPlayer<AugmentPlayer>();
 
             // Cryo Protocol (Absolute Zero): Slaying a chilled or Frostburned enemy shatters them into 3 homing ice shards (40 damage)

@@ -336,6 +336,33 @@ namespace Augments
 					spriteBatch, font, "✓", checkPos, AugmentTextColors.Healing, 0f, Vector2.Zero, new Vector2(0.55f)
 				);
 			}
+
+			// 8. New / Recently Added Indicator Badge
+			if (Augment.IsRecent)
+			{
+				Rectangle newBadgeRect = new Rectangle(rect.X + 3, rect.Y + 3, 23, 11);
+				Texture2D pixel = TextureAssets.MagicPixel.Value;
+
+				// Pill background (#22180A at 95% opacity)
+				spriteBatch.Draw(pixel, newBadgeRect, new Color(34, 24, 10) * 0.95f);
+
+				// 1px Outer border in golden amber
+				Color newBorderCol = new Color(250, 204, 21) * (isHovered ? 1.0f : 0.85f);
+				spriteBatch.Draw(pixel, new Rectangle(newBadgeRect.X, newBadgeRect.Y, newBadgeRect.Width, 1), newBorderCol);
+				spriteBatch.Draw(pixel, new Rectangle(newBadgeRect.X, newBadgeRect.Bottom - 1, newBadgeRect.Width, 1), newBorderCol);
+				spriteBatch.Draw(pixel, new Rectangle(newBadgeRect.X, newBadgeRect.Y, 1, newBadgeRect.Height), newBorderCol);
+				spriteBatch.Draw(pixel, new Rectangle(newBadgeRect.Right - 1, newBadgeRect.Y, 1, newBadgeRect.Height), newBorderCol);
+
+				// Crisp "NEW" label centered in the pill
+				Vector2 newTextSz = ChatManager.GetStringSize(font, "NEW", new Vector2(0.42f));
+				Vector2 newTextPos = new Vector2(
+					newBadgeRect.X + (newBadgeRect.Width - newTextSz.X) * 0.5f,
+					newBadgeRect.Y + (newBadgeRect.Height - newTextSz.Y) * 0.5f - 1f
+				);
+				ChatManager.DrawColorCodedStringWithShadow(
+					spriteBatch, font, "NEW", newTextPos, new Color(254, 240, 138), 0f, Vector2.Zero, new Vector2(0.42f)
+				);
+			}
 		}
 
 		public static Texture2D GetClassIcon(AugmentClass augmentClass)

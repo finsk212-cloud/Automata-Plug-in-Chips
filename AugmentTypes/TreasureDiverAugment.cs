@@ -43,6 +43,9 @@ namespace Augments
         // aren't from Lucky Find.
         public override void OnKillNPC(Player player, NPC npc)
         {
+            if (Main.netMode == NetmodeID.MultiplayerClient)
+                return;
+
             if (!player.wet)
                 return;
 

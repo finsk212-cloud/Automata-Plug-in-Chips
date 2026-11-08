@@ -67,6 +67,13 @@ namespace Augments
 		public abstract AugmentRarity Rarity { get; }
 		public abstract AugmentClass Class { get; }
 
+		// Tracks chronological registration / release order (0 = oldest).
+		// Automatically assigned by AugmentDatabase.Register.
+		public int RegistrationOrder { get; internal set; }
+
+		// Indicates whether this plugin was added in the recent updates (v1.3+).
+		public virtual bool IsRecent => RegistrationOrder >= AugmentDatabase.FirstRecentIndex;
+
 		// The description with fixed damage numbers already scaled to the current world stage.
 		public string LiveDescription => AugmentScaling.ApplyToText(Description, GetScalingEntries(), false);
 

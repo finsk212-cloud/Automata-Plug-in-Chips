@@ -48,10 +48,6 @@ namespace Augments
             Register(new TimeWarpAugment());
             Register(new LuckyFindAugment());
             Register(new SteadyHandsAugment());
-            Register(new AfterburnerAugment());
-            Register(new TrickShotAugment());
-            Register(new WhiplashWaveAugment());
-            Register(new DeadWeightAugment());
             Register(new MeteorStrikeAugment());
             Register(new SwarmTacticsAugment());
             Register(new FrostboundAugment());
@@ -69,21 +65,16 @@ namespace Augments
             Register(new ReforgersPatienceAugment());
             Register(new SpectralGuardAugment());
             Register(new SharpshooterAugment());
-            Register(new PointBlankAugment());
-            Register(new ArmorPiercerAugment());
             Register(new ScavengersLuckAugment());
             Register(new QuickfireAugment());
             Register(new VoidStepAugment());
             Register(new RavenousSwarmAugment());
             Register(new DeadeyeAugment());
-            Register(new PhaseRoundAugment());
-            Register(new ChaosRoundsAugment());
             Register(new IroncladWillAugment());
             Register(new ApexHunterAugment());
             Register(new InfernosHeartAugment());
             Register(new VitalEchoAugment());
             Register(new EternalLegionAugment());
-            Register(new SiegeBatteryAugment());
             Register(new BulwarkAugment());
             Register(new VolatileRoundsAugment());
             Register(new WildCardAugment());
@@ -107,13 +98,8 @@ namespace Augments
             Register(new SentrysResolveAugment());
             Register(new WhipCrackerAugment());
             Register(new WhipMasterAugment());
-            Register(new FocusDirectiveAugment());
-            Register(new SentrySalvoAugment());
             Register(new QuickcastAugment());
             Register(new WandDisciplineAugment());
-            Register(new CelestialPullAugment());
-            Register(new ArcaneSparkAugment());
-            Register(new AstralSiphonAugment());
             Register(new FrenziedAssaultAugment());
             Register(new MomentumCrashAugment());
             Register(new TrophyHunterAugment());
@@ -133,29 +119,48 @@ namespace Augments
             Register(new SoulLinkAugment());
             Register(new MartyrsResolveAugment());
             Register(new CombatMedicAugment());
-            Register(new CalloutAugment());
             Register(new LastRitesAugment());
             Register(new LifelineAugment());
             Register(new UndyingBondAugment());
-            Register(new SoulMartyrAugment());
             Register(new RevitalizingWaveAugment());
             Register(new TauntAugment());
             Register(new CleanseAugment());
-            Register(new ChronobreakAugment());
-            Register(new GetOverHereAugment());
             Register(new SwiftReturnAugment());
             Register(new PiercingShotAugment());
             Register(new RapidFireAugment());
             Register(new GlassSightAugment());
             Register(new SharpenedFocusAugment());
+
+            // --- Recent Plugins (v1.3+ & Diagnostics) ---
+            Register(new FocusDirectiveAugment());
+            Register(new PointBlankAugment());
+            Register(new ArmorPiercerAugment());
+            Register(new CelestialPullAugment());
+            Register(new ArcaneSparkAugment());
+            Register(new AstralSiphonAugment());
+            Register(new SentrySalvoAugment());
             Register(new SuperchargerAugment());
+            Register(new SoulMartyrAugment());
             Register(new AutopilotAugment());
+            Register(new PhaseRoundAugment());
+            Register(new ChaosRoundsAugment());
+            Register(new SiegeBatteryAugment());
+            Register(new CalloutAugment());
+            Register(new ChronobreakAugment());
+            Register(new GetOverHereAugment());
+            Register(new AfterburnerAugment());
+            Register(new TrickShotAugment());
+            Register(new WhiplashWaveAugment());
+            Register(new DeadWeightAugment());
             Register(new HexDetonationAugment());
             Register(new NeuralLinkageAugment());
         }
 
+        public const int FirstRecentIndex = 118;
+
         private static void Register(Augment augment)
         {
+            augment.RegistrationOrder = All.Count;
             All.Add(augment);
             ById[augment.Id] = augment;
         }
