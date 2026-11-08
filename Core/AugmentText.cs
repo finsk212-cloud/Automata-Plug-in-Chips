@@ -24,6 +24,7 @@ namespace Augments
         public static string Defense(string text) => Color(text, AugmentTextColors.DefenseHex);
         public static string AttackSpeed(string text) => Color(text, AugmentTextColors.AttackSpeedHex);
         public static string MovementSpeed(string text) => Color(text, AugmentTextColors.MovementSpeedHex);
+        public static string Velocity(string text) => Color(text, AugmentTextColors.VelocityHex);
         public static string Mana(string text) => Color(text, AugmentTextColors.ManaHex);
         public static string Cooldown(string text) => Color(text, AugmentTextColors.CooldownHex);
         public static string Duration(string text) => Color(text, AugmentTextColors.DurationHex);

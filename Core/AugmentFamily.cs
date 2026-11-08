@@ -277,7 +277,7 @@ namespace Augments.Core
 						"Pinpoint Ballistics",
 						new string[]
 						{
-							$"Ranged projectile velocity is increased by {AugmentText.AttackSpeed("+25%")}",
+							$"Ranged projectile velocity is increased by {AugmentText.Velocity("+25%")}",
 							$"Ranged hits from beyond 350 pixels mark the target with a Kinetic Mark for {AugmentText.Duration("4s")}",
 							$"{AugmentText.Crit("Critical strikes")} against marked targets gain {AugmentText.Defense("+15 Armor Penetration")} and detonate 3 kinetic shrapnel flechettes ({AugmentText.SpecialDamage("35 damage")}, at most once per second)"
 						}

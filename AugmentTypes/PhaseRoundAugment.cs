@@ -13,12 +13,12 @@ namespace Augments
         public override string Id          => "phase_round";
         public override string DisplayName => "Phase Round";
         public override string Description =>
-            $"Your arrows and bullets pass through {AugmentText.Trigger("tiles")}, so you can hit enemies behind walls.";
+            $"Arrows and bullets can {AugmentText.Trigger("pass through walls")}.";
 
         public override string GetDetailedDescription(Player player) =>
-            $"Your arrows and bullets pass through {AugmentText.Trigger("tiles")}, so you can hit enemies behind walls. " +
+            Description + "\n" +
             $"A shot is removed after {AugmentText.Duration("1 second")} spent inside blocks.\n" +
-            $"[c/94A3B8:(Rockets, grenades and other special projectiles are not affected.)]";
+            AugmentText.Note("(Rockets, grenades and other special projectiles are not affected.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass  Class  => AugmentClass.Ranged;

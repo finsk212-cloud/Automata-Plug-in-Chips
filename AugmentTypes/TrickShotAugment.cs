@@ -15,7 +15,7 @@ namespace Augments
         public override string Description =>
             $"Arrows and bullets {AugmentText.Trigger("bounce off walls")} up to 3 times, gaining {AugmentText.BonusDamage("+30% damage")} per bounce. " +
             $"Bounced shots always {AugmentText.Crit("crit")} and gain {AugmentText.Defense("+8 armor penetration")}. " +
-            $"Arrows and bullets fly {AugmentText.MovementSpeed("10% faster")}.";
+            $"Grants {AugmentText.Velocity("+10% velocity")}.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +

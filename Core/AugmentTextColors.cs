@@ -13,6 +13,7 @@ namespace Augments
         public const string ManaHex = "60A5FA";          // Mana, mana cost (Mystic blue)
         public const string AttackSpeedHex = "FB923C";   // Attack speed (Swift amber-orange)
         public const string MovementSpeedHex = "2DD4BF"; // Movement speed (Wind teal/turquoise)
+        public const string VelocityHex = "2DD4BF";      // Velocity & projectile speed (Wind teal/turquoise)
 
         // Timing & Structure
         public const string OnHitHex = "FF3EA5";         // on hit, on-hit combat triggers (Vivid electric fuchsia/magenta)
@@ -41,6 +42,7 @@ namespace Augments
         public static readonly Color Mana = new Color(96, 165, 250);
         public static readonly Color AttackSpeed = new Color(251, 146, 60);
         public static readonly Color MovementSpeed = new Color(45, 212, 191);
+        public static readonly Color Velocity = new Color(45, 212, 191);
 
         public static readonly Color OnHit = new Color(255, 62, 165);
         public static readonly Color Trigger = new Color(255, 167, 51);
