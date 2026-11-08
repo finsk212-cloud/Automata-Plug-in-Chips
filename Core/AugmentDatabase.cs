@@ -154,6 +154,7 @@ namespace Augments
             Register(new DeadWeightAugment());
             Register(new HexDetonationAugment());
             Register(new NeuralLinkageAugment());
+            Register(new VoltTetherAugment());
         }
 
         public const int FirstRecentIndex = 118;
