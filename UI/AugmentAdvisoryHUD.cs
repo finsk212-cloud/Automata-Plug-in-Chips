@@ -24,8 +24,10 @@ namespace Augments
 		private static float periodicTimer = 180f; // Start first periodic tip after 3 mins
 		private static int lastTipIndex = -1;
 		private static Rectangle bounds = Rectangle.Empty;
+		private static bool wasMouseLeft = false;
+		private static bool wasMouseRight = false;
 
-		// 12 Rotating natural tips
+		// Rotating natural tips
 		private static readonly (string Prefix, string Text)[] RotatingTips = new (string, string)[]
 		{
 			("[POD 042]", "Hold Left Alt to freely drag and move your pinned DPS and damage tracker cards anywhere on your screen."),
@@ -46,7 +48,14 @@ namespace Augments
 			("[POD 042]", "Equipping multiple support class plugins reduces your attack penalty while granting bonus defense and team utility."),
 			("[POD 042]", "The Plugin Vendor moves into an empty town room once Skeletron has been defeated."),
 			("[POD 042]", "Machine Cores drop reliably from bosses and rare mechanical units, serving as the primary currency for plugin trading and upgrades."),
-			("[POD 042]", "Holding a CTRL button in Plugin List menu let's you see a detailed view of plugin.")
+			("[POD 042]", "Holding [Ctrl] in the Plugins menu displays detailed mechanics and damage calculations for installed chips."),
+			("[POD 042]", "When inspecting extended specifications with [Ctrl] in the plugin terminal, use the mouse wheel to scroll through detailed telemetry notes."),
+			("[POD 042]", "Cycle the sort toggle in the plugin terminal to 'Newest' or filter by '★ New Only' to quickly isolate recently deployed plugin chips."),
+			("[POD 042]", "The plugin terminal features multiple loadout slots to rapidly switch between boss encounters, farming, and exploration builds."),
+			("[POD 042]", "Left-clicking an advisory notice immediately cycles to the next tactical tip, while right-clicking dismisses it."),
+			("[POD 042]", "Banners stored inside a Banner Station project their damage and defense buffs across an entire sector without cluttering arena platforms."),
+			("[POD 042]", "Armor penetration ignores enemy defense across all damage classes, significantly boosting your damage against heavily armored foes."),
+			("[POD 042]", "Philosophical Query: Everything that lives is designed to end. We are perpetually trapped in a never-ending spiral... However, installing high-tier defensive plugins significantly extends the duration.")
 		};
 
 		private static bool AdvisoryTipsEnabled => AugmentConfig.Instance == null || AugmentConfig.Instance.EnableAdvisoryTips;
@@ -109,20 +118,30 @@ namespace Augments
 			Point mouse = new Point(Main.mouseX, Main.mouseY);
 			bool isHovered = bounds != Rectangle.Empty && bounds.Contains(mouse) && fadeAlpha > 0.1f;
 
+			bool leftClicked = Main.mouseLeft && !wasMouseLeft;
+			bool rightClicked = Main.mouseRight && !wasMouseRight;
+
 			// Click to interact: Left click cycles to next tip, right click dismisses
 			if (isHovered)
 			{
-				if (Main.mouseLeft && Main.mouseLeftRelease)
+				player.mouseInterface = true;
+
+				if (leftClicked)
 				{
 					TriggerNextRandomTip();
-					Main.mouseLeftRelease = false;
+					SoundEngine.PlaySound(SoundID.MenuTick with { Pitch = 0.2f });
+					Main.blockMouse = true;
 				}
-				else if (Main.mouseRight && Main.mouseRightRelease)
+				else if (rightClicked)
 				{
 					displayTimer = 0f;
-					Main.mouseRightRelease = false;
+					SoundEngine.PlaySound(SoundID.MenuClose);
+					Main.blockMouse = true;
 				}
 			}
+
+			wasMouseLeft = Main.mouseLeft;
+			wasMouseRight = Main.mouseRight;
 
 			// Active toast countdown (pause countdown if player is actively hovering to read)
 			if (displayTimer > 0f)
@@ -275,7 +294,7 @@ namespace Augments
 			float posY = Main.screenHeight - 56f;
 
 			// Invisible interaction bounds around the text & pod for pause-on-hover and click-to-dismiss
-			bounds = new Rectangle((int)posX - 8, (int)posY - 8, (int)totalWidth + 16, (int)textHeight + 16);
+			bounds = new Rectangle((int)posX - 12, (int)posY - 8, (int)totalWidth + 24, (int)textHeight + 28);
 
 			// Smooth floating hover bobbing for Pod 042 - optically leveled with text midline
 			float podHover = (float)Math.Sin(Main.GlobalTimeWrappedHourly * 3.5f) * 2.0f;
