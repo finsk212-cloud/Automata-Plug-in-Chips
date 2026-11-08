@@ -1142,6 +1142,17 @@ namespace Augments
 			private Rectangle keyLabelRect;
 			private bool hasKeyLabel;
 
+			// Scrolling support for long/detailed descriptions
+			private float descScroll = 0f;
+			private Augment lastScrolledAugment;
+			private bool lastScrolledCtrl;
+
+			public override void ScrollWheel(UIScrollWheelEvent evt)
+			{
+				base.ScrollWheel(evt);
+				descScroll -= Math.Sign(evt.ScrollWheelValue) * 22f;
+			}
+
 			public AugmentDetailPanel(AugmentListUIState parentState)
 			{
 				this.parentState = parentState;
@@ -1180,6 +1191,8 @@ namespace Augments
 
 			public void SetAugment(Augment augment, bool isOwned)
 			{
+				if (currentAugment != augment)
+					descScroll = 0f;
 				currentAugment = augment;
 				currentIsOwned = isOwned;
 				UpdateDevEquipBtnText();
@@ -1547,6 +1560,13 @@ namespace Augments
 				bool isCtrlDown = Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftControl) ||
 				                  Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.RightControl);
 
+				if (currentAugment != lastScrolledAugment || isCtrlDown != lastScrolledCtrl)
+				{
+					descScroll = 0f;
+					lastScrolledAugment = currentAugment;
+					lastScrolledCtrl = isCtrlDown;
+				}
+
 				string headerTitle = isCtrlDown ? "EFFECT (DETAILED)" : "EFFECT";
 				ChatManager.DrawColorCodedStringWithShadow(
 					spriteBatch, font, headerTitle, new Vector2(x, y), new Color(250, 204, 21), 0f, Vector2.Zero, new Vector2(0.72f)
@@ -1556,49 +1576,108 @@ namespace Augments
 				// 6. Wrapped Description with chat colors (stripping inline cooldown clause)
 				ExtractDescriptionAndCooldown(currentAugment, out string effectText, out string cooldownText, isCtrlDown, Main.LocalPlayer);
 
-				var descScale = new Vector2(0.82f);
-				var lines = AugmentColorText.Wrap(font, effectText, maxTextWidth, descScale);
+				float footerTop = !string.IsNullOrEmpty(cooldownText) ? (dims.Y + dims.Height - 64f) : (dims.Y + dims.Height - 36f);
+				float descStartY = y;
+				float availableHeight = Math.Max(30f, footerTop - descStartY);
+
 				bool canRebind = currentAugment.ActiveModKeybind != null;
+				float baseScaleVal = 0.82f;
+				var descScale = new Vector2(baseScaleVal);
+				var lines = AugmentColorText.Wrap(font, effectText, maxTextWidth, descScale);
+
+				float totalContentHeight = 0f;
+				foreach (var line in lines)
+				{
+					totalContentHeight += ChatManager.GetStringSize(font, line, descScale).Y + 2f;
+				}
+				if (canRebind && KeybindEditor.IsListeningFor(currentAugment.ActiveModKeybind))
+				{
+					totalContentHeight += 26f;
+				}
+
+				// If content overflows the available height, auto-fit scale down to 0.70f
+				if (totalContentHeight > availableHeight)
+				{
+					float fitScaleVal = MathHelper.Clamp(baseScaleVal * (availableHeight / totalContentHeight), 0.70f, baseScaleVal);
+					if (fitScaleVal < baseScaleVal)
+					{
+						descScale = new Vector2(fitScaleVal);
+						lines = AugmentColorText.Wrap(font, effectText, maxTextWidth, descScale);
+						totalContentHeight = 0f;
+						foreach (var line in lines)
+						{
+							totalContentHeight += ChatManager.GetStringSize(font, line, descScale).Y + 2f;
+						}
+						if (canRebind && KeybindEditor.IsListeningFor(currentAugment.ActiveModKeybind))
+						{
+							totalContentHeight += 26f;
+						}
+					}
+				}
+
+				float maxScroll = Math.Max(0f, totalContentHeight - availableHeight);
+				descScroll = MathHelper.Clamp(descScroll, 0f, maxScroll);
+
+				float currentY = descStartY - descScroll;
 				foreach (var line in lines)
 				{
 					float lineHeight = ChatManager.GetStringSize(font, line, descScale).Y;
 
-					// The "[key]" inside the description is the rebind button: highlight it under the text.
-					if (canRebind && !hasKeyLabel && KeybindEditor.TryFindLabel(line, out int labelStart, out int labelLength))
+					// Only draw line if it's within the visible viewport bounds
+					if (currentY + lineHeight >= descStartY && currentY <= footerTop)
 					{
-						float labelX = x + ChatManager.GetStringSize(font, line.Substring(0, labelStart), descScale).X;
-						float labelW = ChatManager.GetStringSize(font, line.Substring(labelStart, labelLength), descScale).X;
-						keyLabelRect = new Rectangle((int)labelX - 2, (int)y, (int)labelW + 4, (int)lineHeight);
-						hasKeyLabel = true;
+						// The "[key]" inside the description is the rebind button: highlight it under the text.
+						if (canRebind && !hasKeyLabel && KeybindEditor.TryFindLabel(line, out int labelStart, out int labelLength))
+						{
+							float labelX = x + ChatManager.GetStringSize(font, line.Substring(0, labelStart), descScale).X;
+							float labelW = ChatManager.GetStringSize(font, line.Substring(labelStart, labelLength), descScale).X;
+							keyLabelRect = new Rectangle((int)labelX - 2, (int)currentY, (int)labelW + 4, (int)lineHeight);
+							hasKeyLabel = true;
 
-						bool listening = KeybindEditor.IsListeningFor(currentAugment.ActiveModKeybind);
-						bool hovered = keyLabelRect.Contains(Main.mouseX, Main.mouseY);
-						float pulse = (float)Math.Sin(time * 8f) * 0.5f + 0.5f;
-						Color accent = listening ? AugmentTextColors.Active : new Color(125, 211, 252);
-						float fillAlpha = listening ? 0.14f + pulse * 0.12f : (hovered ? 0.16f : 0.07f);
+							bool listening = KeybindEditor.IsListeningFor(currentAugment.ActiveModKeybind);
+							bool hovered = keyLabelRect.Contains(Main.mouseX, Main.mouseY);
+							float pulse = (float)Math.Sin(time * 8f) * 0.5f + 0.5f;
+							Color accent = listening ? AugmentTextColors.Active : new Color(125, 211, 252);
+							float fillAlpha = listening ? 0.14f + pulse * 0.12f : (hovered ? 0.16f : 0.07f);
 
-						var pill = new Rectangle(keyLabelRect.X, (int)(y + lineHeight * 0.30f), keyLabelRect.Width, (int)(lineHeight * 0.66f));
-						spriteBatch.Draw(pixel, pill, accent * fillAlpha);
-						spriteBatch.Draw(pixel, new Rectangle(pill.X, pill.Bottom - 1, pill.Width, 1), accent * (listening || hovered ? 0.85f : 0.45f));
+							var pill = new Rectangle(keyLabelRect.X, (int)(currentY + lineHeight * 0.30f), keyLabelRect.Width, (int)(lineHeight * 0.66f));
+							spriteBatch.Draw(pixel, pill, accent * fillAlpha);
+							spriteBatch.Draw(pixel, new Rectangle(pill.X, pill.Bottom - 1, pill.Width, 1), accent * (listening || hovered ? 0.85f : 0.45f));
 
-						if (hovered && !listening)
-							Main.instance.MouseText("Click to change this key");
+							if (hovered && !listening)
+								Main.instance.MouseText("Click to change this key");
+						}
+
+						ChatManager.DrawColorCodedStringWithShadow(
+							spriteBatch, font, line, new Vector2(x, currentY), Color.White * 0.95f, 0f, Vector2.Zero, descScale
+						);
 					}
 
-					ChatManager.DrawColorCodedStringWithShadow(
-						spriteBatch, font, line, new Vector2(x, y), Color.White * 0.95f, 0f, Vector2.Zero, descScale
-					);
-					y += lineHeight + 2f;
+					currentY += lineHeight + 2f;
 				}
 
 				// 7. While a key is being picked, say so (the key itself lives in the description above)
 				if (canRebind && KeybindEditor.IsListeningFor(currentAugment.ActiveModKeybind))
 				{
-					y += 6f;
-					ChatManager.DrawColorCodedStringWithShadow(
-						spriteBatch, font, "Press any key to bind it  •  Esc to cancel", new Vector2(x, y),
-						AugmentTextColors.Active * 0.9f, 0f, Vector2.Zero, new Vector2(0.72f)
-					);
+					currentY += 6f;
+					if (currentY >= descStartY && currentY <= footerTop)
+					{
+						ChatManager.DrawColorCodedStringWithShadow(
+							spriteBatch, font, "Press any key to bind it  •  Esc to cancel", new Vector2(x, currentY),
+							AugmentTextColors.Active * 0.9f, 0f, Vector2.Zero, new Vector2(0.72f)
+						);
+					}
+				}
+
+				// Sleek high-tech mini scroll indicator if content overflows and can be scrolled
+				if (maxScroll > 0f)
+				{
+					float scrollTrackX = dims.X + dims.Width - 8f;
+					spriteBatch.Draw(pixel, new Rectangle((int)scrollTrackX, (int)descStartY, 2, (int)availableHeight), new Color(30, 42, 66) * 0.75f);
+
+					float thumbH = Math.Max(14f, availableHeight * (availableHeight / totalContentHeight));
+					float thumbY = descStartY + (availableHeight - thumbH) * (descScroll / maxScroll);
+					spriteBatch.Draw(pixel, new Rectangle((int)scrollTrackX, (int)thumbY, 2, (int)thumbH), new Color(56, 189, 248) * 0.85f);
 				}
 
 				// 8. Cooldown footer displayed at bottom of card with clean telemetry layout
@@ -1617,6 +1696,10 @@ namespace Augments
 				// 9. 50% alpha text under card preview: "Hold [Ctrl] for detailed view"
 				float hintY = dims.Y + dims.Height - 28f;
 				string hintText = isCtrlDown ? "Release [Ctrl] for standard view" : "Hold [Ctrl] for detailed view";
+				if (maxScroll > 0f)
+				{
+					hintText += "  •  Scroll with mouse wheel";
+				}
 				Color hintColor = isCtrlDown ? new Color(250, 204, 21) * 0.75f : Color.White * 0.50f;
 				Vector2 hintSize = ChatManager.GetStringSize(font, hintText, new Vector2(0.68f));
 				ChatManager.DrawColorCodedStringWithShadow(

@@ -18,19 +18,19 @@ namespace Augments
         public override string DisplayName => "Volt Tether";
         public override string Description =>
             $"High-voltage arcs {AugmentText.Trigger("tether you to your 2 nearest minions")}. " +
-            $"Enemies caught in the electric arcs take continuous {AugmentText.SpecialDamage("22 summon damage")} and are {AugmentText.Electrified("Electrified")}.";
+            $"Enemies caught in the electric arcs take continuous {AugmentText.SpecialDamage("8 summon damage")} and are {AugmentText.Electrified("Electrified")}.";
 
         public override string GetDetailedDescription(Player player) =>
-            Description + "\n" +
-            AugmentText.Note("(Tether range is 550 pixels. If you have 2 or more minions active, an electric cross-tether also links them together. Deals damage up to 5 times per second, scaling with world progression and summon damage.)\n" +
-            AugmentText.Note("[Electrified: Inflicts electric shock damage over time, which quadruples while the enemy is moving.]"));
+            AugmentScaling.ApplyToText(Description, GetScalingEntries()) + "\n" +
+            AugmentText.Note("(Tether: 550px range. 2+ minions also cross-tether. Ticks 4x/sec, scaling with world and summon damage.)\n" +
+            AugmentText.Note("[Electrified: Electric DoT that quadruples while moving.]"));
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Summon;
 
-        public const int BaseDamage = 22;
+        public const int BaseDamage = 8;
         public const float MaxTetherDistance = 550f;
-        public const int HitCooldownTicks = 12; // 5 hits per second max per enemy
+        public const int HitCooldownTicks = 15; // 4 hits per second max per enemy
         public const float LineCollisionWidth = 14f;
 
         public override (string label, int baseValue)[] GetScalingEntries()
