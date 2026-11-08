@@ -322,12 +322,19 @@ Projectiles: {
 	MediGunSiphonBeamProjectile.DisplayName: Medi Gun Siphon Beam
 	CryoIceShardProjectile.DisplayName: Cryo Ice Shard Projectile
 	KineticShrapnelProjectile.DisplayName: Kinetic Shrapnel Projectile
+	AutopilotPodProjectile.DisplayName: Autopilot Pod Projectile
+	SiegeShellProjectile.DisplayName: Siege Shell Projectile
 }
 
 Configs: {
 	AugmentConfig: {
 		DisplayName: Automata Configuration
-		Headers.HiddenStatsSettings: Hidden Telemetry & Diagnostics Settings
+
+		Headers: {
+			HiddenStatsSettings: Hidden Telemetry & Diagnostics Settings
+			AdvisorySettings: Pod 042 Advisory Tips
+			SoundSettings: Sound Settings
+		}
 
 		EnableHiddenStatsPanel: {
 			Label: Enable Hidden Stats Drawer
@@ -344,8 +351,6 @@ Configs: {
 			Tooltip: When enabled, docks the drawer tab on the right side of the screen instead of the left side.
 		}
 
-		Headers.AdvisorySettings: Pod 042 Advisory Tips
-
 		EnableAdvisoryTips: {
 			Label: Enable Advisory Tips
 			Tooltip: Shows the automatic Pod 042 tips at the bottom of the screen (periodic hints and first-time tutorials). The TIP button and hotkey still work when this is off.
@@ -355,8 +360,6 @@ Configs: {
 			Label: Tip Interval (Minutes)
 			Tooltip: How many minutes pass between automatic Pod 042 tips. Tips are paused during boss fights.
 		}
-
-		Headers.SoundSettings: Sound Settings
 
 		EnableGetOverHereSfx: {
 			Label: Custom "Get over here!" Sound Effects
@@ -372,8 +375,10 @@ Configs: {
 			Tooltip: Turns on the /augment command, the dev-mode chip editor and the dev keybinds (spawn vendor, trigger reward, reset cooldowns). Leave OFF on public servers - anyone could grant themselves chips.
 		}
 
-		Headers.VanillaDamageScaling: Damage Scaling - Vanilla Progression
-		Headers.CalamityDamageScaling: Damage Scaling - Calamity Progression (needs Calamity)
+		Headers: {
+			VanillaDamageScaling: Damage Scaling - Vanilla Progression
+			CalamityDamageScaling: Damage Scaling - Calamity Progression (needs Calamity)
+		}
 
 		ScaleStart: {
 			Label: Start (no bosses)

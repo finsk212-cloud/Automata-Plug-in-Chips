@@ -151,6 +151,7 @@ namespace Augments
             Register(new SuperchargerAugment());
             Register(new AutopilotAugment());
             Register(new HexDetonationAugment());
+            Register(new NeuralLinkageAugment());
         }
 
         private static void Register(Augment augment)

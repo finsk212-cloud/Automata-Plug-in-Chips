@@ -150,6 +150,7 @@ namespace Augments
 			PiedPiperCooldown = 0;
 			PiedPiperDurationRemaining = 0;
 			SiegeBatteryCooldown = 0;
+			NeuralLinkageCooldown = 0;
 			PotionRushTimer = 0;
 			QuickRecoveryRegenTimer = 0;
 			RavenousSwarmSlotsGranted = 0;
