@@ -187,9 +187,7 @@ Items: {
 	}
 }
 
-Tiles: {
-	BannerStationTile.MapEntry: Banner Station
-}
+Tiles.BannerStationTile.MapEntry: Banner Station
 
 Buffs: {
 	MediGunCorrosionBuff: {
@@ -324,6 +322,7 @@ Projectiles: {
 	KineticShrapnelProjectile.DisplayName: Kinetic Shrapnel Projectile
 	AutopilotPodProjectile.DisplayName: Autopilot Pod Projectile
 	SiegeShellProjectile.DisplayName: Siege Shell Projectile
+	WhiplashWaveProjectile.DisplayName: Whiplash Wave Projectile
 }
 
 Configs: {
