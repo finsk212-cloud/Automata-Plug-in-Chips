@@ -155,6 +155,12 @@ namespace Augments
             Register(new HexDetonationAugment());
             Register(new NeuralLinkageAugment());
             Register(new VoltTetherAugment());
+            Register(new SugarRushAugment());
+            Register(new PartyPoppersAugment());
+            Register(new TightSqueezeAugment());
+            Register(new OneInTheChamberAugment());
+            Register(new FloorIsLavaAugment());
+            Register(new HitMeHereAugment());
         }
 
         public const int FirstRecentIndex = 118;
