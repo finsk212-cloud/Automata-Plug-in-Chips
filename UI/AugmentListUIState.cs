@@ -1695,17 +1695,33 @@ namespace Augments
 
 				// 9. 50% alpha text under card preview: "Hold [Ctrl] for detailed view"
 				float hintY = dims.Y + dims.Height - 28f;
-				string hintText = isCtrlDown ? "Release [Ctrl] for standard view" : "Hold [Ctrl] for detailed view";
+				string hintText;
 				if (maxScroll > 0f)
 				{
-					hintText += "  •  Scroll with mouse wheel";
+					hintText = isCtrlDown
+						? "Release [Ctrl]  •  Scroll with wheel"
+						: "Hold [Ctrl]  •  Scroll with wheel";
 				}
+				else
+				{
+					hintText = isCtrlDown
+						? "Release [Ctrl] for standard view"
+						: "Hold [Ctrl] for detailed view";
+				}
+
 				Color hintColor = isCtrlDown ? new Color(250, 204, 21) * 0.75f : Color.White * 0.50f;
-				Vector2 hintSize = ChatManager.GetStringSize(font, hintText, new Vector2(0.68f));
+
+				// Guarantee hint text never clips outside the card borders
+				float maxAllowedWidth = maxTextWidth - 12f;
+				Vector2 rawHintSize = ChatManager.GetStringSize(font, hintText, Vector2.One);
+				float hintScaleVal = Math.Min(0.66f, maxAllowedWidth / Math.Max(1f, rawHintSize.X));
+				var hintScale = new Vector2(hintScaleVal);
+				Vector2 hintSize = ChatManager.GetStringSize(font, hintText, hintScale);
+
 				ChatManager.DrawColorCodedStringWithShadow(
 					spriteBatch, font, hintText,
 					new Vector2(x + (maxTextWidth - hintSize.X) * 0.5f, hintY),
-					hintColor, 0f, Vector2.Zero, new Vector2(0.68f)
+					hintColor, 0f, Vector2.Zero, hintScale
 				);
 			}
 		}

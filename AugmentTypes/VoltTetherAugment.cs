@@ -22,8 +22,8 @@ namespace Augments
 
         public override string GetDetailedDescription(Player player) =>
             AugmentScaling.ApplyToText(Description, GetScalingEntries()) + "\n" +
-            AugmentText.Note("(Tether: 550px range. 2+ minions also cross-tether. Ticks 4x/sec, scaling with world and summon damage.)\n" +
-            AugmentText.Note("[Electrified: Electric DoT that quadruples while moving.]"));
+            AugmentText.Note("(Tether range: 550px. If 2+ minions are active, links them together too. Ticks 4x/sec, scaling with world and summon damage.)") + "\n" +
+            AugmentText.Note("(Electrified: Deals electric shock damage over time, quadrupled while the enemy is moving.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Summon;
