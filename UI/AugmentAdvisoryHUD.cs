@@ -54,8 +54,8 @@ namespace Augments
 			("[POD 042]", "The plugin terminal features multiple loadout slots to rapidly switch between boss encounters, farming, and exploration builds."),
 			("[POD 042]", "Left-clicking an advisory notice immediately cycles to the next tactical tip, while right-clicking dismisses it."),
 			("[POD 042]", "Banners stored inside a Banner Station project their damage and defense buffs across an entire sector without cluttering arena platforms."),
-			("[POD 042]", "Armor penetration ignores enemy defense across all damage classes, significantly boosting your damage against heavily armored foes."),
-			("[POD 042]", "Philosophical Query: Everything that lives is designed to end. We are perpetually trapped in a never-ending spiral... However, installing high-tier defensive plugins significantly extends the duration.")
+			("[POD 042]", "Armor penetration ignores enemy defense across all damage classes, significantly boosting your damage against heavily armored enemies."),
+			("[POD 042]", "Everything that lives is designed to end. We are perpetually trapped in a never-ending spiral... However, installing high-tier defensive plugins significantly extends the duration.")
 		};
 
 		private static bool AdvisoryTipsEnabled => AugmentConfig.Instance == null || AugmentConfig.Instance.EnableAdvisoryTips;
