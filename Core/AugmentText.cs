@@ -33,6 +33,7 @@ namespace Augments
         public static string Frostburn(string text) => Color(text, AugmentTextColors.FrostburnHex);
         public static string Ichor(string text) => Color(text, AugmentTextColors.IchorHex);
         public static string Bleed(string text) => Color(text, AugmentTextColors.BleedHex);
+        public static string Electrified(string text = "Electrified") => Color(text, AugmentTextColors.ElectrifiedHex);
         public static string SupportClass(string text) => Color(text, AugmentTextColors.SupportClassHex);
         public static string Active(string text) => Color(text, AugmentTextColors.ActiveHex);
         public static string BloodMoon(string text) => Color(text, AugmentTextColors.BloodMoonHex);

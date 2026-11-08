@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.Audio;
+using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.UI;
 using Augments.Core;
 
 namespace Augments
@@ -15,11 +18,12 @@ namespace Augments
         public override string DisplayName => "Volt Tether";
         public override string Description =>
             $"High-voltage arcs {AugmentText.Trigger("tether you to your 2 nearest minions")}. " +
-            $"Enemies caught in the electric arcs take continuous {AugmentText.SpecialDamage("22 summon damage")} and are {AugmentText.Trigger("Electrified")}.";
+            $"Enemies caught in the electric arcs take continuous {AugmentText.SpecialDamage("22 summon damage")} and are {AugmentText.Electrified("Electrified")}.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +
-            AugmentText.Note("(Tether range is 550 pixels. If you have 2 or more minions active, an electric cross-tether also links them together. Deals damage up to 5 times per second, scaling with world progression and summon damage.)");
+            AugmentText.Note("(Tether range is 550 pixels. If you have 2 or more minions active, an electric cross-tether also links them together. Deals damage up to 5 times per second, scaling with world progression and summon damage.)\n" +
+            AugmentText.Note("[Electrified: Inflicts electric shock damage over time, which quadruples while the enemy is moving.]"));
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Summon;
@@ -66,16 +70,15 @@ namespace Augments
             Vector2 playerCenter = player.Center;
             Vector2 m1Center = m1.Center;
 
-            // Draw visual electric particles on all clients
-            DrawTether(playerCenter, m1Center);
-
+            // Subtle electric ambient lighting along tethers (no dust particles)
+            Lighting.AddLight((playerCenter + m1Center) * 0.5f, 0.08f, 0.22f, 0.38f);
             bool hasTwo = m2 != null;
             Vector2 m2Center = hasTwo ? m2.Center : Vector2.Zero;
 
             if (hasTwo)
             {
-                DrawTether(playerCenter, m2Center);
-                DrawTether(m1Center, m2Center); // Cross-tether between the two minions
+                Lighting.AddLight((playerCenter + m2Center) * 0.5f, 0.08f, 0.22f, 0.38f);
+                Lighting.AddLight((m1Center + m2Center) * 0.5f, 0.08f, 0.22f, 0.38f);
             }
 
             // Damage and debuff application: only local player computes collisions to avoid multiplayer duplicates
@@ -129,13 +132,10 @@ namespace Augments
                     if (Main.netMode != NetmodeID.SinglePlayer)
                         NetMessage.SendData(MessageID.NPCBuffs, number: npc.whoAmI);
 
-                    // Impact electric dust sparks
-                    for (int k = 0; k < 3; k++)
-                    {
-                        Dust d = Dust.NewDustDirect(npc.position, npc.width, npc.height, DustID.Electric, 0f, 0f, 100, default, 0.85f);
-                        d.noGravity = true;
-                        d.velocity *= 0.5f;
-                    }
+                    // Minimal local impact sparks on the target hit only
+                    Dust d = Dust.NewDustDirect(npc.position, npc.width, npc.height, DustID.Electric, 0f, 0f, 100, default, 0.75f);
+                    d.noGravity = true;
+                    d.velocity *= 0.3f;
 
                     if (soundCooldown <= 0)
                     {
@@ -146,7 +146,7 @@ namespace Augments
             }
         }
 
-        private static void GetNearestMinions(Player player, float maxDist, out Projectile m1, out Projectile m2)
+        public static void GetNearestMinions(Player player, float maxDist, out Projectile m1, out Projectile m2)
         {
             m1 = null;
             m2 = null;
@@ -180,39 +180,117 @@ namespace Augments
             }
         }
 
-        private static void DrawTether(Vector2 start, Vector2 end)
+        public static void DrawAllTethers(SpriteBatch spriteBatch)
         {
-            float dist = Vector2.Distance(start, end);
-            if (dist <= 8f)
-                return;
-
-            Vector2 diff = end - start;
-            Vector2 dir = diff / dist;
-            Vector2 perp = new Vector2(-dir.Y, dir.X);
-
-            // One dust sample every ~22 pixels for smooth electric arc
-            int steps = Math.Max(3, (int)(dist / 22f));
-            float time = (float)Main.timeForVisualEffects * 0.35f;
-
-            for (int s = 0; s <= steps; s++)
+            for (int p = 0; p < Main.maxPlayers; p++)
             {
-                float t = s / (float)steps;
-                Vector2 pos = Vector2.Lerp(start, end, t);
+                Player player = Main.player[p];
+                if (!player.active || player.dead)
+                    continue;
 
-                // Electric harmonic jitter to produce a crackling arc
-                float wave = (float)Math.Sin(time * 12f + s * 1.8f) * 3.5f + Main.rand.NextFloat(-2f, 2f);
-                pos += perp * wave;
+                var ap = player.GetModPlayer<AugmentPlayer>();
+                if (!ap.HasAugment("volt_tether"))
+                    continue;
 
-                Lighting.AddLight(pos, 0.08f, 0.22f, 0.38f);
+                GetNearestMinions(player, MaxTetherDistance, out Projectile m1, out Projectile m2);
+                if (m1 == null)
+                    continue;
 
-                // Flickering probability for lively electric discharge
-                if (Main.rand.NextFloat() < 0.65f)
+                DrawStaticBeam(spriteBatch, player.Center, m1.Center);
+
+                if (m2 != null)
                 {
-                    Dust d = Dust.NewDustPerfect(pos, DustID.Electric, Vector2.Zero, 100, default, Main.rand.NextFloat(0.7f, 1.05f));
-                    d.noGravity = true;
-                    d.velocity = Vector2.Zero;
+                    DrawStaticBeam(spriteBatch, player.Center, m2.Center);
+                    DrawStaticBeam(spriteBatch, m1.Center, m2.Center);
                 }
             }
+        }
+
+        private static void DrawStaticBeam(SpriteBatch spriteBatch, Vector2 start, Vector2 end)
+        {
+            Vector2 diff = end - start;
+            float length = diff.Length();
+            if (length < 2f)
+                return;
+
+            float rotation = diff.ToRotation();
+            Vector2 origin = new Vector2(0f, 0.5f);
+            Rectangle pixelSource = new Rectangle(0, 0, 1, 1);
+            Texture2D pixel = TextureAssets.MagicPixel.Value;
+            Vector2 drawPos = start - Main.screenPosition;
+
+            float pulse = 0.5f + 0.5f * (float)Math.Sin(Main.GlobalTimeWrappedHourly * 18f);
+
+            // 1. Outer Electric Aura (Luminous electric cyan/indigo glow, soft and clean)
+            spriteBatch.Draw(
+                pixel,
+                drawPos,
+                pixelSource,
+                new Color(99, 102, 241) * 0.35f,
+                rotation,
+                origin,
+                new Vector2(length, 5f + pulse * 1.5f),
+                SpriteEffects.None,
+                0f
+            );
+
+            // 2. Inner High-Energy Core Beam (Bright electric cyan)
+            spriteBatch.Draw(
+                pixel,
+                drawPos,
+                pixelSource,
+                new Color(56, 189, 248) * 0.80f,
+                rotation,
+                origin,
+                new Vector2(length, 2f + pulse * 0.8f),
+                SpriteEffects.None,
+                0f
+            );
+
+            // 3. Central Razor Core (White-hot static filament)
+            spriteBatch.Draw(
+                pixel,
+                drawPos,
+                pixelSource,
+                Color.White * 0.95f,
+                rotation,
+                origin,
+                new Vector2(length, 1f),
+                SpriteEffects.None,
+                0f
+            );
+
+            // Anchor node points at start and end
+            DrawAnchorNode(spriteBatch, pixel, drawPos);
+            DrawAnchorNode(spriteBatch, pixel, end - Main.screenPosition);
+        }
+
+        private static void DrawAnchorNode(SpriteBatch spriteBatch, Texture2D pixel, Vector2 screenPos)
+        {
+            Rectangle nodeGlow = new Rectangle((int)screenPos.X - 3, (int)screenPos.Y - 3, 6, 6);
+            spriteBatch.Draw(pixel, nodeGlow, new Color(56, 189, 248) * 0.70f);
+
+            Rectangle nodeCore = new Rectangle((int)screenPos.X - 1, (int)screenPos.Y - 1, 2, 2);
+            spriteBatch.Draw(pixel, nodeCore, Color.White * 0.95f);
+        }
+    }
+
+    public class VoltTetherSystem : ModSystem
+    {
+        public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
+        {
+            if (Main.dedServ)
+                return;
+
+            // Insert into the game-world interface layer so it renders in world coordinates behind UI
+            layers.Insert(0, new LegacyGameInterfaceLayer(
+                "Augments: Volt Tether",
+                delegate
+                {
+                    VoltTetherAugment.DrawAllTethers(Main.spriteBatch);
+                    return true;
+                },
+                InterfaceScaleType.Game));
         }
     }
 }

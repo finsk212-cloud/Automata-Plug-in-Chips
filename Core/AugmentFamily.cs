@@ -224,9 +224,9 @@ namespace Augments.Core
 						"Superconductor",
 						new string[]
 						{
-							$"Lightning and electrical procs inflict {AugmentText.SpecialDamage("Electrified")}",
-							$"Attacks against {AugmentText.SpecialDamage("Electrified")} enemies gain {AugmentText.Crit("+8% Critical Strike Chance")}",
-							$"Attacks against {AugmentText.SpecialDamage("Electrified")} enemies have a 25% chance to arc static electricity dealing {AugmentText.SpecialDamage("25 damage")}"
+							$"Lightning and electrical procs inflict {AugmentText.Electrified("Electrified")}",
+							$"Attacks against {AugmentText.Electrified("Electrified")} enemies gain {AugmentText.Crit("+8% Critical Strike Chance")}",
+							$"Attacks against {AugmentText.Electrified("Electrified")} enemies have a 25% chance to arc static electricity dealing {AugmentText.SpecialDamage("25 damage")}"
 						}
 					)
 				}

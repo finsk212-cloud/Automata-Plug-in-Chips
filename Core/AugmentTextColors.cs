@@ -28,6 +28,7 @@ namespace Augments
         public const string FrostburnHex = "67E8F9";      // Frostburn debuff name (Frost aqua)
         public const string IchorHex = "FBBF24";         // Ichor debuff name (Ichor gold)
         public const string ImmobilizeHex = "C084FC";    // Slow, freeze, immobilize (Soft lavender)
+        public const string ElectrifiedHex = "818CF8";   // Electrified debuff name (High-voltage electric indigo)
         public const string BloodMoonHex = "FF6B6B";     // Blood Moon event keyword (Clean coral crimson)
         public const string SolarEclipseHex = "FACC15";  // Solar Eclipse event keyword (Solar gold)
         public const string NoteHex = "94A3B8";          // Technical / footnote text (Muted slate)
@@ -55,6 +56,7 @@ namespace Augments
         public static readonly Color Frostburn = new Color(103, 232, 249);
         public static readonly Color Ichor = new Color(251, 191, 36);
         public static readonly Color Immobilize = new Color(192, 132, 252);
+        public static readonly Color Electrified = new Color(129, 140, 248);
         public static readonly Color BloodMoon = new Color(255, 107, 107);
         public static readonly Color SolarEclipse = new Color(250, 204, 21);
         public static readonly Color Note = new Color(148, 163, 184);
