@@ -16,6 +16,9 @@ namespace Augments
         public const int PoolHeight = 32;
         public const int PoolDurationTicks = 240; // 4 seconds
 
+        private bool Settled => Projectile.ai[0] == 1f;
+        private bool settledVisualsDone;
+
         public override void SetDefaults()
         {
             AugmentProjectileTag tag = Projectile.GetGlobalProjectile<AugmentProjectileTag>();
@@ -25,64 +28,57 @@ namespace Augments
             tag.PreventEchoChamberCopy = true;
             tag.PreventRicochetEngineCopy = true;
 
-            Projectile.width = PoolWidth;
-            Projectile.height = PoolHeight;
+            Projectile.width = 24;
+            Projectile.height = 24;
             Projectile.friendly = true;
             Projectile.hostile = false;
             Projectile.DamageType = DamageClass.Ranged;
             Projectile.penetrate = -1;
-            Projectile.timeLeft = PoolDurationTicks;
-            Projectile.tileCollide = false;
+            Projectile.timeLeft = 360; // 6s max fall time before settling
+            Projectile.tileCollide = true;
             Projectile.ignoreWater = true;
             Projectile.usesLocalNPCImmunity = true;
             Projectile.localNPCHitCooldown = 15; // 4 hits per sec
             Projectile.alpha = 255;
         }
 
+        public override bool TileCollideStyle(ref int width, ref int height, ref bool fallThrough, ref Vector2 hitboxCenterCache)
+        {
+            fallThrough = false; // Catch on wooden platforms and arena platforms
+            return true;
+        }
+
+        public override bool OnTileCollide(Vector2 oldVelocity)
+        {
+            Settle();
+            return false;
+        }
+
         public override void AI()
         {
-            Projectile.velocity = Vector2.Zero;
-
-            // Warm, intense orange/amber ambient glow illuminating terrain and entities across the 7-tile span
-            Lighting.AddLight(Projectile.Center, 1.25f, 0.55f, 0.10f);
-
-            // Initial roaring napalm splash burst on detonation
-            if (Projectile.timeLeft == PoolDurationTicks)
+            if (Settled)
             {
-                SoundEngine.PlaySound(SoundID.Item34 with { Volume = 0.65f, Pitch = 0.10f }, Projectile.Center);
-
-                for (int i = 0; i < 30; i++)
+                if (Projectile.width != PoolWidth || Projectile.height != PoolHeight)
                 {
-                    Vector2 splashVel = new Vector2(
-                        Main.rand.NextFloat(-5.5f, 5.5f),
-                        Main.rand.NextFloat(-3.2f, -0.6f)
-                    );
-                    int dType = Main.rand.NextBool(3) ? DustID.SolarFlare : DustID.OrangeTorch;
-                    Dust splash = Dust.NewDustPerfect(
-                        Projectile.Center + new Vector2(Main.rand.NextFloat(-50f, 50f), 8f),
-                        dType,
-                        splashVel,
-                        60,
-                        default,
-                        Main.rand.NextFloat(1.5f, 2.3f)
-                    );
-                    splash.noGravity = true;
+                    float bottom = Projectile.position.Y + Projectile.height;
+                    float centerX = Projectile.position.X + Projectile.width * 0.5f;
+                    Projectile.width = PoolWidth;
+                    Projectile.height = PoolHeight;
+                    Projectile.position.X = centerX - PoolWidth * 0.5f;
+                    Projectile.position.Y = bottom - PoolHeight;
                 }
 
-                // Initial burst of smoke
-                for (int s = 0; s < 7; s++)
+                if (!settledVisualsDone)
                 {
-                    Dust smoke = Dust.NewDustPerfect(
-                        Projectile.Center + new Vector2(Main.rand.NextFloat(-40f, 40f), 0f),
-                        DustID.Smoke,
-                        new Vector2(Main.rand.NextFloat(-1.5f, 1.5f), Main.rand.NextFloat(-2.2f, -0.8f)),
-                        150,
-                        new Color(50, 45, 40),
-                        Main.rand.NextFloat(1.1f, 1.6f)
-                    );
-                    smoke.noGravity = true;
+                    settledVisualsDone = true;
+                    SoundEngine.PlaySound(SoundID.Item34 with { Volume = 0.65f, Pitch = 0.10f }, Projectile.Center);
+                    SpawnGroundSplash();
                 }
-            }
+
+                Projectile.velocity = Vector2.Zero;
+
+                // Warm, intense orange/amber ambient glow illuminating terrain and entities across the 7-tile span
+                Lighting.AddLight(Projectile.Center, 1.25f, 0.55f, 0.10f);
 
             // --- 1. Boiling Molten Liquid Bed (Dense carpet of crawling orange plasma hugging the floor) ---
             for (int b = 0; b < 3; b++)
@@ -170,6 +166,121 @@ namespace Augments
                 );
                 smoke.noGravity = true;
             }
+
+            return;
+        }
+
+            // --- Falling State: Molten napalm streaming downward toward ground ---
+            if (Projectile.localAI[0] == 0f)
+            {
+                Projectile.localAI[0] = 1f;
+                // Nudge up if spawned slightly embedded inside floor tiles
+                int safety = 0;
+                while (Collision.SolidCollision(Projectile.position, Projectile.width, Projectile.height) && safety < 16)
+                {
+                    Projectile.position.Y -= 2f;
+                    safety++;
+                }
+            }
+
+            // Downward gravity acceleration
+            Projectile.velocity.Y = Math.Min(Projectile.velocity.Y + 0.45f, 15f);
+            Projectile.velocity.X *= 0.95f;
+
+            // Failsafe: if collision stopped vertical movement, settle
+            if (Projectile.velocity.Y == 0f && Projectile.oldVelocity.Y > 0f)
+            {
+                Settle();
+                return;
+            }
+
+            // Lighting around falling napalm cluster
+            Lighting.AddLight(Projectile.Center, 1.05f, 0.45f, 0.10f);
+
+            // Trailing falling molten napalm particles
+            for (int i = 0; i < 2; i++)
+            {
+                int dType = Main.rand.NextBool(3) ? DustID.SolarFlare : DustID.OrangeTorch;
+                Dust drop = Dust.NewDustPerfect(
+                    Projectile.Center + Main.rand.NextVector2Circular(6f, 6f),
+                    dType,
+                    Projectile.velocity * -0.25f + Main.rand.NextVector2Circular(0.8f, 0.8f),
+                    50,
+                    default,
+                    Main.rand.NextFloat(1.2f, 1.7f)
+                );
+                drop.noGravity = true;
+            }
+
+            if (Main.rand.NextBool(3))
+            {
+                Dust smoke = Dust.NewDustPerfect(
+                    Projectile.Center,
+                    DustID.Smoke,
+                    new Vector2(Main.rand.NextFloat(-0.5f, 0.5f), Main.rand.NextFloat(-1.5f, -0.5f)),
+                    160,
+                    new Color(45, 40, 35),
+                    Main.rand.NextFloat(0.9f, 1.3f)
+                );
+                smoke.noGravity = true;
+            }
+        }
+
+        private void Settle()
+        {
+            if (Settled)
+                return;
+
+            Projectile.ai[0] = 1f;
+            Projectile.velocity = Vector2.Zero;
+            Projectile.tileCollide = false;
+            Projectile.timeLeft = PoolDurationTicks;
+            Projectile.netUpdate = true;
+
+            float bottom = Projectile.position.Y + Projectile.height;
+            float centerX = Projectile.position.X + Projectile.width * 0.5f;
+            Projectile.width = PoolWidth;
+            Projectile.height = PoolHeight;
+            Projectile.position.X = centerX - PoolWidth * 0.5f;
+            Projectile.position.Y = bottom - PoolHeight;
+
+            settledVisualsDone = true;
+            SoundEngine.PlaySound(SoundID.Item34 with { Volume = 0.65f, Pitch = 0.10f }, Projectile.Center);
+            SpawnGroundSplash();
+        }
+
+        private void SpawnGroundSplash()
+        {
+            for (int i = 0; i < 30; i++)
+            {
+                Vector2 splashVel = new Vector2(
+                    Main.rand.NextFloat(-5.5f, 5.5f),
+                    Main.rand.NextFloat(-3.2f, -0.6f)
+                );
+                int dType = Main.rand.NextBool(3) ? DustID.SolarFlare : DustID.OrangeTorch;
+                Dust splash = Dust.NewDustPerfect(
+                    Projectile.Center + new Vector2(Main.rand.NextFloat(-50f, 50f), 8f),
+                    dType,
+                    splashVel,
+                    60,
+                    default,
+                    Main.rand.NextFloat(1.5f, 2.3f)
+                );
+                splash.noGravity = true;
+            }
+
+            for (int s = 0; s < 7; s++)
+            {
+                Dust smoke = Dust.NewDustPerfect(
+                    Projectile.Center + new Vector2(Main.rand.NextFloat(-40f, 40f), 0f),
+                    DustID.Smoke,
+                    new Vector2(Main.rand.NextFloat(-1.5f, 1.5f), Main.rand.NextFloat(-2.2f, -0.8f)),
+                    150,
+                    new Color(50, 45, 40),
+                    Main.rand.NextFloat(1.1f, 1.6f)
+                );
+                smoke.noGravity = true;
+            }
         }
 
         public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
@@ -197,6 +308,9 @@ namespace Augments
 
         public override void OnKill(int timeLeft)
         {
+            if (!Settled)
+                return;
+
             SoundEngine.PlaySound(SoundID.Item13 with { Volume = 0.4f, Pitch = 0.35f }, Projectile.Center);
 
             for (int i = 0; i < 12; i++)

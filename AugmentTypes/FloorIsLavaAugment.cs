@@ -76,7 +76,7 @@ namespace Augments
             int poolType = ModContent.ProjectileType<NapalmPlasmaPool>();
 
             IEntitySource source = projectile.GetSource_FromThis();
-            Projectile.NewProjectile(source, projectile.Center, Vector2.Zero, poolType, finalDmg, 0f, projectile.owner);
+            Projectile.NewProjectile(source, projectile.Center, new Vector2(0f, 2f), poolType, finalDmg, 0f, projectile.owner);
         }
     }
 }
