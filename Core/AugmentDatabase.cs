@@ -161,6 +161,8 @@ namespace Augments
             Register(new OneInTheChamberAugment());
             Register(new FloorIsLavaAugment());
             Register(new HitMeHereAugment());
+            Register(new CritHappensAugment());
+            Register(new TurretSyndromeAugment());
         }
 
         public const int FirstRecentIndex = 118;
