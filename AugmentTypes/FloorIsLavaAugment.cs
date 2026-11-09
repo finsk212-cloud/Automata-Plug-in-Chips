@@ -13,17 +13,18 @@ namespace Augments
         public override string Id => "floor_is_lava";
         public override string DisplayName => "Floor is Lava";
         public override string Description =>
-            $"Ranged explosions leave a lingering {AugmentText.Trigger("Napalm Plasma")} pool for {AugmentText.Duration("3s")} that deals continuous {AugmentText.SpecialDamage("14 fire damage")} and slows enemies by {AugmentText.Immobilize("25%")}. " +
+            $"Ranged explosions leave a lingering {AugmentText.Trigger("Napalm Plasma")} pool for {AugmentText.Duration("4s")} dealing continuous {AugmentText.SpecialDamage("22 fire damage")}. " +
+            $"Enemies caught inside suffer {AugmentText.Trigger("Thermite Melt")}: ignoring {AugmentText.BonusDamage("20 defense")}, taking {AugmentText.BonusDamage("+15% ranged damage")} from all sources, and being slowed by {AugmentText.Immobilize("25%")}. " +
             $"You take {AugmentText.Defense("75% less self-damage")} from your own explosives.";
 
         public override string GetDetailedDescription(Player player) =>
             AugmentScaling.ApplyToText(Description, GetScalingEntries()) + "\n" +
-            AugmentText.Note("(Plasma pool ticks 3 times per second and scales with world tier and ranged damage. Rocket jumping and point-blank blasts deal minimal self-harm.)");
+            AugmentText.Note("(Plasma pool covers ~7 tiles and ticks 4 times per second, scaling with world tier and ranged damage. Thermite Melt lingers for 3s after contact. Rocket jumping deals minimal self-harm.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Legendary;
         public override AugmentClass Class => AugmentClass.Ranged;
 
-        public const int BaseDamage = 14;
+        public const int BaseDamage = 22;
 
         public override (string label, int baseValue)[] GetScalingEntries()
         {
