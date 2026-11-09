@@ -22,7 +22,6 @@ namespace Augments
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Ranged;
-        public override string FamilyId => AugmentFamilyRegistry.MarksmanId;
 
         public static bool IsExplosiveRanged(Projectile p)
         {

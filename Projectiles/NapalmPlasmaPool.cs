@@ -15,7 +15,7 @@ namespace Augments
         {
             AugmentProjectileTag tag = Projectile.GetGlobalProjectile<AugmentProjectileTag>();
             tag.IsAugmentProcDamage = true;
-            tag.SourceProtocolId = AugmentFamilyRegistry.MarksmanId;
+            tag.SourceProtocolId = null;
             tag.CanTriggerOnHitAugments = false;
             tag.PreventEchoChamberCopy = true;
             tag.PreventRicochetEngineCopy = true;
@@ -39,27 +39,51 @@ namespace Augments
             // Rest on solid ground
             Projectile.velocity = Vector2.Zero;
 
-            // Ambient napalm fire & plasma lighting
-            Lighting.AddLight(Projectile.Center, 0.5f, 0.2f, 0.05f);
+            // Distinct warm orange plasma glow
+            Lighting.AddLight(Projectile.Center, 0.7f, 0.32f, 0.05f);
 
-            for (int i = 0; i < 2; i++)
+            // Initial splash burst on first frame
+            if (Projectile.timeLeft == 180)
             {
-                Vector2 spawnPos = Projectile.position + new Vector2(Main.rand.NextFloat(Projectile.width), Main.rand.NextFloat(Projectile.height));
-                Dust d = Dust.NewDustPerfect(
-                    spawnPos,
-                    DustID.Torch,
-                    new Vector2(Main.rand.NextFloat(-0.6f, 0.6f), Main.rand.NextFloat(-2.5f, -0.8f)),
-                    100,
-                    new Color(251, 146, 60),
-                    Main.rand.NextFloat(1.1f, 1.6f)
-                );
-                d.noGravity = true;
+                for (int i = 0; i < 6; i++)
+                {
+                    Vector2 burstVel = new Vector2(Main.rand.NextFloat(-2f, 2f), Main.rand.NextFloat(-1.5f, -0.2f));
+                    Dust initDust = Dust.NewDustPerfect(
+                        Projectile.Center + new Vector2(Main.rand.NextFloat(-20f, 20f), 4f),
+                        DustID.OrangeTorch,
+                        burstVel,
+                        80,
+                        default,
+                        Main.rand.NextFloat(1.3f, 1.7f)
+                    );
+                    initDust.noGravity = true;
+                }
             }
 
+            // Steady, low-overhead orange napalm flame (single particle per tick keeps frame rates silky smooth)
+            Vector2 spawnPos = Projectile.position + new Vector2(Main.rand.NextFloat(Projectile.width), Main.rand.NextFloat(Projectile.height));
+            Dust d = Dust.NewDustPerfect(
+                spawnPos,
+                DustID.OrangeTorch,
+                new Vector2(Main.rand.NextFloat(-0.4f, 0.4f), Main.rand.NextFloat(-2.0f, -0.8f)),
+                80,
+                default,
+                Main.rand.NextFloat(1.2f, 1.5f)
+            );
+            d.noGravity = true;
+
+            // Distinctive solar plasma spark (1 every 3 ticks) for unmistakable plugin identity
             if (Main.rand.NextBool(3))
             {
-                Dust smoke = Dust.NewDustDirect(Projectile.position, Projectile.width, Projectile.height, DustID.Smoke, 0f, -1f, 120, default, 0.8f);
-                smoke.velocity.X *= 0.3f;
+                Dust spark = Dust.NewDustPerfect(
+                    spawnPos,
+                    DustID.SolarFlare,
+                    new Vector2(Main.rand.NextFloat(-0.3f, 0.3f), Main.rand.NextFloat(-1.6f, -0.6f)),
+                    0,
+                    default,
+                    Main.rand.NextFloat(0.7f, 1.0f)
+                );
+                spark.noGravity = true;
             }
         }
 

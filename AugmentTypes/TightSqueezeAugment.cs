@@ -24,7 +24,6 @@ namespace Augments
 
         public override AugmentRarity Rarity => AugmentRarity.Rare;
         public override AugmentClass Class => AugmentClass.Ranged;
-        public override string FamilyId => AugmentFamilyRegistry.MarksmanId;
     }
 
     public class TightSqueezeGlobalProjectile : GlobalProjectile

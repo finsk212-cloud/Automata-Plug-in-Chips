@@ -22,7 +22,6 @@ namespace Augments
 
         public override AugmentRarity Rarity => AugmentRarity.Legendary;
         public override AugmentClass Class => AugmentClass.Ranged;
-        public override string FamilyId => AugmentFamilyRegistry.MarksmanId;
 
         public const int BaseDamage = 14;
 

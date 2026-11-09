@@ -11,16 +11,15 @@ namespace Augments
         public override string Id => "armor_piercer";
         public override string DisplayName => "Armor Piercer";
         public override string Description =>
-            $"Attacks gain {AugmentText.Defense("+18 armor penetration")}.";
+            $"Gain {AugmentText.Defense("+19 Armor Penetration")}";
 
         public override string GetDetailedDescription(Player player) =>
-            $"Attacks gain {AugmentText.Defense("+18 armor penetration")}.\n" +
-            $"[c/94A3B8:(Ignores up to 18 enemy defense across all damage types. Increases damage by +9 / +13.5 / +18 on Normal / Expert / Master mode)]";
+            $"Gain {AugmentText.Defense("+19 Armor Penetration")}";
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Universal;
 
-        private const int ArmorPenetrationAmount = 18;
+        private const int ArmorPenetrationAmount = 19;
 
         public override void UpdateEquips(Player player)
         {

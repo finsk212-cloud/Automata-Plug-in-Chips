@@ -323,6 +323,8 @@ Projectiles: {
 	AutopilotPodProjectile.DisplayName: Autopilot Pod Projectile
 	SiegeShellProjectile.DisplayName: Siege Shell Projectile
 	WhiplashWaveProjectile.DisplayName: Whiplash Wave Projectile
+	NapalmPlasmaPool.DisplayName: Napalm Plasma Pool
+	PartyPopperBomblet.DisplayName: Party Popper Bomblet
 }
 
 Configs: {

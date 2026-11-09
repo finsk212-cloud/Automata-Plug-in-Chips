@@ -24,7 +24,6 @@ namespace Augments
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Ranged;
-        public override string FamilyId => AugmentFamilyRegistry.MarksmanId;
 
         private static readonly Dictionary<int, int> speedTimers = new();
         private const int SpeedBoostDurationTicks = 120; // 2 seconds

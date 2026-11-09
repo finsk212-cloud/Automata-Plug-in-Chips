@@ -75,6 +75,8 @@ namespace Augments
 		private CodexFilterButton sortBtn;
 		private CodexFilterButton filterBtn;
 		private AugmentFilterPanel filterPanel;
+		private CodexDropdown dropdownMenu;
+		private UIElement activeDropdownTrigger;
 
 		private const float PanelWidth = 880f;
 		private const float PanelHeight = 600f;
@@ -99,6 +101,21 @@ namespace Augments
 				Main.LocalPlayer.mouseInterface = true;
 			}
 
+			if (dropdownMenu != null && dropdownMenu.IsOpen)
+			{
+				if (dropdownMenu.ContainsPoint(Main.MouseScreen))
+				{
+					Main.LocalPlayer.mouseInterface = true;
+				}
+				else if (Main.mouseLeft && Main.mouseLeftRelease)
+				{
+					if (activeDropdownTrigger == null || !activeDropdownTrigger.ContainsPoint(Main.MouseScreen))
+					{
+						CloseActiveDropdown();
+					}
+				}
+			}
+
 			listParticles.Update();
 			if (backPanel != null && Main.rand.NextBool(8))
 			{
@@ -115,6 +132,7 @@ namespace Augments
 		public override void OnDeactivate()
 		{
 			base.OnDeactivate();
+			CloseActiveDropdown();
 			KeybindEditor.Cancel();
 			if (searchBar != null)
 				searchBar.IsFocused = false;
@@ -255,14 +273,20 @@ namespace Augments
 
 		private void CreateFilterBarControls()
 		{
+			dropdownMenu = new CodexDropdown(this);
+
 			// 1. Class Button (Left = 556f, Width = 114f)
 			classBtn = new CodexFilterButton(GetClassBtnText());
 			classBtn.Top.Set(38f, 0f);
 			classBtn.Left.Set(556f, 0f);
 			classBtn.Width.Set(114f, 0f);
 			classBtn.Height.Set(26f, 0f);
-			classBtn.Clicked += CycleClassForward;
-			classBtn.RightClicked += CycleClassBackward;
+			classBtn.Clicked += ToggleClassDropdown;
+			classBtn.RightClicked += () =>
+			{
+				CloseActiveDropdown();
+				SetClassFilter(null);
+			};
 			backPanel.Append(classBtn);
 
 			// 2. Sort Button (Left = 676f, Width = 114f)
@@ -271,17 +295,26 @@ namespace Augments
 			sortBtn.Left.Set(676f, 0f);
 			sortBtn.Width.Set(114f, 0f);
 			sortBtn.Height.Set(26f, 0f);
-			sortBtn.Clicked += CycleSortForward;
-			sortBtn.RightClicked += CycleSortBackward;
+			sortBtn.Clicked += ToggleSortDropdown;
+			sortBtn.RightClicked += () =>
+			{
+				CloseActiveDropdown();
+				SetSortMode(AugmentSortMode.NameAZ);
+			};
 			backPanel.Append(sortBtn);
 
 			// 3. Filter Button (Left = 796f, Width = 66f, ends at 862f)
-			filterBtn = new CodexFilterButton("Filters");
+			filterBtn = new CodexFilterButton(GetFilterBtnText());
 			filterBtn.Top.Set(38f, 0f);
 			filterBtn.Left.Set(796f, 0f);
 			filterBtn.Width.Set(66f, 0f);
 			filterBtn.Height.Set(26f, 0f);
-			filterBtn.Clicked += ToggleFilterMenu;
+			filterBtn.Clicked += ToggleFilterDropdown;
+			filterBtn.RightClicked += () =>
+			{
+				CloseActiveDropdown();
+				ResetAllFilters();
+			};
 			backPanel.Append(filterBtn);
 
 			// Floating Filter & Sort Panel
@@ -600,6 +633,7 @@ namespace Augments
 		public void SetClassFilter(AugmentClass? newClass)
 		{
 			currentClassFilter = newClass;
+			CloseActiveDropdown();
 			UpdateFilterControlStates();
 			PopulateGrid();
 		}
@@ -608,6 +642,7 @@ namespace Augments
 		{
 			const int totalSortModes = 7;
 			currentSortMode = (AugmentSortMode)(((int)currentSortMode + 1) % totalSortModes);
+			CloseActiveDropdown();
 			UpdateFilterControlStates();
 			PopulateGrid();
 		}
@@ -616,6 +651,7 @@ namespace Augments
 		{
 			const int totalSortModes = 7;
 			currentSortMode = (AugmentSortMode)(((int)currentSortMode - 1 + totalSortModes) % totalSortModes);
+			CloseActiveDropdown();
 			UpdateFilterControlStates();
 			PopulateGrid();
 		}
@@ -623,6 +659,7 @@ namespace Augments
 		public void SetSortMode(AugmentSortMode mode)
 		{
 			currentSortMode = mode;
+			CloseActiveDropdown();
 			UpdateFilterControlStates();
 			PopulateGrid();
 		}
@@ -632,6 +669,7 @@ namespace Augments
 			currentRarityFilter = rarity;
 			currentStatusFilter = AugmentStatusFilter.All;
 			currentTab = rarity.HasValue ? rarity.Value.ToString() : "All";
+			CloseActiveDropdown();
 			UpdateTabButtons();
 			UpdateFilterControlStates();
 			PopulateGrid();
@@ -653,6 +691,7 @@ namespace Augments
 			{
 				currentTab = "";
 			}
+			CloseActiveDropdown();
 			UpdateTabButtons();
 			UpdateFilterControlStates();
 			PopulateGrid();
@@ -660,6 +699,7 @@ namespace Augments
 
 		public void ResetAllFilters()
 		{
+			CloseActiveDropdown();
 			searchBar?.Clear();
 			searchQuery = "";
 			currentClassFilter = null;
@@ -674,6 +714,7 @@ namespace Augments
 
 		public void ToggleFilterMenu()
 		{
+			CloseActiveDropdown();
 			isFilterMenuOpen = !isFilterMenuOpen;
 			if (isFilterMenuOpen)
 			{
@@ -689,20 +730,131 @@ namespace Augments
 			UpdateFilterControlStates();
 		}
 
+		private void OpenDropdown(CodexDropdown dropdown, UIElement trigger)
+		{
+			if (isFilterMenuOpen)
+			{
+				if (backPanel.HasChild(filterPanel))
+					backPanel.RemoveChild(filterPanel);
+				isFilterMenuOpen = false;
+			}
+
+			if (dropdownMenu != null && dropdownMenu.IsOpen)
+			{
+				if (backPanel.HasChild(dropdownMenu))
+					backPanel.RemoveChild(dropdownMenu);
+			}
+
+			activeDropdownTrigger = trigger;
+			if (!backPanel.HasChild(dropdown))
+				backPanel.Append(dropdown);
+
+			UpdateFilterControlStates();
+		}
+
+		private void CloseActiveDropdown()
+		{
+			if (dropdownMenu != null && dropdownMenu.IsOpen)
+			{
+				if (backPanel.HasChild(dropdownMenu))
+					backPanel.RemoveChild(dropdownMenu);
+				activeDropdownTrigger = null;
+				UpdateFilterControlStates();
+			}
+		}
+
+		private void ToggleClassDropdown()
+		{
+			if (dropdownMenu != null && dropdownMenu.IsOpen && activeDropdownTrigger == classBtn)
+			{
+				CloseActiveDropdown();
+				return;
+			}
+
+			var rows = new List<CodexDropdownRow>
+			{
+				new CodexDropdownRow(dropdownMenu, "All Classes", () => SetClassFilter(null), textColor: new Color(220, 230, 245), drawDiamondIcon: true, isSelected: currentClassFilter == null),
+				new CodexDropdownRow(dropdownMenu, "Universal", () => SetClassFilter(AugmentClass.Universal), textColor: AugmentTooltipDrawer.GetClassColor(AugmentClass.Universal), icon: AugmentSlotElement.GetClassIcon(AugmentClass.Universal), isSelected: currentClassFilter == AugmentClass.Universal),
+				new CodexDropdownRow(dropdownMenu, "Melee", () => SetClassFilter(AugmentClass.Melee), textColor: AugmentTooltipDrawer.GetClassColor(AugmentClass.Melee), icon: AugmentSlotElement.GetClassIcon(AugmentClass.Melee), isSelected: currentClassFilter == AugmentClass.Melee),
+				new CodexDropdownRow(dropdownMenu, "Ranged", () => SetClassFilter(AugmentClass.Ranged), textColor: AugmentTooltipDrawer.GetClassColor(AugmentClass.Ranged), icon: AugmentSlotElement.GetClassIcon(AugmentClass.Ranged), isSelected: currentClassFilter == AugmentClass.Ranged),
+				new CodexDropdownRow(dropdownMenu, "Magic", () => SetClassFilter(AugmentClass.Magic), textColor: AugmentTooltipDrawer.GetClassColor(AugmentClass.Magic), icon: AugmentSlotElement.GetClassIcon(AugmentClass.Magic), isSelected: currentClassFilter == AugmentClass.Magic),
+				new CodexDropdownRow(dropdownMenu, "Summon", () => SetClassFilter(AugmentClass.Summon), textColor: AugmentTooltipDrawer.GetClassColor(AugmentClass.Summon), icon: AugmentSlotElement.GetClassIcon(AugmentClass.Summon), isSelected: currentClassFilter == AugmentClass.Summon),
+				new CodexDropdownRow(dropdownMenu, "Support", () => SetClassFilter(AugmentClass.Support), textColor: AugmentTooltipDrawer.GetClassColor(AugmentClass.Support), icon: AugmentSlotElement.GetClassIcon(AugmentClass.Support), isSelected: currentClassFilter == AugmentClass.Support)
+			};
+
+			dropdownMenu.Populate(rows, 118f, 556f, 65f);
+			OpenDropdown(dropdownMenu, classBtn);
+		}
+
+		private void ToggleSortDropdown()
+		{
+			if (dropdownMenu != null && dropdownMenu.IsOpen && activeDropdownTrigger == sortBtn)
+			{
+				CloseActiveDropdown();
+				return;
+			}
+
+			var rows = new List<CodexDropdownRow>
+			{
+				new CodexDropdownRow(dropdownMenu, "Name (A → Z)", () => SetSortMode(AugmentSortMode.NameAZ), isSelected: currentSortMode == AugmentSortMode.NameAZ),
+				new CodexDropdownRow(dropdownMenu, "Name (Z → A)", () => SetSortMode(AugmentSortMode.NameZA), isSelected: currentSortMode == AugmentSortMode.NameZA),
+				new CodexDropdownRow(dropdownMenu, "Rarity (High → Low)", () => SetSortMode(AugmentSortMode.RarityHighLow), isSelected: currentSortMode == AugmentSortMode.RarityHighLow),
+				new CodexDropdownRow(dropdownMenu, "Rarity (Low → High)", () => SetSortMode(AugmentSortMode.RarityLowHigh), isSelected: currentSortMode == AugmentSortMode.RarityLowHigh),
+				new CodexDropdownRow(dropdownMenu, "Class (Combat Role)", () => SetSortMode(AugmentSortMode.Class), isSelected: currentSortMode == AugmentSortMode.Class),
+				new CodexDropdownRow(dropdownMenu, "Recently Added", () => SetSortMode(AugmentSortMode.Newest), textColor: new Color(250, 204, 21), isSelected: currentSortMode == AugmentSortMode.Newest),
+				new CodexDropdownRow(dropdownMenu, "Oldest First", () => SetSortMode(AugmentSortMode.Oldest), isSelected: currentSortMode == AugmentSortMode.Oldest)
+			};
+
+			dropdownMenu.Populate(rows, 142f, 676f, 65f);
+			OpenDropdown(dropdownMenu, sortBtn);
+		}
+
+		private void ToggleFilterDropdown()
+		{
+			if (dropdownMenu != null && dropdownMenu.IsOpen && activeDropdownTrigger == filterBtn)
+			{
+				CloseActiveDropdown();
+				return;
+			}
+
+			var rows = new List<CodexDropdownRow>
+			{
+				new CodexDropdownRow(dropdownMenu, "All Plugins", () => SetStatusFilter(AugmentStatusFilter.All), isSelected: currentStatusFilter == AugmentStatusFilter.All && currentClassFilter == null && currentRarityFilter == null),
+				new CodexDropdownRow(dropdownMenu, "Equipped Only", () => SetStatusFilter(AugmentStatusFilter.Equipped), textColor: new Color(130, 235, 130), isSelected: currentStatusFilter == AugmentStatusFilter.Equipped),
+				new CodexDropdownRow(dropdownMenu, "Unequipped Only", () => SetStatusFilter(AugmentStatusFilter.Unequipped), isSelected: currentStatusFilter == AugmentStatusFilter.Unequipped),
+				new CodexDropdownRow(dropdownMenu, "New Only (Recent)", () => SetStatusFilter(AugmentStatusFilter.NewOnly), textColor: new Color(250, 204, 21), isSelected: currentStatusFilter == AugmentStatusFilter.NewOnly),
+				new CodexDropdownRow(true),
+				new CodexDropdownRow(dropdownMenu, "All Filters Panel...", () => ToggleFilterMenu(), textColor: new Color(180, 195, 220)),
+				new CodexDropdownRow(dropdownMenu, "Reset All Filters", () => ResetAllFilters(), textColor: new Color(248, 113, 113))
+			};
+
+			dropdownMenu.Populate(rows, 136f, 726f, 65f);
+			OpenDropdown(dropdownMenu, filterBtn);
+		}
+
 		public void UpdateFilterControlStates()
 		{
 			classBtn?.SetText(GetClassBtnText());
 			sortBtn?.SetText(GetSortBtnText());
+			filterBtn?.SetText(GetFilterBtnText());
 
 			bool isFiltered = currentClassFilter != null || currentRarityFilter != null || currentStatusFilter != AugmentStatusFilter.All;
+			bool isFilterDropdownOpen = dropdownMenu != null && dropdownMenu.IsOpen && activeDropdownTrigger == filterBtn;
 			if (filterBtn != null)
 			{
-				filterBtn.IsActiveHighlight = isFiltered || isFilterMenuOpen;
+				filterBtn.IsActiveHighlight = isFiltered || isFilterMenuOpen || isFilterDropdownOpen;
 			}
 
 			if (classBtn != null)
 			{
-				classBtn.IsActiveHighlight = currentClassFilter != null;
+				bool isClassDropdownOpen = dropdownMenu != null && dropdownMenu.IsOpen && activeDropdownTrigger == classBtn;
+				classBtn.IsActiveHighlight = currentClassFilter != null || isClassDropdownOpen;
+			}
+
+			if (sortBtn != null)
+			{
+				bool isSortDropdownOpen = dropdownMenu != null && dropdownMenu.IsOpen && activeDropdownTrigger == sortBtn;
+				sortBtn.IsActiveHighlight = currentSortMode != AugmentSortMode.NameAZ || isSortDropdownOpen;
 			}
 
 			if (filterPanel != null && isFilterMenuOpen)
@@ -736,28 +888,37 @@ namespace Augments
 
 		private string GetClassBtnText()
 		{
+			string arrow = (dropdownMenu != null && dropdownMenu.IsOpen && activeDropdownTrigger == classBtn) ? "▴" : "▾";
 			if (currentClassFilter == null)
-				return "Class: All ▾";
-			return $"Class: {currentClassFilter.Value} ▾";
+				return $"Class: All {arrow}";
+			return $"Class: {currentClassFilter.Value} {arrow}";
 		}
 
 		private string GetSortBtnText()
 		{
+			string arrow = (dropdownMenu != null && dropdownMenu.IsOpen && activeDropdownTrigger == sortBtn) ? "▴" : "▾";
 			return currentSortMode switch
 			{
-				AugmentSortMode.NameAZ => "Sort: A → Z ▾",
-				AugmentSortMode.NameZA => "Sort: Z → A ▾",
-				AugmentSortMode.RarityHighLow => "Sort: Rarity ▼",
-				AugmentSortMode.RarityLowHigh => "Sort: Rarity ▲",
-				AugmentSortMode.Class => "Sort: Class ▾",
-				AugmentSortMode.Newest => "Sort: Newest ▾",
-				AugmentSortMode.Oldest => "Sort: Oldest ▾",
-				_ => "Sort: A → Z ▾"
+				AugmentSortMode.NameAZ => $"Sort: A → Z {arrow}",
+				AugmentSortMode.NameZA => $"Sort: Z → A {arrow}",
+				AugmentSortMode.RarityHighLow => $"Sort: Rarity ▼",
+				AugmentSortMode.RarityLowHigh => $"Sort: Rarity ▲",
+				AugmentSortMode.Class => $"Sort: Class {arrow}",
+				AugmentSortMode.Newest => $"Sort: Newest {arrow}",
+				AugmentSortMode.Oldest => $"Sort: Oldest {arrow}",
+				_ => $"Sort: A → Z {arrow}"
 			};
+		}
+
+		private string GetFilterBtnText()
+		{
+			string arrow = (isFilterMenuOpen || (dropdownMenu != null && dropdownMenu.IsOpen && activeDropdownTrigger == filterBtn)) ? "▴" : "▾";
+			return $"Filters {arrow}";
 		}
 
 		private void SwitchTab(string newTab)
 		{
+			CloseActiveDropdown();
 			currentTab = newTab;
 			if (newTab == "All")
 			{
@@ -782,6 +943,7 @@ namespace Augments
 
 		private void OnSearchInputChanged(string text)
 		{
+			CloseActiveDropdown();
 			searchQuery = text;
 			if (gridScrollbar != null)
 				gridScrollbar.ViewPosition = 0f;
@@ -2224,6 +2386,227 @@ namespace Augments
 				spriteBatch.Draw(pixel, new Rectangle(rect.Right - 2, rect.Y, 2, 2), cornerTick);
 				spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Bottom - 2, 2, 2), cornerTick);
 				spriteBatch.Draw(pixel, new Rectangle(rect.Right - 2, rect.Bottom - 2, 2, 2), cornerTick);
+			}
+		}
+
+		// Sleek NieR-themed dropdown menu and items for filter/sort bar
+		private class CodexDropdownRow : UIElement
+		{
+			private readonly CodexDropdown parentDropdown;
+			public readonly string Text;
+			public readonly Color TextColor;
+			public readonly Texture2D Icon;
+			public readonly Color IconColor;
+			public readonly bool DrawDiamondIcon;
+			public readonly bool IsSelected;
+			public readonly bool IsDivider;
+			public readonly Action OnClick;
+			public bool HasIconSlot { get; set; }
+			private bool isHovered;
+
+			public CodexDropdownRow(CodexDropdown parent, string text, Action onClick, Color? textColor = null, Texture2D icon = null, Color? iconColor = null, bool drawDiamondIcon = false, bool isSelected = false)
+			{
+				parentDropdown = parent;
+				Text = text;
+				OnClick = onClick;
+				TextColor = textColor ?? new Color(220, 230, 245);
+				Icon = icon;
+				IconColor = iconColor ?? (textColor ?? Color.White);
+				DrawDiamondIcon = drawDiamondIcon;
+				IsSelected = isSelected;
+				IsDivider = false;
+			}
+
+			public CodexDropdownRow(bool isDivider)
+			{
+				IsDivider = isDivider;
+				Text = "";
+			}
+
+			public override void MouseOver(UIMouseEvent evt)
+			{
+				base.MouseOver(evt);
+				if (!IsDivider)
+				{
+					isHovered = true;
+					SoundEngine.PlaySound(SoundID.MenuTick);
+				}
+			}
+
+			public override void MouseOut(UIMouseEvent evt)
+			{
+				base.MouseOut(evt);
+				isHovered = false;
+			}
+
+			public override void LeftClick(UIMouseEvent evt)
+			{
+				base.LeftClick(evt);
+				if (!IsDivider && OnClick != null)
+				{
+					SoundEngine.PlaySound(SoundID.MenuTick);
+					var action = OnClick;
+					parentDropdown?.Close();
+					action.Invoke();
+				}
+			}
+
+			protected override void DrawSelf(SpriteBatch spriteBatch)
+			{
+				CalculatedStyle dims = GetDimensions();
+				Rectangle rect = dims.ToRectangle();
+				Texture2D pixel = TextureAssets.MagicPixel.Value;
+
+				if (IsDivider)
+				{
+					int divY = rect.Y + rect.Height / 2;
+					spriteBatch.Draw(pixel, new Rectangle(rect.X + 4, divY, rect.Width - 8, 1), new Color(35, 48, 72) * 0.9f);
+					return;
+				}
+
+				if (IsSelected)
+				{
+					Color selBg = isHovered ? new Color(24, 48, 86) : new Color(16, 34, 62);
+					spriteBatch.Draw(pixel, rect, selBg);
+
+					// 3px active indicator bar on left
+					spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y + 2, 3, rect.Height - 4), new Color(56, 189, 248));
+				}
+				else if (isHovered)
+				{
+					spriteBatch.Draw(pixel, rect, new Color(20, 36, 64) * 0.9f);
+					// 1px faint hover border
+					spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y + 2, 2, rect.Height - 4), new Color(56, 189, 248) * 0.5f);
+				}
+
+				float textX;
+				if (HasIconSlot)
+				{
+					if (Icon != null)
+					{
+						int iconSize = 14;
+						int iconX = rect.X + 7;
+						int iconY = rect.Y + (rect.Height - iconSize) / 2;
+						spriteBatch.Draw(Icon, new Rectangle(iconX, iconY, iconSize, iconSize), IconColor);
+					}
+					else if (DrawDiamondIcon)
+					{
+						int iconCenterX = rect.X + 14;
+						int iconCenterY = rect.Y + rect.Height / 2;
+						DrawPixelDiamond(spriteBatch, pixel, iconCenterX, iconCenterY, TextColor, 5);
+					}
+
+					textX = rect.X + 26f;
+				}
+				else
+				{
+					textX = rect.X + 10f;
+				}
+
+				Color drawTextColor = isHovered ? Color.White : (IsSelected ? TextColor : TextColor * 0.9f);
+				var font = FontAssets.MouseText.Value;
+				Vector2 scale = new Vector2(0.72f);
+				Vector2 textSize = ChatManager.GetStringSize(font, Text, scale);
+				float textY = rect.Y + (rect.Height - textSize.Y) / 2f + 1.5f;
+
+				ChatManager.DrawColorCodedStringWithShadow(
+					spriteBatch,
+					font,
+					Text,
+					new Vector2(textX, textY),
+					drawTextColor,
+					0f,
+					Vector2.Zero,
+					scale
+				);
+			}
+		}
+
+		private class CodexDropdown : UIElement
+		{
+			private readonly AugmentListUIState state;
+			public bool IsOpen => Parent != null;
+
+			public CodexDropdown(AugmentListUIState state)
+			{
+				this.state = state;
+				SetPadding(0f);
+			}
+
+			public void Close()
+			{
+				state.CloseActiveDropdown();
+			}
+
+			public void Populate(IEnumerable<CodexDropdownRow> rows, float width, float left, float top)
+			{
+				RemoveAllChildren();
+				bool anyHasIcon = false;
+				foreach (var r in rows)
+				{
+					if (r.Icon != null || r.DrawDiamondIcon)
+					{
+						anyHasIcon = true;
+						break;
+					}
+				}
+
+				float curY = 4f;
+				foreach (var row in rows)
+				{
+					row.HasIconSlot = anyHasIcon;
+					float h = row.IsDivider ? 6f : 24f;
+					row.Left.Set(2f, 0f);
+					row.Top.Set(curY, 0f);
+					row.Width.Set(width - 4f, 0f);
+					row.Height.Set(h, 0f);
+					Append(row);
+					curY += h;
+				}
+				curY += 4f;
+
+				Left.Set(left, 0f);
+				Top.Set(top, 0f);
+				Width.Set(width, 0f);
+				Height.Set(curY, 0f);
+				Recalculate();
+			}
+
+			protected override void DrawSelf(SpriteBatch spriteBatch)
+			{
+				CalculatedStyle dims = GetDimensions();
+				Rectangle rect = dims.ToRectangle();
+				Texture2D pixel = TextureAssets.MagicPixel.Value;
+
+				// Drop shadow
+				spriteBatch.Draw(pixel, new Rectangle(rect.X + 2, rect.Y + 2, rect.Width, rect.Height), Color.Black * 0.6f);
+
+				// Dark panel chassis
+				spriteBatch.Draw(pixel, rect, new Color(10, 16, 28, 252));
+
+				// 1px Inner Hairline Highlight Accent
+				Color innerHairline = Color.White * 0.05f;
+				spriteBatch.Draw(pixel, new Rectangle(rect.X + 1, rect.Y + 1, rect.Width - 2, 1), innerHairline);
+				spriteBatch.Draw(pixel, new Rectangle(rect.X + 1, rect.Bottom - 2, rect.Width - 2, 1), innerHairline);
+				spriteBatch.Draw(pixel, new Rectangle(rect.X + 1, rect.Y + 1, 1, rect.Height - 2), innerHairline);
+				spriteBatch.Draw(pixel, new Rectangle(rect.Right - 2, rect.Y + 1, 1, rect.Height - 2), innerHairline);
+
+				// 1px Outer Border
+				Color border = new Color(38, 56, 86);
+				spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, rect.Width, 1), border);
+				spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Bottom - 1, rect.Width, 1), border);
+				spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, 1, rect.Height), border);
+				spriteBatch.Draw(pixel, new Rectangle(rect.Right - 1, rect.Y, 1, rect.Height), border);
+			}
+		}
+
+		private static void DrawPixelDiamond(SpriteBatch sb, Texture2D px, int cx, int cy, Color col, int size = 5)
+		{
+			int half = size / 2;
+			for (int r = -half; r <= half; r++)
+			{
+				int w = (half - Math.Abs(r)) * 2 + 1;
+				sb.Draw(px, new Rectangle(cx - w / 2, cy + r, w, 1), col);
 			}
 		}
 
