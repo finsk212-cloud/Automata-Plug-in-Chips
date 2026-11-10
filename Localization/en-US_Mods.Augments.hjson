@@ -325,6 +325,8 @@ Projectiles: {
 	WhiplashWaveProjectile.DisplayName: Whiplash Wave Projectile
 	NapalmPlasmaPool.DisplayName: Napalm Plasma Pool
 	PartyPopperBomblet.DisplayName: Party Popper Bomblet
+	BladeDanceSlashProjectile.DisplayName: Blade Dance Slash Projectile
+	PrismaticShardProjectile.DisplayName: Prismatic Shard Projectile
 }
 
 Configs: {
