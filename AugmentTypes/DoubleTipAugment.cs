@@ -15,12 +15,12 @@ namespace Augments
         public override string DisplayName => "Double Tip";
         public override string Description =>
             $"Magic casts fire an additional {AugmentText.SpecialDamage("Twin Harmonic Spell")} dealing {AugmentText.BonusDamage("35% damage")}.\n" +
-            $"Alternating between different magic weapons triggers {AugmentText.Trigger("Hyper-Weave")} for {AugmentText.Duration("5 seconds")}, " +
+            $"Alternating casts between different magic weapons triggers {AugmentText.Trigger("Hyper-Weave")} for {AugmentText.Duration("5 seconds")}, " +
             $"boosting twin damage to {AugmentText.BonusDamage("60%")}, granting {AugmentText.BonusDamage("+15% magic damage")}, and reducing mana cost by {AugmentText.Mana("-50%")}.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +
-            AugmentText.Note("(Every magic projectile cast is duplicated as a staggered twin. Swapping magic weapons supercharges the twin spell and slashes mana costs.)");
+            AugmentText.Note("(Every magic projectile cast is duplicated as a staggered twin. Firing a different magic weapon triggers Hyper-Weave and slashes mana costs.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Magic;
@@ -29,7 +29,7 @@ namespace Augments
         private const int TwinDelayTicks = 4;      // ~0.06s staggered firing delay
         private static int _lastSoundTick = -1;
 
-        private static readonly Dictionary<int, int> lastItemType = new();
+        private static readonly Dictionary<int, int> lastShotWeaponId = new();
         private static readonly Dictionary<int, int> activeTimer = new();
         private static readonly Dictionary<int, List<PendingTwin>> pendingTwins = new();
         private static readonly Dictionary<int, int> shotCooldown = new();
@@ -50,10 +50,19 @@ namespace Augments
 
         public override void OnUpdate(Player player)
         {
-            if (player.dead || !player.active)
-                return;
-
             int who = player.whoAmI;
+
+            if (player.dead || !player.active)
+            {
+                if (player.dead)
+                {
+                    activeTimer[who] = 0;
+                    lastShotWeaponId[who] = 0;
+                    if (pendingTwins.TryGetValue(who, out var deathList))
+                        deathList.Clear();
+                }
+                return;
+            }
 
             // 1. Decrement Hyper-Weave active buff timer
             if (activeTimer.TryGetValue(who, out int t) && t > 0)
@@ -72,31 +81,7 @@ namespace Augments
             if (shotCooldown.TryGetValue(who, out int cd) && cd > 0)
                 shotCooldown[who] = cd - 1;
 
-            // 2. Spell-weaving weapon swap detection
-            Item held = player.HeldItem;
-            if (held != null && !held.IsAir && (held.CountsAsClass(DamageClass.Magic) || held.DamageType == DamageClass.Magic))
-            {
-                lastItemType.TryGetValue(who, out int last);
-                if (last != 0 && last != held.type)
-                {
-                    activeTimer[who] = BuffDurationTicks;
-
-                    if (who == Main.myPlayer)
-                    {
-                        SoundEngine.PlaySound(SoundID.Item29 with { Volume = 0.50f, Pitch = 0.35f }, player.Center);
-                        for (int i = 0; i < 14; i++)
-                        {
-                            Vector2 vel = Main.rand.NextVector2Circular(3.5f, 3.5f);
-                            int dType = Main.rand.NextBool() ? DustID.MagicMirror : DustID.PinkTorch;
-                            Dust d = Dust.NewDustPerfect(player.Center, dType, vel, 80, default, 1.2f);
-                            d.noGravity = true;
-                        }
-                    }
-                }
-                lastItemType[who] = held.type;
-            }
-
-            // 3. Process and spawn pending Twin Harmonic Projectiles
+            // 2. Process and spawn pending Twin Harmonic Projectiles
             if (who == Main.myPlayer && pendingTwins.TryGetValue(who, out var list))
             {
                 for (int i = list.Count - 1; i >= 0; i--)
@@ -148,6 +133,25 @@ namespace Augments
                 return;
 
             int who = player.whoAmI;
+            int weaponId = (item != null && !item.IsAir) ? item.type : projectile.type;
+
+            // Spell-weaving trigger: alternate casts between different magic weapons
+            lastShotWeaponId.TryGetValue(who, out int last);
+            if (last != 0 && last != weaponId)
+            {
+                activeTimer[who] = BuffDurationTicks;
+
+                SoundEngine.PlaySound(SoundID.Item29 with { Volume = 0.50f, Pitch = 0.35f }, player.Center);
+                for (int i = 0; i < 14; i++)
+                {
+                    Vector2 vel = Main.rand.NextVector2Circular(3.5f, 3.5f);
+                    int dType = Main.rand.NextBool() ? DustID.MagicMirror : DustID.PinkTorch;
+                    Dust d = Dust.NewDustPerfect(player.Center, dType, vel, 80, default, 1.2f);
+                    d.noGravity = true;
+                }
+            }
+            lastShotWeaponId[who] = weaponId;
+
             if (shotCooldown.TryGetValue(who, out int cd) && cd > 0)
                 return;
 
