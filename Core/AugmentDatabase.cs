@@ -165,6 +165,8 @@ namespace Augments
             Register(new TurretSyndromeAugment());
             Register(new WildMagicAugment());
             Register(new DoubleTipAugment());
+            Register(new BladeDanceAugment());
+            Register(new PrismaticFractureAugment());
         }
 
         public const int FirstRecentIndex = 118;
