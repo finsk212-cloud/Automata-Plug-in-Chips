@@ -96,7 +96,6 @@ namespace Augments
                 return;
 
             Player player = Main.player[npc.lastInteraction];
-
             if (!player.active)
                 return;
 
@@ -106,8 +105,10 @@ namespace Augments
                 return;
 
             var ap = player.GetModPlayer<AugmentPlayer>();
+            bool onServer = Main.netMode == NetmodeID.Server;
 
             // Cryo Protocol (Absolute Zero): Slaying a chilled or Frostburned enemy shatters them into 3 homing ice shards (40 damage)
+            bool spawnCryoShards = false;
             if (AugmentFamilyRegistry.GetOwnedCount(ap, AugmentFamilyRegistry.CryoId) >= 2 && ap.CryoShatterCooldown <= 0)
             {
                 // Prevent multi-segment / worm spam: only the head or independent body triggers shatter
@@ -117,9 +118,7 @@ namespace Augments
                     if (isCold)
                     {
                         ap.CryoShatterCooldown = 36; // ~0.60s cooldown prevents rapid cascade bursts
-
                         SoundEngine.PlaySound(SoundID.Item27 with { Volume = 0.70f, Pitch = 0.2f }, npc.Center);
-
                         for (int i = 0; i < 14; i++)
                         {
                             Vector2 dustVel = Main.rand.NextVector2Circular(4f, 4f);
@@ -127,33 +126,62 @@ namespace Augments
                             d.noGravity = true;
                         }
 
-                        if (Main.netMode != NetmodeID.Server && player.whoAmI == Main.myPlayer)
-                        {
-                            int projType = ModContent.ProjectileType<CryoIceShardProjectile>();
-                            int damage = AugmentScaling.Scale(40);
-                            float baseAngle = Main.rand.NextFloat(MathHelper.TwoPi);
-                            for (int i = 0; i < 3; i++)
-                            {
-                                float angle = baseAngle + MathHelper.TwoPi * i / 3f + Main.rand.NextFloat(-0.20f, 0.20f);
-                                Vector2 shootVel = angle.ToRotationVector2() * Main.rand.NextFloat(8.5f, 11f);
-                                Projectile.NewProjectile(
-                                    player.GetSource_OnHit(npc),
-                                    npc.Center,
-                                    shootVel,
-                                    projType,
-                                    damage,
-                                    2f,
-                                    player.whoAmI,
-                                    ai0: i
-                                );
-                            }
-                        }
+                        // Shards are projectiles owned by the player, so they have to be
+                        // spawned by the player's own game. The server only decides that
+                        // the shatter happens (it owns the NPC's buffs and the cooldown)
+                        // and tells the killer's client via the KillCredit packet below.
+                        spawnCryoShards = true;
+                        if (!onServer)
+                            SpawnCryoShards(player, npc);
                     }
                 }
             }
 
+            // Chips flagged RunsKillHookOnKillerClient need the killer's own game (their
+            // per-NPC hit markers and their own stat/timer state live there), so on a
+            // server they are skipped here and run when the packet arrives. Everything
+            // else (item drops, debuff spreading) stays on the server. In singleplayer
+            // there is no packet and every chip runs right here as before.
+            bool needsKillerClient = false;
             foreach (var augment in ap.Owned)
+            {
+                if (onServer && augment.RunsKillHookOnKillerClient)
+                {
+                    needsKillerClient = true;
+                    continue;
+                }
+
                 augment.OnKillNPC(player, npc);
+            }
+
+            if (onServer && (needsKillerClient || spawnCryoShards))
+                AugmentNet.SendKillCredit(player.whoAmI, npc, spawnCryoShards);
+        }
+
+        // Spawns the three Cryo Protocol ice shards. Must run on the owning player's own game.
+        public static void SpawnCryoShards(Player player, NPC npc)
+        {
+            if (Main.netMode == NetmodeID.Server || player.whoAmI != Main.myPlayer)
+                return;
+
+            int projType = ModContent.ProjectileType<CryoIceShardProjectile>();
+            int damage = AugmentScaling.Scale(40);
+            float baseAngle = Main.rand.NextFloat(MathHelper.TwoPi);
+            for (int i = 0; i < 3; i++)
+            {
+                float angle = baseAngle + MathHelper.TwoPi * i / 3f + Main.rand.NextFloat(-0.20f, 0.20f);
+                Vector2 shootVel = angle.ToRotationVector2() * Main.rand.NextFloat(8.5f, 11f);
+                Projectile.NewProjectile(
+                    player.GetSource_OnHit(npc),
+                    npc.Center,
+                    shootVel,
+                    projType,
+                    damage,
+                    2f,
+                    player.whoAmI,
+                    ai0: i
+                );
+            }
         }
     }
 }

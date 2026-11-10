@@ -9,6 +9,7 @@ namespace Augments
     public class StormcallerAugment : Augment
     {
         public override string Id => "stormcaller";
+        public override bool RunsKillHookOnKillerClient => true;
         public override string DisplayName => "Stormcaller";
         public override string Description =>
             $"Melee kills have a {FormatCurrentChance(ProcChance)} to call down a lightning strike on a random nearby enemy, " +

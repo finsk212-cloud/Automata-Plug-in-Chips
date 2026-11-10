@@ -77,6 +77,116 @@ namespace Augments
 			}
 		}
 
+		// --- Persistent character state shared with the server ---
+		//
+		// The sold/archived list, ever-owned list, locked Core Override families and
+		// boss kill counts are saved by the CLIENT (it owns the character file) but
+		// the SERVER makes the decisions that depend on them: what can be offered,
+		// whether a boss still gives a reward, what the vendor can sell back.
+		//
+		// To make sure the server learns the real values, the client keeps a snapshot
+		// of what its save file contained (refreshed whenever it loads or saves) and
+		// pushes THAT on join. It deliberately does not push the live collections,
+		// because those can already have been overwritten by an early server reply
+		// before the push happens.
+		private readonly HashSet<string> snapshotEverOwnedIds = new HashSet<string>();
+		private readonly HashSet<string> snapshotSoldIds = new HashSet<string>();
+		private readonly HashSet<string> snapshotLockedFamilies = new HashSet<string>();
+		private readonly Dictionary<int, int> snapshotBossKills = new Dictionary<int, int>();
+
+		private const int MaxPersistentEntries = 2048;
+
+		private void RefreshPersistentSnapshot()
+		{
+			snapshotEverOwnedIds.Clear();
+			snapshotEverOwnedIds.UnionWith(everOwnedIds);
+			snapshotSoldIds.Clear();
+			snapshotSoldIds.UnionWith(soldAugmentIds);
+			snapshotLockedFamilies.Clear();
+			snapshotLockedFamilies.UnionWith(lockedKeystoneFamilies);
+			snapshotBossKills.Clear();
+			foreach (var kv in BossAugmentKills)
+				snapshotBossKills[kv.Key] = kv.Value;
+		}
+
+		internal void WritePersistentSnapshot(BinaryWriter writer)
+		{
+			writer.Write((ushort)snapshotEverOwnedIds.Count);
+			foreach (string id in snapshotEverOwnedIds)
+				writer.Write(id);
+
+			writer.Write((ushort)snapshotSoldIds.Count);
+			foreach (string id in snapshotSoldIds)
+				writer.Write(id);
+
+			writer.Write((ushort)snapshotLockedFamilies.Count);
+			foreach (string family in snapshotLockedFamilies)
+				writer.Write(family);
+
+			writer.Write((ushort)snapshotBossKills.Count);
+			foreach (var kv in snapshotBossKills)
+			{
+				writer.Write(kv.Key);
+				writer.Write(kv.Value);
+			}
+		}
+
+		// Server side: adopt the connecting client's saved lists. Everything is read
+		// into temporaries first and only applied once the whole packet parsed, and
+		// chip ids that don't exist in this version of the mod are dropped.
+		internal void ReadPersistentStateFromClient(BinaryReader reader)
+		{
+			var newEverOwned = new HashSet<string>();
+			var newSold = new HashSet<string>();
+			var newLocked = new HashSet<string>();
+			var newBossKills = new Dictionary<int, int>();
+
+			int count = Math.Min((int)reader.ReadUInt16(), MaxPersistentEntries);
+			for (int i = 0; i < count; i++)
+			{
+				string id = reader.ReadString();
+				if (AugmentDatabase.GetById(id) != null)
+					newEverOwned.Add(id);
+			}
+
+			count = Math.Min((int)reader.ReadUInt16(), MaxPersistentEntries);
+			for (int i = 0; i < count; i++)
+			{
+				string id = reader.ReadString();
+				if (AugmentDatabase.GetById(id) != null)
+					newSold.Add(id);
+			}
+
+			count = Math.Min((int)reader.ReadUInt16(), MaxPersistentEntries);
+			for (int i = 0; i < count; i++)
+				newLocked.Add(reader.ReadString());
+
+			count = Math.Min((int)reader.ReadUInt16(), MaxPersistentEntries);
+			for (int i = 0; i < count; i++)
+			{
+				int npcType = reader.ReadInt32();
+				int kills = reader.ReadInt32();
+				newBossKills[npcType] = Math.Max(0, kills);
+			}
+
+			everOwnedIds.Clear();
+			everOwnedIds.UnionWith(newEverOwned);
+			soldAugmentIds.Clear();
+			soldAugmentIds.UnionWith(newSold);
+			lockedKeystoneFamilies.Clear();
+			lockedKeystoneFamilies.UnionWith(newLocked);
+			BossAugmentKills = newBossKills;
+
+			// Keep the same invariants LoadData establishes.
+			everOwnedIds.UnionWith(ownedIds);
+			everOwnedIds.UnionWith(soldAugmentIds);
+			foreach (var a in owned)
+			{
+				if (a.KeystoneFamily != null)
+					lockedKeystoneFamilies.Add(a.KeystoneFamily);
+			}
+		}
+
 		public override void Initialize()
 		{
 			ownedIds.Clear();
@@ -89,6 +199,10 @@ namespace Augments
 			DamagedBossesThisFight = new HashSet<int>();
 			TrophyHunterKilledTypes = new HashSet<int>();
 			LuckyFindCopperGained = 0;
+			snapshotEverOwnedIds.Clear();
+			snapshotSoldIds.Clear();
+			snapshotLockedFamilies.Clear();
+			snapshotBossKills.Clear();
 
 			AdaptiveArmorUndamagedTimer = 0;
 			AdaptiveArmorDefenseBonus = 0;
@@ -190,6 +304,9 @@ namespace Augments
 			SendSyncOwnedAugments();
 			SendFullStateToServer();
 			SendBossKillsToServer();
+			// Same ordering rule: the server must have our saved lists BEFORE it answers
+			// the sync request below, or its reply would overwrite them with empties.
+			AugmentNet.SendPersistentState(this);
 			AugmentNet.SendRequestAugmentSync();
 		}
 
@@ -292,6 +409,9 @@ namespace Augments
 			writer.Write(lifelineInvulnTicks);
 			writer.Write(lifelineProtectionAuthorized);
 
+			// Boss kill counts are advanced by the server (BossAugmentDrop), so they
+			// have to flow back to the client for its save file to keep them.
+			// (Same wire format the patch wrote inline: ushort count, then int type + int kills.)
 			WriteBossKills(writer);
 		}
 
@@ -394,6 +514,8 @@ namespace Augments
 				bossKills[kv.Key.ToString()] = kv.Value;
 			tag["bossAugmentKills"] = bossKills;
 			tag["seenAdvisoryTriggers"] = new List<string>(SeenAdvisoryTriggers);
+
+			RefreshPersistentSnapshot();
 		}
 
 		private static string NormalizeLegacyId(string id) => id switch
@@ -417,6 +539,8 @@ namespace Augments
 				Mod.Logger.Error("Failed to fully load plug-in chip data; continuing with partial data.", e);
 				RebuildOwnedCacheFromOwnedIdsOnly();
 			}
+
+			RefreshPersistentSnapshot();
 		}
 
 		private void LoadDataInternal(TagCompound tag)

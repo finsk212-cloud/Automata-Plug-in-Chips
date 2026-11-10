@@ -216,3 +216,11 @@
 - **Stash**: Chips can now be uninstalled and reinstalled for free from the shop's Storage tab. Stashed chips keep their cooldowns exactly as they were, so swapping can't be used to reset them. Dismantling at 2B is still how you archive a chip for Cores.
 - **Swap rules**: Loadouts can't be applied during a boss fight or shortly after taking damage, and there is a short cooldown between swaps. Core Overrides stay equipped. If a saved chip has since been archived it is skipped and you are told which.
 - Works in multiplayer (the server validates every change) and is saved with the character.
+
+---
+
+### 9. Multiplayer & Reward Fixes
+- **On-kill chips now work in multiplayer**: Vampiric Edge, Swarm Tactics, Ravenous Swarm, Stormcaller, Trophy Hunter, Void Step and Scavenger's Luck (and the Cryo Protocol ice shards) run on the killer's own game. Kills are only detected by the server, so it now sends the killer a small `KillCredit` packet and the effect is applied where that player's markers, health and timers actually live. Item-drop and debuff-spreading chips stay on the server. Singleplayer is unchanged.
+- **Joining a server no longer wipes saved chip data**: the sold/archived list, ever-owned list, locked Core Override families and boss kill counts are sent to the server on join (from the character's saved copy) before the server replies. Boss kill counts now flow back to the player so they are saved, instead of every boss counting as a first kill.
+- **Vendor gacha works in multiplayer**: the server takes the 3 Machine Cores and rolls the chip, the chip is granted when the reveal finishes. Cores are only spent if there is a chip to win, and the roll can no longer land on a debug chip, a Support chip or a locked Core Override. The archived-chip refund shown on the reveal screen now matches what is actually paid.
+- **Rerolls keep the original rarity**: the free and paid rerolls only draw new chips of the same tier as the first offer (falling back to other tiers only if that tier has nothing left).

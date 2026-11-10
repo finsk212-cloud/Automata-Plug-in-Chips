@@ -49,7 +49,12 @@ namespace Augments
 		BannerStationDeposit,  // client -> server: put one banner into a station
 		BannerStationWithdraw, // client -> server: take one banner out of a station
 		BannerStationUpgrade,  // client -> server: upgrade a station with a kit
-		BannerStationReply     // server -> one client: a banner or kit to hand back (payload: kind, item type)
+		BannerStationReply,    // server -> one client: a banner or kit to hand back (payload: kind, item type)
+		// New values are appended at the end so existing packet ids never shift.
+		KillCredit,          // server -> killer's client: run client-side kill hooks (and Cryo shards) for this NPC
+		SyncPersistentState, // client -> server on join: sold/ever-owned/locked families/boss kill counts
+		GachaRollRequest,    // client -> server: spend 3 Machine Cores and roll a chip
+		GachaResult          // server -> client: the chip rolled (empty id = nothing available, cores not spent)
 	}
 
 	internal enum DebugAugmentCommandType : byte

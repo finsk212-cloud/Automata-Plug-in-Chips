@@ -406,6 +406,19 @@ namespace Augments
 		// Fires when an enemy kill is credited to the player.
 		public virtual void OnKillNPC(Player player, NPC npc) { }
 
+		// Kills are only detected on the server (GlobalNPC.OnKill never runs on
+		// a multiplayer client), but a few chips need things that only exist on
+		// the KILLER'S OWN game: per-NPC "tagged by me" markers set by their hit
+		// hooks, and their own stat/timer state (health, buff timers, kill
+		// stacks) which the owning client is the authority for. Chips that
+		// return true here are skipped by the server's kill dispatch and run
+		// instead on the killer's client when the server sends a KillCredit
+		// packet (see AugmentNet.SendKillCredit / HandleKillCredit). In
+		// singleplayer there is no packet and they run in the normal dispatch.
+		// Leave false for chips that spawn world objects (items, strikes
+		// spread via buffs) - those are correct on the server.
+		public virtual bool RunsKillHookOnKillerClient => false;
+
 		// Fires once per fishing attempt, before vanilla rolls what (if
 		// anything) gets caught - bump attempt.fishingLevel to bias toward
 		// rarer catches, the same field actual fishing rods/bait modify.

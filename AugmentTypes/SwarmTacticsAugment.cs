@@ -6,6 +6,7 @@ namespace Augments
     public class SwarmTacticsAugment : Augment
     {
         public override string Id => "swarm_tactics";
+        public override bool RunsKillHookOnKillerClient => true;
         public override string DisplayName => "Swarm Tactics";
         public override string Description =>
             $"Minion kills {AugmentText.Healing("restore 5 HP")}.\n" +

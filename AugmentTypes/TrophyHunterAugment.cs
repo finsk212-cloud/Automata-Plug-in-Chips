@@ -8,6 +8,7 @@ namespace Augments
 	public class TrophyHunterAugment : Augment
 	{
 		public override string Id => "trophy_hunter";
+		public override bool RunsKillHookOnKillerClient => true;
 		public override string DisplayName => "Trophy Hunter";
 		public override string Description =>
 			$"The first melee kill against each unique enemy type permanently grants {AugmentText.BonusDamage("+0.25% melee damage")}.\n" +

@@ -8,6 +8,7 @@ namespace Augments
     public class ScavengersLuckAugment : Augment
     {
         public override string Id => "scavengers_luck";
+        public override bool RunsKillHookOnKillerClient => true;
         public override string DisplayName => "Scavenger's Luck";
         public override string Description =>
             $"Grants {AugmentText.Crit("+5% Fortune")} (World Luck & lucky trigger chance). Defeated enemies have a {FormatCurrentChance(ProcChance)} " +

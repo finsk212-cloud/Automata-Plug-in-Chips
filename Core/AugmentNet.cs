@@ -26,6 +26,11 @@ namespace Augments
 
 		private static readonly Dictionary<int, PendingReward> PendingRewardChoicesByPlayer = new Dictionary<int, PendingReward>();
 
+		// Server only: the chip each player's gacha roll produced, waiting for the
+		// client to confirm the reveal (ChooseReward). The cores were already taken
+		// when the roll happened.
+		private static readonly Dictionary<int, string> PendingGachaByPlayer = new Dictionary<int, string>();
+
 		public static bool HandlePacket(AugmentPacketType type, BinaryReader reader, int whoAmI)
 		{
 			switch (type)
@@ -81,6 +86,18 @@ namespace Augments
 				case AugmentPacketType.BannerStationUpgrade:
 				case AugmentPacketType.BannerStationReply:
 					global::Augments.Tiles.BannerStationNet.Handle(type, reader, whoAmI);
+					return true;
+				case AugmentPacketType.KillCredit:
+					HandleKillCredit(reader);
+					return true;
+				case AugmentPacketType.SyncPersistentState:
+					HandleSyncPersistentState(reader, whoAmI);
+					return true;
+				case AugmentPacketType.GachaRollRequest:
+					HandleGachaRollRequest(whoAmI);
+					return true;
+				case AugmentPacketType.GachaResult:
+					HandleGachaResult(reader);
 					return true;
 			}
 
@@ -266,6 +283,151 @@ namespace Augments
 			SpawnVendor(player);
 		}
 
+		// --- Kill credit (server -> killer's client) ---
+
+		// Kills are only detected on the server, but some chips need the killer's own
+		// game to run (see Augment.RunsKillHookOnKillerClient). The server tells that
+		// one client which NPC died and whether the Cryo Protocol shatter happened.
+		public static void SendKillCredit(int toClient, NPC npc, bool spawnCryoShards)
+		{
+			if (Main.netMode != NetmodeID.Server || npc == null || toClient < 0 || toClient >= Main.maxPlayers)
+				return;
+
+			ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
+			packet.Write((byte)AugmentPacketType.KillCredit);
+			packet.Write((short)npc.whoAmI);
+			packet.Write(npc.type);
+			packet.Write(spawnCryoShards);
+			packet.Send(toClient);
+		}
+
+		private static void HandleKillCredit(BinaryReader reader)
+		{
+			short npcIndex = reader.ReadInt16();
+			int npcType = reader.ReadInt32();
+			bool spawnCryoShards = reader.ReadBoolean();
+
+			if (Main.netMode != NetmodeID.MultiplayerClient || npcIndex < 0 || npcIndex >= Main.maxNPCs)
+				return;
+
+			Player player = Main.LocalPlayer;
+			if (player == null || !player.active)
+				return;
+
+			// The dead NPC's slot still holds its data (including the "tagged by me"
+			// markers our hit hooks set) until the slot is reused. If it already was,
+			// fall back to a blank NPC of the right type so chips that don't need
+			// markers (Void Step, Scavenger's Luck) still work and marker-based ones
+			// simply find no marker.
+			NPC npc = Main.npc[npcIndex];
+			bool slotStillHoldsKilledNpc = npc.type == npcType;
+			if (!slotStillHoldsKilledNpc)
+			{
+				npc = new NPC();
+				npc.SetDefaults(npcType);
+			}
+
+			if (spawnCryoShards && slotStillHoldsKilledNpc)
+				AugmentGlobalNPC.SpawnCryoShards(player, npc);
+
+			AugmentPlayer ap = player.GetModPlayer<AugmentPlayer>();
+			foreach (Augment augment in ap.Owned)
+			{
+				if (augment.RunsKillHookOnKillerClient)
+					augment.OnKillNPC(player, npc);
+			}
+		}
+
+		// --- Persistent character state (client -> server, on join) ---
+
+		// The server only learns a character's chips from SyncOwnedAugments. Without
+		// this, it knows nothing about the sold/archived list, ever-owned list, locked
+		// Core Override families or boss kill counts, and its reply to the client's
+		// RequestAugmentSync would overwrite the character's saved copies with empties.
+		public static void SendPersistentState(AugmentPlayer augmentPlayer)
+		{
+			if (Main.netMode != NetmodeID.MultiplayerClient || augmentPlayer == null)
+				return;
+
+			ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
+			packet.Write((byte)AugmentPacketType.SyncPersistentState);
+			augmentPlayer.WritePersistentSnapshot(packet);
+			packet.Send();
+		}
+
+		private static void HandleSyncPersistentState(BinaryReader reader, int whoAmI)
+		{
+			if (Main.netMode != NetmodeID.Server || whoAmI < 0 || whoAmI >= Main.maxPlayers)
+				return;
+
+			Player player = Main.player[whoAmI];
+			if (!player.active)
+				return;
+
+			player.GetModPlayer<AugmentPlayer>().ReadPersistentStateFromClient(reader);
+		}
+
+		// --- Vendor gacha (multiplayer) ---
+
+		public static void SendGachaRollRequest()
+		{
+			if (Main.netMode != NetmodeID.MultiplayerClient)
+				return;
+
+			ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
+			packet.Write((byte)AugmentPacketType.GachaRollRequest);
+			packet.Send();
+		}
+
+		// The server rolls the chip and takes the 3 Machine Cores. The chip itself is
+		// only granted when the client confirms the reveal (ChooseReward), so the
+		// "chip installed" message still lines up with the animation.
+		private static void HandleGachaRollRequest(int whoAmI)
+		{
+			if (!TryGetActiveSender(whoAmI, out Player player))
+				return;
+
+			AugmentPlayer augmentPlayer = player.GetModPlayer<AugmentPlayer>();
+			int coreType = ModContent.ItemType<AugmentEssenceItem>();
+
+			Augment rolled = null;
+			if (player.CountItem(coreType, 3) >= 3)
+				rolled = AugmentRewardLogic.RollGachaChip(augmentPlayer, BossTierMap.GetCurrentWorldBracket());
+
+			if (rolled == null)
+			{
+				SendGachaResult(whoAmI, "");
+				return;
+			}
+
+			for (int i = 0; i < 3; i++)
+				player.ConsumeItem(coreType);
+			augmentPlayer.SyncInventory();
+
+			PendingGachaByPlayer[whoAmI] = rolled.Id;
+			SendGachaResult(whoAmI, rolled.Id);
+		}
+
+		private static void SendGachaResult(int toClient, string augmentId)
+		{
+			if (Main.netMode != NetmodeID.Server)
+				return;
+
+			ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
+			packet.Write((byte)AugmentPacketType.GachaResult);
+			packet.Write(augmentId ?? "");
+			packet.Send(toClient);
+		}
+
+		private static void HandleGachaResult(BinaryReader reader)
+		{
+			string augmentId = reader.ReadString();
+			if (Main.netMode != NetmodeID.MultiplayerClient)
+				return;
+
+			ModContent.GetInstance<AugmentUISystem>().OnGachaResult(augmentId);
+		}
+
 		private static void HandleOpenRewardChoices(BinaryReader reader)
 		{
 			AugmentRarity rarity = (AugmentRarity)reader.ReadByte();
@@ -312,7 +474,7 @@ namespace Augments
 			}
 
 			AugmentPlayer augmentPlayer = player.GetModPlayer<AugmentPlayer>();
-			if (!AugmentRewardLogic.TryRollRewardChoices(augmentPlayer, pending.Bracket, pending.Choices, out List<Augment> choices, out AugmentRarity finalRarity))
+			if (!AugmentRewardLogic.TryRollRewardChoices(augmentPlayer, pending.Bracket, pending.Choices, out List<Augment> choices, out AugmentRarity finalRarity, pending.Rarity))
 				return;
 
 			if (pending.RerollCount == 1)
@@ -350,10 +512,17 @@ namespace Augments
 				return;
 			if (whoAmI < 0 || whoAmI >= Main.maxPlayers)
 				return;
-			if (!PendingRewardChoicesByPlayer.TryGetValue(whoAmI, out var pendingChoices))
-				return;
-			if (!pendingChoices.Choices.Contains(augmentId))
-				return;
+
+			// The chip must be one the server itself offered: either one of the
+			// boss-reward cards or the chip this player's gacha roll produced.
+			bool fromGacha = PendingGachaByPlayer.TryGetValue(whoAmI, out string gachaId) && gachaId == augmentId;
+			if (!fromGacha)
+			{
+				if (!PendingRewardChoicesByPlayer.TryGetValue(whoAmI, out var pendingChoices))
+					return;
+				if (!pendingChoices.Choices.Contains(augmentId))
+					return;
+			}
 
 			Player player = Main.player[whoAmI];
 			if (!player.active)
@@ -367,7 +536,10 @@ namespace Augments
 			if (!augmentPlayer.ApplyRewardAugment(augment, false))
 				return;
 
-			PendingRewardChoicesByPlayer.Remove(whoAmI);
+			if (fromGacha)
+				PendingGachaByPlayer.Remove(whoAmI);
+			else
+				PendingRewardChoicesByPlayer.Remove(whoAmI);
 			SendSyncPlayer(player);
 		}
 
@@ -398,6 +570,7 @@ namespace Augments
 				return;
 
 			PendingRewardChoicesByPlayer.Remove(whoAmI);
+			PendingGachaByPlayer.Remove(whoAmI);
 
 			for (int i = 0; i < Main.maxPlayers; i++)
 			{
@@ -752,12 +925,19 @@ namespace Augments
 					slowPercent = reader.ReadSingle();
 					break;
 				case NPCEffectType.Cracked:
+					durationTicks = reader.ReadInt32();
+					break;
 				case NPCEffectType.KineticMark:
 					durationTicks = reader.ReadInt32();
+					// Only the server's relay carries the owner; clients don't send it.
+					if (Main.netMode == NetmodeID.MultiplayerClient)
+						markerIndex = reader.ReadByte();
 					break;
 				case NPCEffectType.Nanites:
 					durationTicks = reader.ReadInt32();
 					minionIdentity = reader.ReadInt32();
+					if (Main.netMode == NetmodeID.MultiplayerClient)
+						markerIndex = reader.ReadByte();
 					break;
 				case NPCEffectType.Callout:
 					durationTicks = reader.ReadInt32();
@@ -795,7 +975,8 @@ namespace Augments
 					}
 					break;
 				case NPCEffectType.Nanites:
-					npc.GetGlobalNPC<AugmentNaniteNPC>().ApplyNanites(whoAmI, minionIdentity, durationTicks);
+					// On the server the sender is the owner; on clients the relay carries it.
+					npc.GetGlobalNPC<AugmentNaniteNPC>().ApplyNanites(Main.netMode == NetmodeID.Server ? whoAmI : markerIndex, minionIdentity, durationTicks);
 
 					if (Main.netMode == NetmodeID.Server)
 					{
@@ -805,11 +986,12 @@ namespace Augments
 						relay.Write(npcIndex);
 						relay.Write(durationTicks);
 						relay.Write(minionIdentity);
+						relay.Write((byte)whoAmI);
 						relay.Send(-1, whoAmI);
 					}
 					break;
 				case NPCEffectType.KineticMark:
-					npc.GetGlobalNPC<AugmentMarksmanNPC>().ApplyMark(whoAmI, durationTicks);
+					npc.GetGlobalNPC<AugmentMarksmanNPC>().ApplyMark(Main.netMode == NetmodeID.Server ? whoAmI : markerIndex, durationTicks);
 
 					if (Main.netMode == NetmodeID.Server)
 					{
@@ -818,6 +1000,7 @@ namespace Augments
 						relay.Write((byte)NPCEffectType.KineticMark);
 						relay.Write(npcIndex);
 						relay.Write(durationTicks);
+						relay.Write((byte)whoAmI);
 						relay.Send(-1, whoAmI);
 					}
 					break;

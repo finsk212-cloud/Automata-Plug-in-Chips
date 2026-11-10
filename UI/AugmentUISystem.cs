@@ -566,6 +566,12 @@ namespace Augments
 				ShowGacha();
 		}
 
+		// Server reply to a gacha roll request (multiplayer).
+		public void OnGachaResult(string augmentId)
+		{
+			gachaState?.OnGachaResult(augmentId);
+		}
+
 		public bool IsGachaOpen => gachaInterface?.CurrentState != null;
 
 		// --- Banner Station slot window controls ---

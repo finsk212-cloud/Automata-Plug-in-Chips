@@ -478,7 +478,7 @@ namespace Augments
 			}
 
 			var augmentPlayer = player.GetModPlayer<AugmentPlayer>();
-			if (!AugmentRewardLogic.TryRollRewardChoices(augmentPlayer, currentBracket, currentChoiceIds, out List<Augment> newChoices, out AugmentRarity newRarity))
+			if (!AugmentRewardLogic.TryRollRewardChoices(augmentPlayer, currentBracket, currentChoiceIds, out List<Augment> newChoices, out AugmentRarity newRarity, currentRarity))
 			{
 				Main.NewText("No other plugins are available.", 255, 100, 100);
 				RefreshRerollButton();

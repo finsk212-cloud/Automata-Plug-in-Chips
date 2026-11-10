@@ -54,6 +54,11 @@ namespace Augments
 			}
 
 			particles.Update();
+			UpdateEssenceLabel();
+
+			// If the server never answers, let the player try again after ~5 seconds.
+			if (awaitingGachaResult && ++gachaRequestAge > 300)
+				awaitingGachaResult = false;
 
 			CalculatedStyle chamberDims = chamberContainer != null ? chamberContainer.GetDimensions() : default;
 			Rectangle chamberRect = new Rectangle((int)chamberDims.X, (int)chamberDims.Y, (int)chamberDims.Width, (int)chamberDims.Height);
@@ -168,10 +173,22 @@ namespace Augments
 			particles.Draw(spriteBatch);
 		}
 
-		public void Refresh()
+		private int shownCoreCount = -1;
+
+		private void UpdateEssenceLabel()
 		{
 			int count = Main.LocalPlayer.CountItem(ModContent.ItemType<AugmentEssenceItem>());
+			if (count == shownCoreCount)
+				return;
+
+			shownCoreCount = count;
 			essenceLabel?.SetText($"[c/D4B872:Machine Cores:] [c/68C2D8:{count:N0}]");
+		}
+
+		public void Refresh()
+		{
+			shownCoreCount = -1;
+			UpdateEssenceLabel();
 
 			RarityBracket bracket = BossTierMap.GetCurrentWorldBracket();
 			string bracketName = BossTierMap.GetBracketName(bracket);
@@ -332,6 +349,12 @@ namespace Augments
 			chamberContainer.Append(returnBtn);
 		}
 
+		// Multiplayer: the server rolls the chip and takes the Machine Cores, because
+		// it will only grant a chip it rolled itself. This is set while we wait for
+		// its GachaResult reply so the button can't be spammed.
+		private bool awaitingGachaResult;
+		private int gachaRequestAge;
+
 		private void StartDecryption()
 		{
 			var player = Main.LocalPlayer;
@@ -343,54 +366,64 @@ namespace Augments
 				return;
 			}
 
-			// Consume 3 Machine Cores
+			if (Main.netMode == NetmodeID.MultiplayerClient)
+			{
+				if (awaitingGachaResult)
+					return;
+
+				awaitingGachaResult = true;
+				gachaRequestAge = 0;
+				AugmentNet.SendGachaRollRequest();
+				return;
+			}
+
+			// Singleplayer: roll first, spend the cores only if there is something to win.
+			var ap = player.GetModPlayer<AugmentPlayer>();
+			Augment rolled = AugmentRewardLogic.RollGachaChip(ap, BossTierMap.GetCurrentWorldBracket());
+			if (rolled == null)
+			{
+				Main.NewText("No plug-in chips left to decrypt.", 220, 90, 90);
+				SoundEngine.PlaySound(SoundID.MenuClose);
+				return;
+			}
+
 			for (int i = 0; i < 3; i++)
 				player.ConsumeItem(coreType);
 
 			Refresh();
+			wonAugment = rolled;
+			BeginDecryptionAnimation();
+		}
 
-			// Roll winning augment using current world progression bracket
-			RarityBracket currentBracket = BossTierMap.GetCurrentWorldBracket();
-			AugmentRarity rolledRarity = BossRarityRoller.Roll(currentBracket);
-			var ap = player.GetModPlayer<AugmentPlayer>();
+		// Called when the server answers a GachaRollRequest. An empty id means the
+		// roll failed (no cores / nothing left to offer) and nothing was spent.
+		public void OnGachaResult(string augmentId)
+		{
+			awaitingGachaResult = false;
 
-			// Protocol Partner Bias (20%): If player has 1/2 of an active protocol, 20% chance to bias the reward tier towards the partner chip's rarity
-			var missingPartners = ap.GetMissingProtocolPartners();
-			if (missingPartners.Count > 0 && Main.rand.NextFloat() < 0.20f)
+			Augment rolled = string.IsNullOrEmpty(augmentId) ? null : AugmentDatabase.GetById(augmentId);
+			if (rolled == null)
 			{
-				var targetPartner = missingPartners[Main.rand.Next(missingPartners.Count)];
-				rolledRarity = targetPartner.Rarity;
+				Main.NewText("Decryption failed. No Machine Cores were spent.", 220, 90, 90);
+				SoundEngine.PlaySound(SoundID.MenuClose);
+				return;
 			}
 
-			var choices = ap.RollChoices(1, rolledRarity, null);
-			if (choices.Count > 0)
-			{
-				wonAugment = choices[0];
-			}
-			else
-			{
-				foreach (AugmentRarity fallbackRarity in AugmentRewardLogic.GetRarityFallbackOrder(rolledRarity))
-				{
-					choices = ap.RollChoices(1, fallbackRarity, null);
-					if (choices.Count > 0)
-					{
-						wonAugment = choices[0];
-						break;
-					}
-				}
-				if (wonAugment == null)
-				{
-					var all = AugmentDatabase.All;
-					wonAugment = all[Main.rand.Next(all.Count)];
-				}
-			}
+			// The server already took the cores; the inventory update may land a moment
+			// later; the cores label is refreshed again by the UI system when it does.
+			Refresh();
+			wonAugment = rolled;
+			BeginDecryptionAnimation();
+		}
 
+		private void BeginDecryptionAnimation()
+		{
 			// Transition to Decrypting state
 			state = ChamberState.Decrypting;
 			animTimer = 0;
 
 			// Soft spool-up hum
-			SoundEngine.PlaySound(SoundID.Item29 with { Volume = 0.70f, Pitch = -0.3f }, player.Center);
+			SoundEngine.PlaySound(SoundID.Item29 with { Volume = 0.70f, Pitch = -0.3f }, Main.LocalPlayer.Center);
 			RebuildChamberContent();
 		}
 
@@ -446,7 +479,8 @@ namespace Augments
 			// Authoritatively grant or archive the augment so chat announces it at the exact moment of reveal!
 			var ap = player.GetModPlayer<AugmentPlayer>();
 			wonAugmentArchived = ap.Owned.Count >= AugmentPlayer.MaxOwnedAugments;
-			wonRefundCores = 0;
+			// Slots-full chips now go to the stash (no refund); only permanent chips are still archived for Cores.
+			wonRefundCores = wonAugmentArchived && wonAugment.IsPermanent ? AugmentPlayer.GetRewardRefund(wonAugment.Rarity) : 0;
 			ap.ChooseReward(wonAugment);
 		}
 

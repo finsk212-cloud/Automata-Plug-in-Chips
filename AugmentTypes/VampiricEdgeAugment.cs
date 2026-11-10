@@ -6,6 +6,7 @@ namespace Augments
     public class VampiricEdgeAugment : Augment
     {
         public override string Id => "vampiric_edge";
+        public override bool RunsKillHookOnKillerClient => true;
         public override string DisplayName => "Vampiric Edge";
         public override string Description =>
             $"Melee kills {AugmentText.Healing("restore 3 HP")}.\n" +

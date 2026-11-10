@@ -6,6 +6,7 @@ namespace Augments
     public class RavenousSwarmAugment : Augment
     {
         public override string Id => "ravenous_swarm";
+        public override bool RunsKillHookOnKillerClient => true;
         public override string DisplayName => "Ravenous Swarm";
         public override string Description =>
             $"Minion kills have a {FormatCurrentChance(ProcChance)} to grant {AugmentText.BonusDamage("+1 max minion slot")}.\n" +

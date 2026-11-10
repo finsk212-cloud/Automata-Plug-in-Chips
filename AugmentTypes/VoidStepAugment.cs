@@ -5,6 +5,7 @@ namespace Augments
     public class VoidStepAugment : Augment
     {
         public override string Id => "void_step";
+        public override bool RunsKillHookOnKillerClient => true;
         public override string DisplayName => "Void Step";
         public override string Description =>
             $"Enemy kills grant {AugmentText.Defense("+2% dodge chance")}, stacking up to {AugmentText.Defense("+20%")}. " +
