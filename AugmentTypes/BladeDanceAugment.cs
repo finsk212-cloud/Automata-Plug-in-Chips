@@ -11,163 +11,100 @@ namespace Augments
 {
     public class BladeDanceAugment : Augment
     {
+        // Tuning
+        private const int Blinks = 8;
+        private const int BlinkIntervalTicks = 15;                     // 8 blinks x 15 ticks = the full 2s
+        private const int DurationTicks = Blinks * BlinkIntervalTicks; // 120 ticks = 2s
+        private const int CooldownTicks = 3000;                        // 50s
+        private const int BaseSlashDamage = 90;                        // run through AugmentScaling.Scale
+        private const float SearchRadius = 600f;
+
         public override string Id => "blade_dance";
         public override string DisplayName => "Blade Dance";
         public override string Description =>
-            $"Landing {AugmentText.Trigger("6 melee hits")} primes {AugmentText.Crit("Blade Dance")}.\n" +
-            $"Your next strike unleashes a flurry of {AugmentText.SpecialDamage("5 Phantom Blade Slashes")} across surrounding targets over 0.35s (dealing {AugmentText.BonusDamage("70% damage")} each).\n" +
-            $"Grants {AugmentText.Defense("invulnerability")} during the dance flurry. {AugmentText.Cooldown("8s cooldown")}.";
+            $"{AugmentText.Active("Active:")} Press [{AugmentText.Key(Augments.BladeDanceKeybind)}] with a {AugmentText.Trigger("melee weapon")} in hand to become " +
+            $"{AugmentText.Defense("invulnerable")} for {AugmentText.Duration("2 seconds")} while you blink between nearby enemies, " +
+            $"cutting each one you reach for {AugmentText.SpecialDamage($"{AugmentScaling.Scale(BaseSlashDamage)} damage")} ({Blinks} slashes). " +
+            $"{AugmentText.Cooldown("50s cooldown")}. {AugmentText.Note("(Nothing happens, and no cooldown is spent, if no enemy is in range.)")}";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +
-            AugmentText.Note("(Melee strikes build combo stacks. At 6 stacks, you enter an untouchable phantom flurry cutting down nearby enemies.)");
+            AugmentText.Note("(The slash damage is fixed: it does not depend on your weapon, but does scale with game progression. Your melee crit chance still applies.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Legendary;
         public override AugmentClass Class => AugmentClass.Melee;
+        public override ModKeybind ActiveModKeybind => Augments.BladeDanceKeybind;
+        public override int CooldownRemaining => GetCooldown(LocalPlayerState.Player);
 
-        private const int MaxComboHits = 6;
-        private const int ComboResetTicks = 300;  // 5 seconds
-        private const int CooldownTicks = 480;    // 8 seconds
-        private const int SlashCount = 5;
-        private const int SlashCadenceTicks = 4;
-        private const float SearchRadius = 380f;
-
-        private static readonly Dictionary<int, int> comboStacks = new();
-        private static readonly Dictionary<int, int> comboResetTimer = new();
+        // All of this runs on the owner's own game only (the teleport, the invulnerability and the
+        // slash projectiles are all owner-authoritative in Terraria), so plain per-player state is enough.
         private static readonly Dictionary<int, int> cooldownTimer = new();
-        private static readonly Dictionary<int, bool> danceActive = new();
         private static readonly Dictionary<int, int> danceTimer = new();
-        private static readonly Dictionary<int, int> slashesRemaining = new();
-        private static readonly Dictionary<int, Vector2> lastTargetPos = new();
+        private static readonly Dictionary<int, int> blinksRemaining = new();
+        private static readonly Dictionary<int, bool> danceActive = new();
         private static readonly Dictionary<int, int> slashDamage = new();
         private static readonly Dictionary<int, int> slashCrit = new();
+        private static readonly Dictionary<int, HashSet<int>> cutThisRound = new();
 
         public static int GetCooldown(Player player) =>
-            cooldownTimer.TryGetValue(player.whoAmI, out int cd) ? cd : 0;
-
-        public static int GetCombo(Player player) =>
-            comboStacks.TryGetValue(player.whoAmI, out int c) ? c : 0;
+            player != null && cooldownTimer.TryGetValue(player.whoAmI, out int cd) ? cd : 0;
 
         public static bool IsDancing(Player player) =>
-            danceActive.TryGetValue(player.whoAmI, out bool a) && a;
+            player != null && danceActive.TryGetValue(player.whoAmI, out bool a) && a;
 
-        public override bool IsCharging
+        public static void ResetCooldown(Player player)
         {
-            get
-            {
-                Player p = LocalPlayerState.Player;
-                return IsDancing(p) || GetCombo(p) > 0 || GetCooldown(p) > 0;
-            }
+            if (player != null)
+                cooldownTimer[player.whoAmI] = 0;
         }
 
-        public override int ChargeIndicatorPercent
-        {
-            get
-            {
-                Player p = LocalPlayerState.Player;
-                int cd = GetCooldown(p);
-                if (cd > 0)
-                    return (int)((1f - (cd / (float)CooldownTicks)) * 100f);
-
-                return (int)(GetCombo(p) / (float)MaxComboHits * 100f);
-            }
-        }
-
-        public override Color StatusValueColor
-        {
-            get
-            {
-                Player p = LocalPlayerState.Player;
-                if (GetCooldown(p) > 0)
-                    return AugmentTextColors.Cooldown;
-                return AugmentTextColors.Crit;
-            }
-        }
-
-        public override void OnHitNPCWithItem(
-            Player player,
-            Item item,
-            NPC target,
-            NPC.HitInfo hit,
-            AugmentHitSource source,
-            float effectiveness)
-        {
-            if (player.whoAmI != Main.myPlayer)
-                return;
-
-            if (source == AugmentHitSource.NormalAttack && item.CountsAsClass(DamageClass.Melee))
-            {
-                RegisterMeleeHit(player, target, item.damage, (int)player.GetTotalCritChance(DamageClass.Melee));
-            }
-        }
-
-        public override void OnHitNPCWithProj(
-            Player player,
-            Projectile proj,
-            NPC target,
-            NPC.HitInfo hit,
-            AugmentHitSource source,
-            float effectiveness)
-        {
-            if (player.whoAmI != Main.myPlayer)
-                return;
-
-            var tag = proj.GetGlobalProjectile<AugmentProjectileTag>();
-            if (tag.IsAugmentProcDamage || proj.minion || proj.sentry)
-                return;
-
-            if (source == AugmentHitSource.NormalAttack && proj.CountsAsClass(DamageClass.Melee))
-            {
-                RegisterMeleeHit(player, target, proj.damage, proj.CritChance);
-            }
-        }
-
-        private static void RegisterMeleeHit(Player player, NPC target, int baseDamage, int critChance)
+        public override void OnAcquire(Player player)
         {
             int who = player.whoAmI;
+            cooldownTimer[who] = 0;
+            danceActive[who] = false;
+        }
 
-            if (cooldownTimer.TryGetValue(who, out int cd) && cd > 0)
+        private static bool HoldingMeleeWeapon(Player player)
+        {
+            Item item = player.HeldItem;
+            return item != null && !item.IsAir && item.damage > 0 && item.CountsAsClass(DamageClass.Melee)
+                && item.pick == 0 && item.axe == 0 && item.hammer == 0;
+        }
+
+        // Called from AugmentPlayer.ProcessTriggers when the keybind is pressed.
+        public static void TryActivate(Player player)
+        {
+            if (player.whoAmI != Main.myPlayer || player.dead || IsDancing(player) || GetCooldown(player) > 0)
                 return;
 
-            if (danceActive.TryGetValue(who, out bool active) && active)
-                return;
-
-            comboResetTimer[who] = ComboResetTicks;
-            int current = comboStacks.TryGetValue(who, out int c) ? c : 0;
-            current++;
-
-            if (current >= MaxComboHits)
+            if (!HoldingMeleeWeapon(player))
             {
-                // Trigger Blade Dance!
-                comboStacks[who] = 0;
-                danceActive[who] = true;
-                slashesRemaining[who] = SlashCount;
-                danceTimer[who] = 0;
-                slashDamage[who] = Math.Max(1, (int)(baseDamage * 0.70f));
-                slashCrit[who] = critChance;
-                lastTargetPos[who] = target.Center;
-
-                SoundEngine.PlaySound(SoundID.Item29 with { Volume = 0.65f, Pitch = 0.4f }, player.Center);
-                SoundEngine.PlaySound(SoundID.Item71 with { Volume = 0.85f, Pitch = -0.2f }, target.Center);
-
-                for (int i = 0; i < 18; i++)
-                {
-                    Vector2 vel = Main.rand.NextVector2Circular(4.5f, 4.5f);
-                    int dType = Main.rand.NextBool() ? DustID.CrimsonTorch : DustID.SilverCoin;
-                    Dust d = Dust.NewDustPerfect(player.Center, dType, vel, 80, default, 1.3f);
-                    d.noGravity = true;
-                }
+                Main.NewText("Blade Dance needs a melee weapon in hand.", 255, 100, 100);
+                return;
             }
-            else
-            {
-                comboStacks[who] = current;
-                SoundEngine.PlaySound(SoundID.Item1 with { Volume = 0.35f, Pitch = 0.1f * current }, player.Center);
 
-                for (int i = 0; i < 3; i++)
-                {
-                    Dust d = Dust.NewDustPerfect(target.Center, DustID.CrimsonTorch, Main.rand.NextVector2Circular(2f, 2f), 100, default, 1.1f);
-                    d.noGravity = true;
-                }
+            if (FindTarget(player, player.Center, null) == null)
+            {
+                Main.NewText("Blade Dance: no enemies in range.", 255, 100, 100);
+                return;
+            }
+
+            int who = player.whoAmI;
+            danceActive[who] = true;
+            danceTimer[who] = 0;
+            blinksRemaining[who] = Blinks;
+            slashDamage[who] = AugmentScaling.Scale(BaseSlashDamage);
+            slashCrit[who] = (int)player.GetTotalCritChance(DamageClass.Melee);
+            cutThisRound[who] = new HashSet<int>();
+
+            SoundEngine.PlaySound(SoundID.Item29 with { Volume = 0.65f, Pitch = 0.4f }, player.Center);
+            for (int i = 0; i < 18; i++)
+            {
+                Vector2 vel = Main.rand.NextVector2Circular(4.5f, 4.5f);
+                int dType = Main.rand.NextBool() ? DustID.CrimsonTorch : DustID.SilverCoin;
+                Dust d = Dust.NewDustPerfect(player.Center, dType, vel, 80, default, 1.3f);
+                d.noGravity = true;
             }
         }
 
@@ -177,115 +114,166 @@ namespace Augments
 
             if (player.dead || !player.active)
             {
-                if (player.dead)
-                {
-                    comboStacks[who] = 0;
-                    comboResetTimer[who] = 0;
-                    cooldownTimer[who] = 0;
-                    danceActive[who] = false;
-                    slashesRemaining[who] = 0;
-                }
+                danceActive[who] = false;
                 return;
             }
 
-            // Decrement cooldown
             if (cooldownTimer.TryGetValue(who, out int cd) && cd > 0)
                 cooldownTimer[who] = cd - 1;
 
-            // Decrement combo reset timer
-            if (comboResetTimer.TryGetValue(who, out int cr) && cr > 0)
+            if (!IsDancing(player) || who != Main.myPlayer)
+                return;
+
+            // Untouchable and hovering for the whole dance.
+            player.immune = true;
+            player.immuneTime = Math.Max(player.immuneTime, 6);
+            player.immuneNoBlink = true;
+            player.velocity = Vector2.Zero;
+            player.fallStart = (int)(player.position.Y / 16f);
+
+            if (Main.rand.NextBool(2))
             {
-                comboResetTimer[who] = cr - 1;
-                if (comboResetTimer[who] <= 0)
-                    comboStacks[who] = 0;
+                int dType = Main.rand.NextBool() ? DustID.CrimsonTorch : DustID.SilverCoin;
+                Dust d = Dust.NewDustDirect(player.position, player.width, player.height, dType, 0f, 0f, 100, default, 1.2f);
+                d.noGravity = true;
+                d.velocity *= 0.2f;
             }
 
-            // Process active Blade Dance flurry
-            if (danceActive.TryGetValue(who, out bool active) && active)
+            int timer = danceTimer.TryGetValue(who, out int t) ? t : 0;
+
+            if (timer % BlinkIntervalTicks == 0 && blinksRemaining.TryGetValue(who, out int left) && left > 0)
             {
-                // Grant invulnerability during dance flurry
-                player.immune = true;
-                player.immuneTime = Math.Max(player.immuneTime, 30);
-                player.immuneNoBlink = true;
-
-                // Speed afterimage particles
-                if (who == Main.myPlayer && Main.rand.NextBool(2))
+                if (!Blink(player))
                 {
-                    int dType = Main.rand.NextBool() ? DustID.CrimsonTorch : DustID.SilverCoin;
-                    Dust d = Dust.NewDustDirect(player.position, player.width, player.height, dType, 0f, 0f, 100, default, 1.2f);
-                    d.noGravity = true;
-                    d.velocity *= 0.2f;
+                    EndDance(player); // nobody left to cut
+                    return;
                 }
-
-                danceTimer.TryGetValue(who, out int timer);
-
-                if (who == Main.myPlayer && timer % SlashCadenceTicks == 0 && slashesRemaining.TryGetValue(who, out int slashes) && slashes > 0)
-                {
-                    SpawnPhantomSlash(player);
-                    slashesRemaining[who] = slashes - 1;
-
-                    if (slashesRemaining[who] <= 0)
-                    {
-                        danceActive[who] = false;
-                        cooldownTimer[who] = CooldownTicks;
-                        SoundEngine.PlaySound(SoundID.Item105 with { Volume = 0.6f, Pitch = 0.2f }, player.Center);
-                    }
-                }
-
-                danceTimer[who] = timer + 1;
+                blinksRemaining[who] = left - 1;
             }
+
+            danceTimer[who] = timer + 1;
+            if (timer + 1 >= DurationTicks)
+                EndDance(player);
         }
 
-        private static void SpawnPhantomSlash(Player player)
+        private static void EndDance(Player player)
         {
             int who = player.whoAmI;
-            Vector2 anchor = lastTargetPos.TryGetValue(who, out Vector2 pos) ? pos : player.Center;
+            danceActive[who] = false;
+            blinksRemaining[who] = 0;
+            cooldownTimer[who] = CooldownTicks;
+            player.immuneTime = Math.Min(player.immuneTime, 2);
+            SoundEngine.PlaySound(SoundID.Item105 with { Volume = 0.6f, Pitch = 0.2f }, player.Center);
+        }
 
-            // Find closest living hostile enemy near anchor or player
-            NPC bestTarget = null;
+        // Nearest living hostile to 'from' within range, preferring ones not yet cut this round.
+        private static NPC FindTarget(Player player, Vector2 from, HashSet<int> alreadyCut)
+        {
+            NPC best = null;
+            NPC bestAny = null;
             float bestDistSq = SearchRadius * SearchRadius;
+            float bestAnyDistSq = bestDistSq;
 
             for (int i = 0; i < Main.maxNPCs; i++)
             {
                 NPC npc = Main.npc[i];
-                if (!npc.active || npc.friendly || npc.dontTakeDamage || npc.life <= 0)
+                if (!npc.active || npc.friendly || npc.dontTakeDamage || npc.life <= 0 || npc.immortal || npc.CountsAsACritter)
                     continue;
 
-                float distSq = Vector2.DistanceSquared(anchor, npc.Center);
+                float distSq = Vector2.DistanceSquared(from, npc.Center);
+                if (distSq >= bestAnyDistSq)
+                    continue;
+
+                bestAnyDistSq = distSq;
+                bestAny = npc;
+
+                if (alreadyCut != null && alreadyCut.Contains(i))
+                    continue;
                 if (distSq < bestDistSq)
                 {
                     bestDistSq = distSq;
-                    bestTarget = npc;
+                    best = npc;
                 }
             }
 
-            Vector2 slashCenter = bestTarget != null ? bestTarget.Center : anchor;
-            lastTargetPos[who] = slashCenter;
+            return best ?? bestAny;
+        }
 
-            float slashAngle = Main.rand.NextFloat(MathHelper.TwoPi);
-            Vector2 spawnPos = slashCenter - slashAngle.ToRotationVector2() * 45f;
-            Vector2 slashVel = slashAngle.ToRotationVector2() * 18f;
+        // One blink: jump beside the next enemy and slash it. Returns false if there is nothing to hit.
+        private static bool Blink(Player player)
+        {
+            int who = player.whoAmI;
+            HashSet<int> cut = cutThisRound[who];
 
-            int dmg = slashDamage.TryGetValue(who, out int d) ? d : 50;
-            int crit = slashCrit.TryGetValue(who, out int c) ? c : 4;
+            NPC target = FindTarget(player, player.Center, cut);
+            if (target == null)
+                return false;
+
+            // Everything in range has been cut once: start another round.
+            if (cut.Contains(target.whoAmI))
+                cut.Clear();
+            cut.Add(target.whoAmI);
+
+            Vector2 from = player.Center;
+            MoveBesideTarget(player, target);
+            Vector2 to = player.Center;
+
+            // Trail between the two spots.
+            int steps = Math.Clamp((int)(Vector2.Distance(from, to) / 24f), 2, 40);
+            for (int i = 0; i <= steps; i++)
+            {
+                int dType = Main.rand.NextBool() ? DustID.CrimsonTorch : DustID.SilverCoin;
+                Dust d = Dust.NewDustPerfect(Vector2.Lerp(from, to, i / (float)steps), dType, Main.rand.NextVector2Circular(0.8f, 0.8f), 100, default, 1.1f);
+                d.noGravity = true;
+            }
+
+            Vector2 toward = (target.Center - player.Center).SafeNormalize(Vector2.UnitX);
+            float angle = toward.ToRotation() + Main.rand.NextFloat(-0.6f, 0.6f);
+            Vector2 dir = angle.ToRotationVector2();
 
             int projId = Projectile.NewProjectile(
                 player.GetSource_FromThis(),
-                spawnPos,
-                slashVel,
+                target.Center - dir * 45f,
+                dir * 18f,
                 ModContent.ProjectileType<BladeDanceSlashProjectile>(),
-                dmg,
+                slashDamage.TryGetValue(who, out int dmg) ? dmg : 50,
                 5.5f,
-                player.whoAmI
-            );
+                who);
 
             if (projId >= 0 && projId < Main.maxProjectiles)
-            {
-                Projectile p = Main.projectile[projId];
-                p.CritChance = crit;
-            }
+                Main.projectile[projId].CritChance = slashCrit.TryGetValue(who, out int crit) ? crit : 4;
 
-            SoundEngine.PlaySound(SoundID.Item71 with { Volume = 0.70f, Pitch = Main.rand.NextFloat(-0.1f, 0.3f) }, slashCenter);
+            SoundEngine.PlaySound(SoundID.Item71 with { Volume = 0.70f, Pitch = Main.rand.NextFloat(-0.1f, 0.3f) }, target.Center);
+            return true;
+        }
+
+        // Puts the player beside the target (left or right, then above) in a spot that isn't inside tiles.
+        // If every spot is blocked the player stays put and the slash still lands.
+        private static void MoveBesideTarget(Player player, NPC target)
+        {
+            float side = target.width / 2f + player.width / 2f + 10f;
+            bool rightFirst = Main.rand.NextBool();
+            Vector2[] offsets =
+            {
+                new Vector2(rightFirst ? side : -side, 0f),
+                new Vector2(rightFirst ? -side : side, 0f),
+                new Vector2(0f, -(target.height / 2f + player.height / 2f + 10f)),
+            };
+
+            foreach (Vector2 offset in offsets)
+            {
+                Vector2 center = target.Center + offset;
+                Vector2 topLeft = center - new Vector2(player.width / 2f, player.height / 2f);
+                if (Collision.SolidCollision(topLeft, player.width, player.height))
+                    continue;
+
+                player.position = topLeft;
+                player.velocity = Vector2.Zero;
+                player.direction = target.Center.X >= center.X ? 1 : -1;
+                player.RemoveAllGrapplingHooks();
+                player.fallStart = (int)(player.position.Y / 16f);
+                return;
+            }
         }
     }
 }

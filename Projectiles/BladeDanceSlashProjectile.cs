@@ -34,7 +34,8 @@ namespace Augments
             Projectile.ignoreWater = true;
             Projectile.timeLeft = LifetimeTicks;
             Projectile.usesLocalNPCImmunity = true;
-            Projectile.localNPCHitCooldown = 6;
+            // Longer than the slash lives, so each enemy is cut once per slash.
+            Projectile.localNPCHitCooldown = 20;
         }
 
         public override void AI()

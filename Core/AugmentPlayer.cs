@@ -1720,6 +1720,9 @@ namespace Augments
 				packet.Send();
 			}
 
+			if (HasAugment("blade_dance") && Augments.BladeDanceKeybind?.JustPressed == true && !isTyping && !Player.dead)
+				BladeDanceAugment.TryActivate(Player);
+
 			if (HasAugment("reforgers_patience") && Augments.UndoReforgeKeybind?.JustPressed == true)
 			{
 				if (TryUndoLastReforge())
@@ -1768,6 +1771,7 @@ namespace Augments
 			CleanseCooldown = 0;
 			ChronobreakCooldown = 0;
 			GetOverHereCooldown = 0;
+			BladeDanceAugment.ResetCooldown(Player);
 			LastRitesCooldown = 0;
 			LifelineCooldown = 0;
 			soulLinkRequestCooldown = 0;
@@ -2336,6 +2340,13 @@ namespace Augments
 
 		public override void SetControls()
 		{
+			// No swinging, tools or placing while Blade Dance is carrying you around.
+			if (BladeDanceAugment.IsDancing(Player))
+			{
+				Player.controlUseItem = false;
+				Player.controlUseTile = false;
+			}
+
 			if (Main.netMode != NetmodeID.Server && Player.whoAmI == Main.myPlayer)
 			{
 				if (ModContent.GetInstance<AugmentUISystem>()?.IsPlayerInputBlocked() == true)

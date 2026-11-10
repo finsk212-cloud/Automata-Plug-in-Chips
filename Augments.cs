@@ -77,6 +77,7 @@ namespace Augments
 		public static ModKeybind CleanseKeybind;
 		public static ModKeybind ChronobreakKeybind;
 		public static ModKeybind GetOverHereKeybind;
+		public static ModKeybind BladeDanceKeybind;
 		public static ModKeybind[] LoadoutKeybinds = new ModKeybind[3];
 		public static ModKeybind UndoReforgeKeybind;
 		public static ModKeybind ResetCooldownsKeybind;
@@ -100,6 +101,7 @@ namespace Augments
 			CleanseKeybind = KeybindLoader.RegisterKeybind(this, "Cleanse", "None");
 			ChronobreakKeybind = KeybindLoader.RegisterKeybind(this, "Chronobreak", "None");
 			GetOverHereKeybind = KeybindLoader.RegisterKeybind(this, "GetOverHere", "None");
+			BladeDanceKeybind = KeybindLoader.RegisterKeybind(this, "BladeDance", "None");
 			for (int i = 0; i < LoadoutKeybinds.Length; i++)
 				LoadoutKeybinds[i] = KeybindLoader.RegisterKeybind(this, "ApplyLoadout" + (i + 1), "None");
 			UndoReforgeKeybind = KeybindLoader.RegisterKeybind(this, "UndoReforge", "None");
@@ -134,6 +136,7 @@ namespace Augments
 			CleanseKeybind = null;
 			ChronobreakKeybind = null;
 			GetOverHereKeybind = null;
+			BladeDanceKeybind = null;
 			GetOverHereAugment.UnloadSounds();
 			for (int i = 0; i < LoadoutKeybinds.Length; i++)
 				LoadoutKeybinds[i] = null;
