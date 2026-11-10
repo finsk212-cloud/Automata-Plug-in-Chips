@@ -169,12 +169,9 @@ namespace Augments
 				NotifyPlayer($"Need {cost} Machine Cores.", new Color(255, 140, 140));
 				return false;
 			}
-			for (int i = 0; i < cost; i++)
-				Player.ConsumeItem(essenceType);
+			TakeMachineCores(cost);
 
 			loadoutSlotsUnlocked++;
-			if (Main.netMode == NetmodeID.Server)
-				SyncInventory();
 			NotifyPlayer($"Loadout {slot + 1} unlocked.", new Color(255, 215, 0));
 			return true;
 		}

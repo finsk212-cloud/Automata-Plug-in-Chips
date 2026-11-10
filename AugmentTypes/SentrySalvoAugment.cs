@@ -26,7 +26,7 @@ namespace Augments
             if (source == AugmentHitSource.AugmentProc)
                 return;
 
-            bool isSentry = proj.sentry || (proj.type >= 0 && proj.type < ProjectileID.Sets.SentryShot.Length && ProjectileID.Sets.SentryShot[proj.type]);
+            bool isSentry = proj.sentry || (proj.type >= ProjectileID.None && proj.type < ProjectileID.Sets.SentryShot.Length && ProjectileID.Sets.SentryShot[proj.type]);
             if (!isSentry)
                 return;
 

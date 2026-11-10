@@ -54,7 +54,8 @@ namespace Augments
 		KillCredit,          // server -> killer's client: run client-side kill hooks (and Cryo shards) for this NPC
 		SyncPersistentState, // client -> server on join: sold/ever-owned/locked families/boss kill counts
 		GachaRollRequest,    // client -> server: spend 3 Machine Cores and roll a chip
-		GachaResult          // server -> client: the chip rolled (empty id = nothing available, cores not spent)
+		GachaResult,         // server -> client: the chip rolled (empty id = nothing available, cores not spent)
+		TakeMachineCores     // server -> owner's client: remove N Machine Cores the server just charged
 	}
 
 	internal enum DebugAugmentCommandType : byte

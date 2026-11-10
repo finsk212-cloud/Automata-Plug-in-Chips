@@ -99,6 +99,9 @@ namespace Augments
 				case AugmentPacketType.GachaResult:
 					HandleGachaResult(reader);
 					return true;
+				case AugmentPacketType.TakeMachineCores:
+					HandleTakeMachineCores(reader);
+					return true;
 			}
 
 			return false;
@@ -400,12 +403,42 @@ namespace Augments
 				return;
 			}
 
-			for (int i = 0; i < 3; i++)
-				player.ConsumeItem(coreType);
-			augmentPlayer.SyncInventory();
+			augmentPlayer.TakeMachineCores(3);
 
 			PendingGachaByPlayer[whoAmI] = rolled.Id;
 			SendGachaResult(whoAmI, rolled.Id);
+		}
+
+		// --- Machine Core spending (server -> owner's client) ---
+
+		// See AugmentPlayer.TakeMachineCores for why the owner's game must do this itself.
+		public static void SendTakeMachineCores(int toClient, int count)
+		{
+			if (Main.netMode != NetmodeID.Server || toClient < 0 || toClient >= Main.maxPlayers || count <= 0)
+				return;
+
+			ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
+			packet.Write((byte)AugmentPacketType.TakeMachineCores);
+			packet.Write((ushort)count);
+			packet.Send(toClient);
+		}
+
+		private static void HandleTakeMachineCores(BinaryReader reader)
+		{
+			int count = reader.ReadUInt16();
+			if (Main.netMode != NetmodeID.MultiplayerClient)
+				return;
+
+			Player player = Main.LocalPlayer;
+			if (player == null || !player.active)
+				return;
+
+			int coreType = ModContent.ItemType<AugmentEssenceItem>();
+			for (int i = 0; i < count; i++)
+			{
+				if (!player.ConsumeItem(coreType))
+					break;
+			}
 		}
 
 		private static void SendGachaResult(int toClient, string augmentId)
@@ -478,11 +511,7 @@ namespace Augments
 				return;
 
 			if (pending.RerollCount == 1)
-			{
-				for (int i = 0; i < 4; i++)
-					player.ConsumeItem(essenceType);
-				augmentPlayer.SyncInventory();
-			}
+				augmentPlayer.TakeMachineCores(4);
 
 			pending.RerollCount++;
 			SendRewardChoices(playerId, choices, finalRarity, pending.Bracket, pending.RerollCount);

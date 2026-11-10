@@ -169,17 +169,13 @@ namespace Augments
 			if (Player.CountItem(essenceType, cost) < cost)
 				return false;
 
-			for (int i = 0; i < cost; i++)
-				Player.ConsumeItem(essenceType);
+			TakeMachineCores(cost);
 
 			soldAugmentIds.Remove(id);
 			ownedIds.Add(id);
 			everOwnedIds.Add(id);
 			RebuildOwnedCacheFromOwnedIdsOnly();
 			augment.OnAcquire(Player);
-
-			if (Main.netMode == NetmodeID.Server)
-				SyncInventory();
 
 			if (sync && Main.netMode == NetmodeID.Server)
 				AugmentNet.SendSyncPlayer(Player);
@@ -2320,13 +2316,22 @@ namespace Augments
 
 		}
 
-		internal void SyncInventory()
+		// Spends Machine Cores. Callers check the count first. On a server, removing
+		// them from the server's copy is not enough: vanilla clients ignore inventory
+		// updates the server sends about their own character, and the client's next
+		// inventory sync would put the cores back. So the owner's game is told to
+		// remove them too; its normal inventory sync then brings both copies in line.
+		internal void TakeMachineCores(int count)
 		{
-			if (Main.netMode != NetmodeID.Server)
+			if (count <= 0 || Main.netMode == NetmodeID.MultiplayerClient)
 				return;
 
-			for (int slot = 0; slot < Player.inventory.Length; slot++)
-				NetMessage.SendData(MessageID.SyncEquipment, -1, -1, null, Player.whoAmI, slot, Player.inventory[slot].prefix);
+			int essenceType = ModContent.ItemType<AugmentEssenceItem>();
+			for (int i = 0; i < count; i++)
+				Player.ConsumeItem(essenceType);
+
+			if (Main.netMode == NetmodeID.Server)
+				AugmentNet.SendTakeMachineCores(Player.whoAmI, count);
 		}
 
 		public override void SetControls()
