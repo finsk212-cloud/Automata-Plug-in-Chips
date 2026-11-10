@@ -163,6 +163,8 @@ namespace Augments
             Register(new HitMeHereAugment());
             Register(new CritHappensAugment());
             Register(new TurretSyndromeAugment());
+            Register(new WildMagicAugment());
+            Register(new DoubleTipAugment());
         }
 
         public const int FirstRecentIndex = 118;
