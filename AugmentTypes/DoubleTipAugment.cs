@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Audio;
-using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Augments.Core;
@@ -15,24 +14,27 @@ namespace Augments
         public override string Id => "double_tip";
         public override string DisplayName => "Double Tip";
         public override string Description =>
-            $"Alternating between different magic weapons triggers {AugmentText.Trigger("Double Tip")} for {AugmentText.Duration("5 seconds")}:\n" +
-            $"• Spells cost {AugmentText.Mana("-50% mana")}\n" +
-            $"• Gain {AugmentText.BonusDamage("+15% magic damage")}\n" +
-            $"• Magic casts fire an additional {AugmentText.SpecialDamage("Twin Harmonic Projectile")} dealing 40% damage.";
+            $"Magic casts fire an additional {AugmentText.SpecialDamage("Twin Harmonic Spell")} dealing {AugmentText.BonusDamage("35% damage")}.\n" +
+            $"Alternating between different magic weapons triggers {AugmentText.Trigger("Hyper-Weave")} for {AugmentText.Duration("5 seconds")}, " +
+            $"boosting twin damage to {AugmentText.BonusDamage("60%")}, granting {AugmentText.BonusDamage("+15% magic damage")}, and reducing mana cost by {AugmentText.Mana("-50%")}.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +
-            AugmentText.Note("(Swap between two different magic staves or tomes to keep Double Tip constantly refreshed.)");
+            AugmentText.Note("(Every magic projectile cast is duplicated as a staggered twin. Swapping magic weapons supercharges the twin spell and slashes mana costs.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Magic;
 
         private const int BuffDurationTicks = 300; // 5 seconds
+        private const int TwinDelayTicks = 4;      // ~0.06s staggered firing delay
+        private static int _lastSoundTick = -1;
+
         private static readonly Dictionary<int, int> lastItemType = new();
         private static readonly Dictionary<int, int> activeTimer = new();
-        private static readonly Dictionary<int, int> twinCooldown = new();
+        private static readonly Dictionary<int, List<PendingTwin>> pendingTwins = new();
+        private static readonly Dictionary<int, int> shotCooldown = new();
 
-        public static bool IsActiveFor(Player player)
+        public static bool IsHyperWeaveActive(Player player)
         {
             return activeTimer.TryGetValue(player.whoAmI, out int t) && t > 0;
         }
@@ -42,7 +44,7 @@ namespace Augments
             return activeTimer.TryGetValue(player.whoAmI, out int t) ? t : 0;
         }
 
-        public override bool IsCharging => IsActiveFor(LocalPlayerState.Player);
+        public override bool IsCharging => IsHyperWeaveActive(LocalPlayerState.Player);
         public override int ChargeIndicatorPercent => (int)(GetTimer(LocalPlayerState.Player) / (float)BuffDurationTicks * 100f);
         public override Color StatusValueColor => AugmentTextColors.Trigger;
 
@@ -53,12 +55,11 @@ namespace Augments
 
             int who = player.whoAmI;
 
-            // Decrement active buff timer
+            // 1. Decrement Hyper-Weave active buff timer
             if (activeTimer.TryGetValue(who, out int t) && t > 0)
             {
                 activeTimer[who] = t - 1;
 
-                // Subtle active aura particles
                 if (who == Main.myPlayer && Main.rand.NextBool(6))
                 {
                     int dType = Main.rand.NextBool() ? DustID.MagicMirror : DustID.PinkTorch;
@@ -68,10 +69,10 @@ namespace Augments
                 }
             }
 
-            if (twinCooldown.TryGetValue(who, out int cd) && cd > 0)
-                twinCooldown[who] = cd - 1;
+            if (shotCooldown.TryGetValue(who, out int cd) && cd > 0)
+                shotCooldown[who] = cd - 1;
 
-            // Spell-weaving weapon swap detection
+            // 2. Spell-weaving weapon swap detection
             Item held = player.HeldItem;
             if (held != null && !held.IsAir && (held.CountsAsClass(DamageClass.Magic) || held.DamageType == DamageClass.Magic))
             {
@@ -94,11 +95,27 @@ namespace Augments
                 }
                 lastItemType[who] = held.type;
             }
+
+            // 3. Process and spawn pending Twin Harmonic Projectiles
+            if (who == Main.myPlayer && pendingTwins.TryGetValue(who, out var list))
+            {
+                for (int i = list.Count - 1; i >= 0; i--)
+                {
+                    var pending = list[i];
+                    pending.TicksRemaining--;
+
+                    if (pending.TicksRemaining <= 0)
+                    {
+                        SpawnTwin(player, pending);
+                        list.RemoveAt(i);
+                    }
+                }
+            }
         }
 
         public override void UpdateEquips(Player player)
         {
-            if (IsActiveFor(player))
+            if (IsHyperWeaveActive(player))
             {
                 player.GetDamage(DamageClass.Magic) += 0.15f;
             }
@@ -106,49 +123,132 @@ namespace Augments
 
         public override void ModifyManaCost(Player player, Item item, ref float reduce, ref float mult)
         {
-            if (IsActiveFor(player) && (item.CountsAsClass(DamageClass.Magic) || item.DamageType == DamageClass.Magic))
+            if (item != null && (item.CountsAsClass(DamageClass.Magic) || item.DamageType == DamageClass.Magic))
             {
-                mult *= 0.5f;
+                if (IsHyperWeaveActive(player))
+                    mult *= 0.5f;
+                else
+                    mult *= 0.85f; // Permanent 15% mana discount baseline
             }
         }
 
         public override void OnShootProjectile(Player player, Item item, Projectile projectile)
         {
-            if (!IsActiveFor(player) || player.whoAmI != Main.myPlayer)
+            if (player.whoAmI != Main.myPlayer)
                 return;
 
-            if (projectile.GetGlobalProjectile<AugmentProjectileTag>().IsAugmentProcDamage || projectile.minion || projectile.sentry)
+            AugmentProjectileTag tag = projectile.GetGlobalProjectile<AugmentProjectileTag>();
+            if (tag.IsAugmentProcDamage || tag.PreventEchoChamberCopy || projectile.minion || projectile.sentry)
                 return;
 
-            if (!item.CountsAsClass(DamageClass.Magic) && item.DamageType != DamageClass.Magic)
+            bool isMagic = (item != null && (item.CountsAsClass(DamageClass.Magic) || item.DamageType == DamageClass.Magic))
+                || projectile.CountsAsClass(DamageClass.Magic)
+                || projectile.DamageType == DamageClass.Magic;
+            if (!isMagic)
                 return;
 
             int who = player.whoAmI;
-            if (twinCooldown.TryGetValue(who, out int cd) && cd > 0)
+            if (shotCooldown.TryGetValue(who, out int cd) && cd > 0)
                 return;
 
-            // Small internal cooldown to prevent shotgun/beam floods
-            twinCooldown[who] = 4;
+            // Small cadence cooldown (4 ticks) to avoid beam / shotgun flood
+            shotCooldown[who] = 4;
 
-            IEntitySource source = projectile.GetSource_FromThis();
-            Vector2 twinVel = projectile.velocity.RotatedBy(Main.rand.NextFloat(-0.08f, 0.08f)) * 0.96f;
-            int twinDmg = Math.Max(1, (int)(projectile.damage * 0.40f));
-            int twinId = Projectile.NewProjectile(source, projectile.Center, twinVel, projectile.type, twinDmg, projectile.knockBack * 0.5f, player.whoAmI);
-            if (twinId >= 0 && twinId < Main.maxProjectiles)
+            if (!pendingTwins.TryGetValue(who, out var list))
             {
-                Projectile twin = Main.projectile[twinId];
-                var twinTag = twin.GetGlobalProjectile<AugmentProjectileTag>();
-                twinTag.IsAugmentProcDamage = true;
-                twinTag.CanTriggerOnHitAugments = false;
-                twinTag.PreventEchoChamberCopy = true;
-                twinTag.PreventRicochetEngineCopy = true;
+                list = new List<PendingTwin>();
+                pendingTwins[who] = list;
             }
 
-            // Muzzle spark
+            if (list.Count < 6)
+            {
+                list.Add(new PendingTwin(projectile));
+            }
+        }
+
+        private static void SpawnTwin(Player player, PendingTwin pending)
+        {
+            float mult = IsHyperWeaveActive(player) ? 0.60f : 0.35f;
+            int twinDamage = Math.Max(1, (int)(pending.Damage * mult));
+
+            Vector2 spreadVel = pending.Velocity.RotatedBy(Main.rand.NextFloat(-0.07f, 0.07f)) * 0.96f;
+
+            int twinIndex = Projectile.NewProjectile(
+                player.GetSource_FromThis(),
+                pending.Position,
+                spreadVel,
+                pending.Type,
+                twinDamage,
+                pending.KnockBack * 0.5f,
+                player.whoAmI,
+                pending.AI0,
+                pending.AI1,
+                pending.AI2
+            );
+
+            if (twinIndex < 0 || twinIndex >= Main.maxProjectiles)
+                return;
+
+            Projectile twin = Main.projectile[twinIndex];
+            twin.originalDamage = twinDamage;
+            twin.DamageType = DamageClass.Magic;
+            twin.CritChance = pending.CritChance;
+            twin.ArmorPenetration = pending.ArmorPenetration;
+            twin.noDropItem = true;
+            twin.usesLocalNPCImmunity = true;
+            if (twin.localNPCHitCooldown < 10 && twin.localNPCHitCooldown != -1)
+                twin.localNPCHitCooldown = 10;
+
+            AugmentProjectileTag twinTag = twin.GetGlobalProjectile<AugmentProjectileTag>();
+            twinTag.IsAugmentProcDamage = true;
+            twinTag.SourceAugmentId = "double_tip";
+            twinTag.CanTriggerOnHitAugments = false;
+            twinTag.PreventEchoChamberCopy = true;
+            twinTag.PreventRicochetEngineCopy = true;
+            twin.alpha = Math.Max(twin.alpha, 70);
+            twin.netUpdate = true;
+
+            // Audio & muzzle dust
+            if ((int)Main.GameUpdateCount != _lastSoundTick)
+            {
+                _lastSoundTick = (int)Main.GameUpdateCount;
+                SoundEngine.PlaySound(SoundID.Item8 with { Volume = 0.35f, Pitch = 0.3f }, player.Center);
+            }
+
             for (int i = 0; i < 4; i++)
             {
-                Dust d = Dust.NewDustPerfect(projectile.Center, DustID.PinkTorch, projectile.velocity * 0.2f + Main.rand.NextVector2Circular(1f, 1f), 100, default, 1.1f);
+                int dType = Main.rand.NextBool() ? DustID.PinkTorch : DustID.MagicMirror;
+                Dust d = Dust.NewDustPerfect(twin.Center, dType, spreadVel * 0.2f + Main.rand.NextVector2Circular(1f, 1f), 100, default, 1.1f);
                 d.noGravity = true;
+            }
+        }
+
+        internal class PendingTwin
+        {
+            public int TicksRemaining = TwinDelayTicks;
+            public readonly Vector2 Position;
+            public readonly Vector2 Velocity;
+            public readonly int Type;
+            public readonly int Damage;
+            public readonly float KnockBack;
+            public readonly float AI0;
+            public readonly float AI1;
+            public readonly float AI2;
+            public readonly int CritChance;
+            public readonly int ArmorPenetration;
+
+            public PendingTwin(Projectile projectile)
+            {
+                Position = projectile.Center;
+                Velocity = projectile.velocity;
+                Type = projectile.type;
+                Damage = projectile.damage;
+                KnockBack = projectile.knockBack;
+                AI0 = projectile.ai[0];
+                AI1 = projectile.ai[1];
+                AI2 = projectile.ai[2];
+                CritChance = projectile.CritChance;
+                ArmorPenetration = projectile.ArmorPenetration;
             }
         }
     }
