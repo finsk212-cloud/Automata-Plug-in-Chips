@@ -15,11 +15,11 @@ namespace Augments
         public override string DisplayName => "Prismatic Fracture";
         public override string Description =>
             $"Magic hits shatter into {AugmentText.SpecialDamage("3 Homing Prismatic Shards")} dealing {AugmentText.BonusDamage("30% damage")}.\n" +
-            $"Magic {AugmentText.Crit("Critical Strikes")} release {AugmentText.Trigger("5 shards")} and inflict {AugmentText.Immobilize("Prismatic Daze")} for {AugmentText.Duration("3s")} (slowing targets by 25%).";
+            $"Magic {AugmentText.Crit("Critical Strikes")} release {AugmentText.Trigger("5 shards")} and inflict {AugmentText.Immobilize("Prismatic Daze")} for {AugmentText.Duration("3s")}.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +
-            AugmentText.Note("(Every spell hit fractures into seeking crystal shards. Critical hits unleash a full rainbow burst that slows foes.)");
+            AugmentText.Note("(Every spell hit fractures into seeking crystal shards. Critical hits unleash a 5-shard rainbow burst and inflict Prismatic Daze, slowing target movement by 25%.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Magic;
@@ -90,8 +90,10 @@ namespace Augments
 
             if (hit.Crit)
             {
-                // Inflict Prismatic Daze (vanilla Slow debuff for 3s)
-                target.AddBuff(BuffID.Slow, 180);
+                // Inflict Prismatic Daze (genuine 25% movement speed reduction for 3s)
+                target.GetGlobalNPC<AugmentSlowNPC>().ApplySlow(180, 0.25f);
+                if (Main.netMode == NetmodeID.MultiplayerClient)
+                    AugmentNet.SendApplyNPCEffectSlow(target.whoAmI, 180, 0.25f);
 
                 SoundEngine.PlaySound(SoundID.Item27 with { Volume = 0.55f, Pitch = 0.35f }, target.Center);
 
