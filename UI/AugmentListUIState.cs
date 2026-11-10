@@ -1793,18 +1793,29 @@ namespace Augments
 						{
 							float labelX = x + ChatManager.GetStringSize(font, line.Substring(0, labelStart), descScale).X;
 							float labelW = ChatManager.GetStringSize(font, line.Substring(labelStart, labelLength), descScale).X;
-							keyLabelRect = new Rectangle((int)labelX - 2, (int)currentY, (int)labelW + 4, (int)lineHeight);
+
+							int padX = 4;
+							int pillX = (int)labelX - padX;
+							int pillY = (int)currentY;
+							int pillW = (int)labelW + padX * 2;
+							int pillH = (int)(lineHeight * 0.82f);
+
+							keyLabelRect = new Rectangle(pillX, pillY, pillW, pillH);
 							hasKeyLabel = true;
 
 							bool listening = KeybindEditor.IsListeningFor(currentAugment.ActiveModKeybind);
 							bool hovered = keyLabelRect.Contains(Main.mouseX, Main.mouseY);
 							float pulse = (float)Math.Sin(time * 8f) * 0.5f + 0.5f;
 							Color accent = listening ? AugmentTextColors.Active : new Color(125, 211, 252);
-							float fillAlpha = listening ? 0.14f + pulse * 0.12f : (hovered ? 0.16f : 0.07f);
+							float fillAlpha = listening ? 0.16f + pulse * 0.16f : (hovered ? 0.18f : 0.08f);
+							Color boxBorderColor = accent * (listening ? 0.65f + pulse * 0.35f : (hovered ? 0.80f : 0.40f));
 
-							var pill = new Rectangle(keyLabelRect.X, (int)(currentY + lineHeight * 0.30f), keyLabelRect.Width, (int)(lineHeight * 0.66f));
+							var pill = keyLabelRect;
 							spriteBatch.Draw(pixel, pill, accent * fillAlpha);
-							spriteBatch.Draw(pixel, new Rectangle(pill.X, pill.Bottom - 1, pill.Width, 1), accent * (listening || hovered ? 0.85f : 0.45f));
+							spriteBatch.Draw(pixel, new Rectangle(pill.X, pill.Y, pill.Width, 1), boxBorderColor);
+							spriteBatch.Draw(pixel, new Rectangle(pill.X, pill.Bottom - 1, pill.Width, 1), boxBorderColor);
+							spriteBatch.Draw(pixel, new Rectangle(pill.X, pill.Y, 1, pill.Height), boxBorderColor);
+							spriteBatch.Draw(pixel, new Rectangle(pill.Right - 1, pill.Y, 1, pill.Height), boxBorderColor);
 
 							if (hovered && !listening)
 								Main.instance.MouseText("Click to change this key");
