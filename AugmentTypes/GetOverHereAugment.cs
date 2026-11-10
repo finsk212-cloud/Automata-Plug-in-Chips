@@ -37,7 +37,11 @@ namespace Augments
         public override string Description =>
             $"{AugmentText.Active("Active:")} Press [{AugmentText.Key(Augments.GetOverHereKeybind)}] to hook the nearest teammate within {AugmentText.Duration("1500 pixels")} " +
             $"and yank them to your side. They take {AugmentText.Defense("50% less damage")} for {AugmentText.Duration("2s")} after landing. " +
-            $"{AugmentText.Cooldown("60s cooldown")}. {AugmentText.Note("(Nothing happens, and no cooldown is spent, if no teammate is in range.)")}";
+            $"{AugmentText.Cooldown("60s cooldown")}.";
+
+        public override string GetDetailedDescription(Player player) =>
+            Description + "\n" +
+            AugmentText.Note("(Nothing happens, and no cooldown is spent, if no teammate is in range.)");
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Support;
         public override ModKeybind ActiveModKeybind => Augments.GetOverHereKeybind;

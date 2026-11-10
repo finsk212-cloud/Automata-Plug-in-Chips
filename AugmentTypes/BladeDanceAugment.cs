@@ -25,11 +25,12 @@ namespace Augments
             $"{AugmentText.Active("Active:")} Press [{AugmentText.Key(Augments.BladeDanceKeybind)}] with a {AugmentText.Trigger("melee weapon")} in hand to become " +
             $"{AugmentText.Defense("invulnerable")} for {AugmentText.Duration("2 seconds")} while you blink between nearby enemies, " +
             $"cutting each one you reach for {AugmentText.SpecialDamage($"{AugmentScaling.Scale(BaseSlashDamage)} damage")} ({Blinks} slashes). " +
-            $"{AugmentText.Cooldown("50s cooldown")}. {AugmentText.Note("(Nothing happens, and no cooldown is spent, if no enemy is in range.)")}";
+            $"{AugmentText.Cooldown("50s cooldown")}.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +
-            AugmentText.Note("(The slash damage is fixed: it does not depend on your weapon, but does scale with game progression. Your melee crit chance still applies.)");
+            AugmentText.Note("(Nothing happens, and no cooldown is spent, if no enemy is in range.)\n" +
+            "(The slash damage is fixed: it does not depend on your weapon, but does scale with game progression. Your melee crit chance still applies.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Legendary;
         public override AugmentClass Class => AugmentClass.Melee;
