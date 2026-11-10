@@ -1,7 +1,9 @@
 using System;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.Audio;
+using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -37,20 +39,86 @@ namespace Augments
             Projectile.localNPCHitCooldown = 10;
         }
 
+        private Color GetPrismaticColor()
+        {
+            float hue = (float)((Main.GlobalTimeWrappedHourly * 1.5f + Projectile.ai[0] + Projectile.identity * 0.15f) % 1f);
+            if (hue < 0f) hue += 1f;
+            return Main.hslToRgb(hue, 1f, 0.65f);
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture = TextureAssets.Projectile[Projectile.type].Value;
+            Vector2 origin = texture.Size() / 2f;
+            Vector2 drawPos = Projectile.Center - Main.screenPosition;
+
+            Color rainbowColor = GetPrismaticColor();
+            Color glowColor = rainbowColor;
+            glowColor.A = 0; // Additive self-illuminating glow
+
+            // 1. Prismatic chromatic aura (4 soft radial passes)
+            for (int i = 0; i < 4; i++)
+            {
+                Vector2 offset = (MathHelper.TwoPi / 4f * i).ToRotationVector2() * 2.5f;
+                Main.EntitySpriteDraw(
+                    texture,
+                    drawPos + offset,
+                    null,
+                    glowColor * 0.55f,
+                    Projectile.rotation,
+                    origin,
+                    Projectile.scale * 1.25f,
+                    SpriteEffects.None
+                );
+            }
+
+            // 2. Main crystal body tinted in brilliant prismatic rainbow color
+            Main.EntitySpriteDraw(
+                texture,
+                drawPos,
+                null,
+                glowColor,
+                Projectile.rotation,
+                origin,
+                Projectile.scale,
+                SpriteEffects.None
+            );
+
+            // 3. Bright white specular highlight core
+            Main.EntitySpriteDraw(
+                texture,
+                drawPos,
+                null,
+                new Color(255, 255, 255, 0) * 0.8f,
+                Projectile.rotation,
+                origin,
+                Projectile.scale * 0.6f,
+                SpriteEffects.None
+            );
+
+            return false;
+        }
+
         public override void AI()
         {
             Projectile.rotation = Projectile.velocity.ToRotation() + MathHelper.PiOver2;
 
-            // Subtle prismatic rainbow dust trail
+            Color rainbowColor = GetPrismaticColor();
+            Lighting.AddLight(Projectile.Center, rainbowColor.ToVector3() * 0.85f);
+
+            // Luminous prismatic rainbow dust trail
             if (Main.rand.NextBool(2))
             {
-                int[] dustTypes = { DustID.Enchanted_Pink, DustID.Electric, DustID.YellowTorch, DustID.RainbowMk2 };
-                int dType = dustTypes[Main.rand.Next(dustTypes.Length)];
-                Dust d = Dust.NewDustPerfect(Projectile.Center, dType, Projectile.velocity * 0.15f, 100, default, 0.9f);
+                Dust d = Dust.NewDustPerfect(
+                    Projectile.Center,
+                    DustID.RainbowRod,
+                    Projectile.velocity * 0.15f + Main.rand.NextVector2Circular(0.5f, 0.5f),
+                    0,
+                    rainbowColor,
+                    0.95f
+                );
                 d.noGravity = true;
             }
-
-            Lighting.AddLight(Projectile.Center, 0.4f, 0.5f, 0.7f);
 
             // Brief outward scatter burst (6 ticks) before homing locks on
             Projectile.localAI[0]++;
@@ -86,12 +154,13 @@ namespace Augments
         {
             SoundEngine.PlaySound(SoundID.Item27 with { Volume = 0.35f, Pitch = Main.rand.NextFloat(0.1f, 0.4f) }, Projectile.Center);
 
-            int[] dustTypes = { DustID.Enchanted_Pink, DustID.Electric, DustID.YellowTorch, DustID.RainbowMk2 };
-            for (int i = 0; i < 8; i++)
+            // Full 360-degree rainbow spectrum burst upon impact
+            for (int i = 0; i < 12; i++)
             {
-                int dType = dustTypes[Main.rand.Next(dustTypes.Length)];
-                Vector2 vel = Main.rand.NextVector2Circular(3f, 3f);
-                Dust d = Dust.NewDustPerfect(Projectile.Center, dType, vel, 80, default, 1.1f);
+                float burstHue = (float)i / 12f;
+                Color burstColor = Main.hslToRgb(burstHue, 1f, 0.7f);
+                Vector2 vel = (MathHelper.TwoPi / 12f * i).ToRotationVector2() * Main.rand.NextFloat(2.5f, 4.5f);
+                Dust d = Dust.NewDustPerfect(Projectile.Center, DustID.RainbowRod, vel, 0, burstColor, 1.25f);
                 d.noGravity = true;
             }
         }

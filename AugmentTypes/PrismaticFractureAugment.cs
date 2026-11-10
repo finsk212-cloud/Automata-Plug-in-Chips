@@ -78,7 +78,8 @@ namespace Augments
                     ModContent.ProjectileType<PrismaticShardProjectile>(),
                     shardDmg,
                     2.5f,
-                    player.whoAmI
+                    player.whoAmI,
+                    (float)i / count
                 );
 
                 if (pIndex >= 0 && pIndex < Main.maxProjectiles)
