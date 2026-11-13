@@ -3,7 +3,7 @@
 ## Version 1.3.0
 
 ### Highlights
-- **Automata Music**: [TODO: describe the Automata Music mod and add its Workshop link here]
+- **Automata Music**: A companion mod that gives Terraria a NieR: Automata mood. It replaces boss and biome music and turns the main menu into a live view from the Bunker. Every part can be turned off in its config. Get it on the Steam Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=3814903011
 - **NieR: Automata Look**: Every menu and HUD now has a NieR: Automata style. Panels, buttons, corners and titles follow the colour scheme and frame style you pick on the COSMETICS page of the title screen, and panels get a faint glitch effect like the main menu. This covers the Plugins menu, Combat Analytics, Plugin Storage, the Gacha, reward choice cards and the HUD.
 - **New Plugin Tiers Look**: Common, Rare, Epic and Legendary each have their own shape, not just a colour. Rare has long corner brackets, Epic has a double border, and Legendary is a cream plate with dark text. All six classes have new simple icons.
 - **Plugins Menu**: Opens on the newest plugins first (sort: Recently Added), has a rebuilt Filters panel, and shows the plugin's class under its name.
