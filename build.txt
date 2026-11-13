@@ -1,5 +1,5 @@
 displayName = Automata: Plug-in Chips
 author = Finsk
-version = 1.3.0
+version = 1.4.0
 
 buildIgnore = art/*, .claude/*

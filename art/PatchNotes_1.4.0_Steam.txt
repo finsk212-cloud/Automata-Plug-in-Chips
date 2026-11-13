@@ -1,0 +1,127 @@
+[h1]AUTOMATA: PLUG-IN CHIPS  //  UPDATE 1.4.0[/h1]
+[i]The biggest update so far. A full NieR: Automata makeover, a rebuilt Pod, and more than 45 new plugins.[/i]
+
+[hr][/hr]
+
+[h2]THE BIG STUFF[/h2]
+
+[b]AUTOMATA MUSIC (NEW COMPANION MOD)[/b]
+A companion mod that gives Terraria a NieR: Automata mood. It swaps the boss and biome music and turns the main menu into a live view from the Bunker. You can switch any part of it off in its config.
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3814903011]Get Automata: Music on the Workshop[/url]
+
+[b]A NIER: AUTOMATA LOOK FOR EVERYTHING[/b]
+All the menus and HUD pieces now share one style. Panels, buttons, corners and titles follow the colour scheme and frame style you pick on the Cosmetics page of the title screen, and the panels flicker with a faint glitch like the main menu does.
+
+[b]PLUGIN TIERS LOOK DIFFERENT NOW[/b]
+Common, Rare, Epic and Legendary each have their own shape instead of just a colour.
+[list]
+[*][b]Common[/b]: a simple thin frame
+[*][b]Rare[/b]: long corner brackets
+[*][b]Epic[/b]: a double border
+[*][b]Legendary[/b]: a cream plate with dark text
+[/list]
+All six classes also have new simple icons.
+
+[b]A FRIENDLIER PLUGINS MENU[/b]
+It opens on the newest plugins first, the Filters panel has been rebuilt, and every plugin shows its class right under its name.
+
+[b]A NEW LOOK FOR YOUR POD[/b]
+Your Pod got a NieR: Automata makeover, and plugins can now upgrade it. Autopilot is the first one.
+
+[b]ONE TIDY DOCK FOR YOUR BUTTONS[/b]
+Combat, Diagnostics and Protocols now live in one small dock under the minimap. Support and Protocol panels open when you click them, so you no longer cover your screen by hovering over them in a fight.
+
+[b]ALSO IN THIS UPDATE[/b]
+[list]
+[*][b]Diagnostics drawer[/b]: hidden stats such as Luck and fishing multipliers
+[*][b]Automata Protocols[/b]: twelve bonuses for wearing matching sets of plugins
+[*][b]Loadouts and stash[/b]: save up to three setups and swap in one click
+[*][b]Core Overrides[/b]: special build defining plugins, one per character
+[*][b]Combat Analytics[/b]: live DPS and healing
+[*][b]Banner Station[/b]: a placeable station that gives everyone nearby the buff of every banner inside it
+[/list]
+
+[hr][/hr]
+
+[h2]NEW PLUGINS[/h2]
+
+[h3]RANGED[/h3]
+[list]
+[*][b]Phase Round[/b] [EPIC]: Your arrows and bullets pass through blocks.
+[*][b]Chaos Rounds[/b] [EPIC]: Ranged hits apply a random debuff for 3 seconds.
+[*][b]Afterburner[/b] [EPIC]: Bonus ranged damage in the air, and firing pushes you backwards so you can hover with a fast gun. No fall damage.
+[*][b]Trick Shot[/b] [EPIC]: Arrows and bullets bounce off walls up to 3 times and hit harder with every bounce.
+[*][b]Party Poppers[/b] [EPIC]: Explosive attacks hit harder and scatter small bomblets.
+[*][b]One in the Chamber[/b] [EPIC]: Stop firing for a moment and your next shot is a fast, powerful round.
+[*][b]Gun Go Brrr[/b] [EPIC]: The longer you fire, the faster you shoot, until the gun jams for 2 seconds.
+[*][b]Group Hug[/b] [EPIC]: Several pellets hitting the same enemy burst for extra damage.
+[*][b]Tight Squeeze[/b] [RARE]: Tighter spread on shotguns and spread bows, with bonus damage when several pellets land.
+[*][b]Hit Me Here[/b] [RARE]: Hits mark enemies with a bullseye. Hit the bullseye for a guaranteed crit and a speed boost.
+[*][b]Floor is Lava[/b] [LEGENDARY]: Ranged kills leave a pool of burning napalm that melts enemy defense.
+[*][b]Danger Close[/b] [LEGENDARY, ACTIVE]: Mark a spot and 20 shells rain down on it a moment later.
+[/list]
+
+[h3]MAGIC[/h3]
+[list]
+[*][b]Wild Magic[/b] [EPIC]: Magic hits set off wild surges, from a frost nova to a rare jackpot of everything.
+[*][b]Double Tip[/b] [EPIC]: Every cast fires a second twin projectile. Switching between weapons makes spells cheaper and stronger.
+[*][b]Prismatic Fracture[/b] [EPIC]: Magic hits break into homing rainbow shards.
+[*][b]Pay to Win[/b] [EPIC]: Half of every hit you take is paid with mana instead of life.
+[*][b]Sugar Rush[/b] [RARE]: No more Mana Sickness damage penalty, and mana potions give a short damage boost.
+[*][b]Rod of Discount[/b] [RARE, ACTIVE]: Teleport to your cursor and leave an afterimage that explodes.
+[*][b]Star Power[/b] [COMMON]: Picking up a Mana Star makes you fast and immune to touch damage for 6 seconds.
+[*][b]Hex Detonation[/b] [LEGENDARY]: Stack Hex on an enemy, then the next magic hit makes it explode.
+[*][b]Long Distance Relationship[/b] [LEGENDARY, ACTIVE]: Open a portal and cast your spells from it, around corners and over walls.
+[*][b]Run as Administrator[/b] [LEGENDARY, ACTIVE]: 6 seconds of free mana and faster casting, then a short lockout.
+[/list]
+
+[h3]SUMMON[/h3]
+[list]
+[*][b]Whiplash Wave[/b] [EPIC]: Cracking your whip sends out a sonic wave.
+[*][b]Neural Linkage[/b] [EPIC]: Minion attacks build up a neural surge that detonates and speeds you up.
+[*][b]Crit Happens[/b] [EPIC]: Your minions and sentries can now land critical strikes.
+[*][b]Volt Tether[/b] [RARE]: An electric tether shocks enemies that pass between you and your minions.
+[*][b]Employee of the Month[/b] [RARE]: Your best minion wears a gold star and deals extra damage.
+[*][b]Siege Battery[/b] [LEGENDARY]: Your sentries also fire big siege shells.
+[*][b]Turret Syndrome[/b] [LEGENDARY]: One more sentry slot and stronger sentries that orbit you.
+[*][b]Fetch[/b] [COMMON]: Drops from enemies your summons kill fly straight to you.
+[*][b]Grand Entrance[/b] [COMMON]: A lightning bolt strikes where you summon a minion or sentry.
+[/list]
+
+[h3]MELEE[/h3]
+[list]
+[*][b]Dead Weight[/b] [EPIC]: The slower your weapon, the harder it hits, and slow hits slam enemies away.
+[*][b]Leftovers[/b] [EPIC]: Extra damage from a killing blow spills onto the nearest enemy.
+[*][b]Pogo Stick[/b] [RARE]: Bounce on enemies' heads for damage. Chain kills for a growing damage bonus.
+[*][b]Blade Dance[/b] [LEGENDARY]: Land six hits and your next strike unleashes five phantom slashes.
+[*][b]Big Stick Energy[/b] [COMMON]: Your melee weapons are 25% bigger.
+[/list]
+
+[h3]SUPPORT[/h3]
+[list]
+[*][b]Autopilot[/b] [EPIC]: Upgrades your Pod so it heals the lowest health teammate nearby, 5 HP every second.
+[*][b]Get over here![/b] [EPIC, ACTIVE]: Throw a hook at a teammate and reel them to your side.
+[*][b]Callout[/b] [RARE]: Your hits mark enemies, and your teammates deal extra damage to them.
+[*][b]Emergency Aid[/b] [RARE]: You and nearby teammates below 40% health regenerate.
+[*][b]Scapegoat[/b] [RARE]: Debuffs on nearby teammates move onto you instead.
+[*][b]Chronobreak[/b] [LEGENDARY, ACTIVE]: Rewind you and your teammates to where you stood 4 seconds ago.
+[*][b]Medi Gun plugins[/b] [COMMON]: Corrosive Tip, Contact Charge, Prolonged Surge and Shared Dose make the Medi Gun stronger.
+[*][b]Soft Landing[/b] [COMMON]: No fall damage for you and nearby teammates.
+[*][b]Keen Eye[/b] [COMMON]: Nearby teammates get extra critical strike chance.
+[/list]
+
+[hr][/hr]
+
+[h2]OTHER CHANGES[/h2]
+[list]
+[*][b]Click to bind keys[/b]: Active plugins show their key inside the description. Click it, press a key, and it is bound.
+[*][b]Boss rewards fixed for multi part bosses[/b]: Hitting only a boss's parts now counts. This fixes the Slime God, and the Twins now give one reward when the last twin dies.
+[*][b]Support plugins drop again[/b]: They had been left out of boss rewards and the gacha.
+[*][b]Stash fix[/b]: Plugins in Mistress 2B's stash are no longer offered again by rewards, rerolls or the gacha.
+[*][b]Balance[/b]: Twin Strike and Marksman Protocol's shrapnel now trigger less often.
+[*][b]Volatile Rounds[/b]: The explosion now has a small effect and sound, with a ring showing its size.
+[/list]
+
+[hr][/hr]
+
+[i]Found a bug or have an idea? Post it in the Discussions tab. Thank you for playing![/i]
