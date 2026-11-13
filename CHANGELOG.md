@@ -1,6 +1,6 @@
 # Automata: Plug-in Chips, Upcoming Update Changelog
 
-## Version 1.3.0
+## Version 1.4.0
 
 ### Highlights
 - **Automata Music**: There is now a companion mod that gives Terraria a NieR: Automata mood. It swaps the boss and biome music and turns the main menu into a live view from the Bunker, and you can switch any part of it off in its config. Grab it on the Steam Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=3814903011
