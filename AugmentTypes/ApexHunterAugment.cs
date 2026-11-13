@@ -14,7 +14,7 @@ namespace Augments
             "Ranged hits against a boss build a mark; once it reaches " +
             $"{AugmentText.Trigger("15 hits")}, the next hit triggers a bonus burst dealing " +
             $"{AugmentText.BonusDamage("5% of the boss's max HP")}, then the mark resets. " +
-            $"{AugmentText.Cooldown("8s cooldown")}.";
+            $"{AugmentText.Cooldown("8 seconds cooldown")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Legendary;
         public override AugmentClass Class => AugmentClass.Ranged;

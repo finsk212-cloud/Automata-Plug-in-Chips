@@ -19,7 +19,7 @@ namespace Augments
 
                 return $"Grants {AugmentText.Crit("+5% Fortune")} (World Luck & lucky trigger chance). Crits randomly trigger ONE of four effects, 25% chance each: " +
                        $"{AugmentText.Healing("heal 5 HP")}; {AugmentText.MovementSpeed("+50% movement speed")} for " +
-                       $"{AugmentText.Duration("1.5s")}; {AugmentText.Duration("~1 second")} of invincibility; or an " +
+                       $"{AugmentText.Duration("1.5 seconds")}; {AugmentText.Duration("~1 second")} of invincibility; or an " +
                        $"immediate bonus strike for {AugmentText.BonusDamage("+20% bonus damage")}.{scalingNote}";
             }
         }

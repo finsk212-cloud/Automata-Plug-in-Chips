@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -55,7 +55,12 @@ namespace Augments
 		SyncPersistentState, // client -> server on join: sold/ever-owned/locked families/boss kill counts
 		GachaRollRequest,    // client -> server: spend 3 Machine Cores and roll a chip
 		GachaResult,         // server -> client: the chip rolled (empty id = nothing available, cores not spent)
-		TakeMachineCores     // server -> owner's client: remove N Machine Cores the server just charged
+		TakeMachineCores,    // server -> owner's client: remove N Machine Cores the server just charged
+		ChamberPrimed,       // client -> server -> others: One in the Chamber is loaded / fired (payload: player index, primed)
+		ScapegoatTransfer,   // client -> server: a teammate removed a debuff, hand it to the Scapegoat owner (payload: owner index, buff type, ticks)
+		ScapegoatApply,      // server -> Scapegoat owner's client: take this debuff (payload: buff type, ticks)
+		PluginEffect,        // client -> server -> others: play a plugin's sound/visual effect on the sender (payload: sender, effect id, int)
+		PodPetSync           // client -> server -> others: the sender's Pod pet is on/off and which skin it wears (payload: player, on, skin)
 	}
 
 	internal enum DebugAugmentCommandType : byte
@@ -78,11 +83,16 @@ namespace Augments
 		public static ModKeybind ChronobreakKeybind;
 		public static ModKeybind GetOverHereKeybind;
 		public static ModKeybind BladeDanceKeybind;
+		public static ModKeybind DangerCloseKeybind;
+		public static ModKeybind DiscountRodKeybind;
+		public static ModKeybind LongDistanceKeybind;
+		public static ModKeybind AdminKeybind;
 		public static ModKeybind[] LoadoutKeybinds = new ModKeybind[3];
 		public static ModKeybind UndoReforgeKeybind;
 		public static ModKeybind ResetCooldownsKeybind;
 		public static ModKeybind ToggleCombatAnalyticsKeybind;
 		public static ModKeybind TriggerTipKeybind;
+		public static ModKeybind TogglePodKeybind;
 
 		public override void Load()
 		{
@@ -102,12 +112,17 @@ namespace Augments
 			ChronobreakKeybind = KeybindLoader.RegisterKeybind(this, "Chronobreak", "None");
 			GetOverHereKeybind = KeybindLoader.RegisterKeybind(this, "GetOverHere", "None");
 			BladeDanceKeybind = KeybindLoader.RegisterKeybind(this, "BladeDance", "None");
+			DangerCloseKeybind = KeybindLoader.RegisterKeybind(this, "DangerClose", "None");
+			DiscountRodKeybind = KeybindLoader.RegisterKeybind(this, "DiscountRod", "None");
+			LongDistanceKeybind = KeybindLoader.RegisterKeybind(this, "LongDistance", "None");
+			AdminKeybind = KeybindLoader.RegisterKeybind(this, "RunAsAdmin", "None");
 			for (int i = 0; i < LoadoutKeybinds.Length; i++)
 				LoadoutKeybinds[i] = KeybindLoader.RegisterKeybind(this, "ApplyLoadout" + (i + 1), "None");
 			UndoReforgeKeybind = KeybindLoader.RegisterKeybind(this, "UndoReforge", "None");
 			ResetCooldownsKeybind = KeybindLoader.RegisterKeybind(this, "ResetCooldowns", "K");
 			ToggleCombatAnalyticsKeybind = KeybindLoader.RegisterKeybind(this, "ToggleCombatAnalytics", "L");
 			TriggerTipKeybind = KeybindLoader.RegisterKeybind(this, "TriggerTacticalTip", "None");
+			TogglePodKeybind = KeybindLoader.RegisterKeybind(this, "TogglePod", "None");
 
 			// Registered manually, in this exact order, instead of relying on
 			// autoload - AugmentFesteringWoundsNPC's UpdateLifeRegen must run
@@ -137,6 +152,10 @@ namespace Augments
 			ChronobreakKeybind = null;
 			GetOverHereKeybind = null;
 			BladeDanceKeybind = null;
+			DangerCloseKeybind = null;
+			DiscountRodKeybind = null;
+			LongDistanceKeybind = null;
+			AdminKeybind = null;
 			GetOverHereAugment.UnloadSounds();
 			for (int i = 0; i < LoadoutKeybinds.Length; i++)
 				LoadoutKeybinds[i] = null;
@@ -144,6 +163,9 @@ namespace Augments
 			ResetCooldownsKeybind = null;
 			ToggleCombatAnalyticsKeybind = null;
 			TriggerTipKeybind = null;
+			TogglePodKeybind = null;
+			PodSprites.Unload();
+			ClassIcons.Unload();
 		}
 
 		public override void HandlePacket(BinaryReader reader, int whoAmI)
@@ -167,6 +189,10 @@ namespace Augments
 
 			switch (type)
 			{
+				case AugmentPacketType.PodPetSync:
+					PodPetPlayer.HandleSync(reader, whoAmI);
+					break;
+
 				case AugmentPacketType.SoulLinkRequest:
 					SupportEffects.HandleSoulLinkRequest(whoAmI, reader.ReadInt32());
 					break;
@@ -180,7 +206,7 @@ namespace Augments
 					break;
 
 				case AugmentPacketType.CleanseRequest:
-					SupportEffects.HandleCleanseRequest(whoAmI);
+					SupportEffects.HandleCleanseRequest(whoAmI, reader);
 					break;
 
 				case AugmentPacketType.CleanseClearDebuffs:

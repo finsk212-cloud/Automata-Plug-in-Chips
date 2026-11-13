@@ -5,7 +5,10 @@ namespace Augments
         public override string Id => "treasure_hunter";
         public override string DisplayName => "Treasure Hunter";
         public override string Description =>
-            $"Increases {AugmentText.Trigger("pickup range")} for coins, hearts, and mana stars.\n" +
+            $"Increases {AugmentText.Trigger("pickup range")} for coins, hearts, and mana stars.";
+
+        public override string GetDetailedDescription(Terraria.Player player) =>
+            Description + "\n" +
             AugmentText.Note("(Stacks additively with potions and accessories.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Common;

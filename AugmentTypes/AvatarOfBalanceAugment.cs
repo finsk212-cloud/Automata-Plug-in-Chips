@@ -12,7 +12,7 @@ namespace Augments
         public override string Id => "type_s_synchronizer_protocol";
         public override string DisplayName => "Type-S: Synchronizer Protocol";
         public override string Description =>
-            $"Every {AugmentText.Duration("10s")}, cycles polarity between {AugmentText.Crit("Offensive Overclock")} " +
+            $"Every {AugmentText.Duration("10 seconds")}, cycles polarity between {AugmentText.Crit("Offensive Overclock")} " +
             $"({AugmentText.BonusDamage("+15% damage")}, {AugmentText.Crit("+10% crit")}, {AugmentText.Defense("+10 armor penetration")}, " +
             $"but {AugmentText.Healing("halts natural life regeneration")}) and {AugmentText.Healing("Restorative Nano-Repair")} " +
             $"({AugmentText.Defense("+15 defense")}, {AugmentText.Healing("+12 life regen")}, {AugmentText.MovementSpeed("+15% movement speed")}, " +

@@ -8,7 +8,7 @@ namespace Augments
         public override string Id => "riposte";
         public override string DisplayName => "Riposte";
         public override string Description =>
-            $"After an enemy hits you, you have {AugmentText.Duration("2s")} to land a melee hit. That hit deals " +
+            $"After an enemy hits you, you have {AugmentText.Duration("2 seconds")} to land a melee hit. That hit deals " +
             $"{AugmentText.BonusDamage("+20% bonus damage")} based on the weapon's base damage.";
 
         public override AugmentRarity Rarity => AugmentRarity.Common;

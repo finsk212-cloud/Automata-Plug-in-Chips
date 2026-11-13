@@ -42,34 +42,52 @@ namespace Augments
 				return; // dedicated server has no screen, skip UI setup entirely
 
 			augmentInterface = new UserInterface();
+			listInterface = new UserInterface();
+			shopInterface = new UserInterface();
+			gachaInterface = new UserInterface();
+			analyticsInterface = new UserInterface();
+			bannerInterface = new UserInterface();
+			BuildStates();
+		}
+
+		// The colour scheme the panels were built with. Panels set many of their colours once, when they are built, so when the
+		// scheme is changed on the title screen they are built again (see UpdateUI), the next time none of them is open.
+		private int builtScheme = -2;
+
+		private void BuildStates()
+		{
 			choiceState = new AugmentChoiceUIState();
 			choiceState.Activate(); // forces OnInitialize now, so backPanel always exists
 
-			listInterface = new UserInterface();
 			listState = new AugmentListUIState();
 			listState.Activate();
 
-			shopInterface = new UserInterface();
 			shopState = new AugmentShopUIState();
 			shopState.Activate();
 
-			gachaInterface = new UserInterface();
 			gachaState = new AugmentGachaUIState();
 			gachaState.Activate();
 
-			analyticsInterface = new UserInterface();
 			analyticsState = new AugmentAnalyticsUIState();
 			analyticsState.Activate();
 
-			bannerInterface = new UserInterface();
 			bannerState = new BannerStationUIState();
 			bannerState.Activate();
+
+			builtScheme = MenuLook.SelectedIndex;
 		}
+
+		private bool AnyPanelOpen =>
+			augmentInterface?.CurrentState != null || listInterface?.CurrentState != null || shopInterface?.CurrentState != null
+			|| gachaInterface?.CurrentState != null || analyticsInterface?.CurrentState != null || bannerInterface?.CurrentState != null;
 
 		// Called every frame - keeps both panels' buttons/hover states responsive.
 		public override void UpdateUI(GameTime gameTime)
 		{
 			lastUpdateUiGameTime = gameTime;
+
+			if (builtScheme != MenuLook.SelectedIndex && !AnyPanelOpen)
+				BuildStates();
 
 			if (augmentInterface?.CurrentState != null)
 				augmentInterface.Update(gameTime);
@@ -155,16 +173,6 @@ namespace Augments
 						if (Main.LocalPlayer != null && Main.LocalPlayer.active)
 							Main.LocalPlayer.mouseInterface = true;
 					}
-					return true;
-				},
-				InterfaceScaleType.UI)
-			);
-
-			layers.Insert(mouseTextIndex, new LegacyGameInterfaceLayer(
-				"Augments: Advisory Ticker HUD",
-				delegate
-				{
-					AugmentAdvisoryHUD.Draw(Main.spriteBatch);
 					return true;
 				},
 				InterfaceScaleType.UI)
@@ -285,6 +293,18 @@ namespace Augments
 				InterfaceScaleType.UI)
 			);
 
+			// Pod 042's tips are drawn under every panel (inserted after them), so an open window always covers a tip instead of the tip
+			// floating over it.
+			layers.Insert(mouseTextIndex, new LegacyGameInterfaceLayer(
+				"Augments: Advisory Ticker HUD",
+				delegate
+				{
+					AugmentAdvisoryHUD.Draw(Main.spriteBatch);
+					return true;
+				},
+				InterfaceScaleType.UI)
+			);
+
 			// Inserted last = drawn first = beneath all UI panels but above the game world.
 			layers.Insert(mouseTextIndex, new LegacyGameInterfaceLayer(
 				"Augments: Auras",
@@ -296,6 +316,17 @@ namespace Augments
 				},
 				InterfaceScaleType.UI)
 			);
+
+			// While the Automata hub is open in-game, switch off every HUD layer above (they sit after the
+			// fullscreen UI in the draw order and would paint over the hub).
+			if (AutomataHubSystem.IsOpenInGame)
+			{
+				foreach (GameInterfaceLayer layer in layers)
+				{
+					if (layer.Name.StartsWith("Augments:") && layer.Name != "Augments: Sanitize Mouse Text")
+						layer.Active = false;
+				}
+			}
 		}
 
 		// --- Choice popup controls ---

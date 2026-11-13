@@ -12,11 +12,11 @@ namespace Augments
         public override string DisplayName => "Scavenger's Luck";
         public override string Description =>
             $"Grants {AugmentText.Crit("+5% Fortune")} (World Luck & lucky trigger chance). Defeated enemies have a {FormatCurrentChance(ProcChance)} " +
-            $"to grant {AugmentText.Crit("+15% crit chance")} for {AugmentText.Duration("5s")}.";
+            $"to grant {AugmentText.Crit("+15% crit chance")} for {AugmentText.Duration("5 seconds")}.";
 
         public override string GetDetailedDescription(Player player) =>
             $"Grants {AugmentText.Crit("+5% Fortune")} (World Luck & lucky trigger chance). Defeated enemies have a {FormatFortuneChance(ProcChance, player)} " +
-            $"to grant {AugmentText.Crit("+15% crit chance")} for {AugmentText.Duration("5s")}.";
+            $"to grant {AugmentText.Crit("+15% crit chance")} for {AugmentText.Duration("5 seconds")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Rare;
         public override AugmentClass Class => AugmentClass.Universal;

@@ -8,7 +8,7 @@ namespace Augments
         public override string DisplayName => "Featherfall";
         public override string Description =>
             $"Fall damage is reduced by 50%. Landing from a significant fall grants " +
-            $"{AugmentText.MovementSpeed("+30% movement speed")} for {AugmentText.Duration("2s")}.";
+            $"{AugmentText.MovementSpeed("+30% movement speed")} for {AugmentText.Duration("2 seconds")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Common;
         public override AugmentClass Class => AugmentClass.Universal;

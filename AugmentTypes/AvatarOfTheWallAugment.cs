@@ -16,7 +16,7 @@ namespace Augments
             $"Grants {AugmentText.Defense("+20 defense")} and {AugmentText.Defense("15% damage reduction")}, but reduces outgoing damage by " +
             $"{AugmentText.BonusDamage("15%")}. Taking {AugmentText.HP("120 cumulative damage")} detonates a kinetic shockwave dealing " +
             $"{AugmentText.BonusDamage("60 damage")} with violent knockback, and activates a " +
-            $"{AugmentText.Duration("1.5s")} Energy Barrier that negates all incoming damage.";
+            $"{AugmentText.Duration("1.5 seconds")} Energy Barrier that negates all incoming damage.";
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Universal;

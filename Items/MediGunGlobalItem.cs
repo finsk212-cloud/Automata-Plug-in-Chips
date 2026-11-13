@@ -209,7 +209,7 @@ namespace Augments.Items
 					{
 						OverrideColor = new Color(74, 222, 128)
 					});
-					tooltips.Add(new TooltipLine(Mod, "SocketEffect2", "• Tethered ally potion sickness is reduced by 20 seconds (down to 40s)")
+					tooltips.Add(new TooltipLine(Mod, "SocketEffect2", "• Tethered ally potion sickness is reduced by 20 seconds (down to 40 seconds)")
 					{
 						OverrideColor = new Color(74, 222, 128)
 					});

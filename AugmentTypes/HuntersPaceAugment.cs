@@ -8,7 +8,7 @@ namespace Augments
         public override string Id => "hunters_pace";
         public override string DisplayName => "Hunter's Pace";
         public override string Description =>
-            $"Ranged hits give {AugmentText.MovementSpeed("+15% movement speed")} for {AugmentText.Duration("2s")}.";
+            $"Ranged hits give {AugmentText.MovementSpeed("+15% movement speed")} for {AugmentText.Duration("2 seconds")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Common;
         public override AugmentClass Class => AugmentClass.Ranged;

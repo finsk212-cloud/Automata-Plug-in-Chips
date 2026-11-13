@@ -8,7 +8,7 @@ namespace Augments
         public override string Id => "quick_recovery";
         public override string DisplayName => "Quick Recovery";
         public override string Description =>
-            $"After taking damage, {AugmentText.Healing("regenerate 6 HP")} over {AugmentText.Duration("3s")}.";
+            $"After taking damage, {AugmentText.Healing("regenerate 6 HP")} over {AugmentText.Duration("3 seconds")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Common;
         public override AugmentClass Class => AugmentClass.Universal;

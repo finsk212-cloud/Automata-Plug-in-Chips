@@ -7,6 +7,7 @@ using ReLogic.Graphics;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent;
+using Terraria.GameInput;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
@@ -45,7 +46,7 @@ namespace Augments
 		private readonly List<string> descLines;
 		private readonly bool isKeystone;
 		private readonly bool isSupport;
-		private readonly Color baseBorderColor;
+		private Color baseBorderColor => RarityColor(Augment.Rarity); // read live: Epic and Legendary colours move
 		private readonly float pulseSpeed;
 		private float pulseTimer;
 		private bool isHovered;
@@ -54,35 +55,14 @@ namespace Augments
 		private Rectangle specialTagRect;
 		private Rectangle familyTagRect;
 
-		public static float CalculateRequiredHeight(Augment augment, float width)
+		// How many lines of the description are scrolled off the top (a long description scrolls by whole lines).
+		private int descScrollLines;
+		private const int ScrollLinesPerNotch = 2;
+
+		public override void ScrollWheel(UIScrollWheelEvent evt)
 		{
-			var font = FontAssets.MouseText.Value;
-			float contentWidth = width - 32f; // 16px left/right padding
-
-			var names = AugmentColorText.Wrap(font, augment.DisplayName, contentWidth, NameScale);
-			var descs = AugmentColorText.Wrap(font, augment.LiveDescription, contentWidth, DescScale);
-
-			float nameHeight = 0f;
-			foreach (var line in names)
-				nameHeight += ChatManager.GetStringSize(font, line, NameScale).Y + LineSpacing;
-
-			float divY = Math.Max(78f + nameHeight + 6f, 118f);
-			float descY = divY + 8f;
-
-			float descHeight = 0f;
-			foreach (var line in descs)
-				descHeight += ChatManager.GetStringSize(font, line, DescScale).Y + LineSpacing;
-
-			bool hasSpecialTag = augment.KeystoneFamily != null || augment.Class == AugmentClass.Support;
-			bool hasFamily = augment.FamilyId != null;
-
-			float bottomReserved = 38f;
-			if (hasSpecialTag && hasFamily)
-				bottomReserved = 96f;
-			else if (hasSpecialTag || hasFamily)
-				bottomReserved = 66f;
-
-			return descY + descHeight + bottomReserved + 12f;
+			base.ScrollWheel(evt);
+			descScrollLines -= Math.Sign(evt.ScrollWheelValue) * ScrollLinesPerNotch;
 		}
 
 		public AugmentChoiceCard(Augment augment, float width, float height = MinCardHeight, int cardIndex = 0)
@@ -92,7 +72,6 @@ namespace Augments
 			isKeystone = augment.KeystoneFamily != null;
 			isSupport = augment.Class == AugmentClass.Support;
 
-			baseBorderColor = RarityColor(augment.Rarity);
 			pulseSpeed = PulseSpeeds[(int)augment.Rarity];
 
 			Width.Set(width, 0f);
@@ -102,13 +81,23 @@ namespace Augments
 			float contentWidth = width - 32f; // 16px left/right padding
 
 			nameLines = AugmentColorText.Wrap(font, augment.DisplayName, contentWidth, NameScale);
-			descLines = AugmentColorText.Wrap(font, augment.LiveDescription, contentWidth, DescScale);
+			// On the Legendary cream plate the text is dark, so the colour tags in the description (bright greens, golds) are darkened to stay readable.
+			string description = augment.LiveDescription;
+			if (RarityLook.Inverted(augment.Rarity))
+				description = DarkenTags(description, 0.45f);
+			else
+				description = RarityLook.PaleTags(description, 0.30f);
+			descLines = AugmentColorText.Wrap(font, description, contentWidth, DescScale);
 		}
 
 		public override void Update(GameTime gameTime)
 		{
 			base.Update(gameTime);
 			pulseTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+			// While the mouse is over a card, the wheel scrolls its description and must not also change the hotbar.
+			if (IsMouseHovering)
+				PlayerInput.LockVanillaMouseScroll("Augments/ChoiceCardScroll");
 		}
 
 		public override void MouseOver(UIMouseEvent evt)
@@ -142,6 +131,12 @@ namespace Augments
 			var font = FontAssets.MouseText.Value;
 			Color rarityColor = baseBorderColor;
 
+			if (RarityLook.Style == TierStyle.Nier)
+			{
+				DrawNier(spriteBatch, rect, font);
+				return;
+			}
+
 			// =================================================================
 			// 1. OUTER AURAS & CORONAS (Animated for Epic, Legendary, and Rare)
 			// =================================================================
@@ -150,12 +145,12 @@ namespace Augments
 			// =================================================================
 			// 2. SOLID SCI-FI CARD CHASSIS & HEADER BANNER
 			// =================================================================
-			Color bgColor = isHovered ? new Color(16, 24, 42, 248) : new Color(10, 16, 28, 245);
+			Color bgColor = isHovered ? PanelChrome.Tone(new Color(16, 24, 42, 248)) : PanelChrome.Tone(new Color(10, 16, 28, 245));
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, rect, bgColor);
 
 			// Top Header Banner
 			Rectangle headerRect = new Rectangle(rect.X + 2, rect.Y + 2, rect.Width - 4, 126);
-			Color headerBg = isHovered ? new Color(20, 30, 52, 240) : new Color(14, 22, 38, 240);
+			Color headerBg = isHovered ? PanelChrome.Tone(new Color(20, 30, 52, 240)) : PanelChrome.Tone(new Color(14, 22, 38, 240));
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, headerRect, headerBg);
 
 			// =================================================================
@@ -185,7 +180,7 @@ namespace Augments
 					cy - iconTex.Height * iconScale * 0.5f
 				);
 				Color iconColor = isHovered ? Color.White : rarityColor;
-				if (Augment.Rarity == AugmentRarity.Common) iconColor = new Color(225, 230, 240);
+				if (Augment.Rarity == AugmentRarity.Common) iconColor = RarityLook.Common;
 				spriteBatch.Draw(iconTex, iconPos, null, iconColor, 0f, Vector2.Zero, iconScale, SpriteEffects.None, 0f);
 			}
 
@@ -220,7 +215,7 @@ namespace Augments
 			// =================================================================
 			float descY = divY + 8f;
 			float descLeft = rect.X + 16;
-			DrawLeftAlignedLines(spriteBatch, font, descLines, DescScale, descLeft, descY);
+			DrawScrollableDescription(spriteBatch, font, rect, descLeft, descY);
 
 			// =================================================================
 			// 11. SPECIAL TAG BADGES (Keystone / Support / Fortune)
@@ -248,19 +243,116 @@ namespace Augments
 			}
 		}
 
+		// =====================================================================================================================
+		// The NieR style card: flat, no auras, rank shown by its frame, its pips, and a band at the bottom naming the tier.
+		//   Common     thin dim border
+		//   Rare       solid border, square nodes on the corners, a bold rule under the name
+		//   Epic       double border, brackets just outside the corners
+		//   Legendary  a cream plate with fine stripes, an amber border and heavy amber brackets
+		// =====================================================================================================================
+
+		private const int TierBandHeight = 26;
+
+		private Color HighlightMix => RarityLook.Inverted(Augment.Rarity) ? Color.Black : Color.White;
+
+		private static Color Darken(Color c, float k) => new Color((int)(c.R * k), (int)(c.G * k), (int)(c.B * k), (int)c.A);
+
+		// Multiplies the colour of every [c/RRGGBB:...] tag, so bright text colours still read on a light background.
+		private static string DarkenTags(string text, float k)
+		{
+			return System.Text.RegularExpressions.Regex.Replace(text ?? "", @"\[c/([0-9A-Fa-f]{6}):", m =>
+			{
+				int v = Convert.ToInt32(m.Groups[1].Value, 16);
+				int r = (int)(((v >> 16) & 255) * k), g = (int)(((v >> 8) & 255) * k), b = (int)((v & 255) * k);
+				return $"[c/{r:X2}{g:X2}{b:X2}:";
+			});
+		}
+
+		private void DrawNier(SpriteBatch sb, Rectangle rect, DynamicSpriteFont font)
+		{
+			bool plate = RarityLook.Inverted(Augment.Rarity);
+			Color col = RarityLook.Of(Augment.Rarity);
+			Color fg = plate ? RarityLook.OnPlate : (isHovered ? RarityLook.Light(col) : col);
+			Texture2D px = TextureAssets.MagicPixel.Value;
+
+			// Everything the old layout drew (description, tags, the install line) now sits above the tier band.
+			var body = new Rectangle(rect.X, rect.Y, rect.Width, rect.Height - TierBandHeight);
+
+			// 1. Chassis.
+			if (plate)
+			{
+				RarityLook.DrawPlate(sb, rect);
+			}
+			else
+			{
+				Color bg = PanelChrome.PanelBackground;
+				HubDraw.Fill(sb, rect, isHovered ? Color.Lerp(bg, Color.White, 0.05f) : bg);
+			}
+
+			// 2. Frame.
+			DrawNierFrame(sb, rect, col);
+
+			// 3. Pips along the top edge.
+			int pips = RarityLook.Pips(Augment.Rarity);
+			int midX = rect.X + rect.Width / 2;
+			for (int i = 0; i < pips; i++)
+				sb.Draw(px, new Rectangle(midX + (int)Math.Round((i - (pips - 1) * 0.5f) * 9f) - 2, rect.Y + 7, 5, 5), fg);
+
+			// 4. Name, then the class in small spaced capitals.
+			float centerX = rect.X + rect.Width * 0.5f;
+			float nameY = DrawCenteredLines(sb, font, nameLines, NameScale, centerX, rect.Y + 26f, fg, !plate);
+
+			string cls = Augment.Class.ToString().ToUpperInvariant();
+			const float clsScale = 0.58f;
+			float clsW = HubDraw.Width(cls, clsScale, 3f);
+			HubDraw.Text(sb, cls, new Vector2(centerX - clsW / 2f, nameY + 2f), fg * 0.78f, clsScale, 3f);
+
+			// 5. Rule under the header (bold for Rare).
+			float divY = nameY + 2f + HubDraw.LineHeight(clsScale) + 8f;
+			HubDraw.Fill(sb, new Rectangle(rect.X + 16, (int)divY, rect.Width - 32, Augment.Rarity == AugmentRarity.Rare ? 2 : 1), fg * (Augment.Rarity == AugmentRarity.Common ? 0.35f : 0.6f));
+
+			// 6. Description, tags and the install line.
+			DrawScrollableDescription(sb, font, body, rect.X + 16, divY + 8f, plate ? RarityLook.OnPlate : (Color?)null);
+			DrawSpecialBadges(sb, font, body);
+			DrawInstallActionBar(sb, font, body, col);
+
+			// 7. The tier band (Z): the tier named in large spaced capitals along the bottom.
+			DrawTierBand(sb, rect, col, plate);
+
+			// Tooltips for tags - queued for deferred top-level drawing so no sibling card clips them.
+			if (familyTagRect.Contains(Main.MouseScreen.ToPoint()))
+			{
+				var family = AugmentFamilyRegistry.Get(Augment.FamilyId);
+				if (family != null)
+					activeTooltipDrawer = s => DrawFamilyTooltip(s, font, family);
+			}
+			else if (specialTagRect.Contains(Main.MouseScreen.ToPoint()))
+			{
+				if (isSupport)
+					activeTooltipDrawer = s => DrawSupportTooltip(s, font);
+				else if (isKeystone)
+					activeTooltipDrawer = s => DrawKeystoneTooltip(s, font);
+			}
+		}
+
+		private void DrawNierFrame(SpriteBatch sb, Rectangle rect, Color col) => RarityLook.DrawTierFrame(sb, rect, Augment.Rarity, isHovered);
+
+		private void DrawTierBand(SpriteBatch sb, Rectangle rect, Color col, bool plate) => RarityLook.DrawTierBand(sb, rect, Augment.Rarity, isHovered);
+
 		private void DrawCardAuras(SpriteBatch spriteBatch, Rectangle rect, float pulse, float time)
 		{
 			if (Augment.Rarity == AugmentRarity.Legendary)
 			{
-				// Radiant Golden Divine Aura
+				// Legendary: an extra ring and a light circling the card, then the radiant aura
+				RarityLook.DrawLegendaryAura(spriteBatch, rect, 0.2f, isHovered);
 				int auraDist = (int)(6f + pulse * 6f) + (isHovered ? 4 : 0);
 				Rectangle auraRect = new Rectangle(rect.X - auraDist, rect.Y - auraDist, rect.Width + auraDist * 2, rect.Height + auraDist * 2);
-				Color auraCol = new Color(255, 160, 25) * ((0.12f + pulse * 0.16f) * (isHovered ? 1.6f : 1f));
+				Color auraCol = RarityLook.Legendary * ((0.12f + pulse * 0.16f) * (isHovered ? 1.6f : 1f));
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, auraRect, auraCol);
 
 				int midDist = (int)(2f + pulse * 3f) + (isHovered ? 1 : 0);
 				Rectangle midRect = new Rectangle(rect.X - midDist, rect.Y - midDist, rect.Width + midDist * 2, rect.Height + midDist * 2);
-				Color midCol = new Color(255, 210, 60) * ((0.16f + pulse * 0.20f) * (isHovered ? 1.4f : 1f));
+				Color midCol = RarityLook.LegendaryLight * ((0.16f + pulse * 0.20f) * (isHovered ? 1.4f : 1f));
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, midRect, midCol);
 			}
 			else if (Augment.Rarity == AugmentRarity.Epic)
@@ -268,12 +360,12 @@ namespace Augments
 				// Mystical Amethyst Aura
 				int auraDist = (int)(5f + pulse * 5f) + (isHovered ? 4 : 0);
 				Rectangle auraRect = new Rectangle(rect.X - auraDist, rect.Y - auraDist, rect.Width + auraDist * 2, rect.Height + auraDist * 2);
-				Color auraCol = new Color(175, 95, 245) * ((0.10f + pulse * 0.15f) * (isHovered ? 1.6f : 1f));
+				Color auraCol = RarityLook.Epic * ((0.10f + pulse * 0.15f) * (isHovered ? 1.6f : 1f));
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, auraRect, auraCol);
 
 				int midDist = (int)(2f + pulse * 2f) + (isHovered ? 1 : 0);
 				Rectangle midRect = new Rectangle(rect.X - midDist, rect.Y - midDist, rect.Width + midDist * 2, rect.Height + midDist * 2);
-				Color midCol = new Color(220, 150, 255) * ((0.14f + pulse * 0.18f) * (isHovered ? 1.4f : 1f));
+				Color midCol = RarityLook.EpicLight * ((0.14f + pulse * 0.18f) * (isHovered ? 1.4f : 1f));
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, midRect, midCol);
 			}
 			else if (Augment.Rarity == AugmentRarity.Rare)
@@ -281,13 +373,13 @@ namespace Augments
 				// Soft pulsing Cyan Edge Glow
 				int auraDist = (int)(2f + pulse * 2.5f) + (isHovered ? 3 : 0);
 				Rectangle auraRect = new Rectangle(rect.X - auraDist, rect.Y - auraDist, rect.Width + auraDist * 2, rect.Height + auraDist * 2);
-				Color auraCol = new Color(60, 180, 255) * ((0.08f + pulse * 0.10f) * (isHovered ? 1.6f : 1f));
+				Color auraCol = RarityLook.Rare * ((0.08f + pulse * 0.10f) * (isHovered ? 1.6f : 1f));
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, auraRect, auraCol);
 
 				if (isHovered)
 				{
 					Rectangle midRect = new Rectangle(rect.X - 1, rect.Y - 1, rect.Width + 2, rect.Height + 2);
-					Color midCol = new Color(120, 210, 255) * 0.22f;
+					Color midCol = RarityLook.RareLight * 0.22f;
 					spriteBatch.Draw(TextureAssets.MagicPixel.Value, midRect, midCol);
 				}
 			}
@@ -296,11 +388,11 @@ namespace Augments
 				// Sleek Cybernetic Silver-Cyan Glow for Common on hover
 				int auraDist = 3;
 				Rectangle auraRect = new Rectangle(rect.X - auraDist, rect.Y - auraDist, rect.Width + auraDist * 2, rect.Height + auraDist * 2);
-				Color auraCol = new Color(70, 130, 180) * 0.18f;
+				Color auraCol = RarityLook.Common * 0.18f;
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, auraRect, auraCol);
 
 				Rectangle midRect = new Rectangle(rect.X - 1, rect.Y - 1, rect.Width + 2, rect.Height + 2);
-				Color midCol = new Color(140, 190, 240) * 0.25f;
+				Color midCol = RarityLook.CommonLight * 0.25f;
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, midRect, midCol);
 			}
 		}
@@ -319,7 +411,7 @@ namespace Augments
 				float t = sweepTime / sweepDuration;
 				float sweepCenter = (rect.Width + rect.Height) * t;
 				int beamWidth = 28;
-				Color beamColor = new Color(255, 245, 215);
+				Color beamColor = RarityLook.LegendaryLight;
 
 				for (int py = 4; py < rect.Height - 4; py += 3)
 				{
@@ -346,11 +438,11 @@ namespace Augments
 		{
 			Color color = baseBorderColor;
 			if (Augment.Rarity == AugmentRarity.Epic)
-				color = Color.Lerp(new Color(175, 95, 245), new Color(230, 185, 255), pulse * 0.45f);
+				color = Color.Lerp(RarityLook.Epic, RarityLook.EpicLight, pulse * 0.45f);
 			else if (Augment.Rarity == AugmentRarity.Legendary)
-				color = Color.Lerp(new Color(255, 170, 35), new Color(255, 230, 100), pulse * 0.45f);
+				color = Color.Lerp(RarityLook.Legendary, RarityLook.LegendaryLight, pulse * 0.45f);
 			else if (Augment.Rarity == AugmentRarity.Rare)
-				color = Color.Lerp(new Color(75, 180, 250), new Color(140, 225, 255), pulse * 0.35f);
+				color = Color.Lerp(RarityLook.Rare, RarityLook.RareLight, pulse * 0.35f);
 
 			if (isHovered)
 				color = Color.Lerp(color, Color.White, 0.35f);
@@ -445,7 +537,7 @@ namespace Augments
 			if (intensity <= 0.05f) return;
 
 			int rayLen = 2 + (int)(intensity * 5f);
-			Color violetRay = new Color(215, 140, 255) * (intensity * 0.9f);
+			Color violetRay = RarityLook.EpicLight * (intensity * 0.9f);
 			Color whiteRay = Color.White * intensity;
 
 			// Cross rays
@@ -516,6 +608,8 @@ namespace Augments
 
 		private Rectangle DrawProtocolTextBadge(SpriteBatch spriteBatch, DynamicSpriteFont font, Rectangle cardRect, int y, string text, Color themeColor)
 		{
+			if (RarityLook.Inverted(Augment.Rarity))
+				themeColor = Darken(themeColor, 0.5f);
 			Vector2 scale = new Vector2(0.66f);
 			Vector2 textSize = ChatManager.GetStringSize(font, text, scale);
 			float maxTextWidth = cardRect.Width - 24f;
@@ -532,19 +626,10 @@ namespace Augments
 			// Hitbox for mouse hover tooltip (with 8px horizontal, 4px vertical padding for easy hovering)
 			Rectangle hitRect = new Rectangle(textX - 8, textY - 2, (int)textSize.X + 16, (int)textSize.Y + 4);
 			bool isTagHovered = hitRect.Contains(Main.MouseScreen.ToPoint());
-			Color drawColor = isTagHovered ? Color.Lerp(themeColor, Color.White, 0.45f) : themeColor;
+			Color drawColor = isTagHovered ? Color.Lerp(themeColor, HighlightMix, 0.45f) : themeColor;
 
 			DrawTagDivider(spriteBatch, cardRect, textY + (int)(textSize.Y * 0.5f) + 1, themeColor, 0f);
-			ChatManager.DrawColorCodedStringWithShadow(
-				spriteBatch,
-				font,
-				text,
-				new Vector2(textX, textY),
-				drawColor,
-				0f,
-				Vector2.Zero,
-				scale
-			);
+			RarityLook.DrawCoded(spriteBatch, font, text, new Vector2(textX, textY), drawColor, scale, !RarityLook.Inverted(Augment.Rarity));
 
 			return hitRect;
 		}
@@ -566,6 +651,8 @@ namespace Augments
 		// colour and a glowing orb on the shared divider line.
 		private Rectangle DrawAlertTextBadge(SpriteBatch spriteBatch, DynamicSpriteFont font, Rectangle cardRect, int y, string text, Color alertColor)
 		{
+			if (RarityLook.Inverted(Augment.Rarity))
+				alertColor = Darken(alertColor, 0.55f);
 			Vector2 scale = new Vector2(0.66f);
 			Vector2 textSize = ChatManager.GetStringSize(font, text, scale);
 			float maxTextWidth = cardRect.Width - 44f;
@@ -581,11 +668,11 @@ namespace Augments
 			bool hovered = hitRect.Contains(Main.MouseScreen.ToPoint());
 
 			float pulse = 0.5f + 0.5f * (float)Math.Sin(Main.GlobalTimeWrappedHourly * 3.2f);
-			Color baseColor = hovered ? Color.Lerp(alertColor, Color.White, 0.45f) : Color.Lerp(alertColor * 0.85f, Color.White, 0.18f * pulse);
+			Color baseColor = hovered ? Color.Lerp(alertColor, HighlightMix, 0.45f) : Color.Lerp(alertColor * 0.85f, HighlightMix, 0.18f * pulse);
 			Color markColor = Color.Lerp(alertColor * 0.7f, alertColor, pulse);
 
 			DrawTagDivider(spriteBatch, cardRect, textY + (int)(textSize.Y * 0.5f) + 1, markColor, pulse);
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text, new Vector2(textX, textY), baseColor, 0f, Vector2.Zero, scale);
+			RarityLook.DrawCoded(spriteBatch, font, text, new Vector2(textX, textY), baseColor, scale, !RarityLook.Inverted(Augment.Rarity));
 
 
 			return hitRect;
@@ -604,7 +691,7 @@ namespace Augments
 			bool isTagHovered = pillRect.Contains(Main.MouseScreen.ToPoint());
 
 			// Sleek cybernetic chassis fill with subtle ambient underglow
-			Color bg = isTagHovered ? new Color(18, 28, 48, 245) : new Color(10, 16, 28, 235);
+			Color bg = isTagHovered ? PanelChrome.Tone(new Color(18, 28, 48, 245)) : PanelChrome.Tone(new Color(10, 16, 28, 235));
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, pillRect, bg);
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, pillRect, accentColor * (isTagHovered ? 0.16f : 0.08f));
 
@@ -625,7 +712,7 @@ namespace Augments
 			// Text centered with optical baseline adjustment
 			float textY = pillRect.Y + (pillRect.Height - 12f) * 0.5f - 1.5f;
 			Vector2 textPos = new Vector2(pillRect.X + (pillRect.Width - textSize.X) * 0.5f, textY);
-			Color drawColor = isTagHovered ? Color.White : accentColor;
+			Color drawColor = isTagHovered ? Color.White : RarityLook.Pale(accentColor, 0.30f);
 			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text, textPos, drawColor, 0f, Vector2.Zero, scale);
 
 			return pillRect;
@@ -649,13 +736,16 @@ namespace Augments
 			else
 			{
 				installText = isHovered ? "Click to Install" : "Click to select";
-				installColor = isHovered ? Color.White : new Color(145, 165, 200) * 0.85f;
+				installColor = isHovered ? Color.White : PanelChrome.Tone(new Color(145, 165, 200)) * 0.85f;
 			}
+
+			if (RarityLook.Inverted(Augment.Rarity))
+				installColor = slotsFull ? new Color(150, 55, 45) : (isHovered ? RarityLook.OnPlate : RarityLook.OnPlate * 0.75f);
 
 			Vector2 installScale = new Vector2(isHovered ? 0.76f : 0.70f);
 			Vector2 installSize = ChatManager.GetStringSize(font, installText, installScale);
 			Vector2 installPos = new Vector2(rect.X + (rect.Width - installSize.X) * 0.5f, textY);
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, installText, installPos, installColor, 0f, Vector2.Zero, installScale);
+			RarityLook.DrawCoded(spriteBatch, font, installText, installPos, installColor, installScale, !RarityLook.Inverted(Augment.Rarity));
 		}
 
 		private static void DrawRectBorder(SpriteBatch spriteBatch, Rectangle rect, Color color, int width)
@@ -666,43 +756,72 @@ namespace Augments
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.Right - width, rect.Y, width, rect.Height), color);
 		}
 
-		private static float DrawCenteredLines(SpriteBatch spriteBatch, DynamicSpriteFont font, List<string> lines, Vector2 scale, float centerX, float y, Color color)
+		private static float DrawCenteredLines(SpriteBatch spriteBatch, DynamicSpriteFont font, List<string> lines, Vector2 scale, float centerX, float y, Color color, bool shadow = true)
 		{
 			foreach (var line in lines)
 			{
 				Vector2 size = ChatManager.GetStringSize(font, line, scale);
-				ChatManager.DrawColorCodedStringWithShadow(
-					spriteBatch,
-					font,
-					line,
-					new Vector2(centerX - size.X / 2f, y),
-					color,
-					0f,
-					Vector2.Zero,
-					scale
-				);
+				RarityLook.DrawCoded(spriteBatch, font, line, new Vector2(centerX - size.X / 2f, y), color, scale, shadow);
 				y += size.Y + LineSpacing;
 			}
 			return y;
 		}
 
-		private static float DrawLeftAlignedLines(SpriteBatch spriteBatch, DynamicSpriteFont font, List<string> lines, Vector2 scale, float x, float y)
+		// Draws the description inside the space between the header divider and the tags at the bottom of the card.
+		// If it doesn't all fit, only the lines that fit are drawn, the wheel scrolls them, and a thin bar on the right shows where you are.
+		private void DrawScrollableDescription(SpriteBatch spriteBatch, DynamicSpriteFont font, Rectangle rect, float x, float descY, Color? textColor = null)
 		{
-			foreach (var line in lines)
+			bool hasSpecialTag = isKeystone || isSupport;
+			bool hasFamily = Augment.FamilyId != null;
+			float bottomReserved = 38f;
+			if (hasSpecialTag && hasFamily)
+				bottomReserved = 96f;
+			else if (hasSpecialTag || hasFamily)
+				bottomReserved = 66f;
+
+			float viewBottom = rect.Bottom - bottomReserved - 12f;
+			float viewHeight = Math.Max(0f, viewBottom - descY);
+
+			// How many lines fit when the last line sits at the bottom of the view: that decides how far it can scroll.
+			float used = 0f;
+			int fitFromEnd = 0;
+			for (int i = descLines.Count - 1; i >= 0; i--)
 			{
-				ChatManager.DrawColorCodedStringWithShadow(
-					spriteBatch,
-					font,
-					line,
-					new Vector2(x, y),
-					Color.White,
-					0f,
-					Vector2.Zero,
-					scale
-				);
-				y += ChatManager.GetStringSize(font, line, scale).Y + LineSpacing;
+				float h = ChatManager.GetStringSize(font, descLines[i], DescScale).Y + LineSpacing;
+				if (used + h - LineSpacing > viewHeight)
+					break;
+				used += h;
+				fitFromEnd++;
 			}
-			return y;
+
+			int maxScrollLines = Math.Max(0, descLines.Count - fitFromEnd);
+			descScrollLines = Math.Clamp(descScrollLines, 0, maxScrollLines);
+
+			float y = descY;
+			int drawn = 0;
+			for (int i = descScrollLines; i < descLines.Count; i++)
+			{
+				string line = descLines[i];
+				float h = ChatManager.GetStringSize(font, line, DescScale).Y;
+				if (y + h > viewBottom)
+					break;
+
+				RarityLook.DrawCoded(spriteBatch, font, line, new Vector2(x, y), textColor ?? Color.White, DescScale, textColor == null);
+				y += h + LineSpacing;
+				drawn++;
+			}
+
+			// Slim scroll bar, in the same style as the Plugins menu
+			if (maxScrollLines > 0 && viewHeight > 0f)
+			{
+				Texture2D pixel = TextureAssets.MagicPixel.Value;
+				int trackX = rect.Right - 10;
+				spriteBatch.Draw(pixel, new Rectangle(trackX, (int)descY, 2, (int)viewHeight), PanelChrome.Tone(new Color(30, 42, 66)) * 0.75f);
+
+				float thumbHeight = Math.Max(14f, viewHeight * (drawn / (float)descLines.Count));
+				float thumbY = descY + (viewHeight - thumbHeight) * (descScrollLines / (float)maxScrollLines);
+				spriteBatch.Draw(pixel, new Rectangle(trackX, (int)thumbY, 2, (int)thumbHeight), PanelChrome.Tone(new Color(56, 189, 248)) * 0.85f);
+			}
 		}
 
 		public static Action<SpriteBatch> activeTooltipDrawer;
@@ -743,14 +862,14 @@ namespace Augments
 			spriteBatch.Draw(pixel, new Rectangle(boxRect.X - 2, boxRect.Y - 2, boxRect.Width + 4, boxRect.Height + 4), new Color(0, 0, 0, 160));
 
 			// 2. High-tech cyber navy background fill (#0A101C)
-			Color bgNavy = new Color(10, 16, 28, 248);
+			Color bgNavy = PanelChrome.Tone(new Color(10, 16, 28, 248));
 			spriteBatch.Draw(pixel, boxRect, bgNavy);
 
 			// 3. Subtle ambient accent underglow
 			spriteBatch.Draw(pixel, boxRect, accentColor * 0.045f);
 
 			// 4. 1px outer border tinted with accent
-			Color outerBorder = Color.Lerp(new Color(30, 41, 59), accentColor, 0.40f) * 0.90f;
+			Color outerBorder = Color.Lerp(PanelChrome.Tone(new Color(30, 41, 59)), accentColor, 0.40f) * 0.90f;
 			spriteBatch.Draw(pixel, new Rectangle(boxRect.X, boxRect.Y, boxRect.Width, 1), outerBorder);
 			spriteBatch.Draw(pixel, new Rectangle(boxRect.X, boxRect.Bottom - 1, boxRect.Width, 1), outerBorder);
 			spriteBatch.Draw(pixel, new Rectangle(boxRect.X, boxRect.Y, 1, boxRect.Height), outerBorder);
@@ -787,10 +906,10 @@ namespace Augments
 			var lines = new (string Text, Color Color)[]
 			{
 				("CORE OVERRIDE ARCHITECTURE", KeystoneTagColor),
-				("Unique protocol that rewires chassis combat specifications.", new Color(220, 230, 245)),
+				("Unique protocol that rewires chassis combat specifications.", PanelChrome.Tone(new Color(220, 230, 245))),
 				("• Limit 1 Core Override plugin per chassis.", new Color(248, 113, 113)),
-				("• Permanent installation — cannot be sold or removed.", new Color(200, 215, 235)),
-				("• Grants massive combat power with operational trade-offs.", new Color(175, 190, 215))
+				("• Permanent installation — cannot be sold or removed.", PanelChrome.Tone(new Color(200, 215, 235))),
+				("• Grants massive combat power with operational trade-offs.", PanelChrome.Tone(new Color(175, 190, 215)))
 			};
 
 			var scale = new Vector2(0.80f);
@@ -834,7 +953,7 @@ namespace Augments
 			var lines = new List<(string Text, Color Color)>
 			{
 				("SUPPORT CLASS", SupportTagColor),
-				("Sacrifices direct offensive output to amplify armor and personal defense.", new Color(200, 220, 245)),
+				("Sacrifices direct offensive output to amplify armor and personal defense.", PanelChrome.Tone(new Color(200, 220, 245))),
 			};
 
 			if (active)
@@ -845,11 +964,11 @@ namespace Augments
 			}
 			else
 			{
-				lines.Add(($"Status: INACTIVE ({ownedCount}/2 Required for class bonuses)", new Color(148, 163, 184)));
+				lines.Add(($"Status: INACTIVE ({ownedCount}/2 Required for class bonuses)", PanelChrome.Tone(new Color(148, 163, 184))));
 			}
 
 			lines.Add(("---DIVIDER---", Color.Transparent));
-			lines.Add(("Support Level Bonuses:", new Color(250, 204, 21)));
+			lines.Add(("Support Level Bonuses:", MenuLook.Current.Amber));
 
 			var thresholds = new (int Threshold, string Label, int Defense, int Damage, string Note)[]
 			{
@@ -877,20 +996,20 @@ namespace Augments
 					header = isCurrent
 						? $"  ✓ ({label}) {note} (Active) [CURRENT]"
 						: $"  ✓ ({label}) {note} (Active)";
-					headerCol = isCurrent ? new Color(251, 191, 36) : AugmentTextColors.Healing;
+					headerCol = isCurrent ? MenuLook.Current.Amber : AugmentTextColors.Healing;
 				}
 				else
 				{
 					header = $"  • ({label}) {note} (Locked)";
-					headerCol = new Color(148, 163, 184);
+					headerCol = PanelChrome.Tone(new Color(148, 163, 184));
 				}
 
 				lines.Add((header, headerCol));
-				lines.Add(($"      +{def} Defense, {dmg}% Damage Output", unlocked ? new Color(220, 245, 230) : new Color(125, 140, 160)));
+				lines.Add(($"      +{def} Defense, {dmg}% Damage Output", unlocked ? new Color(220, 245, 230) : PanelChrome.Tone(new Color(125, 140, 160))));
 			}
 
 			lines.Add(("---DIVIDER---", Color.Transparent));
-			lines.Add(("Autonomous calibration: Class adapts dynamically as plugins change.", new Color(148, 163, 184)));
+			lines.Add(("Autonomous calibration: Class adapts dynamically as plugins change.", PanelChrome.Tone(new Color(148, 163, 184))));
 
 			var scale = new Vector2(0.80f);
 			float maxWidth = 0f;
@@ -933,73 +1052,92 @@ namespace Augments
 			}
 		}
 
+		// The protocol hover tooltip uses the same layout and pale colours as the docked protocol panel (AugmentFamilyHUD):
+		// centred title and status, spaced section headers in the scheme amber, and "name  •  status" rows.
 		internal static void DrawFamilyTooltip(SpriteBatch spriteBatch, DynamicSpriteFont font, AugmentFamily family)
 		{
-			const float padding = 12f;
+			const float padding = 14f;
 			const float lineSpacing = 3f;
+			const string Rule = "---DIVIDER---";
 
 			var player = Main.LocalPlayer;
 			var ap = player?.GetModPlayer<AugmentPlayer>();
 			int ownedCount = ap != null ? AugmentFamilyRegistry.GetOwnedCount(ap, family.Id) : 0;
+			bool complete = ownedCount >= family.MaxMembers;
 
-			var lines = new List<(string Text, Color Color)>
-			{
-				($"{family.DisplayName.ToUpper()} PROTOCOL", family.ThemeColor),
-				(family.Description, new Color(200, 220, 245)),
-				($"Progress: {ownedCount}/{family.MaxMembers} Installed", ownedCount >= family.MaxMembers ? AugmentTextColors.Healing : new Color(150, 165, 190)),
-			};
+			var titleScale = new Vector2(0.82f);
+			var statusScale = new Vector2(0.72f);
+			var sectionScale = new Vector2(0.68f);
+			var itemScale = new Vector2(0.76f);
+			var perkScale = new Vector2(0.72f);
 
-			if (family.Id == AugmentFamilyRegistry.FortuneId && ap != null)
+			// Wraps text in a colour tag that already has the shared paler tone applied.
+			string Tag(string text, Color c)
 			{
-				lines.Add(($"Active Fortune: +{(int)System.MathF.Round(ap.TotalFortune * 100f)}%  •  World Luck: +{player.luck:0.00}", new Color(255, 220, 120)));
+				Color pale = RarityLook.Pale(c, 0.30f);
+				return $"[c/{pale.R:X2}{pale.G:X2}{pale.B:X2}:{text}]";
 			}
 
-			lines.Add(("---DIVIDER---", Color.Transparent));
-			lines.Add(("Protocol Specifications:", new Color(250, 204, 21)));
+			Color slate = PanelChrome.Tone(new Color(100, 116, 139));
+			var lines = new List<(string Text, Color Color, Vector2 Scale, bool Center, float Indent)>();
+
+			lines.Add(($"{family.DisplayName.ToUpper()} PROTOCOL", RarityLook.Pale(family.ThemeColor, 0.30f), titleScale, true, 0f));
+			string statusText = complete
+				? $"PROTOCOL ACTIVE  •  {family.MaxMembers}/{family.MaxMembers} INSTALLED"
+				: $"IN PROGRESS  •  {ownedCount}/{family.MaxMembers} INSTALLED";
+			lines.Add((statusText, RarityLook.Pale(complete ? AugmentTextColors.Healing : PanelChrome.Tone(new Color(148, 163, 184)), 0.30f), statusScale, true, 0f));
+
+			if (family.Id == AugmentFamilyRegistry.FortuneId && ap != null)
+				lines.Add(($"Active Fortune: +{(int)System.MathF.Round(ap.TotalFortune * 100f)}%  •  World Luck: +{player.luck:0.00}", new Color(255, 215, 120), statusScale, true, 0f));
+
+			lines.Add((Rule, Color.Transparent, Vector2.One, false, 0f));
+			lines.Add(("PROTOCOL SPECIFICATIONS", MenuLook.Current.Amber, sectionScale, false, 0f));
 
 			foreach (var kv in family.ThresholdBonuses)
 			{
-				int threshold = kv.Key;
 				var bonus = kv.Value;
-				bool unlocked = ownedCount >= threshold;
-				string header = unlocked
-					? $"  ✓ ({threshold}) {bonus.Title} (Active)"
-					: $"  • ({threshold}) {bonus.Title} (Locked)";
-				Color headerCol = unlocked ? AugmentTextColors.Healing : new Color(148, 163, 184);
-				lines.Add((header, headerCol));
+				bool unlocked = ownedCount >= kv.Key;
+				string row =
+					Tag(unlocked ? "✓" : "•", unlocked ? AugmentTextColors.Healing : slate) +
+					Tag($" ({kv.Key}) ", unlocked ? PanelChrome.Tone(new Color(56, 189, 248)) : slate) +
+					Tag(bonus.Title, unlocked ? Color.White : PanelChrome.Tone(new Color(148, 163, 184))) +
+					Tag("  •  ", PanelChrome.Tone(new Color(71, 85, 105))) +
+					Tag(unlocked ? "Active" : "Locked", unlocked ? AugmentTextColors.Healing : slate);
+				lines.Add((row, Color.White, itemScale, false, 0f));
 
 				foreach (var dl in bonus.Descriptions)
 				{
-					lines.Add(($"      {dl.Trim()}", unlocked ? new Color(220, 245, 230) : new Color(125, 140, 160)));
+					Color perkCol = unlocked ? new Color(210, 238, 225) : PanelChrome.Tone(new Color(125, 138, 158));
+					lines.Add((RarityLook.PaleTags($"• {dl.Trim()}", 0.30f), RarityLook.Pale(perkCol, 0.30f), perkScale, false, 16f));
 				}
 			}
 
-			lines.Add(("---DIVIDER---", Color.Transparent));
-			lines.Add(("Assigned Plugins:", new Color(250, 204, 21)));
+			lines.Add((Rule, Color.Transparent, Vector2.One, false, 0f));
+			lines.Add(("ASSIGNED PLUGINS", MenuLook.Current.Amber, sectionScale, false, 0f));
 
 			foreach (var memberId in family.MemberIds)
 			{
 				Augment m = AugmentDatabase.GetById(memberId);
 				string name = m?.DisplayName ?? memberId;
 				bool owned = ap != null && ap.HasAugment(memberId);
-				if (owned)
-					lines.Add(($"  ✓ {name} (Installed)", AugmentTextColors.Healing));
-				else
-					lines.Add(($"  • {name}", new Color(175, 190, 215)));
+				string row =
+					Tag(owned ? "✓" : "•", owned ? AugmentTextColors.Healing : slate) + "  " +
+					Tag(name, owned ? Color.White : PanelChrome.Tone(new Color(148, 163, 184))) +
+					Tag(owned ? "  •  INSTALLED" : "  •  NOT INSTALLED", owned ? AugmentTextColors.Healing : slate);
+				lines.Add((row, Color.White, itemScale, false, 0f));
 			}
 
-			var scale = new Vector2(0.80f);
-			float maxWidth = 0f;
+			float maxWidth = 320f - padding * 2f;
 			float totalHeight = 0f;
-			foreach (var (text, _) in lines)
+			foreach (var (text, _, scale, _, indent) in lines)
 			{
-				if (text == "---DIVIDER---")
+				if (text == Rule)
 				{
 					totalHeight += 9f;
 					continue;
 				}
 				Vector2 size = ChatManager.GetStringSize(font, text, scale);
-				if (size.X > maxWidth) maxWidth = size.X;
+				if (size.X + indent > maxWidth) maxWidth = size.X + indent;
 				totalHeight += size.Y + lineSpacing;
 			}
 			totalHeight -= lineSpacing;
@@ -1014,34 +1152,25 @@ namespace Augments
 
 			float y = boxRect.Y + padding;
 			float x = boxRect.X + padding;
-			foreach (var (text, color) in lines)
+			foreach (var (text, color, scale, center, indent) in lines)
 			{
-				if (text == "---DIVIDER---")
+				if (text == Rule)
 				{
 					y += 3f;
-					spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle((int)x, (int)y, (int)(boxWidth - padding * 2f), 1), family.ThemeColor * 0.35f);
+					spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(boxRect.X + 1, (int)y, boxRect.Width - 2, 1), family.ThemeColor * 0.35f);
 					y += 5f;
 					continue;
 				}
 				Vector2 size = ChatManager.GetStringSize(font, text, scale);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text, new Vector2(x, y), color, 0f, Vector2.Zero, scale);
+				float drawX = center ? boxRect.X + (boxRect.Width - size.X) * 0.5f : x + indent;
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text, new Vector2((float)Math.Round(drawX), (float)Math.Round(y)), color, 0f, Vector2.Zero, scale);
 				y += size.Y + lineSpacing;
 			}
 		}
 
 		public static Color RarityColor(AugmentRarity rarity)
 		{
-			switch (rarity)
-			{
-				case AugmentRarity.Rare:
-					return new Color(85, 195, 255);
-				case AugmentRarity.Epic:
-					return new Color(195, 115, 255);
-				case AugmentRarity.Legendary:
-					return new Color(255, 185, 45);
-				default:
-					return new Color(185, 200, 225);
-			}
+			return RarityLook.Of(rarity); // the shared tier colours (Epic and Legendary move)
 		}
 	}
 }

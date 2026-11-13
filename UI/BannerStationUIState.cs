@@ -149,6 +149,7 @@ namespace Augments
 		private sealed class StationPanel : UIPanel
 		{
 			private readonly BannerStationUIState owner;
+			private readonly PanelGlitch panelGlitch = new PanelGlitch(6);
 
 			public StationPanel(BannerStationUIState owner)
 			{
@@ -165,6 +166,7 @@ namespace Augments
 				Rectangle rect = GetDimensions().ToRectangle();
 				PanelChrome.DrawFrame(spriteBatch, rect);
 				PanelChrome.DrawHeaderDivider(spriteBatch, rect, 44);
+				panelGlitch.Draw(spriteBatch, rect, withFlash: false);
 
 				int tier = station.GetTier();
 				DynamicSpriteFont font = FontAssets.MouseText.Value;
@@ -281,7 +283,7 @@ namespace Augments
 						bool filled = index < station.Banners.Count;
 						bool hot = index == hovered;
 
-						spriteBatch.Draw(pixel, slot, (hot ? new Color(24, 38, 62) : new Color(14, 22, 38)) * 0.95f);
+						spriteBatch.Draw(pixel, slot, (hot ? PanelChrome.Tone(new Color(24, 38, 62)) : PanelChrome.Tone(new Color(14, 22, 38))) * 0.95f);
 						Color edge = filled ? PanelChrome.Accent * 0.55f : PanelChrome.Divider;
 						spriteBatch.Draw(pixel, new Rectangle(slot.X, slot.Y, slot.Width, 1), edge);
 						spriteBatch.Draw(pixel, new Rectangle(slot.X, slot.Bottom - 1, slot.Width, 1), edge);
@@ -359,7 +361,7 @@ namespace Augments
 				Texture2D pixel = TextureAssets.MagicPixel.Value;
 				Color edge = hovered ? PanelChrome.Accent : PanelChrome.Accent * 0.45f;
 
-				spriteBatch.Draw(pixel, rect, (hovered ? new Color(24, 44, 72) : new Color(14, 26, 44)) * 0.95f);
+				spriteBatch.Draw(pixel, rect, (hovered ? PanelChrome.Tone(new Color(24, 44, 72)) : PanelChrome.Tone(new Color(14, 26, 44))) * 0.95f);
 				spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, rect.Width, 1), edge);
 				spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Bottom - 1, rect.Width, 1), edge);
 				spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, 1, rect.Height), edge);

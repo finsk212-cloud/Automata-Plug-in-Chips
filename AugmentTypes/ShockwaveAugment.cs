@@ -9,7 +9,10 @@ namespace Augments
         public override string Id => "shockwave";
         public override string DisplayName => "Shockwave";
         public override string Description =>
-            $"Melee {AugmentText.Crit("crits")} release a kinetic wave that violently pushes nearby enemies away.\n" +
+            $"Melee {AugmentText.Crit("crits")} release a kinetic wave that violently pushes nearby enemies away.";
+
+        public override string GetDetailedDescription(Player player) =>
+            Description + "\n" +
             AugmentText.Note("(Knockback only; deals no extra damage.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Rare;

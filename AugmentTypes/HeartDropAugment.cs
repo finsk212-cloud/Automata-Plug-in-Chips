@@ -9,8 +9,7 @@ namespace Augments
         public override string Id => "heart_drop";
         public override string DisplayName => "Heart Drop";
         public override string Description =>
-            $"While {AugmentText.HP("missing HP")}, enemy kills have {AugmentText.Healing("+" + FormatCurrentChance(ExtraHeartDropChance) + " heart drop chance")}.\n" +
-            AugmentText.Note("Vanilla Terraria chance: 8.33%. This augment is additive.");
+            $"While {AugmentText.HP("missing HP")}, enemy kills have {AugmentText.Healing("+" + FormatCurrentChance(ExtraHeartDropChance) + " heart drop chance")}.";
 
         public override string GetDetailedDescription(Player player) =>
             $"While {AugmentText.HP("missing HP")}, enemy kills have {AugmentText.Healing("+" + FormatFortuneChance(ExtraHeartDropChance, player) + " heart drop chance")}.\n" +

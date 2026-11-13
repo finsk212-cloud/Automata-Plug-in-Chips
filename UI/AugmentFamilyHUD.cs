@@ -57,7 +57,7 @@ namespace Augments
 			}
 
 			// Don't collide with minimap area at top right
-			const float minStartY = 260f;
+			const float minStartY = 350f; // leaves room for the command dock (about 85px) above the first protocol icon
 			if (desiredStartY < minStartY)
 			{
 				desiredStartY = minStartY;
@@ -72,6 +72,47 @@ namespace Augments
 			return (desiredStartY, spacing);
 		}
 
+		// The protocol and Support panels open with a CLICK on their icon, not by hovering (hovering opened them by accident in a
+		// fight and covered the screen). One is open at a time. A click anywhere outside the icon and its panel, or Esc, closes it.
+		private static readonly HashSet<string> openIds = new HashSet<string>();
+
+		private static bool ResolveOpen(string id, Rectangle icon, Rectangle panel, Point mouse, bool clicked, float progress, Player player)
+		{
+			bool open = openIds.Contains(id);
+			bool overIcon = icon.Contains(mouse);
+			bool overPanel = open && progress > 0.02f && panel != Rectangle.Empty && panel.Contains(mouse);
+
+			// Pressing the button, or the open panel, must not also swing a weapon.
+			if (overIcon || overPanel)
+				player.mouseInterface = true;
+
+			if (clicked)
+			{
+				if (overIcon)
+				{
+					if (open)
+					{
+						openIds.Remove(id);
+					}
+					else
+					{
+						openIds.Clear();
+						openIds.Add(id);
+					}
+					Main.blockMouse = true;
+					Terraria.Audio.SoundEngine.PlaySound(open ? Terraria.ID.SoundID.MenuClose : Terraria.ID.SoundID.MenuOpen);
+				}
+				else if (open && !overPanel)
+				{
+					openIds.Remove(id);
+				}
+			}
+
+			if (open && Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Escape))
+				openIds.Remove(id);
+
+			return openIds.Contains(id);
+		}
 		public static void Update(GameTime gameTime)
 		{
 			if (Main.dedServ || Main.gameMenu)
@@ -93,12 +134,18 @@ namespace Augments
 			var (startY, spacing) = GetDynamicLayout(ap);
 			float currentY = startY;
 
-			Rectangle analyticsBtn = new Rectangle((int)iconX, (int)startY - 40, (int)IconWidth, 32);
+			bool diagOn = AugmentConfig.Instance == null || AugmentConfig.Instance.EnableHiddenStatsPanel;
+			GetDock(startY, diagOn, out Rectangle combatBtn, out Rectangle diagBtn);
+			DiagButton = diagBtn; // the Diagnostics drawer reads this: it opens from this button instead of a tab on the screen edge
 			bool justClicked = Main.mouseLeft && !wasMouseLeft;
-			if (analyticsBtn.Contains(mouse) && justClicked)
+			if (combatBtn.Contains(mouse))
 			{
-				ModContent.GetInstance<AugmentUISystem>()?.ToggleAnalytics();
-				Main.blockMouse = true;
+				player.mouseInterface = true;
+				if (justClicked)
+				{
+					ModContent.GetInstance<AugmentUISystem>()?.ToggleAnalytics();
+					Main.blockMouse = true;
+				}
 			}
 			wasMouseLeft = Main.mouseLeft;
 
@@ -113,19 +160,7 @@ namespace Augments
 				currentY += IconHeight + spacing;
 
 				panelBounds.TryGetValue(id, out var pRect);
-				bool isHovered = false;
-
-				Rectangle generousIcon = new Rectangle(iRect.X - 5, iRect.Y - 5, iRect.Width + 10, iRect.Height + 10);
-				if (generousIcon.Contains(mouse))
-				{
-					isHovered = true;
-				}
-				else if (hoverProgress[id] > 0.02f && pRect != Rectangle.Empty)
-				{
-					Rectangle generousPanel = new Rectangle(pRect.X - 5, pRect.Y - 5, pRect.Width + 10, pRect.Height + 10);
-					if (generousPanel.Contains(mouse))
-						isHovered = true;
-				}
+				bool isHovered = ResolveOpen(id, iRect, pRect, mouse, justClicked, hoverProgress[id], player);
 
 				float target = isHovered ? 1f : 0f;
 				float current = hoverProgress[id];
@@ -137,6 +172,7 @@ namespace Augments
 			else
 			{
 				hoverProgress[SupportStanceId] = 0f;
+				openIds.Remove(SupportStanceId);
 				panelBounds[SupportStanceId] = Rectangle.Empty;
 			}
 
@@ -149,6 +185,7 @@ namespace Augments
 				if (ownedCount <= 0)
 				{
 					hoverProgress[id] = 0f;
+					openIds.Remove(id);
 					panelBounds[id] = Rectangle.Empty;
 					continue;
 				}
@@ -163,24 +200,7 @@ namespace Augments
 
 				panelBounds.TryGetValue(id, out var pRect);
 
-				bool isHovered = false;
-
-				// 1. Hovering on or immediately around the docked icon (with 5px generous margin)
-				Rectangle generousIcon = new Rectangle(iRect.X - 5, iRect.Y - 5, iRect.Width + 10, iRect.Height + 10);
-				if (generousIcon.Contains(mouse))
-				{
-					isHovered = true;
-				}
-				// 2. Hovering on the slideout panel while it is open or opening
-				else if (hoverProgress[id] > 0.02f && pRect != Rectangle.Empty)
-				{
-					// Generous panel zone covering the panel AND extending into the icon seam
-					Rectangle generousPanel = new Rectangle(pRect.X - 5, pRect.Y - 5, pRect.Width + 10, pRect.Height + 10);
-					if (generousPanel.Contains(mouse))
-					{
-						isHovered = true;
-					}
-				}
+				bool isHovered = ResolveOpen(id, iRect, pRect, mouse, justClicked, hoverProgress[id], player);
 
 				float target = isHovered ? 1f : 0f;
 				float current = hoverProgress[id];
@@ -211,58 +231,21 @@ namespace Augments
 
 			Point mouse = new Point(Main.mouseX, Main.mouseY);
 
-			// 1. Combat Analytics (DPS) Button
-			Rectangle analyticsBtn = new Rectangle((int)iconX, (int)startY - 40, (int)IconWidth, 32);
-			bool btnHover = analyticsBtn.Contains(mouse);
-			bool isAnalyticsOpen = ModContent.GetInstance<AugmentUISystem>()?.IsAnalyticsOpen == true;
-			float dpsVal = AugmentDamageTracker.GetCurrentDPS();
-			bool hasActiveCombat = dpsVal > 0f || AugmentDamageTracker.SessionDuration > 0f;
-			Color btnTheme = isAnalyticsOpen 
-				? new Color(74, 222, 128) 
-				: (hasActiveCombat ? new Color(56, 189, 248) : new Color(130, 160, 200));
-
-			// Background
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, analyticsBtn, new Color(8, 14, 28, 245));
-			if (btnHover)
+			// 1. The command dock: the Combat and Diagnostics buttons together at the top, then the protocol (family) icons
+			//    below under their own heading, so the two kinds of thing are clearly separate.
+			bool anyProtocols = ap.SupportAugmentCount >= 1;
+			if (!anyProtocols)
 			{
-				spriteBatch.Draw(TextureAssets.MagicPixel.Value, analyticsBtn, btnTheme * 0.25f);
+				foreach (var kv in AugmentFamilyRegistry.Families)
+				{
+					if (AugmentFamilyRegistry.GetOwnedCount(ap, kv.Key) > 0)
+					{
+						anyProtocols = true;
+						break;
+					}
+				}
 			}
-
-			// Border with high tech corners
-			DrawHighTechBorder(spriteBatch, analyticsBtn, btnHover ? Color.Lerp(btnTheme, Color.White, 0.35f) : btnTheme * 0.75f);
-
-			// High-Tech Telemetry Icon: 4 animated waveform bars
-			int bcx = analyticsBtn.X + analyticsBtn.Width / 2;
-			int barBaseY = analyticsBtn.Y + 16;
-			float animPhase = globalTimer * (hasActiveCombat ? 8f : 2.5f);
-
-			int[] barHeights = new int[4];
-			barHeights[0] = 4 + (int)(Math.Sin(animPhase) * 2f + 2f);
-			barHeights[1] = 6 + (int)(Math.Sin(animPhase + 1.2f) * 3f + 3f);
-			barHeights[2] = 8 + (int)(Math.Sin(animPhase + 2.4f) * 4f + 4f);
-			barHeights[3] = 5 + (int)(Math.Sin(animPhase + 3.6f) * 2.5f + 2.5f);
-
-			int[] barXOffsets = { -9, -3, 3, 9 };
-			for (int bi = 0; bi < 4; bi++)
-			{
-				int bx = bcx + barXOffsets[bi];
-				int bh = Math.Clamp(barHeights[bi], 3, 12);
-				Rectangle barRect = new Rectangle(bx, barBaseY - bh, 3, bh);
-				Color barCol = btnHover ? Color.White : Color.Lerp(btnTheme, Color.White, bi * 0.15f);
-				spriteBatch.Draw(TextureAssets.MagicPixel.Value, barRect, barCol);
-			}
-
-			// Label underneath: "DPS"
-			string label = "DPS";
-			Vector2 lSz = ChatManager.GetStringSize(font, label, new Vector2(0.52f));
-			Vector2 lPos = new Vector2(bcx - lSz.X * 0.5f, analyticsBtn.Y + 18f);
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, label, lPos, btnHover ? Color.White : btnTheme, 0f, Vector2.Zero, new Vector2(0.52f));
-
-			if (btnHover)
-			{
-				Main.instance.MouseText("Combat Analytics [L]\nClick to view live DPS and damage breakdown\nAlt + Drag to move pinned widgets");
-			}
-
+			DrawDock(spriteBatch, font, startY, mouse, anyProtocols);
 			if (ap.SupportAugmentCount >= 1)
 			{
 				string id = SupportStanceId;
@@ -318,6 +301,109 @@ namespace Augments
 			}
 		}
 
+		// ---- Command dock (NieR style): the Combat and Diagnostics buttons, small and icon-only, in the same column as the protocol icons ----
+
+		private const int DockButtonW = (int)IconWidth; // same width as the protocol icons below, so everything lines up
+		private const int DockButtonH = 26;
+		private const int DockGap = 4;
+		private const int DockToProtocols = 10;
+
+		// Where the Diagnostics button is this frame (empty when the Diagnostics panel is switched off in the settings).
+		internal static Rectangle DiagButton;
+
+		private static void GetDock(float startY, bool diagOn, out Rectangle combat, out Rectangle diag)
+		{
+			int x = (int)(Main.screenWidth - IconWidth - RightMargin);
+			int height = diagOn ? DockButtonH * 2 + DockGap : DockButtonH;
+			int y = (int)startY - DockToProtocols - height;
+			combat = new Rectangle(x, y, DockButtonW, DockButtonH);
+			diag = diagOn ? new Rectangle(x, y + DockButtonH + DockGap, DockButtonW, DockButtonH) : Rectangle.Empty;
+		}
+
+		private static void DrawDock(SpriteBatch sb, DynamicSpriteFont font, float startY, Point mouse, bool anyProtocols)
+		{
+			bool diagOn = AugmentConfig.Instance == null || AugmentConfig.Instance.EnableHiddenStatsPanel;
+			GetDock(startY, diagOn, out Rectangle combat, out Rectangle diag);
+
+			// Combat Analytics
+			bool hover = combat.Contains(mouse);
+			bool open = ModContent.GetInstance<AugmentUISystem>()?.IsAnalyticsOpen == true;
+			float dps = AugmentDamageTracker.GetCurrentDPS();
+			bool inCombat = dps > 0f || AugmentDamageTracker.SessionDuration > 0f;
+			Color theme = open || inCombat ? PanelChrome.Accent : PanelChrome.Tone(new Color(130, 160, 200));
+			DrawDockFrame(sb, combat, theme, hover, open);
+
+			// Four animated bars (a waveform) that move faster while there is combat data, centred in the button.
+			int cx = combat.X + combat.Width / 2;
+			int baseY = combat.Y + combat.Height / 2 + 6;
+			float phase = globalTimer * (inCombat ? 8f : 2.5f);
+			int[] heights =
+			{
+				3 + (int)(Math.Sin(phase) * 1.5f + 1.5f),
+				5 + (int)(Math.Sin(phase + 1.2f) * 2.5f + 2.5f),
+				6 + (int)(Math.Sin(phase + 2.4f) * 3f + 3f),
+				4 + (int)(Math.Sin(phase + 3.6f) * 2f + 2f)
+			};
+			int[] offsets = { -7, -3, 1, 5 };
+			for (int i = 0; i < 4; i++)
+			{
+				int bh = Math.Clamp(heights[i], 3, 12);
+				Color col = hover ? Color.White : Color.Lerp(theme, Color.White, i * 0.15f);
+				sb.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx + offsets[i], baseY - bh, 3, bh), col);
+			}
+
+			if (hover)
+				Main.instance.MouseText("Combat Analytics [L]\nClick to view live DPS and damage breakdown\nAlt + Drag to move pinned widgets");
+
+			DrawDiagButton(sb);
+			if (diag != Rectangle.Empty && diag.Contains(mouse))
+				Main.instance.MouseText("Diagnostics\nLuck, fishing and other hidden stats");
+		}
+
+		// The Diagnostics button. The Diagnostics drawer calls this too, after it has drawn, so the button stays visible on top of it.
+		internal static void DrawDiagButton(SpriteBatch sb)
+		{
+			Rectangle r = DiagButton;
+			if (r == Rectangle.Empty || Main.dedServ || Main.gameMenu)
+				return;
+
+			bool hover = r.Contains(new Point(Main.mouseX, Main.mouseY));
+			bool open = AugmentHiddenStatsDrawer.IsOpen;
+			Color theme = open ? PanelChrome.Accent : PanelChrome.Tone(new Color(130, 160, 200));
+			DrawDockFrame(sb, r, theme, hover, open);
+
+			// A pulse line (heartbeat trace), centred in the button.
+			Color col = hover ? Color.White : theme;
+			int[] trace = { 0, 0, 0, 0, -1, -5, 4, -3, 1, 0, 0, 0, 0, 0, 0 };
+			int cx = r.X + r.Width / 2;
+			int cy = r.Y + r.Height / 2;
+			int x0 = cx - trace.Length / 2;
+			for (int i = 0; i < trace.Length; i++)
+			{
+				int y = cy + trace[i];
+				int prev = cy + (i > 0 ? trace[i - 1] : 0);
+				sb.Draw(TextureAssets.MagicPixel.Value, new Rectangle(x0 + i, Math.Min(y, prev), 1, Math.Abs(y - prev) + 1), col);
+			}
+		}
+
+		// Dark plate with the frame corners; an open or hovered button is lit, an open one also gets a bar along its bottom edge.
+		private static void DrawDockFrame(SpriteBatch sb, Rectangle r, Color theme, bool hover, bool open)
+		{
+			Texture2D px = TextureAssets.MagicPixel.Value;
+			sb.Draw(px, r, PanelChrome.PanelBackground * 0.96f);
+			if (open)
+				sb.Draw(px, r, theme * 0.16f);
+			else if (hover)
+				sb.Draw(px, r, theme * 0.12f);
+
+			// fine scan lines, like the panels
+			for (int y = r.Y + 2; y < r.Bottom - 2; y += 4)
+				sb.Draw(px, new Rectangle(r.X + 2, y, r.Width - 4, 1), theme * 0.05f);
+
+			DrawHighTechBorder(sb, r, hover || open ? Color.Lerp(theme, Color.White, 0.25f) : theme * 0.7f);
+			if (open)
+				sb.Draw(px, new Rectangle(r.X + 3, r.Bottom - 4, r.Width - 6, 2), theme);
+		}
 		private static void DrawDockedIcon(SpriteBatch spriteBatch, DynamicSpriteFont font, AugmentFamily fam, int ownedCount, bool isActive, Rectangle rect)
 		{
 			float pulse = (float)Math.Sin(globalTimer * 3.5f) * 0.5f + 0.5f;
@@ -332,7 +418,7 @@ namespace Augments
 			}
 
 			// Background
-			Color bg = new Color(8, 14, 28) * 0.95f;
+			Color bg = PanelChrome.Tone(new Color(8, 14, 28)) * 0.95f;
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, rect, bg);
 
 			bool hasUnlockedThreshold = false;
@@ -363,14 +449,14 @@ namespace Augments
 
 			// Lower Section: Clean integrated count bar
 			Rectangle countArea = new Rectangle(rect.X + 2, rect.Y + 27, rect.Width - 4, rect.Height - 29);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, countArea, new Color(4, 7, 14) * 0.85f);
+			spriteBatch.Draw(TextureAssets.MagicPixel.Value, countArea, PanelChrome.Tone(new Color(4, 7, 14)) * 0.85f);
 
 			string countText = $"{ownedCount}/{fam.MaxMembers}";
 			Vector2 numScale = new Vector2(0.55f);
 			Vector2 numSize = ChatManager.GetStringSize(font, countText, numScale);
 			float numX = cx - numSize.X * 0.5f;
 			float numY = countArea.Y + (countArea.Height - numSize.Y) * 0.5f + 8f;
-			Color countColor = (isActive || hasUnlockedThreshold) ? AugmentTextColors.Healing : new Color(175, 195, 220);
+			Color countColor = (isActive || hasUnlockedThreshold) ? AugmentTextColors.Healing : PanelChrome.Tone(new Color(175, 195, 220));
 			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, countText, new Vector2(numX, numY), countColor, 0f, Vector2.Zero, numScale);
 		}
 
@@ -384,7 +470,7 @@ namespace Augments
 			if (fam.Id == AugmentFamilyRegistry.KineticId)
 			{
 				// Forward Momentum Chevron / Battering Ram
-				Color ramOutline = new Color(4, 8, 14) * 0.90f;
+				Color ramOutline = PanelChrome.Tone(new Color(4, 8, 14)) * 0.90f;
 
 				// Left Chevron Outline
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 7, cy - 7, 3, 14), ramOutline);
@@ -420,7 +506,7 @@ namespace Augments
 			if (fam.Id == AugmentFamilyRegistry.FortuneId || fam.Type == FamilyType.Utility)
 			{
 				// Lucky 5-Pip Golden Die
-				Color dieOutline = new Color(4, 8, 14) * 0.90f;
+				Color dieOutline = PanelChrome.Tone(new Color(4, 8, 14)) * 0.90f;
 
 				// Outline
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 6, cy - 8, 12, 16), dieOutline);
@@ -434,7 +520,7 @@ namespace Augments
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 5, cy - 5, 10, 10), Color.Lerp(iconCol, new Color(40, 20, 0), 0.25f));
 
 				// Dice Pips: classic 5-dot face pattern
-				Color pipColor = new Color(15, 20, 32);
+				Color pipColor = PanelChrome.Tone(new Color(15, 20, 32));
 				Color pipHighlight = isActive ? Color.White * 0.95f : new Color(255, 240, 180);
 
 				// 4 Corner pips (2x2 each)
@@ -451,7 +537,7 @@ namespace Augments
 			if (fam.Id == AugmentFamilyRegistry.CryoId)
 			{
 				// Procedural Pixel-Art Frost Crystal / Snowflake
-				Color iceOutline = new Color(4, 8, 14) * 0.90f;
+				Color iceOutline = PanelChrome.Tone(new Color(4, 8, 14)) * 0.90f;
 
 				// Dark Contrast Outlines
 				// Vertical & Horizontal Cross
@@ -498,7 +584,7 @@ namespace Augments
 			if (fam.Id == AugmentFamilyRegistry.VoltId)
 			{
 				// Procedural Pixel-Art Double Lightning Bolt / High-Voltage Spark
-				Color voltOutline = new Color(4, 8, 14) * 0.90f;
+				Color voltOutline = PanelChrome.Tone(new Color(4, 8, 14)) * 0.90f;
 
 				// Dark Contrast Outlines
 				// Primary Bolt (Left/Main)
@@ -549,7 +635,7 @@ namespace Augments
 			if (fam.Id == AugmentFamilyRegistry.HivemindId)
 			{
 				// Procedural Pixel-Art Micro-Drone / Nanite Cell Cluster
-				Color droneOutline = new Color(4, 8, 14) * 0.90f;
+				Color droneOutline = PanelChrome.Tone(new Color(4, 8, 14)) * 0.90f;
 
 				// Dark Contrast Outlines
 				// Center Nanite Core Chassis (Hexagonal)
@@ -580,7 +666,7 @@ namespace Augments
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx + 6, cy - 1, 2, 3), iconCol);
 
 				// Bus Struts
-				Color strutCol = Color.Lerp(iconCol, new Color(4, 8, 14), 0.35f);
+				Color strutCol = Color.Lerp(iconCol, PanelChrome.Tone(new Color(4, 8, 14)), 0.35f);
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx, cy - 5, 1, 2), strutCol);
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx, cy + 4, 1, 2), strutCol);
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 5, cy, 2, 1), strutCol);
@@ -617,7 +703,7 @@ namespace Augments
 			if (fam.Id == AugmentFamilyRegistry.MarksmanId)
 			{
 				// Procedural Pixel-Art Sniper Crosshairs / Reticle Targeting Matrix
-				Color scopeOutline = new Color(4, 8, 14) * 0.90f;
+				Color scopeOutline = PanelChrome.Tone(new Color(4, 8, 14)) * 0.90f;
 
 				// Dark Contrast Outlines
 				// Outer Ring Housing
@@ -686,7 +772,7 @@ namespace Augments
 			if (fam.Id == AugmentFamilyRegistry.ArcaneSurgeId)
 			{
 				// Procedural Pixel-Art Arcane Singularity / Pulsating Mana Core
-				Color coreOutline = new Color(4, 8, 14) * 0.90f;
+				Color coreOutline = PanelChrome.Tone(new Color(4, 8, 14)) * 0.90f;
 
 				// Dark Contrast Outlines
 				// Outer Rhombus & Satellite Mote Outlines
@@ -745,7 +831,7 @@ namespace Augments
 			if (fam.Id == AugmentFamilyRegistry.BastionId)
 			{
 				// Procedural Pixel-Art Heavy Kinetic Aegis / Fortified Barrier Matrix
-				Color aegisOutline = new Color(4, 8, 14) * 0.90f;
+				Color aegisOutline = PanelChrome.Tone(new Color(4, 8, 14)) * 0.90f;
 
 				// Dark Contrast Outlines
 				// Top Crown / Crest Rim
@@ -769,7 +855,7 @@ namespace Augments
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 1, cy + 8, 2, 1), iconCol);
 
 				// Inner Kinetic Reinforcement Inset (Darker Bevel)
-				Color innerBevel = Color.Lerp(iconCol, new Color(4, 8, 14), 0.40f);
+				Color innerBevel = Color.Lerp(iconCol, PanelChrome.Tone(new Color(4, 8, 14)), 0.40f);
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 5, cy - 4, 10, 2), innerBevel);
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 4, cy - 2, 8, 3), innerBevel);
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 2, cy + 1, 4, 3), innerBevel);
@@ -798,8 +884,8 @@ namespace Augments
 			if (fam.Id == AugmentFamilyRegistry.GunslingerId)
 			{
 				// Procedural Pixel-Art 6-Chamber Revolver Cylinder / Gatling Rotary Cluster
-				Color cylOutline = new Color(4, 8, 14) * 0.90f;
-				Color boreColor = new Color(4, 7, 14);
+				Color cylOutline = PanelChrome.Tone(new Color(4, 8, 14)) * 0.90f;
+				Color boreColor = PanelChrome.Tone(new Color(4, 7, 14));
 
 				// Dark Contrast Cylinder Outlines
 				// Top and bottom flats
@@ -854,7 +940,7 @@ namespace Augments
 			if (fam.Id == AugmentFamilyRegistry.LasherId)
 			{
 				// Procedural Pixel-Art Coiled Barbed Bullwhip / Resonant Kinetic Lash
-				Color whipOutline = new Color(4, 8, 14) * 0.90f;
+				Color whipOutline = PanelChrome.Tone(new Color(4, 8, 14)) * 0.90f;
 
 				// Dark Contrast Outlines
 				// Handle & Pommel
@@ -923,7 +1009,7 @@ namespace Augments
 			{
 				case FamilyType.Offense:
 					// Signature Offense Broadsword (Upright blade, crossguard, hilt, pommel)
-					Color swordOutline = new Color(4, 8, 14) * 0.90f;
+					Color swordOutline = PanelChrome.Tone(new Color(4, 8, 14)) * 0.90f;
 					// Outlines
 					spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 2, cy - 10, 4, 3), swordOutline);
 					spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 3, cy - 8, 6, 10), swordOutline);
@@ -950,7 +1036,7 @@ namespace Augments
 				default:
 					// Signature Support Plus Sign / Cross (18x18 total, 6px thick)
 					// 1px dark contrast outline
-					Color outline = new Color(4, 8, 14) * 0.90f;
+					Color outline = PanelChrome.Tone(new Color(4, 8, 14)) * 0.90f;
 					spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 10, cy - 4, 20, 8), outline);
 					spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(cx - 4, cy - 10, 8, 20), outline);
 
@@ -1072,7 +1158,7 @@ namespace Augments
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(panelRect.X - 2, panelRect.Y - 2, panelRect.Width + 4, panelRect.Height + 4), new Color(0, 0, 0, (int)(160 * progress)));
 
 			// Cybernetic chassis background with subtle ambient underglow - fully opaque fill so underlying panels don't bleed through
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, panelRect, new Color(10, 16, 28) * progress);
+			spriteBatch.Draw(TextureAssets.MagicPixel.Value, panelRect, PanelChrome.Tone(new Color(10, 16, 28)) * progress);
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, panelRect, fam.ThemeColor * (0.04f * progress));
 
 			// High-tech panel border
@@ -1085,14 +1171,14 @@ namespace Augments
 			// 1. Title (Centered)
 			Vector2 titleSz = ChatManager.GetStringSize(font, titleText, titleScale);
 			Vector2 titlePos = new Vector2(panelRect.X + (panelRect.Width - titleSz.X) * 0.5f, drawY);
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, titleText, titlePos, fam.ThemeColor * progress, 0f, Vector2.Zero, titleScale);
+			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, titleText, titlePos, RarityLook.Pale(fam.ThemeColor, 0.30f) * progress, 0f, Vector2.Zero, titleScale);
 			drawY += titleSz.Y + 2f;
 
 			// 2. Status Subtitle (Centered, clean inline typography)
 			Vector2 statusSz = ChatManager.GetStringSize(font, statusText, statusScale);
 			Vector2 statusPos = new Vector2(panelRect.X + (panelRect.Width - statusSz.X) * 0.5f, drawY);
-			Color statusCol = isActive ? AugmentTextColors.Healing : new Color(148, 163, 184);
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, statusText, statusPos, statusCol * progress, 0f, Vector2.Zero, statusScale);
+			Color statusCol = isActive ? AugmentTextColors.Healing : PanelChrome.Tone(new Color(148, 163, 184));
+			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, statusText, statusPos, RarityLook.Pale(statusCol, 0.30f) * progress, 0f, Vector2.Zero, statusScale);
 			drawY += statusSz.Y + 6f;
 
 			if (fortuneStatLine != null)
@@ -1109,7 +1195,7 @@ namespace Augments
 
 			// 4. Set Bonuses Section
 			string bonusSectionHeader = "PROTOCOL SPECIFICATIONS";
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, bonusSectionHeader, new Vector2(leftX, drawY), new Color(250, 204, 21) * progress, 0f, Vector2.Zero, sectionScale);
+			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, bonusSectionHeader, new Vector2(leftX, drawY), MenuLook.Current.Amber * progress, 0f, Vector2.Zero, sectionScale);
 			drawY += ChatManager.GetStringSize(font, bonusSectionHeader, sectionScale).Y + 6f;
 
 			foreach (var kv in fam.ThresholdBonuses)
@@ -1119,34 +1205,34 @@ namespace Augments
 				bool unlocked = ownedCount >= thresh;
 
 				string sym = unlocked ? "✓" : "•";
-				Color symCol = unlocked ? AugmentTextColors.Healing : new Color(100, 116, 139);
+				Color symCol = unlocked ? AugmentTextColors.Healing : PanelChrome.Tone(new Color(100, 116, 139));
 				string threshStr = $" ({thresh}) ";
-				Color threshCol = unlocked ? new Color(56, 189, 248) : new Color(100, 116, 139);
+				Color threshCol = unlocked ? PanelChrome.Tone(new Color(56, 189, 248)) : PanelChrome.Tone(new Color(100, 116, 139));
 				string title = bonus.Title;
-				Color titleCol = unlocked ? Color.White : new Color(148, 163, 184);
+				Color titleCol = unlocked ? Color.White : PanelChrome.Tone(new Color(148, 163, 184));
 				string tag = unlocked ? "Active" : "Locked";
-				Color tagCol = unlocked ? AugmentTextColors.Healing : new Color(100, 116, 139);
+				Color tagCol = unlocked ? AugmentTextColors.Healing : PanelChrome.Tone(new Color(100, 116, 139));
 
 				float curX = leftX;
 
 				// Symbol (✓ or •)
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, sym, new Vector2(curX, drawY), symCol * progress, 0f, Vector2.Zero, itemScale);
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, sym, new Vector2(curX, drawY), RarityLook.Pale(symCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
 				curX += ChatManager.GetStringSize(font, sym, itemScale).X;
 
 				// Threshold (e.g. " (2) ")
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, threshStr, new Vector2(curX, drawY), threshCol * progress, 0f, Vector2.Zero, itemScale);
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, threshStr, new Vector2(curX, drawY), RarityLook.Pale(threshCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
 				curX += ChatManager.GetStringSize(font, threshStr, itemScale).X;
 
 				// Title
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, title, new Vector2(curX, drawY), titleCol * progress, 0f, Vector2.Zero, itemScale);
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, title, new Vector2(curX, drawY), RarityLook.Pale(titleCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
 				curX += ChatManager.GetStringSize(font, title, itemScale).X;
 
 				// Separator
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "  •  ", new Vector2(curX, drawY), new Color(71, 85, 105) * progress, 0f, Vector2.Zero, itemScale);
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "  •  ", new Vector2(curX, drawY), PanelChrome.Tone(new Color(71, 85, 105)) * progress, 0f, Vector2.Zero, itemScale);
 				curX += ChatManager.GetStringSize(font, "  •  ", itemScale).X;
 
 				// Status Tag (Active or Locked)
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, tag, new Vector2(curX, drawY), tagCol * progress, 0f, Vector2.Zero, itemScale);
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, tag, new Vector2(curX, drawY), RarityLook.Pale(tagCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
 
 				drawY += ChatManager.GetStringSize(font, title, itemScale).Y + lineSpacing;
 
@@ -1155,8 +1241,8 @@ namespace Augments
 				foreach (var desc in bonus.Descriptions)
 				{
 					string perkLine = $"• {desc.Trim()}";
-					Color perkCol = unlocked ? new Color(210, 238, 225) : new Color(125, 138, 158);
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, perkLine, new Vector2(perkIndent, drawY), perkCol * progress, 0f, Vector2.Zero, perkScale);
+					Color perkCol = unlocked ? new Color(210, 238, 225) : PanelChrome.Tone(new Color(125, 138, 158));
+					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, RarityLook.PaleTags(perkLine, 0.30f), new Vector2(perkIndent, drawY), RarityLook.Pale(perkCol, 0.30f) * progress, 0f, Vector2.Zero, perkScale);
 					drawY += ChatManager.GetStringSize(font, perkLine, perkScale).Y + lineSpacing;
 				}
 
@@ -1170,7 +1256,7 @@ namespace Augments
 
 			// 5. Synergy Members Section
 			string membersSectionHeader = "ASSIGNED PLUGINS";
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, membersSectionHeader, new Vector2(leftX, drawY), new Color(250, 204, 21) * progress, 0f, Vector2.Zero, sectionScale);
+			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, membersSectionHeader, new Vector2(leftX, drawY), MenuLook.Current.Amber * progress, 0f, Vector2.Zero, sectionScale);
 			drawY += ChatManager.GetStringSize(font, membersSectionHeader, sectionScale).Y + 6f;
 
 			foreach (var memberId in fam.MemberIds)
@@ -1180,21 +1266,21 @@ namespace Augments
 				bool owned = ap.HasAugment(memberId);
 
 				string mSymbol = owned ? "✓" : "•";
-				Color mSymbolCol = owned ? AugmentTextColors.Healing : new Color(100, 116, 139);
-				Color mNameCol = owned ? Color.White : new Color(148, 163, 184);
+				Color mSymbolCol = owned ? AugmentTextColors.Healing : PanelChrome.Tone(new Color(100, 116, 139));
+				Color mNameCol = owned ? Color.White : PanelChrome.Tone(new Color(148, 163, 184));
 
 				// Draw symbol
 				Vector2 symSz = ChatManager.GetStringSize(font, mSymbol, itemScale);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mSymbol, new Vector2(leftX, drawY), mSymbolCol * progress, 0f, Vector2.Zero, itemScale);
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mSymbol, new Vector2(leftX, drawY), RarityLook.Pale(mSymbolCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
 
 				// Draw name
 				Vector2 nameSz = ChatManager.GetStringSize(font, mName, itemScale);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mName, new Vector2(leftX + 16f, drawY), mNameCol * progress, 0f, Vector2.Zero, itemScale);
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mName, new Vector2(leftX + 16f, drawY), RarityLook.Pale(mNameCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
 
 				// Draw status
 				string mStatus = owned ? "  •  INSTALLED" : "  •  NOT INSTALLED";
-				Color mStatusCol = owned ? AugmentTextColors.Healing * progress : new Color(100, 116, 139) * progress;
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mStatus, new Vector2(leftX + 16f + nameSz.X, drawY), mStatusCol, 0f, Vector2.Zero, itemScale);
+				Color mStatusCol = owned ? AugmentTextColors.Healing * progress : PanelChrome.Tone(new Color(100, 116, 139)) * progress;
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mStatus, new Vector2(leftX + 16f + nameSz.X, drawY), RarityLook.Pale(mStatusCol, 0.30f), 0f, Vector2.Zero, itemScale);
 
 				drawY += symSz.Y + lineSpacing;
 			}
@@ -1217,13 +1303,13 @@ namespace Augments
 			}
 
 			// Background
-			Color bg = new Color(8, 14, 28) * 0.95f;
+			Color bg = PanelChrome.Tone(new Color(8, 14, 28)) * 0.95f;
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, rect, bg);
 
 			// Border
 			Color borderColor = isActive
 				? Color.Lerp(themeCol, Color.White, pulse * 0.35f)
-				: Color.Lerp(themeCol, new Color(90, 110, 130), 0.55f);
+				: Color.Lerp(themeCol, PanelChrome.Tone(new Color(90, 110, 130)), 0.55f);
 			DrawHighTechBorder(spriteBatch, rect, borderColor);
 
 			int cx = rect.X + rect.Width / 2;
@@ -1236,14 +1322,14 @@ namespace Augments
 
 			// Lower Section: Clean integrated count bar
 			Rectangle countArea = new Rectangle(rect.X + 2, rect.Y + 27, rect.Width - 4, rect.Height - 29);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, countArea, new Color(4, 7, 14) * 0.85f);
+			spriteBatch.Draw(TextureAssets.MagicPixel.Value, countArea, PanelChrome.Tone(new Color(4, 7, 14)) * 0.85f);
 
 			string countText = isActive ? (count >= 5 ? "5/5" : $"{count}/5") : $"{count}/2";
 			Vector2 numScale = new Vector2(0.55f);
 			Vector2 numSize = ChatManager.GetStringSize(font, countText, numScale);
 			float numX = cx - numSize.X * 0.5f;
 			float numY = countArea.Y + (countArea.Height - numSize.Y) * 0.5f + 8f;
-			Color countColor = isActive ? AugmentTextColors.Healing : new Color(175, 195, 220);
+			Color countColor = isActive ? AugmentTextColors.Healing : PanelChrome.Tone(new Color(175, 195, 220));
 			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, countText, new Vector2(numX, numY), countColor, 0f, Vector2.Zero, numScale);
 		}
 
@@ -1281,7 +1367,7 @@ namespace Augments
 
 			// Active: Radiant emerald aegis with bright white cross
 			supportShieldActive = CreateSupportShieldTexture(
-				new Color(6, 16, 22, 255),      // Dark crisp outline
+				PanelChrome.Tone(new Color(6, 16, 22, 255)),      // Dark crisp outline
 				new Color(185, 255, 220, 255),  // Mint rim bevel
 				new Color(52, 211, 115, 255),   // Vibrant emerald plate fill
 				new Color(28, 140, 72, 255),    // Right shade
@@ -1291,7 +1377,7 @@ namespace Augments
 
 			// Inactive: Subdued sage/slate aegis with soft white cross
 			supportShieldInactive = CreateSupportShieldTexture(
-				new Color(6, 14, 18, 240),      // Dark outline
+				PanelChrome.Tone(new Color(6, 14, 18, 240)),      // Dark outline
 				new Color(135, 195, 165, 255),  // Muted rim
 				new Color(50, 145, 95, 255),    // Muted green plate fill
 				new Color(26, 90, 58, 255),     // Right shade
@@ -1486,7 +1572,7 @@ namespace Augments
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(panelRect.X - 2, panelRect.Y - 2, panelRect.Width + 4, panelRect.Height + 4), new Color(0, 0, 0, (int)(160 * progress)));
 
 			// Cybernetic chassis background
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, panelRect, new Color(10, 16, 28) * progress);
+			spriteBatch.Draw(TextureAssets.MagicPixel.Value, panelRect, PanelChrome.Tone(new Color(10, 16, 28)) * progress);
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, panelRect, themeCol * (0.04f * progress));
 
 			// High-tech panel border
@@ -1499,20 +1585,20 @@ namespace Augments
 			// 1. Title (Centered)
 			Vector2 titleSz = ChatManager.GetStringSize(font, titleText, titleScale);
 			Vector2 titlePos = new Vector2(panelRect.X + (panelRect.Width - titleSz.X) * 0.5f, drawY);
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, titleText, titlePos, themeCol * progress, 0f, Vector2.Zero, titleScale);
+			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, titleText, titlePos, RarityLook.Pale(themeCol, 0.30f) * progress, 0f, Vector2.Zero, titleScale);
 			drawY += titleSz.Y + 2f;
 
 			// 2. Status Subtitle (Centered)
 			Vector2 statusSz = ChatManager.GetStringSize(font, statusText, statusScale);
 			Vector2 statusPos = new Vector2(panelRect.X + (panelRect.Width - statusSz.X) * 0.5f, drawY);
-			Color statusCol = isActive ? AugmentTextColors.Healing : new Color(148, 163, 184);
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, statusText, statusPos, statusCol * progress, 0f, Vector2.Zero, statusScale);
+			Color statusCol = isActive ? AugmentTextColors.Healing : PanelChrome.Tone(new Color(148, 163, 184));
+			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, statusText, statusPos, RarityLook.Pale(statusCol, 0.30f) * progress, 0f, Vector2.Zero, statusScale);
 			drawY += statusSz.Y + 2f;
 
 			// 3. Description Note (Centered)
 			Vector2 descSz = ChatManager.GetStringSize(font, descText, statusScale);
 			Vector2 descPos = new Vector2(panelRect.X + (panelRect.Width - descSz.X) * 0.5f, drawY);
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, descText, descPos, new Color(175, 190, 215) * progress, 0f, Vector2.Zero, statusScale);
+			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, descText, descPos, PanelChrome.Tone(new Color(175, 190, 215)) * progress, 0f, Vector2.Zero, statusScale);
 			drawY += descSz.Y + 6f;
 
 			// Divider 1
@@ -1520,7 +1606,7 @@ namespace Augments
 			drawY += 8f;
 
 			// 4. Threshold Matrix Section
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, bSectionHeader, new Vector2(leftX, drawY), new Color(250, 204, 21) * progress, 0f, Vector2.Zero, sectionScale);
+			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, bSectionHeader, new Vector2(leftX, drawY), MenuLook.Current.Amber * progress, 0f, Vector2.Zero, sectionScale);
 			drawY += ChatManager.GetStringSize(font, bSectionHeader, sectionScale).Y + 6f;
 
 			foreach (var (req, label, def, dmg, note) in thresholds)
@@ -1529,42 +1615,42 @@ namespace Augments
 				bool isCurrent = (req == 5 && activeTier >= 5) || (req == activeTier);
 
 				string sym = unlocked ? "✓" : "•";
-				Color symCol = unlocked ? AugmentTextColors.Healing : new Color(100, 116, 139);
+				Color symCol = unlocked ? AugmentTextColors.Healing : PanelChrome.Tone(new Color(100, 116, 139));
 				string threshStr = $" ({req}) ";
-				Color threshCol = unlocked ? new Color(56, 189, 248) : new Color(100, 116, 139);
+				Color threshCol = unlocked ? PanelChrome.Tone(new Color(56, 189, 248)) : PanelChrome.Tone(new Color(100, 116, 139));
 				string title = note;
-				Color titleCol = unlocked ? Color.White : new Color(148, 163, 184);
+				Color titleCol = unlocked ? Color.White : PanelChrome.Tone(new Color(148, 163, 184));
 				string tag = isCurrent ? "Active [CURRENT]" : (unlocked ? "Active" : "Locked");
-				Color tagCol = isCurrent ? new Color(251, 191, 36) : (unlocked ? AugmentTextColors.Healing : new Color(100, 116, 139));
+				Color tagCol = isCurrent ? MenuLook.Current.Amber : (unlocked ? AugmentTextColors.Healing : PanelChrome.Tone(new Color(100, 116, 139)));
 
 				float curX = leftX;
 
 				// Symbol
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, sym, new Vector2(curX, drawY), symCol * progress, 0f, Vector2.Zero, itemScale);
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, sym, new Vector2(curX, drawY), RarityLook.Pale(symCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
 				curX += ChatManager.GetStringSize(font, sym, itemScale).X;
 
 				// Threshold
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, threshStr, new Vector2(curX, drawY), threshCol * progress, 0f, Vector2.Zero, itemScale);
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, threshStr, new Vector2(curX, drawY), RarityLook.Pale(threshCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
 				curX += ChatManager.GetStringSize(font, threshStr, itemScale).X;
 
 				// Title
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, title, new Vector2(curX, drawY), titleCol * progress, 0f, Vector2.Zero, itemScale);
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, title, new Vector2(curX, drawY), RarityLook.Pale(titleCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
 				curX += ChatManager.GetStringSize(font, title, itemScale).X;
 
 				// Separator
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "  •  ", new Vector2(curX, drawY), new Color(71, 85, 105) * progress, 0f, Vector2.Zero, itemScale);
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "  •  ", new Vector2(curX, drawY), PanelChrome.Tone(new Color(71, 85, 105)) * progress, 0f, Vector2.Zero, itemScale);
 				curX += ChatManager.GetStringSize(font, "  •  ", itemScale).X;
 
 				// Status Tag
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, tag, new Vector2(curX, drawY), tagCol * progress, 0f, Vector2.Zero, itemScale);
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, tag, new Vector2(curX, drawY), RarityLook.Pale(tagCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
 
 				drawY += ChatManager.GetStringSize(font, title, itemScale).Y + lineSpacing;
 
 				// Indented perk line
 				float perkIndent = leftX + 16f;
 				string perkLine = $"• +{def} Defense, {dmg}% Damage Output";
-				Color perkCol = unlocked ? new Color(210, 238, 225) : new Color(125, 138, 158);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, perkLine, new Vector2(perkIndent, drawY), perkCol * progress, 0f, Vector2.Zero, perkScale);
+				Color perkCol = unlocked ? new Color(210, 238, 225) : PanelChrome.Tone(new Color(125, 138, 158));
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, RarityLook.PaleTags(perkLine, 0.30f), new Vector2(perkIndent, drawY), RarityLook.Pale(perkCol, 0.30f) * progress, 0f, Vector2.Zero, perkScale);
 				drawY += ChatManager.GetStringSize(font, perkLine, perkScale).Y + lineSpacing;
 
 				drawY += 4f;
@@ -1576,13 +1662,13 @@ namespace Augments
 			drawY += 8f;
 
 			// 5. Assigned Support Plugins Section
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mSectionHeader, new Vector2(leftX, drawY), new Color(250, 204, 21) * progress, 0f, Vector2.Zero, sectionScale);
+			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mSectionHeader, new Vector2(leftX, drawY), MenuLook.Current.Amber * progress, 0f, Vector2.Zero, sectionScale);
 			drawY += ChatManager.GetStringSize(font, mSectionHeader, sectionScale).Y + 6f;
 
 			if (supportAugs.Count == 0)
 			{
 				string emptyLine = "• No Support Plugins Installed";
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, emptyLine, new Vector2(leftX, drawY), new Color(148, 163, 184) * progress, 0f, Vector2.Zero, itemScale);
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, emptyLine, new Vector2(leftX, drawY), PanelChrome.Tone(new Color(148, 163, 184)) * progress, 0f, Vector2.Zero, itemScale);
 				drawY += ChatManager.GetStringSize(font, emptyLine, itemScale).Y + lineSpacing;
 			}
 			else
@@ -1597,19 +1683,19 @@ namespace Augments
 					Vector2 symSz = ChatManager.GetStringSize(font, mSymbol, itemScale);
 					Vector2 nameSz = ChatManager.GetStringSize(font, mName, itemScale);
 
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mSymbol, new Vector2(leftX, drawY), mSymbolCol * progress, 0f, Vector2.Zero, itemScale);
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mName, new Vector2(leftX + 16f, drawY), mNameCol * progress, 0f, Vector2.Zero, itemScale);
+					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mSymbol, new Vector2(leftX, drawY), RarityLook.Pale(mSymbolCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
+					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mName, new Vector2(leftX + 16f, drawY), RarityLook.Pale(mNameCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
 
 					string mStatus = "  •  INSTALLED";
 					Color mStatusCol = AugmentTextColors.Healing;
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mStatus, new Vector2(leftX + 16f + nameSz.X, drawY), mStatusCol * progress, 0f, Vector2.Zero, itemScale);
+					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mStatus, new Vector2(leftX + 16f + nameSz.X, drawY), RarityLook.Pale(mStatusCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
 
 					drawY += symSz.Y + lineSpacing;
 				}
 			}
 
 			drawY += 4f;
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, footerNote, new Vector2(leftX, drawY), new Color(148, 163, 184) * progress, 0f, Vector2.Zero, perkScale);
+			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, footerNote, new Vector2(leftX, drawY), PanelChrome.Tone(new Color(148, 163, 184)) * progress, 0f, Vector2.Zero, perkScale);
 		}
 
 		private static void DrawDivider(SpriteBatch spriteBatch, Rectangle panelRect, float y, Color themeCol, float progress)
@@ -1636,25 +1722,8 @@ namespace Augments
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X + 1, rect.Y + 1, 1, rect.Height - 2), innerHairline);
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.Right - 2, rect.Y + 1, 1, rect.Height - 2), innerHairline);
 
-			// Corner brackets
-			const int cornerLen = 5;
-			const int cornerThick = 2;
-
-			// Top-left
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X, rect.Y, cornerLen, cornerThick), color);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X, rect.Y, cornerThick, cornerLen), color);
-
-			// Top-right
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.Right - cornerLen, rect.Y, cornerLen, cornerThick), color);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.Right - cornerThick, rect.Y, cornerThick, cornerLen), color);
-
-			// Bottom-left
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X, rect.Bottom - cornerThick, cornerLen, cornerThick), color);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X, rect.Bottom - cornerLen, cornerThick, cornerLen), color);
-
-			// Bottom-right
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.Right - cornerLen, rect.Bottom - cornerThick, cornerLen, cornerThick), color);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.Right - cornerThick, rect.Bottom - cornerLen, cornerThick, cornerLen), color);
+			// Corner brackets, in the frame style chosen on the COSMETICS page
+			PanelChrome.DrawCorners(spriteBatch, rect, color);
 		}
 	}
 }

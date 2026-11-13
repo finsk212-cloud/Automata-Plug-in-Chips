@@ -12,12 +12,12 @@ namespace Augments
         public override string Id => "hex_detonation";
         public override string DisplayName => "Hex Detonation";
         public override string Description =>
-            $"Magic hits stack {AugmentText.Trigger("Hex")} on enemies, up to {AugmentText.Trigger("5 stacks")} for {AugmentText.Duration("6s")}. " +
+            $"Magic hits stack {AugmentText.Trigger("Hex")} on enemies, up to {AugmentText.Trigger("5 stacks")} for {AugmentText.Duration("6 seconds")}. " +
             $"The next magic hit on a fully hexed enemy detonates it, dealing {AugmentText.SpecialDamage("200% of that hit's damage")} to nearby enemies.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +
-            AugmentText.Note("(Each stack refreshes the timer, an enemy gains at most 1 stack per 0.2s, and it cannot be hexed again for 2s after detonating. The blast never applies Hex itself.)");
+            AugmentText.Note("(Each stack refreshes the timer, an enemy gains at most 1 stack per 0.2 seconds, and it cannot be hexed again for 2 seconds after detonating. The blast never applies Hex itself.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Legendary;
         public override AugmentClass Class => AugmentClass.Magic;

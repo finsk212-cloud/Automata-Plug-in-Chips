@@ -234,11 +234,85 @@ namespace Augments
 			}
 		}
 
-		public static void HandleCleanseRequest(int whoAmI)
+		public static void HandleCleanseRequest(int whoAmI, System.IO.BinaryReader reader)
 		{
+			// The owner's own debuffs are removed on their game before this arrives, so the client lists them
+			// here (type + remaining ticks) for the server to throw at nearby enemies.
+			var ownerDebuffs = new System.Collections.Generic.Dictionary<int, int>();
+			int count = Math.Min((int)reader.ReadByte(), 32);
+			for (int i = 0; i < count; i++)
+			{
+				int type = reader.ReadUInt16();
+				int time = reader.ReadInt32();
+				if (type > 0 && type < BuffLoader.BuffCount && IsCleansableDebuff(type) && time > 0)
+					ownerDebuffs[type] = Math.Max(ownerDebuffs.TryGetValue(type, out int old) ? old : 0, Math.Min(time, CleansedDebuffMaxTicks));
+			}
+
 			if (!TryGetRequestOwner(whoAmI, "cleanse", out Player owner))
 				return;
-			owner.GetModPlayer<AugmentPlayer>().TryTriggerCleanseServer();
+			owner.GetModPlayer<AugmentPlayer>().TryTriggerCleanseServer(ownerDebuffs);
+		}
+
+		// Longest a thrown debuff can last on an enemy, and the shortest (so a nearly expired one still does something).
+		public const int CleansedDebuffMaxTicks = 600;
+		private const int CleansedDebuffMinTicks = 180;
+
+		// Adds the cleansable debuffs a player currently has to the pool (longest remaining time per type).
+		public static void CollectCleansableDebuffs(Player target, System.Collections.Generic.Dictionary<int, int> pool)
+		{
+			if (target == null || !target.active)
+				return;
+
+			for (int i = 0; i < target.buffType.Length; i++)
+			{
+				int type = target.buffType[i];
+				int time = target.buffTime[i];
+				if (type <= 0 || time <= 0 || !IsCleansableDebuff(type))
+					continue;
+
+				time = Math.Min(time, CleansedDebuffMaxTicks);
+				pool[type] = Math.Max(pool.TryGetValue(type, out int old) ? old : 0, time);
+			}
+		}
+
+		// Server / singleplayer: puts the cleansed debuffs on every enemy near the Cleanse owner.
+		// Goes through NPC.AddBuff, so an enemy's own immunities are respected, and it works for any mod's
+		// debuffs (Calamity's included) because it only deals in buff types.
+		public static void ThrowDebuffsAtEnemies(Player owner, System.Collections.Generic.Dictionary<int, int> pool)
+		{
+			if (Main.netMode == NetmodeID.MultiplayerClient || pool.Count == 0)
+				return;
+
+			for (int i = 0; i < Main.maxNPCs; i++)
+			{
+				NPC npc = Main.npc[i];
+				if (!npc.active || npc.friendly || npc.townNPC || npc.dontTakeDamage || npc.CountsAsACritter)
+					continue;
+				if (Vector2.DistanceSquared(owner.Center, npc.Center) > AuraRadius * AuraRadius)
+					continue;
+
+				bool changed = false;
+				foreach (var kv in pool)
+				{
+					if (npc.buffImmune[kv.Key])
+						continue;
+
+					npc.AddBuff(kv.Key, Math.Max(kv.Value, CleansedDebuffMinTicks));
+					changed = true;
+				}
+
+				if (changed && Main.netMode == NetmodeID.Server)
+					NetMessage.SendData(MessageID.NPCBuffs, number: npc.whoAmI);
+
+				if (changed && Main.netMode != NetmodeID.Server)
+				{
+					for (int d = 0; d < 8; d++)
+					{
+						Dust dust = Dust.NewDustDirect(npc.position, npc.width, npc.height, DustID.PurificationPowder, 0f, -1f);
+						dust.noGravity = true;
+					}
+				}
+			}
 		}
 
 		public static void HandleChronobreakRequest(int whoAmI)
@@ -523,9 +597,14 @@ namespace Augments
 				return;
 
 			int healAmount = tier == 4 ? 100 : (tier == 3 ? 75 : (tier == 2 ? 50 : 30));
-			int buffDuration = 360; // 6s
+			// The server reads the medic's plugins itself, so a client can't claim Prolonged Surge or Shared Dose.
+			int buffDuration = ProlongedSurgeAugment.GetBuffTicks(sender); // 6s, 12s with Prolonged Surge
 
 			ServerHealPlayer(target, healAmount);
+
+			int sharedDoseHeal = SharedDoseAugment.GetSelfHeal(sender, healAmount);
+			if (sharedDoseHeal > 0 && sender.whoAmI != target.whoAmI)
+				ServerHealPlayer(sender, sharedDoseHeal);
 			if (tier == 4)
 			{
 				target.AddBuff(ModContent.BuffType<OverclockMK4Buff>(), buffDuration);
@@ -542,6 +621,10 @@ namespace Augments
 			{
 				target.AddBuff(ModContent.BuffType<OverclockBuff>(), buffDuration);
 			}
+
+			// Players own their buff list, so push the new buff (and its longer Prolonged Surge
+			// duration) to the target's client and everyone else.
+			NetMessage.SendData(MessageID.PlayerBuffs, -1, -1, null, target.whoAmI);
 		}
 
 		public static void HandleLifelineRequest(int whoAmI)

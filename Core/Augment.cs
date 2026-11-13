@@ -394,6 +394,18 @@ namespace Augments
 		// Fires while a weapon's crit chance is being calculated.
 		public virtual void ModifyWeaponCrit(Player player, Item item, ref float crit) { }
 
+		// Fires before any damage is worked out for an incoming hit - return true to make the player
+		// completely immune to that hit (no damage, no dodge, no invulnerability frames used up).
+		public virtual bool ImmuneTo(Player player, PlayerDeathReason damageSource, int cooldownCounter, bool dodgeable) => false;
+
+		// Fires when the player tries to use an item - return false to stop that use
+		// (every owned augment is asked, and any "no" wins).
+		public virtual bool CanUseItem(Player player, Item item) => true;
+
+		// Fires while an item's swing/use scale is being worked out. Scale drives both how
+		// big a melee weapon is drawn and how big its swing hitbox is.
+		public virtual void ModifyItemScale(Player player, Item item, ref float scale) { }
+
 		// Allows augments to modify the life restored by healing potions.
 		public virtual void GetHealLife(Player player, Item item, bool quickHeal, ref int healValue) { }
 

@@ -9,7 +9,7 @@ namespace Augments
         public override string DisplayName => "Second Wind";
         public override string Description =>
             $"When you fall below {AugmentText.HP("25% HP")}, {AugmentText.Healing("heal 40 HP")}. " +
-            $"{AugmentText.Cooldown("60s cooldown")}.";
+            $"{AugmentText.Cooldown("60 seconds cooldown")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Common;
         public override AugmentClass Class => AugmentClass.Universal;

@@ -19,6 +19,10 @@ namespace Augments
         public bool PreventEchoChamberCopy;
         public bool PreventRicochetEngineCopy;
         public bool IsEchoChamberEcho;
+        // Fired by a weapon that uses rocket ammo (rocket and grenade launchers, Celebration...). Counts as explosive for
+        // Party Poppers and Floor is Lava even when the projectile itself isn't one of the vanilla "explosive" kinds.
+        // Only the shooter's game ever needs this, so it isn't synced.
+        public bool FromRocketLauncher;
         public bool NecromancersCourtGhost;
         public int NecromancersCourtGhostTimeLeft;
         public int SourceMinionProjectileType = -1;
@@ -144,6 +148,12 @@ namespace Augments
 
         public override Color? GetAlpha(Projectile projectile, Color lightColor)
         {
+            // Projectiles that are meant to be invisible (alpha 255, e.g. the napalm blobs, which draw
+            // only dust) must stay invisible. The echo tint below would otherwise draw their whole
+            // placeholder sprite sheet. Napalm blobs inherit the echo flag from an echoed rocket.
+            if (projectile.alpha >= 255)
+                return null;
+
             if (IsEchoChamberEcho)
                 return new Color(130, 210, 255, 175);
 

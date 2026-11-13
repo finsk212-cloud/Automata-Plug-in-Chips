@@ -9,7 +9,7 @@ namespace Augments
         public override string Id => "momentum_swing";
         public override string DisplayName => "Momentum Swing";
         public override string Description =>
-            $"Hitting the same enemy repeatedly within {AugmentText.Duration("1.5s")} builds " +
+            $"Hitting the same enemy repeatedly within {AugmentText.Duration("1.5 seconds")} builds " +
             $"{AugmentText.BonusDamage("+3% bonus damage")} per stack, up to " +
             $"{AugmentText.BonusDamage("+15% bonus damage")} at 5 stacks. Switching targets or waiting too long resets the stacks.";
 

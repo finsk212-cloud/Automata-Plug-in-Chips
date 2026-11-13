@@ -13,7 +13,10 @@ namespace Augments
             $"and {AugmentText.AttackSpeed("+10% ranged attack speed")}.\n" +
             $"Firing a ranged weapon in the air pushes you {AugmentText.MovementSpeed("backwards")}, opposite your aim. " +
             $"Slower, heavier weapons push harder.\n" +
-            $"You take no fall damage and gain {AugmentText.Duration("+25% wing flight time")}.\n" +
+            $"You take no fall damage and gain {AugmentText.Duration("+25% wing flight time")}.";
+
+        public override string GetDetailedDescription(Player player) =>
+            Description + "\n" +
             AugmentText.Note("(No push on the ground or while grappling.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;

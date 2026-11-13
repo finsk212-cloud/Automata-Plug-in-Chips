@@ -102,6 +102,18 @@ namespace Augments
 				case AugmentPacketType.TakeMachineCores:
 					HandleTakeMachineCores(reader);
 					return true;
+				case AugmentPacketType.ChamberPrimed:
+					HandleChamberPrimed(reader, whoAmI);
+					return true;
+				case AugmentPacketType.PluginEffect:
+					HandlePluginEffect(reader, whoAmI);
+					return true;
+				case AugmentPacketType.ScapegoatTransfer:
+					HandleScapegoatTransfer(reader, whoAmI);
+					return true;
+				case AugmentPacketType.ScapegoatApply:
+					HandleScapegoatApply(reader);
+					return true;
 			}
 
 			return false;
@@ -284,6 +296,168 @@ namespace Augments
 			}
 
 			SpawnVendor(player);
+		}
+
+		// --- One in the Chamber: loaded / fired state, so other players can see the glow ---
+
+		public static void SendChamberPrimed(bool primed)
+		{
+			if (Main.netMode != NetmodeID.MultiplayerClient)
+				return;
+
+			ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
+			packet.Write((byte)AugmentPacketType.ChamberPrimed);
+			packet.Write((byte)Main.myPlayer);
+			packet.Write(primed);
+			packet.Send();
+		}
+
+		private static void HandleChamberPrimed(BinaryReader reader, int whoAmI)
+		{
+			byte playerIndex = reader.ReadByte();
+			bool primed = reader.ReadBoolean();
+
+			if (Main.netMode == NetmodeID.Server)
+			{
+				// Players can only report their own state.
+				if (whoAmI < 0 || whoAmI >= Main.maxPlayers)
+					return;
+
+				ModPacket relay = ModContent.GetInstance<Augments>().GetPacket();
+				relay.Write((byte)AugmentPacketType.ChamberPrimed);
+				relay.Write((byte)whoAmI);
+				relay.Write(primed);
+				relay.Send(-1, whoAmI);
+			}
+			else if (playerIndex < Main.maxPlayers && playerIndex != Main.myPlayer)
+			{
+				OneInTheChamberAugment.SetRemotePrimed(playerIndex, primed);
+			}
+		}
+
+		// --- Plugin effects: sounds and visuals that have no projectile to ride on, shown to every player ---
+
+		// Caster's client -> server: "play this effect on me". The caster has already played it locally.
+		public static void SendPluginEffect(PluginEffectId effect, int param)
+		{
+			if (Main.netMode != NetmodeID.MultiplayerClient)
+				return;
+
+			ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
+			packet.Write((byte)AugmentPacketType.PluginEffect);
+			packet.Write((byte)Main.myPlayer);
+			packet.Write((byte)effect);
+			packet.Write(param);
+			packet.Send();
+		}
+
+		private static void HandlePluginEffect(BinaryReader reader, int whoAmI)
+		{
+			byte senderIndex = reader.ReadByte();
+			byte effect = reader.ReadByte();
+			int param = reader.ReadInt32();
+
+			if (Main.netMode == NetmodeID.Server)
+			{
+				// Players can only play effects on themselves, and only for plugins they actually own.
+				if (whoAmI < 0 || whoAmI >= Main.maxPlayers)
+					return;
+
+				string requiredAugment = PluginEffects.RequiredAugment((PluginEffectId)effect);
+				if (requiredAugment == null)
+					return;
+
+				Player sender = Main.player[whoAmI];
+				if (!sender.active || !sender.GetModPlayer<AugmentPlayer>().HasAugment(requiredAugment))
+					return;
+
+				ModPacket relay = ModContent.GetInstance<Augments>().GetPacket();
+				relay.Write((byte)AugmentPacketType.PluginEffect);
+				relay.Write((byte)whoAmI);
+				relay.Write(effect);
+				relay.Write(System.Math.Clamp(param, 0, 9999));
+				relay.Send(-1, whoAmI);
+			}
+			else if (senderIndex < Main.maxPlayers && senderIndex != Main.myPlayer)
+			{
+				PluginEffects.PlayLocal((PluginEffectId)effect, Main.player[senderIndex], param);
+			}
+		}
+
+		// --- Scapegoat: a teammate's debuff moves to the Scapegoat owner ---
+
+		// Teammate's client -> server: "I removed this debuff, hand it to the owner."
+		public static void SendScapegoatTransfer(int ownerIndex, int buffType, int ticks)
+		{
+			if (Main.netMode != NetmodeID.MultiplayerClient)
+				return;
+
+			ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
+			packet.Write((byte)AugmentPacketType.ScapegoatTransfer);
+			packet.Write((byte)ownerIndex);
+			packet.Write(buffType);
+			packet.Write(ticks);
+			packet.Send();
+		}
+
+		private static void HandleScapegoatTransfer(BinaryReader reader, int whoAmI)
+		{
+			byte ownerIndex = reader.ReadByte();
+			int buffType = reader.ReadInt32();
+			int ticks = reader.ReadInt32();
+
+			if (Main.netMode != NetmodeID.Server || whoAmI < 0 || whoAmI >= Main.maxPlayers
+				|| ownerIndex >= Main.maxPlayers || ownerIndex == whoAmI)
+				return;
+
+			Player sender = Main.player[whoAmI];
+			Player owner = Main.player[ownerIndex];
+			if (!sender.active || !owner.active || owner.dead)
+				return;
+
+			// The server decides who owns the plugin, so a client cannot dump debuffs on anyone it likes.
+			if (!owner.GetModPlayer<AugmentPlayer>().HasAugment("scapegoat") || sender.GetModPlayer<AugmentPlayer>().HasAugment("scapegoat"))
+				return;
+			if (!SupportEffects.AreAllies(owner, sender))
+				return;
+
+			// Aura radius plus a latency buffer.
+			float maxDistance = SupportEffects.AuraRadius * 1.5f;
+			if (Vector2.DistanceSquared(owner.Center, sender.Center) > maxDistance * maxDistance)
+				return;
+
+			if (buffType <= 0 || buffType >= BuffLoader.BuffCount || !SupportEffects.IsCleansableDebuff(buffType) || buffType == BuffID.TheTongue)
+				return;
+
+			ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
+			packet.Write((byte)AugmentPacketType.ScapegoatApply);
+			packet.Write(buffType);
+			packet.Write(System.Math.Clamp(ticks, 1, 60 * 60));
+			packet.Send(ownerIndex);
+		}
+
+		// Server -> Scapegoat owner's client: take the debuff.
+		private static void HandleScapegoatApply(BinaryReader reader)
+		{
+			int buffType = reader.ReadInt32();
+			int ticks = reader.ReadInt32();
+
+			if (Main.netMode != NetmodeID.MultiplayerClient)
+				return;
+
+			Player player = Main.LocalPlayer;
+			if (!player.active || player.dead || buffType <= 0 || buffType >= BuffLoader.BuffCount)
+				return;
+			if (!player.GetModPlayer<AugmentPlayer>().HasAugment("scapegoat"))
+				return;
+
+			player.AddBuff(buffType, ticks);
+
+			for (int i = 0; i < 8; i++)
+			{
+				Dust d = Dust.NewDustDirect(player.position, player.width, player.height, DustID.Shadowflame, 0f, -1f, 100, default, 1f);
+				d.noGravity = true;
+			}
 		}
 
 		// --- Kill credit (server -> killer's client) ---

@@ -9,7 +9,10 @@ namespace Augments
         public override bool RunsKillHookOnKillerClient => true;
         public override string DisplayName => "Vampiric Edge";
         public override string Description =>
-            $"Melee kills {AugmentText.Healing("restore 3 HP")}.\n" +
+            $"Melee kills {AugmentText.Healing("restore 3 HP")}.";
+
+        public override string GetDetailedDescription(Player player) =>
+            Description + "\n" +
             AugmentText.Note("(Requires your direct hit to score the kill.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Common;

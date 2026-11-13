@@ -8,7 +8,7 @@ namespace Augments
         public override string Id => "ambush";
         public override string DisplayName => "Ambush";
         public override string Description =>
-            $"Stand still for {AugmentText.Duration("2s")} to prime your next melee hit. The primed hit deals " +
+            $"Stand still for {AugmentText.Duration("2 seconds")} to prime your next melee hit. The primed hit deals " +
             $"{AugmentText.BonusDamage("+25% bonus damage")} based on the weapon's base damage.";
 
         public override AugmentRarity Rarity => AugmentRarity.Common;

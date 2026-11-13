@@ -25,7 +25,7 @@ namespace Augments
             $"{AugmentText.Active("Active:")} Press [{AugmentText.Key(Augments.BladeDanceKeybind)}] with a {AugmentText.Trigger("melee weapon")} in hand to become " +
             $"{AugmentText.Defense("invulnerable")} for {AugmentText.Duration("2 seconds")} while you blink between nearby enemies, " +
             $"cutting each one you reach for {AugmentText.SpecialDamage($"{AugmentScaling.Scale(BaseSlashDamage)} damage")} ({Blinks} slashes). " +
-            $"{AugmentText.Cooldown("50s cooldown")}.";
+            $"{AugmentText.Cooldown("50 seconds cooldown")}.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +
@@ -131,6 +131,7 @@ namespace Augments
             player.immuneNoBlink = true;
             player.velocity = Vector2.Zero;
             player.fallStart = (int)(player.position.Y / 16f);
+            SendPositionToOthers(player);
 
             if (Main.rand.NextBool(2))
             {
@@ -273,8 +274,18 @@ namespace Augments
                 player.direction = target.Center.X >= center.X ? 1 : -1;
                 player.RemoveAllGrapplingHooks();
                 player.fallStart = (int)(player.position.Y / 16f);
+                SendPositionToOthers(player);
                 return;
             }
+        }
+
+        // A player's position is client-authoritative, and teleporting it from code does not reach the other
+        // players by itself: without this they see the dancer stand still (or snap around) while the dancer
+        // blinks on their own screen. Same fix Get over here! uses for its pull.
+        private static void SendPositionToOthers(Player player)
+        {
+            if (Main.netMode == NetmodeID.MultiplayerClient && player.whoAmI == Main.myPlayer)
+                NetMessage.SendData(MessageID.PlayerControls, -1, -1, null, player.whoAmI);
         }
     }
 }

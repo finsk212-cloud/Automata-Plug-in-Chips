@@ -31,10 +31,15 @@ namespace Augments
                 return false;
             if (p.type == ModContent.ProjectileType<PartyPopperBomblet>())
                 return false;
-            if (p.GetGlobalProjectile<AugmentProjectileTag>().IsAugmentProcDamage)
+            // Other chips' proc projectiles don't count, but Echo Chamber echoes are real shots from the
+            // player's weapon, so an echoed rocket pops confetti and (with Floor is Lava) napalm too.
+            AugmentProjectileTag tag = p.GetGlobalProjectile<AugmentProjectileTag>();
+            if (tag.IsAugmentProcDamage && !tag.IsEchoChamberEcho)
                 return false;
 
-            return p.aiStyle == ProjAIStyleID.Explosive || ProjectileID.Sets.Explosive[p.type];
+            // Anything fired by a rocket-ammo weapon counts, even if the projectile isn't one of the vanilla explosive kinds
+            // (the Celebration's firework rockets are like that).
+            return tag.FromRocketLauncher || p.aiStyle == ProjAIStyleID.Explosive || ProjectileID.Sets.Explosive[p.type];
         }
 
         public override void OnProjectileSpawn(Player player, Projectile projectile)
@@ -53,6 +58,20 @@ namespace Augments
     public class PartyPopperGlobalProjectile : GlobalProjectile
     {
         public override bool InstancePerEntity => true;
+
+        // A bomblet spawned by an echoed rocket inherits the echo's tag, including "may trigger on-hit
+        // chips". Bomblets must never do that, so put their own rules back (the echo flag stays, so
+        // Floor is Lava can still halve their napalm).
+        internal static void KeepProcRules(int projectileIndex)
+        {
+            if (projectileIndex < 0 || projectileIndex >= Main.maxProjectiles)
+                return;
+
+            AugmentProjectileTag tag = Main.projectile[projectileIndex].GetGlobalProjectile<AugmentProjectileTag>();
+            tag.CanTriggerOnHitAugments = false;
+            tag.PreventEchoChamberCopy = true;
+            tag.PreventRicochetEngineCopy = true;
+        }
 
         public override void OnKill(Projectile projectile, int timeLeft)
         {
@@ -81,7 +100,8 @@ namespace Augments
                 );
 
                 IEntitySource source = projectile.GetSource_FromThis();
-                Projectile.NewProjectile(source, projectile.Center, vel, bombletType, bombletDamage, 2.5f, projectile.owner);
+                int bombletIndex = Projectile.NewProjectile(source, projectile.Center, vel, bombletType, bombletDamage, 2.5f, projectile.owner);
+                KeepProcRules(bombletIndex);
             }
         }
     }

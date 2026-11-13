@@ -12,11 +12,24 @@ namespace Augments
     {
         public override string Texture => "Terraria/Images/Projectile_" + ProjectileID.Flames;
 
-        public const int PoolWidth = 110; // ~7 tiles wide
+        // One blob of napalm. An explosion throws several of them outward (see FloorIsLavaGlobalProjectile);
+        // each one flies, lands on the ground and burns as a small pool. Now and then a blob sticks to a wall
+        // it hits and burns there instead.
+        public const int PoolWidth = 44; // ~3 tiles wide; five blobs together cover ~9 tiles
         public const int PoolHeight = 32;
         public const int PoolDurationTicks = 240; // 4 seconds
 
-        private bool Settled => Projectile.ai[0] == 1f;
+        // Stuck to a wall: a narrow, taller flame that burns a little shorter.
+        public const int WallWidth = 26;
+        public const int WallHeight = 52;
+        public const int WallDurationTicks = 180; // 3 seconds
+        private const float WallStickChance = 0.18f;
+
+        // ai[0]: 0 = flying, 1 = burning on the ground, 2 = burning on a wall.
+        private bool Settled => Projectile.ai[0] >= 1f;
+        private bool OnWall => Projectile.ai[0] == 2f;
+        private int SettledWidth => OnWall ? WallWidth : PoolWidth;
+        private int SettledHeight => OnWall ? WallHeight : PoolHeight;
         private bool settledVisualsDone;
 
         public override void SetDefaults()
@@ -50,7 +63,30 @@ namespace Augments
 
         public override bool OnTileCollide(Vector2 oldVelocity)
         {
-            Settle();
+            if (Settled)
+                return false;
+
+            // The engine has already stopped the blob on the blocked axis; compare with the old velocity.
+            bool blockedY = Projectile.velocity.Y != oldVelocity.Y;
+            bool blockedX = Projectile.velocity.X != oldVelocity.X;
+
+            if (blockedY && oldVelocity.Y > 0f)
+            {
+                Settle(false); // landed on the ground
+            }
+            else if (blockedY)
+            {
+                Projectile.velocity.Y = 0f; // bumped a ceiling: just drop
+            }
+            else if (blockedX)
+            {
+                // Only the owner rolls the dice; everyone else is told through the synced state.
+                if (Projectile.owner == Main.myPlayer && Main.rand.NextFloat() < WallStickChance)
+                    Settle(true);
+                else
+                    Projectile.velocity.X = -oldVelocity.X * 0.35f; // splash off the wall and keep falling
+            }
+
             return false;
         }
 
@@ -58,14 +94,15 @@ namespace Augments
         {
             if (Settled)
             {
-                if (Projectile.width != PoolWidth || Projectile.height != PoolHeight)
+                if (Projectile.width != SettledWidth || Projectile.height != SettledHeight)
                 {
                     float bottom = Projectile.position.Y + Projectile.height;
                     float centerX = Projectile.position.X + Projectile.width * 0.5f;
-                    Projectile.width = PoolWidth;
-                    Projectile.height = PoolHeight;
-                    Projectile.position.X = centerX - PoolWidth * 0.5f;
-                    Projectile.position.Y = bottom - PoolHeight;
+                    float centerY = Projectile.position.Y + Projectile.height * 0.5f;
+                    Projectile.width = SettledWidth;
+                    Projectile.height = SettledHeight;
+                    Projectile.position.X = centerX - SettledWidth * 0.5f;
+                    Projectile.position.Y = OnWall ? centerY - SettledHeight * 0.5f : bottom - SettledHeight;
                 }
 
                 if (!settledVisualsDone)
@@ -190,7 +227,7 @@ namespace Augments
             // Failsafe: if collision stopped vertical movement, settle
             if (Projectile.velocity.Y == 0f && Projectile.oldVelocity.Y > 0f)
             {
-                Settle();
+                Settle(false);
                 return;
             }
 
@@ -226,40 +263,42 @@ namespace Augments
             }
         }
 
-        private void Settle()
+        private void Settle(bool onWall)
         {
             if (Settled)
                 return;
 
-            Projectile.ai[0] = 1f;
+            Projectile.ai[0] = onWall ? 2f : 1f;
             Projectile.velocity = Vector2.Zero;
             Projectile.tileCollide = false;
-            Projectile.timeLeft = PoolDurationTicks;
+            Projectile.timeLeft = onWall ? WallDurationTicks : PoolDurationTicks;
             Projectile.netUpdate = true;
 
             float bottom = Projectile.position.Y + Projectile.height;
             float centerX = Projectile.position.X + Projectile.width * 0.5f;
-            Projectile.width = PoolWidth;
-            Projectile.height = PoolHeight;
-            Projectile.position.X = centerX - PoolWidth * 0.5f;
-            Projectile.position.Y = bottom - PoolHeight;
+            float centerY = Projectile.position.Y + Projectile.height * 0.5f;
+            Projectile.width = SettledWidth;
+            Projectile.height = SettledHeight;
+            Projectile.position.X = centerX - SettledWidth * 0.5f;
+            Projectile.position.Y = onWall ? centerY - SettledHeight * 0.5f : bottom - SettledHeight;
 
             settledVisualsDone = true;
-            SoundEngine.PlaySound(SoundID.Item34 with { Volume = 0.65f, Pitch = 0.10f }, Projectile.Center);
+            SoundEngine.PlaySound(SoundID.Item34 with { Volume = 0.30f, Pitch = 0.10f }, Projectile.Center);
             SpawnGroundSplash();
         }
 
         private void SpawnGroundSplash()
         {
-            for (int i = 0; i < 30; i++)
+            // Several blobs land per explosion, so each one gets a smaller splash.
+            for (int i = 0; i < 12; i++)
             {
                 Vector2 splashVel = new Vector2(
-                    Main.rand.NextFloat(-5.5f, 5.5f),
+                    Main.rand.NextFloat(-3.5f, 3.5f),
                     Main.rand.NextFloat(-3.2f, -0.6f)
                 );
                 int dType = Main.rand.NextBool(3) ? DustID.SolarFlare : DustID.OrangeTorch;
                 Dust splash = Dust.NewDustPerfect(
-                    Projectile.Center + new Vector2(Main.rand.NextFloat(-50f, 50f), 8f),
+                    Projectile.Center + new Vector2(Main.rand.NextFloat(-20f, 20f), OnWall ? 0f : 8f),
                     dType,
                     splashVel,
                     60,
@@ -269,10 +308,10 @@ namespace Augments
                 splash.noGravity = true;
             }
 
-            for (int s = 0; s < 7; s++)
+            for (int s = 0; s < 3; s++)
             {
                 Dust smoke = Dust.NewDustPerfect(
-                    Projectile.Center + new Vector2(Main.rand.NextFloat(-40f, 40f), 0f),
+                    Projectile.Center + new Vector2(Main.rand.NextFloat(-16f, 16f), 0f),
                     DustID.Smoke,
                     new Vector2(Main.rand.NextFloat(-1.5f, 1.5f), Main.rand.NextFloat(-2.2f, -0.8f)),
                     150,

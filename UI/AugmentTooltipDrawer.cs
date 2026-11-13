@@ -73,14 +73,7 @@ namespace Augments
 
         public static Color GetRarityColor(AugmentRarity rarity)
         {
-            return rarity switch
-            {
-                AugmentRarity.Common => new Color(185, 200, 225),
-                AugmentRarity.Rare => new Color(85, 195, 255),
-                AugmentRarity.Epic => new Color(195, 115, 255),
-                AugmentRarity.Legendary => new Color(255, 185, 45),
-                _ => new Color(185, 200, 225)
-            };
+            return RarityLook.Of(rarity); // the shared tier colours (Epic and Legendary move)
         }
 
         private static void DrawTooltip(SpriteBatch spriteBatch, Augment augment)
@@ -96,18 +89,18 @@ namespace Augments
             // 2. Clean inline subtitle text (e.g. "RARE  •  MELEE")
             var subtitleParts = new List<(string text, Color color)>();
             subtitleParts.Add((GetRarityDisplayName(augment.Rarity), rarityColor));
-            subtitleParts.Add(("  •  ", new Color(110, 130, 160)));
-            subtitleParts.Add((GetClassDisplayName(augment.Class), GetClassColor(augment.Class)));
+            subtitleParts.Add(("  •  ", PanelChrome.Tone(new Color(110, 130, 160))));
+            subtitleParts.Add((GetClassDisplayName(augment.Class), RarityLook.Pale(GetClassColor(augment.Class), 0.30f)));
 
             if (augment.KeystoneFamily != null)
             {
-                subtitleParts.Add(("  •  ", new Color(110, 130, 160)));
+                subtitleParts.Add(("  •  ", PanelChrome.Tone(new Color(110, 130, 160))));
                 subtitleParts.Add(("CORE OVERRIDE", new Color(248, 113, 113)));
             }
 
             if (augment.IsPermanent)
             {
-                subtitleParts.Add(("  •  ", new Color(110, 130, 160)));
+                subtitleParts.Add(("  •  ", PanelChrome.Tone(new Color(110, 130, 160))));
                 subtitleParts.Add(("PERMANENT", new Color(255, 205, 120)));
             }
 
@@ -143,7 +136,7 @@ namespace Augments
                     {
                         var familyDescLines = AugmentColorText.Wrap(font, family.Description, MaxContentWidth, ProtocolScale);
                         foreach (var fdl in familyDescLines)
-                            protocolLines.Add((fdl, new Color(185, 205, 230), ProtocolScale));
+                            protocolLines.Add((fdl, PanelChrome.Tone(new Color(185, 205, 230)), ProtocolScale));
                     }
 
                     foreach (var kv in family.ThresholdBonuses)
@@ -153,7 +146,7 @@ namespace Augments
                         bool unlocked = ownedMembers >= threshold;
 
                         string bonusHeader = (unlocked ? "  ✓ (" : "  • (") + $"{threshold}) {bonus.Title}" + (unlocked ? " (Active)" : " (Locked)");
-                        Color headerCol = unlocked ? AugmentTextColors.Healing : new Color(145, 160, 185);
+                        Color headerCol = unlocked ? AugmentTextColors.Healing : PanelChrome.Tone(new Color(145, 160, 185));
                         protocolLines.Add((bonusHeader, headerCol, BonusScale));
 
                         foreach (var desc in bonus.Descriptions)
@@ -162,7 +155,7 @@ namespace Augments
                             var wrappedPerk = AugmentColorText.Wrap(font, "    " + perkText.Trim(), MaxContentWidth, BonusScale);
                             foreach (var line in wrappedPerk)
                             {
-                                Color perkCol = unlocked ? new Color(210, 238, 225) : new Color(125, 138, 158);
+                                Color perkCol = unlocked ? new Color(210, 238, 225) : PanelChrome.Tone(new Color(125, 138, 158));
                                 protocolLines.Add((line, perkCol, BonusScale));
                             }
                         }
@@ -290,7 +283,7 @@ namespace Augments
             foreach (var line in descLines)
             {
                 ChatManager.DrawColorCodedStringWithShadow(
-                    spriteBatch, font, line, new Vector2(contentX, curY), new Color(228, 236, 248), 0f, Vector2.Zero, DescScale
+                    spriteBatch, font, RarityLook.PaleTags(line, 0.30f), new Vector2(contentX, curY), new Color(228, 236, 248), 0f, Vector2.Zero, DescScale
                 );
                 curY += ChatManager.GetStringSize(font, line, DescScale).Y + LineSpacing;
             }
@@ -318,7 +311,7 @@ namespace Augments
                 foreach (var (pText, pColor, pScale) in protocolLines)
                 {
                     ChatManager.DrawColorCodedStringWithShadow(
-                        spriteBatch, font, pText, new Vector2(contentX, curY), pColor, 0f, Vector2.Zero, pScale
+                        spriteBatch, font, RarityLook.PaleTags(pText, 0.30f), new Vector2(contentX, curY), RarityLook.Pale(pColor, 0.30f), 0f, Vector2.Zero, pScale
                     );
                     curY += ChatManager.GetStringSize(font, pText, pScale).Y + LineSpacing;
                 }
@@ -373,7 +366,7 @@ namespace Augments
             spriteBatch.Draw(pixel, new Rectangle(boxRect.X - 2, boxRect.Y - 2, boxRect.Width + 4, boxRect.Height + 4), new Color(0, 0, 0, 160));
 
             // 2. High-tech cyber navy background fill (#0A101C)
-            Color bgNavy = new Color(10, 16, 28, 248);
+            Color bgNavy = PanelChrome.Tone(new Color(10, 16, 28, 248));
             spriteBatch.Draw(pixel, boxRect, bgNavy);
 
             // 3. Subtle ambient rarity underglow

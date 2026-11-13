@@ -13,7 +13,7 @@ namespace Augments
         public override string DisplayName => "Dead Weight";
         public override string Description =>
             $"The slower your melee weapon, the harder it hits, up to {AugmentText.BonusDamage("+30% damage")} and {AugmentText.Defense("10 armor penetration")}. " +
-            $"Hits with slow weapons also slam the ground, hurling nearby enemies away. {AugmentText.Cooldown("0.6s cooldown")}.";
+            $"Hits with slow weapons also slam the ground, hurling nearby enemies away. {AugmentText.Cooldown("0.6 seconds cooldown")}.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +

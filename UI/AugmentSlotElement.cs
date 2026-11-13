@@ -24,6 +24,9 @@ namespace Augments
 
 		public readonly Augment Augment;
 		public bool IsSelected { get; set; }
+
+		// The colour of the selected card: the scheme's amber (dark ink on a Legendary plate, where amber would vanish), so it follows the Cosmetics colour.
+		private Color SelectColor => RarityLook.Inverted(Augment.Rarity) ? RarityLook.OnPlate : MenuLook.Current.Amber;
 		public bool IsOwned { get; set; }
 
 		public event Action<Augment> Clicked;
@@ -77,10 +80,18 @@ namespace Augments
 			float epicPulse = (float)Math.Sin(time * 3f + (rect.X + rect.Y) * 0.02f) * 0.5f + 0.5f;
 			float legPulse = (float)Math.Sin(time * 4f + (rect.X + rect.Y) * 0.02f) * 0.5f + 0.5f;
 
+			// Each card sits at its own point of the Epic / Legendary colour cycle, so a page of them does not change colour in step.
+			float cardPhase = RarityLook.PhaseAt(rect.X, rect.Y);
+			Color rarityColor = RarityLook.Of(Augment.Rarity, cardPhase);
+			bool nier = RarityLook.Style == TierStyle.Nier; // the NieR style is flat: no coloured halos, sheen or sparkles; rank shows as marks
+
 			// 0. Soft Concentric Outer Glow Halo for Rare, Epic & Legendary (clean stepped falloff instead of harsh flat box)
-			if (Augment.Rarity == AugmentRarity.Rare)
+			if (nier)
 			{
-				Color rareGlow = new Color(60, 175, 255);
+			}
+			else if (Augment.Rarity == AugmentRarity.Rare)
+			{
+				Color rareGlow = RarityLook.Rare;
 				float rGlowA = 0.12f + rarePulse * 0.08f;
 				// 1px stepped outer aura
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X - 1, rect.Y - 1, rect.Width + 2, 1), rareGlow * rGlowA);
@@ -90,7 +101,7 @@ namespace Augments
 			}
 			else if (Augment.Rarity == AugmentRarity.Epic)
 			{
-				Color epicGlow = new Color(185, 110, 255);
+				Color epicGlow = rarityColor;
 				float eGlowA = 0.16f + epicPulse * 0.10f;
 				// 1px stepped halo
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X - 1, rect.Y - 1, rect.Width + 2, 1), epicGlow * eGlowA);
@@ -106,8 +117,8 @@ namespace Augments
 			}
 			else if (Augment.Rarity == AugmentRarity.Legendary)
 			{
-				Color legGlow = new Color(255, 180, 45);
-				float lGlowA = 0.20f + legPulse * 0.12f;
+				Color legGlow = rarityColor;
+				float lGlowA = 0.30f + legPulse * 0.18f;
 				// 1px stepped halo
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X - 1, rect.Y - 1, rect.Width + 2, 1), legGlow * lGlowA);
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X - 1, rect.Bottom, rect.Width + 2, 1), legGlow * lGlowA);
@@ -121,14 +132,18 @@ namespace Augments
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.Right + 1, rect.Y - 2, 1, rect.Height + 4), legGlow * (lGlowA * 0.45f));
 			}
 
-			Color rarityColor = AugmentListEntry.RarityColor(Augment.Rarity);
-
 			// 1. Cybernetic Chassis Background (#0A101C at 94% opacity with subtle ambient underglow)
 			float underglowAlpha = isHovered ? 0.08f : (Augment.Rarity == AugmentRarity.Legendary ? 0.06f : (Augment.Rarity == AugmentRarity.Epic ? 0.05f : 0.035f));
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, rect, rarityColor * underglowAlpha);
 
-			Color bgColor = isHovered ? new Color(14, 22, 38) * 0.96f : new Color(10, 16, 28) * 0.94f;
+			Color bgColor = isHovered ? PanelChrome.Tone(new Color(14, 22, 38)) * 0.96f : PanelChrome.Tone(new Color(10, 16, 28)) * 0.94f;
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, rect, bgColor);
+			if (RarityLook.Inverted(Augment.Rarity))
+				RarityLook.DrawPlate(spriteBatch, rect); // Legendary (NieR style): a bright plate with fine stripes
+
+			// The selected card gets a soft wash of the selection colour (on a plate the dark border carries it alone).
+			if (IsSelected && !RarityLook.Inverted(Augment.Rarity))
+				spriteBatch.Draw(TextureAssets.MagicPixel.Value, rect, SelectColor * 0.10f);
 
 			// 2. 1px Inner Hairline Highlight Accent
 			Color innerHairline = Color.White * (isHovered ? 0.09f : 0.06f);
@@ -138,16 +153,16 @@ namespace Augments
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.Right - 2, rect.Y + 1, 1, rect.Height - 2), innerHairline);
 
 			// 2.5. Subtle Glass Sheen Sweep for Legendary tier (whisper-soft ambient refraction)
-			if (Augment.Rarity == AugmentRarity.Legendary)
+			if (!nier && Augment.Rarity == AugmentRarity.Legendary)
 			{
-				float sweepPeriod = 6.0f;
+				float sweepPeriod = 3.6f;
 				float sweepProgress = (time * 0.75f + (rect.X + rect.Y) * 0.002f) % sweepPeriod;
 				if (sweepProgress < 1.1f)
 				{
 					float t = sweepProgress / 1.1f;
 					float sweepCenter = (rect.Width + rect.Height) * t;
 					int beamWidth = 14;
-					Color sheenColor = new Color(255, 230, 160);
+					Color sheenColor = RarityLook.LegendaryLight;
 
 					for (int py = 2; py < rect.Height - 2; py += 2)
 					{
@@ -162,7 +177,7 @@ namespace Augments
 							{
 								// Smooth cosine falloff with delicate 0.08f peak alpha
 								float falloff = (float)Math.Cos(normDist * MathHelper.PiOver2);
-								float beamA = falloff * 0.08f;
+								float beamA = falloff * 0.18f;
 								if (beamA > 0.01f)
 								{
 									spriteBatch.Draw(TextureAssets.MagicPixel.Value,
@@ -175,31 +190,36 @@ namespace Augments
 				}
 			}
 
+			// 2.7. Legendary only: a breathing second ring and a light that circles the card.
+			if (Augment.Rarity == AugmentRarity.Legendary)
+				RarityLook.DrawLegendaryAura(spriteBatch, rect, cardPhase, isHovered);
+
 			// 3. Border (Rarity colored, with Epic/Legendary custom effects)
 			Color borderColor = rarityColor;
 			// 2px so the edge survives non-integer UI scaling and list clipping (1px lines vanished between corners)
-			int borderWidth = 2;
+			// NieR style: the straight edges are a little thicker (3px), so they read as one frame with the corner marks instead of a faint line between gaps.
+			int borderWidth = nier ? 3 : 2;
 
 			if (IsSelected)
 			{
-				borderColor = new Color(255, 220, 80);
-				borderWidth = 3;
+				borderColor = SelectColor;
+				borderWidth = nier ? 4 : 3;
 			}
 			else if (Augment.Rarity == AugmentRarity.Rare)
 			{
-				borderColor = Color.Lerp(new Color(75, 175, 250), new Color(145, 225, 255), rarePulse * 0.35f);
+				borderColor = Color.Lerp(RarityLook.Rare, RarityLook.RareLight, rarePulse * 0.35f);
 				if (isHovered)
 					borderColor = Color.Lerp(borderColor, Color.White, 0.4f);
 			}
 			else if (Augment.Rarity == AugmentRarity.Epic)
 			{
-				borderColor = Color.Lerp(new Color(155, 115, 225), new Color(215, 180, 255), epicPulse * 0.45f);
+				borderColor = Color.Lerp(rarityColor, RarityLook.Light(rarityColor), epicPulse * 0.30f);
 				if (isHovered)
 					borderColor = Color.Lerp(borderColor, Color.White, 0.4f);
 			}
 			else if (Augment.Rarity == AugmentRarity.Legendary)
 			{
-				borderColor = Color.Lerp(new Color(255, 160, 20), new Color(255, 210, 60), legPulse * 0.45f);
+				borderColor = Color.Lerp(rarityColor, RarityLook.Light(rarityColor), legPulse * 0.35f);
 				if (isHovered)
 					borderColor = Color.Lerp(borderColor, Color.White, 0.4f);
 			}
@@ -208,18 +228,35 @@ namespace Augments
 				borderColor = Color.Lerp(borderColor, Color.White, 0.4f);
 			}
 
+			if (nier && !IsSelected)
+			{
+				borderColor = isHovered ? RarityLook.Light(rarityColor) : rarityColor;
+				if (RarityLook.Inverted(Augment.Rarity))
+					borderColor = isHovered ? MenuLook.Current.Amber : RarityLook.PlateAccent; // the scheme's amber, a little darker on the plate
+				if (Augment.Rarity == AugmentRarity.Common)
+					borderColor *= 0.85f; // Common has the dimmest border
+			}
+
 			// Draw 4 border lines
 			Color finalBorderCol = borderColor * (isHovered ? 1.0f : 0.85f);
+			// NieR Rare: long corner brackets with a solid but quieter edge between them (3px, brighter than before), so the gaps read as part of one frame.
+			bool bracketsOnly = nier && Augment.Rarity == AugmentRarity.Rare && !IsSelected;
+			if (bracketsOnly)
+				finalBorderCol *= 0.65f;
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X, rect.Y, rect.Width, borderWidth), finalBorderCol);
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X, rect.Bottom - borderWidth, rect.Width, borderWidth), finalBorderCol);
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X, rect.Y, borderWidth, rect.Height), finalBorderCol);
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.Right - borderWidth, rect.Y, borderWidth, rect.Height), finalBorderCol);
 
+			// The NieR style marks: pips along the top edge, and the second line inside Epic and Legendary borders.
+			if (nier)
+				RarityLook.DrawTierMarks(spriteBatch, rect, Augment.Rarity, IsSelected ? SelectColor : borderColor);
+
 			// Corner accent notches: clean and flush inside tile bounds on all corners
-			const int cLen = 7;
+			int cLen = bracketsOnly ? 16 : 7;
 			const int cThick = 3;
 			Color cornerCol = IsSelected
-				? new Color(255, 220, 80) 
+				? SelectColor 
 				: (isHovered ? Color.Lerp(borderColor, Color.White, 0.35f) : borderColor * 0.90f);
 
 			// Top-Left notch
@@ -239,7 +276,7 @@ namespace Augments
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.Right - cThick, rect.Bottom - cLen, cThick, cLen), cornerCol);
 
 			// 3.5. Subtle Occasional Star Sparkles (clean micro-glints on borders, relaxed rhythm)
-			if (Augment.Rarity == AugmentRarity.Legendary)
+			if (!nier && Augment.Rarity == AugmentRarity.Legendary)
 			{
 				(int x, int y, float offset)[] spPoints = new (int, int, float)[]
 				{
@@ -247,7 +284,7 @@ namespace Augments
 					(rect.X + 2, rect.Bottom - 2, 2.5f)
 				};
 
-				Color goldSparkle = new Color(255, 225, 120);
+				Color goldSparkle = RarityLook.LegendaryLight;
 				foreach (var sp in spPoints)
 				{
 					float spPhase = (time * 0.85f + sp.offset + (rect.X * 0.015f)) % 5.0f;
@@ -259,7 +296,7 @@ namespace Augments
 					}
 				}
 			}
-			else if (Augment.Rarity == AugmentRarity.Epic)
+			else if (!nier && Augment.Rarity == AugmentRarity.Epic)
 			{
 				(int x, int y, float offset)[] spPoints = new (int, int, float)[]
 				{
@@ -267,7 +304,7 @@ namespace Augments
 					(rect.X, rect.Y + (int)(rect.Height * 0.55f), 2.5f)
 				};
 
-				Color epicSparkle = new Color(215, 160, 255);
+				Color epicSparkle = RarityLook.EpicLight;
 				foreach (var sp in spPoints)
 				{
 					float spPhase = (time * 0.85f + sp.offset + (rect.X * 0.015f)) % 5.0f;
@@ -284,20 +321,24 @@ namespace Augments
 
 			// 4. Center Content: Class icon placed in upper portion (40x40 pixel-perfect 1:1)
 			Texture2D iconTex = GetClassIcon(Augment.Class);
-			Color nameColor = AugmentListEntry.RarityColor(Augment.Rarity);
+			Color nameColor = rarityColor;
 			if (Augment.Rarity == AugmentRarity.Common)
-				nameColor = new Color(225, 230, 240);
+				nameColor = RarityLook.Common;
 
-			if (isHovered)
+			if (RarityLook.Inverted(Augment.Rarity))
+				nameColor = RarityLook.OnPlate; // dark text on the Legendary plate
+			else if (isHovered)
 				nameColor = Color.Lerp(nameColor, Color.White, 0.4f);
 
 			if (iconTex != null)
 			{
+				// Drawn a little smaller and lower, so it sits clear of the top border, the pips and the corner notches.
+				const float iconScale = 0.9f;
 				Vector2 iconPos = new Vector2(
-					rect.X + (rect.Width - iconTex.Width) * 0.5f,
-					rect.Y + 6f
+					MathF.Round(rect.X + (rect.Width - iconTex.Width * iconScale) * 0.5f),
+					rect.Y + 14f
 				);
-				spriteBatch.Draw(iconTex, iconPos, nameColor);
+				spriteBatch.Draw(iconTex, iconPos, null, nameColor, 0f, Vector2.Zero, iconScale, SpriteEffects.None, 0f);
 			}
 			else
 			{
@@ -313,8 +354,10 @@ namespace Augments
 			}
 
 			// 5. Augment Display Name auto-fitted cleanly below the icon
-			Rectangle textBounds = new Rectangle(rect.X + 3, rect.Y + 47, rect.Width - 6, rect.Height - 49);
-			DrawSlotAugmentName(spriteBatch, font, Augment.DisplayName, textBounds, nameColor);
+			// In the NieR style the name keeps clear of the border and the inner line (4px in), so it is never clipped or touching them.
+			int nameInset = RarityLook.Style == TierStyle.Nier ? 8 : 3;
+			Rectangle textBounds = new Rectangle(rect.X + nameInset, rect.Y + 47, rect.Width - nameInset * 2, rect.Height - 49);
+			DrawSlotAugmentName(spriteBatch, font, Augment.DisplayName, textBounds, nameColor, !RarityLook.Inverted(Augment.Rarity));
 
 			// 6. Class badge in top-left corner (omit for classes with dedicated custom icons)
 			if (Augment.Class != AugmentClass.Melee && Augment.Class != AugmentClass.Magic && Augment.Class != AugmentClass.Summon && Augment.Class != AugmentClass.Ranged && Augment.Class != AugmentClass.Support && Augment.Class != AugmentClass.Universal)
@@ -331,7 +374,7 @@ namespace Augments
 			if (IsOwned)
 			{
 				Vector2 checkSz = ChatManager.GetStringSize(font, "✓", new Vector2(0.55f));
-				Vector2 checkPos = new Vector2(rect.Right - checkSz.X - 4f, rect.Y + 3f);
+				Vector2 checkPos = new Vector2(rect.Right - checkSz.X - 9f, rect.Y + 15f); // clear of the corner notch and the pips above it
 				ChatManager.DrawColorCodedStringWithShadow(
 					spriteBatch, font, "✓", checkPos, AugmentTextColors.Healing, 0f, Vector2.Zero, new Vector2(0.55f)
 				);
@@ -340,15 +383,36 @@ namespace Augments
 			// 8. New / Recently Added Indicator Badge (Clean unboxed text, matching ✓ style)
 			if (Augment.IsRecent)
 			{
-				Vector2 newPos = new Vector2(rect.X + 4f, rect.Y + 3f);
-				ChatManager.DrawColorCodedStringWithShadow(
-					spriteBatch, font, "NEW", newPos, new Color(250, 204, 21), 0f, Vector2.Zero, new Vector2(0.50f)
-				);
-			}
-		}
+				if (RarityLook.Style == TierStyle.Nier)
+				{
+					// NEW: a small cream tab at the top edge, centred.
+					const float tabScale = 0.40f;
+					const float tabTracking = 1.5f;
+					float tabW = HubDraw.Width("NEW", tabScale, tabTracking);
+					// The measured width ends with one trailing letter gap; leave it out so the word is truly centred in its tab.
+					int tabWidth = (int)Math.Ceiling(tabW - tabTracking) + 8;
+					// Centred on the card and drawn just inside the top border (not on it), so a top-row card never clips it at the list edge.
+					var tab = new Rectangle(rect.X + (rect.Width - tabWidth) / 2, rect.Y + 2, tabWidth, 11);
+					HubDraw.Fill(spriteBatch, tab, RarityLook.Plate);
+					Color tabEdge = RarityLook.OnPlate * 0.5f;
+					HubDraw.Fill(spriteBatch, new Rectangle(tab.X, tab.Y, 1, tab.Height), tabEdge);
+					HubDraw.Fill(spriteBatch, new Rectangle(tab.Right - 1, tab.Y, 1, tab.Height), tabEdge);
+					HubDraw.Fill(spriteBatch, new Rectangle(tab.X, tab.Bottom - 1, tab.Width, 1), tabEdge);
+					HubDraw.Text(spriteBatch, "NEW", new Vector2(tab.X + 4, (float)Math.Round(tab.Y + (tab.Height - HubDraw.LineHeight(tabScale)) / 2f + 1f)), RarityLook.OnPlate, tabScale, tabTracking);
+				}				else
+				{
+					Vector2 newPos = new Vector2(rect.X + 8f, rect.Y + 6f);
+					RarityLook.DrawCoded(spriteBatch, font, "NEW", newPos, new Color(250, 204, 21), new Vector2(0.50f), true);
+				}
+			}		}
 
 		public static Texture2D GetClassIcon(AugmentClass augmentClass)
 		{
+			// The class icons are drawn in code (see ClassIcons); the old image files below are only a fallback.
+			Texture2D drawn = ClassIcons.Get(augmentClass);
+			if (drawn != null)
+				return drawn;
+
 			switch (augmentClass)
 			{
 				case AugmentClass.Melee:
@@ -386,7 +450,7 @@ namespace Augments
 			}
 		}
 
-		private static void DrawSlotAugmentName(SpriteBatch spriteBatch, DynamicSpriteFont font, string name, Rectangle textRect, Color color)
+		private static void DrawSlotAugmentName(SpriteBatch spriteBatch, DynamicSpriteFont font, string name, Rectangle textRect, Color color, bool shadow = true)
 		{
 			if (string.IsNullOrEmpty(name))
 				return;
@@ -403,10 +467,10 @@ namespace Augments
 				Vector2 drawScale = new Vector2(singleScale);
 				Vector2 drawnSize = singleSize * singleScale;
 				Vector2 pos = new Vector2(
-					textRect.X + (textRect.Width - drawnSize.X) * 0.5f,
-					textRect.Y + (textRect.Height - drawnSize.Y) * 0.5f
+					MathF.Round(textRect.X + (textRect.Width - drawnSize.X) * 0.5f),
+					MathF.Round(textRect.Y + (textRect.Height - drawnSize.Y) * 0.5f)
 				);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, name, pos, color, 0f, Vector2.Zero, drawScale);
+				RarityLook.DrawCoded(spriteBatch, font, name, pos, color, drawScale, shadow);
 				return;
 			}
 
@@ -438,19 +502,19 @@ namespace Augments
 			float lineHeight = topSize.Y * lineScaleVal;
 			float lineSpacing = lineHeight * 0.88f;
 			float totalTextH = lineSpacing + lineHeight;
-			float startY = textRect.Y + (textRect.Height - totalTextH) * 0.5f;
+			float startY = MathF.Round(textRect.Y + (textRect.Height - totalTextH) * 0.5f);
 
 			Vector2 topPos = new Vector2(
-				textRect.X + (textRect.Width - topSize.X * lineScaleVal) * 0.5f,
+				MathF.Round(textRect.X + (textRect.Width - topSize.X * lineScaleVal) * 0.5f),
 				startY
 			);
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, topStr, topPos, color, 0f, Vector2.Zero, lineScale);
+			RarityLook.DrawCoded(spriteBatch, font, topStr, topPos, color, lineScale, shadow);
 
 			Vector2 botPos = new Vector2(
-				textRect.X + (textRect.Width - botSize.X * lineScaleVal) * 0.5f,
+				MathF.Round(textRect.X + (textRect.Width - botSize.X * lineScaleVal) * 0.5f),
 				startY + lineSpacing
 			);
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, botStr, botPos, color, 0f, Vector2.Zero, lineScale);
+			RarityLook.DrawCoded(spriteBatch, font, botStr, botPos, color, lineScale, shadow);
 		}
 
 		public static void DrawSubtleStarSparkle(SpriteBatch spriteBatch, int cx, int cy, float intensity, Color rayColor)

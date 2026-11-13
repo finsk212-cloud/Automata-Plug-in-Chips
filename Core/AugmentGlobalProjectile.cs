@@ -14,6 +14,9 @@ namespace Augments
 			// instead of whatever the player is holding when the hit lands.
 			if (source is EntitySource_ItemUse weaponSource && weaponSource.Item != null && !weaponSource.Item.IsAir)
 				projectileTag.SourceItemName = weaponSource.Item.Name;
+			if (source is EntitySource_ItemUse rocketSource && rocketSource.Item != null && !rocketSource.Item.IsAir
+				&& rocketSource.Item.useAmmo == Terraria.ID.AmmoID.Rocket)
+				projectileTag.FromRocketLauncher = true;
 			if (projectile.minion)
 			{
 				projectileTag.SourceMinionProjectileType = projectile.type;

@@ -20,6 +20,18 @@ namespace Augments
 		public int SiphonBurstCooldown { get; set; } = 0;
 		public int SiphonContinuousCooldown { get; set; } = 0;
 		public int PhilosopherHealCooldown { get; set; } = 0;
+		public int ContactChargeCooldown { get; set; } = 0;
+
+		// Contact Charge: adds Overclock charge from a true melee hit. Local owner only,
+		// the same client that owns OverclockCharge (all other charge sources work this way too).
+		public void TryAddContactCharge(float amount, int cooldownTicks)
+		{
+			if (Player.whoAmI != Main.myPlayer || ContactChargeCooldown > 0 || OverclockCharge >= 100f)
+				return;
+
+			ContactChargeCooldown = cooldownTicks;
+			OverclockCharge = Math.Min(100f, OverclockCharge + amount);
+		}
 
 		public float OverclockChargeRateMultiplier
 		{
@@ -122,6 +134,9 @@ namespace Augments
 			if (PhilosopherHealCooldown > 0)
 				PhilosopherHealCooldown--;
 
+			if (ContactChargeCooldown > 0)
+				ContactChargeCooldown--;
+
 			if (SiphonBurstCooldown > 0)
 				SiphonBurstCooldown--;
 
@@ -193,7 +208,8 @@ namespace Augments
 			playedReadySound = false;
 
 			int healAmount = tier == 4 ? 100 : (tier == 3 ? 75 : (tier == 2 ? 50 : 30));
-			int buffDuration = 360; // 6 seconds
+			int buffDuration = ProlongedSurgeAugment.GetBuffTicks(Player); // 6 seconds, 12 with Prolonged Surge
+			int sharedDoseHeal = SharedDoseAugment.GetSelfHeal(Player, healAmount);
 
 			// Target player heal & buff (NO BUFFS TO MEDIC)
 			if (CurrentPatientWhoAmI >= 0 && CurrentPatientWhoAmI < Main.maxPlayers)
@@ -204,6 +220,9 @@ namespace Augments
 					if (Main.netMode == NetmodeID.SinglePlayer)
 					{
 						SupportEffects.ServerHealPlayer(patient, healAmount);
+						// Multiplayer: the server applies Shared Dose itself in HandleMediGunOverclockActivate.
+						if (sharedDoseHeal > 0)
+							SupportEffects.ServerHealPlayer(Player, sharedDoseHeal);
 						if (tier == 4)
 						{
 							patient.AddBuff(ModContent.BuffType<OverclockMK4Buff>(), buffDuration);
@@ -254,6 +273,24 @@ namespace Augments
 						NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, npc.whoAmI);
 					}
 					SoundEngine.PlaySound(SoundID.Item93 with { Volume = 0.85f, Pitch = 0.2f }, npc.Center);
+
+					// Shared Dose for a town NPC patient has no activation packet, so the medic's
+					// own heal goes through the same server-validated heal request the socket feedback uses.
+					if (sharedDoseHeal > 0)
+					{
+						if (Main.netMode == NetmodeID.MultiplayerClient)
+						{
+							ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
+							packet.Write((byte)AugmentPacketType.MediGunHealRequest);
+							packet.Write((byte)Player.whoAmI);
+							packet.Write(sharedDoseHeal);
+							packet.Send();
+						}
+						else
+						{
+							SupportEffects.ServerHealPlayer(Player, sharedDoseHeal);
+						}
+					}
 				}
 			}
 		}
@@ -367,6 +404,7 @@ namespace Augments
 			leftClickReleased = true;
 			rightClickReleased = true;
 			PhilosopherHealCooldown = 0;
+			ContactChargeCooldown = 0;
 		}
 
 		public override bool HoverSlot(Item[] inventory, int context, int slot)

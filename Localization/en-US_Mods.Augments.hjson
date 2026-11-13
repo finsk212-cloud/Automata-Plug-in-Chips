@@ -1,4 +1,4 @@
-Keybinds: {
+﻿Keybinds: {
 	OpenAugmentList.DisplayName: Open Plugins
 	DebugTriggerPopup.DisplayName: Debug Trigger Popup
 	DebugSpawnVendor.DisplayName: Spawn Mistress 2B (Vendor)
@@ -7,6 +7,10 @@ Keybinds: {
 	Chronobreak.DisplayName: Chronobreak
 	GetOverHere.DisplayName: Get over here!
 	BladeDance.DisplayName: Blade Dance
+	DangerClose.DisplayName: Danger Close
+	DiscountRod.DisplayName: Rod of Discount
+	LongDistance.DisplayName: Long Distance Relationship
+	RunAsAdmin.DisplayName: Run as Administrator
 	ApplyLoadout1.DisplayName: Apply Loadout 1
 	ApplyLoadout2.DisplayName: Apply Loadout 2
 	ApplyLoadout3.DisplayName: Apply Loadout 3
@@ -14,6 +18,7 @@ Keybinds: {
 	ResetCooldowns.DisplayName: Reset Plugin Cooldowns (Dev)
 	ToggleCombatAnalytics.DisplayName: Toggle Combat Analytics
 	TriggerTacticalTip.DisplayName: Trigger Tactical Tip
+	TogglePod.DisplayName: Show or Hide Your Pod
 }
 
 NPCs: {
@@ -63,7 +68,7 @@ Items: {
 			- Instantly restores [c/4ADE80:30 HP] to the tethered ally
 			- Grants the ally [c/2DD4BF:+20% movement speed] for [c/A5C8E8:6 seconds]
 			Press Left-Click at 100% while siphoning an enemy to detonate Overclock:
-			- Deals [c/FF5C5C:25 burst damage] and inflicts [c/FFA500:Corrosion] (-5 enemy defense for 5s)
+			- Deals [c/FF5C5C:25 burst damage] and inflicts [c/FFA500:Corrosion] (-5 enemy defense for 5 seconds)
 			Tether breaks if line of sight is obstructed or distance exceeds range
 			'''
 	}
@@ -79,7 +84,7 @@ Items: {
 			- Instantly restores [c/4ADE80:50 HP] to the tethered ally
 			- Grants the ally [c/2DD4BF:+20% movement speed] and [c/FB923C:+10% attack speed] for [c/A5C8E8:6 seconds]
 			Press Left-Click at 100% while siphoning an enemy to detonate Overclock:
-			- Deals [c/FF5C5C:60 burst damage] and inflicts [c/EAB308:Ichor] (-15 enemy defense for 6s)
+			- Deals [c/FF5C5C:60 burst damage] and inflicts [c/EAB308:Ichor] (-15 enemy defense for 6 seconds)
 			Tether breaks if line of sight is obstructed or distance exceeds range
 			'''
 	}
@@ -89,13 +94,13 @@ Items: {
 		Tooltip:
 			'''
 			Hold Left-Click to lock onto a nearby ally or town NPC and channel an advanced spectral healing beam (10 HP/sec)
-			Hold Right-Click to lock onto the nearest enemy and channel a crimson siphon beam ([c/FF5C5C:3x 20 DMG bursts every 1.5s])
+			Hold Right-Click to lock onto the nearest enemy and channel a crimson siphon beam ([c/FF5C5C:3x 20 DMG bursts every 1.5 seconds])
 			Healing or siphoning builds Overclock charge over [c/A5C8E8:25 seconds]
 			Press Right-Click at 100% while healing to activate Overclock:
 			- Instantly restores [c/4ADE80:75 HP] to the tethered ally
 			- Grants the ally [c/2DD4BF:+25% movement speed], [c/FB923C:+15% attack speed], and [c/FFC83B:+8% critical strike chance] for [c/A5C8E8:6 seconds]
 			Press Left-Click at 100% while siphoning an enemy to detonate Overclock:
-			- Deals [c/FF5C5C:150 burst damage] and inflicts [c/EAB308:Ichor] (-15 enemy defense for 8s)
+			- Deals [c/FF5C5C:150 burst damage] and inflicts [c/EAB308:Ichor] (-15 enemy defense for 8 seconds)
 			Tether breaks if line of sight is obstructed or distance exceeds range
 			'''
 	}
@@ -105,13 +110,13 @@ Items: {
 		Tooltip:
 			'''
 			Hold Left-Click to lock onto a nearby ally or town NPC and channel an ultimate celestial healing beam (16 HP/sec)
-			Hold Right-Click to lock onto the nearest enemy and channel a crimson siphon beam ([c/FF5C5C:3x 50 DMG bursts every 1.5s])
+			Hold Right-Click to lock onto the nearest enemy and channel a crimson siphon beam ([c/FF5C5C:3x 50 DMG bursts every 1.5 seconds])
 			Healing or siphoning builds Overclock charge over [c/A5C8E8:20 seconds]
 			Press Right-Click at 100% while healing to activate Overclock:
 			- Instantly restores [c/4ADE80:100 HP] to the tethered ally
 			- Grants the ally [c/2DD4BF:+30% movement speed], [c/FB923C:+20% attack speed], [c/FFC83B:+12% critical strike chance], and [c/FF5C5C:+15% all damage] for [c/A5C8E8:6 seconds]
 			Press Left-Click at 100% while siphoning an enemy to detonate Overclock:
-			- Deals [c/FF5C5C:300 burst damage] and inflicts [c/EAB308:Ichor] (-15 defense) & [c/D946EF:Betsy's Curse] (-40 defense) for 10s
+			- Deals [c/FF5C5C:300 burst damage] and inflicts [c/EAB308:Ichor] (-15 defense) & [c/D946EF:Betsy's Curse] (-40 defense) for 10 seconds
 			Tether breaks if line of sight is obstructed or distance exceeds range
 			'''
 	}
@@ -281,6 +286,16 @@ Buffs: {
 		Description: Dealing increased damage.
 	}
 
+	WarBannerBearerBuff: {
+		DisplayName: War Banner
+		Description: Your banner is raised: increased damage and damage reduction for you and allies nearby. Your kills release shockwaves.
+	}
+
+	WarBannerBuff: {
+		DisplayName: War Banner
+		Description: Standing under a war banner: increased damage and damage reduction.
+	}
+
 	LastRitesCooldownBuff: {
 		DisplayName: Last Rites: On Cooldown
 		Description: Protected by a nearby Support player recently.
@@ -321,13 +336,21 @@ Projectiles: {
 	MediGunSiphonBeamProjectile.DisplayName: Medi Gun Siphon Beam
 	CryoIceShardProjectile.DisplayName: Cryo Ice Shard Projectile
 	KineticShrapnelProjectile.DisplayName: Kinetic Shrapnel Projectile
-	AutopilotPodProjectile.DisplayName: Autopilot Pod Projectile
 	SiegeShellProjectile.DisplayName: Siege Shell Projectile
 	WhiplashWaveProjectile.DisplayName: Whiplash Wave Projectile
 	NapalmPlasmaPool.DisplayName: Napalm Plasma Pool
 	PartyPopperBomblet.DisplayName: Party Popper Bomblet
 	BladeDanceSlashProjectile.DisplayName: Blade Dance Slash Projectile
 	PrismaticShardProjectile.DisplayName: Prismatic Shard Projectile
+	DangerCloseMarkerProjectile.DisplayName: Danger Close Marker Projectile
+	DangerCloseShellProjectile.DisplayName: Danger Close Shell Projectile
+	DangerCloseBombletProjectile.DisplayName: Danger Close Bomblet Projectile
+	StarPowerAuraProjectile.DisplayName: Star Power Aura Projectile
+	DiscountRodAfterimageProjectile.DisplayName: Discount Rod Afterimage Projectile
+	LongDistancePortalProjectile.DisplayName: Long Distance Portal Projectile
+	AdminAuraProjectile.DisplayName: Admin Aura Projectile
+	GrandEntranceBoltProjectile.DisplayName: Grand Entrance Bolt Projectile
+	GroupHugBurstProjectile.DisplayName: Group Hug Burst Projectile
 }
 
 Configs: {
@@ -338,6 +361,7 @@ Configs: {
 			HiddenStatsSettings: Hidden Telemetry & Diagnostics Settings
 			AdvisorySettings: Pod 042 Advisory Tips
 			SoundSettings: Sound Settings
+			TitleMenuSettings: Title Screen
 		}
 
 		EnableHiddenStatsPanel: {
@@ -368,6 +392,21 @@ Configs: {
 		EnableGetOverHereSfx: {
 			Label: Custom "Get over here!" Sound Effects
 			Tooltip: Plays a random custom sound effect when a teammate is pulled by the Get over here! chip. When off, the normal vanilla hook sound plays instead.
+		}
+
+		UseAutomataTitleMenu: {
+			Label: Use Automata Title Menu
+			Tooltip: Replaces the vanilla title screen buttons with the Automata home screen (new plugins showcase, patch notes). Turn this off to get the normal Terraria menu back. If the Automata menu ever fails it switches itself off for that session.
+		}
+
+		BunkerMenuTheme: {
+			Label: Bunker Menu Theme (Dark UI)
+			Tooltip: Draws the NieR:Automata bunker look behind the title screen: the rotating Earth, title card, corner text and menu buttons.
+		}
+
+		SetAsDefaultMenuTheme: {
+			Label: Set as Default Menu Theme
+			Tooltip: Automatically makes the Automata title screen the active menu theme when the mod is enabled.
 		}
 	}
 

@@ -11,11 +11,11 @@ namespace Augments
         public override string DisplayName => "Last Rites";
         public override string Description =>
             $"When a nearby teammate drops below {AugmentText.HP("20% HP")}, grant them " +
-            $"{AugmentText.Duration("3s")} of invulnerability.";
+            $"{AugmentText.Duration("3 seconds")} of invulnerability.";
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Support;
         public override bool HasAuraEffect => true;
-        public override string CooldownText => "90s cooldown per player";
+        public override string CooldownText => "90 seconds cooldown per player";
         public override int CooldownRemaining => LocalPlayerState.LastRitesCooldown;
 
         public override Texture2D Icon => TextureAssets.Item[ItemID.ObsidianShield].Value;

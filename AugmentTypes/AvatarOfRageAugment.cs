@@ -12,7 +12,7 @@ namespace Augments
         public override string Description =>
             $"While below {AugmentText.HP("50% HP")}, enter {AugmentText.Crit("Berserk Overclock")}: gain " +
             $"{AugmentText.BonusDamage("+40% damage")}, {AugmentText.MovementSpeed("+15% movement speed")}, and {AugmentText.AttackSpeed("+10% attack speed")}. " +
-            $"Potion sickness duration is increased by {AugmentText.Duration("+15s")}.";
+            $"Potion sickness duration is increased by {AugmentText.Duration("+15 seconds")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Universal;

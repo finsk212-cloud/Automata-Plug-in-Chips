@@ -14,7 +14,7 @@ namespace Augments
         public override AugmentRarity Rarity => AugmentRarity.Legendary;
         public override AugmentClass Class => AugmentClass.Support;
         public override bool HasAuraEffect => true;
-        public override string CooldownText => "90s cooldown per player";
+        public override string CooldownText => "90 seconds cooldown per player";
         public override int CooldownRemaining => LocalPlayerState.LifelineCooldown;
 
         public override Texture2D Icon => TextureAssets.Item[ItemID.CrossNecklace].Value;

@@ -36,8 +36,8 @@ namespace Augments
         public override string DisplayName => "Get over here!";
         public override string Description =>
             $"{AugmentText.Active("Active:")} Press [{AugmentText.Key(Augments.GetOverHereKeybind)}] to hook the nearest teammate within {AugmentText.Duration("1500 pixels")} " +
-            $"and yank them to your side. They take {AugmentText.Defense("50% less damage")} for {AugmentText.Duration("2s")} after landing. " +
-            $"{AugmentText.Cooldown("60s cooldown")}.";
+            $"and yank them to your side. They take {AugmentText.Defense("50% less damage")} for {AugmentText.Duration("2 seconds")} after landing. " +
+            $"{AugmentText.Cooldown("60 seconds cooldown")}.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +

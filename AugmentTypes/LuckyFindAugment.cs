@@ -12,8 +12,7 @@ namespace Augments
         public override string DisplayName => "Lucky Find";
         public override string Description =>
             $"Grants {AugmentText.Crit("+5% Fortune")} (World Luck & lucky trigger chance). Defeated enemies have a {FormatCurrentChance(DropChance)} " +
-            $"to drop extra coins.\n" +
-            AugmentText.Note($"(Total gained: {FormatCoins(LocalPlayerState?.LuckyFindCopperGained ?? 0)})");
+            $"to drop extra coins.";
 
         public override string GetDetailedDescription(Player player) =>
             $"Grants {AugmentText.Crit("+5% Fortune")} (World Luck & lucky trigger chance). Defeated enemies have a {FormatFortuneChance(DropChance, player)} " +

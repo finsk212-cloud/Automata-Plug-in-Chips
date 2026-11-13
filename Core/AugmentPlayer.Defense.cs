@@ -19,6 +19,16 @@ namespace Augments
 	// Defensive hooks: dodging, damage reduction, death, respawn, Undying Bond and hurt handling.
 	public partial class AugmentPlayer
 	{
+		public override bool ImmuneTo(PlayerDeathReason damageSource, int cooldownCounter, bool dodgeable)
+		{
+			foreach (var a in Owned)
+			{
+				if (a.ImmuneTo(Player, damageSource, cooldownCounter, dodgeable))
+					return true;
+			}
+			return false;
+		}
+
 		public override bool FreeDodge(Player.HurtInfo info)
 		{
 			foreach (var a in Owned)

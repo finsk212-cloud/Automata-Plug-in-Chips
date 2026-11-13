@@ -168,6 +168,29 @@ namespace Augments
             Register(new BladeDanceAugment());
             Register(new PrismaticFractureAugment());
             Register(new MarionetteAugment());
+            Register(new KickbackAugment());
+            Register(new CorrosiveTipAugment());
+            Register(new ContactChargeAugment());
+            Register(new ProlongedSurgeAugment());
+            Register(new SharedDoseAugment());
+            Register(new SoftLandingAugment());
+            Register(new KeenEyeAugment());
+            Register(new EmergencyAidAugment());
+            Register(new ScapegoatAugment());
+            Register(new BigStickEnergyAugment());
+            Register(new FetchAugment());
+            Register(new DangerCloseAugment());
+            Register(new StarPowerAugment());
+            Register(new PayToWinAugment());
+            Register(new DiscountRodAugment());
+            Register(new LongDistanceRelationshipAugment());
+            Register(new RunAsAdministratorAugment());
+            Register(new LeftoversAugment());
+            Register(new PogoStickAugment());
+            Register(new EmployeeOfTheMonthAugment());
+            Register(new GrandEntranceAugment());
+            Register(new GunGoBrrrAugment());
+            Register(new GroupHugAugment());
         }
 
         public const int FirstRecentIndex = 118;

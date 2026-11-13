@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.ModLoader.IO;
 using Augments.Core;
 
 namespace Augments
@@ -15,7 +17,7 @@ namespace Augments
         public override string Id => "one_in_the_chamber";
         public override string DisplayName => "One in the Chamber";
         public override string Description =>
-            $"Pausing attack for {AugmentText.Duration("0.7s")} chambers a {AugmentText.Trigger("Hyper-Velocity Round")}. " +
+            $"Pausing attack for {AugmentText.Duration("0.7 seconds")} chambers a {AugmentText.Trigger("Hyper-Velocity Round")}. " +
             $"The next shot gains {AugmentText.Velocity("+100% velocity")}, pierces {AugmentText.Trigger("3 additional enemies")}, and deals {AugmentText.BonusDamage("+35% damage")}.";
 
         public override string GetDetailedDescription(Player player) =>
@@ -35,6 +37,20 @@ namespace Augments
                 return;
 
             int who = player.whoAmI;
+
+            // Other players' chambers: their own game tells us when they are loaded or fired (ChamberPrimed
+            // packet). Timing the pause here would only drift, since we can't see their trigger pulls.
+            if (who != Main.myPlayer)
+            {
+                if (remotePrimed.TryGetValue(who, out bool shown) && shown && Main.GameUpdateCount % 6 == 0)
+                {
+                    Dust d = Dust.NewDustDirect(player.position, player.width, player.height, DustID.Electric, 0f, 0f, 120, new Color(56, 189, 248), 0.7f);
+                    d.noGravity = true;
+                    d.velocity *= 0.3f;
+                }
+                return;
+            }
+
             pauseTicks.TryGetValue(who, out int ticks);
             isPrimed.TryGetValue(who, out bool primed);
 
@@ -44,6 +60,7 @@ namespace Augments
             if (ticks >= RequiredPauseTicks && !primed)
             {
                 isPrimed[who] = true;
+                AugmentNet.SendChamberPrimed(true);
                 if (who == Main.myPlayer)
                 {
                     SoundEngine.PlaySound(SoundID.Item37 with { Pitch = 0.5f, Volume = 0.4f });
@@ -64,10 +81,29 @@ namespace Augments
             if (isPrimed.TryGetValue(who, out bool primed) && primed)
             {
                 isPrimed[who] = false;
+                AugmentNet.SendChamberPrimed(false);
                 return true;
             }
 
             return false;
+        }
+
+        // Other players' loaded state, as reported by their own game.
+        private static readonly Dictionary<int, bool> remotePrimed = new();
+
+        public static void SetRemotePrimed(int who, bool primed)
+        {
+            remotePrimed[who] = primed;
+            if (primed && who >= 0 && who < Main.maxPlayers && Main.player[who].active)
+            {
+                Player p = Main.player[who];
+                SoundEngine.PlaySound(SoundID.Item37 with { Pitch = 0.5f, Volume = 0.3f }, p.Center);
+                for (int i = 0; i < 6; i++)
+                {
+                    Dust d = Dust.NewDustDirect(p.position, p.width, p.height, DustID.Electric, 0f, 0f, 120, new Color(56, 189, 248), 0.8f);
+                    d.noGravity = true;
+                }
+            }
         }
     }
 
@@ -108,6 +144,18 @@ namespace Augments
 
                 SoundEngine.PlaySound(SoundID.Item38 with { Pitch = 0.2f, Volume = 0.6f }, projectile.position);
             }
+        }
+
+        // The owner decides which shot is a Hyper-Velocity Round; other players' games only see the
+        // projectile, so the flag travels with it so they can draw the trail too.
+        public override void SendExtraAI(Projectile projectile, BitWriter bitWriter, BinaryWriter binaryWriter)
+        {
+            bitWriter.WriteBit(IsHyperShot);
+        }
+
+        public override void ReceiveExtraAI(Projectile projectile, BitReader bitReader, BinaryReader binaryReader)
+        {
+            IsHyperShot = bitReader.ReadBit();
         }
 
         public override void PostAI(Projectile projectile)

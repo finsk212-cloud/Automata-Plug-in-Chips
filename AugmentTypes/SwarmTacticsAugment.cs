@@ -9,7 +9,10 @@ namespace Augments
         public override bool RunsKillHookOnKillerClient => true;
         public override string DisplayName => "Swarm Tactics";
         public override string Description =>
-            $"Minion kills {AugmentText.Healing("restore 5 HP")}.\n" +
+            $"Minion kills {AugmentText.Healing("restore 5 HP")}.";
+
+        public override string GetDetailedDescription(Player player) =>
+            Description + "\n" +
             AugmentText.Note("(Requires your minion to score the kill.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Common;

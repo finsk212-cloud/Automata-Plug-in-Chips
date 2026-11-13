@@ -65,11 +65,6 @@ namespace Augments
 
 			if (state == ChamberState.Idle)
 			{
-				if (chamberDims.Width > 0 && Main.rand.NextBool(8))
-				{
-					Color emberColor = Main.rand.NextBool() ? new Color(76, 168, 216) : new Color(212, 184, 114);
-					particles.SpawnAmbient(chamberRect, emberColor, scale: 1.8f);
-				}
 			}
 			else if (state == ChamberState.Decrypting)
 			{
@@ -121,10 +116,10 @@ namespace Augments
 			essenceBadge.Left.Set(-244f, 1f);
 			essenceBadge.Top.Set(10f, 0f);
 			essenceBadge.SetPadding(0f);
-			essenceBadge.BackgroundColor = new Color(12, 16, 28) * 0.95f;
-			essenceBadge.BorderColor = new Color(42, 68, 108) * 0.75f;
+			essenceBadge.BackgroundColor = PanelChrome.Tone(new Color(12, 16, 28)) * 0.95f;
+			essenceBadge.BorderColor = PanelChrome.Tone(new Color(42, 68, 108)) * 0.75f;
 
-			essenceLabel = new ColoredLabel("[c/D4B872:Machine Cores:] [c/68C2D8:0]", 0.84f);
+			essenceLabel = new ColoredLabel(PanelChrome.CoreCounter(0), 0.84f);
 			essenceLabel.Width.Set(0f, 1f);
 			essenceLabel.Height.Set(0f, 1f);
 			essenceBadge.Append(essenceLabel);
@@ -134,20 +129,14 @@ namespace Augments
 			PanelChrome.AddCloseButton(backPanel, () => ModContent.GetInstance<AugmentUISystem>().HideGacha(), 12f);
 
 			// Title Header
-			UIText title = new UIText("YoRHa Neural Decryption Chamber", 1.25f)
-			{
-				HAlign = 0.5f,
-				TextColor = new Color(234, 216, 176)
-			};
-			title.Top.Set(42f, 0f);
-			backPanel.Append(title);
+			backPanel.Append(new PanelTitleTab("YoRHa Decryption Chamber", 38, 0.92f, 3f));
 
 			// Completely Overhauled Header Status Row (Protocol Badge + 4 Clean Odds Pills)
 			headerStatusRow = new HeaderStatusRow
 			{
 				HAlign = 0.5f
 			};
-			headerStatusRow.Top.Set(74f, 0f);
+			headerStatusRow.Top.Set(56f, 0f);
 			headerStatusRow.Width.Set(PanelWidth - 40f, 0f);
 			headerStatusRow.Height.Set(30f, 0f);
 			backPanel.Append(headerStatusRow);
@@ -157,9 +146,9 @@ namespace Augments
 			chamberContainer.Width.Set(-28f, 1f);
 			chamberContainer.Height.Set(410f, 0f);
 			chamberContainer.Left.Set(14f, 0f);
-			chamberContainer.Top.Set(120f, 0f);
-			chamberContainer.BackgroundColor = new Color(10, 14, 26) * 0.96f;
-			chamberContainer.BorderColor = new Color(34, 52, 92) * 0.85f;
+			chamberContainer.Top.Set(102f, 0f);
+			chamberContainer.BackgroundColor = PanelChrome.Tone(new Color(10, 14, 26)) * 0.96f;
+			chamberContainer.BorderColor = PanelChrome.Tone(new Color(34, 52, 92)) * 0.85f;
 			backPanel.Append(chamberContainer);
 
 			Append(backPanel);
@@ -167,9 +156,14 @@ namespace Augments
 			RebuildChamberContent();
 		}
 
+		// Title-screen style glitch on opening and now and then (see PanelGlitch).
+		private readonly PanelGlitch panelGlitch = new PanelGlitch(4);
+
 		public override void Draw(SpriteBatch spriteBatch)
 		{
 			base.Draw(spriteBatch);
+			if (backPanel != null)
+				panelGlitch.Draw(spriteBatch, backPanel.GetDimensions().ToRectangle());
 			particles.Draw(spriteBatch);
 		}
 
@@ -182,7 +176,7 @@ namespace Augments
 				return;
 
 			shownCoreCount = count;
-			essenceLabel?.SetText($"[c/D4B872:Machine Cores:] [c/68C2D8:{count:N0}]");
+			essenceLabel?.SetText(PanelChrome.CoreCounter(count));
 		}
 
 		public void Refresh()
@@ -486,13 +480,7 @@ namespace Augments
 
 		private static Color GetRarityColor(AugmentRarity rarity)
 		{
-			return rarity switch
-			{
-				AugmentRarity.Legendary => new Color(230, 190, 68),  // #E6BE44 Warm Imperial Gold
-				AugmentRarity.Epic => new Color(180, 112, 224),       // #B470E0 Royal Orchid
-				AugmentRarity.Rare => new Color(76, 168, 216),        // #4CA8D8 Cyber Cerulean
-				_ => new Color(184, 196, 212)                         // #B8C4D4 Titanium Silver
-			};
+			return RarityLook.Of(rarity); // the shared tier colours (Epic and Legendary move)
 		}
 
 		// Floating 2.8x pixel art pod preview with sleek holographic emitter pedestal (no square glow box)
@@ -514,7 +502,7 @@ namespace Augments
 
 						// Subtle holographic emitter pedestal line beneath the pod
 						float pedestalY = d.Y + d.Height * 0.5f + 48f;
-						Color pedestalCol = new Color(54, 92, 138) * 0.65f;
+						Color pedestalCol = PanelChrome.Tone(new Color(54, 92, 138)) * 0.65f;
 						spriteBatch.Draw(pixel, new Rectangle((int)center.X - 40, (int)pedestalY, 80, 2), pedestalCol);
 						spriteBatch.Draw(pixel, new Rectangle((int)center.X - 25, (int)pedestalY + 3, 50, 1), pedestalCol * 0.6f);
 
@@ -565,8 +553,8 @@ namespace Augments
 
 						// Sleek pedestal line
 						float pedestalY = center.Y + 46f;
-						spriteBatch.Draw(pixel, new Rectangle((int)center.X - 45, (int)pedestalY, 90, 2), new Color(54, 92, 138) * 0.75f);
-						spriteBatch.Draw(pixel, new Rectangle((int)center.X - 25, (int)pedestalY + 3, 50, 1), new Color(54, 92, 138) * 0.4f);
+						spriteBatch.Draw(pixel, new Rectangle((int)center.X - 45, (int)pedestalY, 90, 2), PanelChrome.Tone(new Color(54, 92, 138)) * 0.75f);
+						spriteBatch.Draw(pixel, new Rectangle((int)center.X - 25, (int)pedestalY + 3, 50, 1), PanelChrome.Tone(new Color(54, 92, 138)) * 0.4f);
 
 						// Draw pod
 						spriteBatch.Draw(tex, podCenter, null, Color.White, 0f, origin, 2.8f, SpriteEffects.None, 0f);
@@ -585,10 +573,10 @@ namespace Augments
 				float barX = center.X - barW * 0.5f;
 				float barY = center.Y + 70f;
 
-				spriteBatch.Draw(pixel, new Rectangle((int)barX, (int)barY, (int)barW, (int)barH), new Color(14, 20, 34));
+				spriteBatch.Draw(pixel, new Rectangle((int)barX, (int)barY, (int)barW, (int)barH), PanelChrome.Tone(new Color(14, 20, 34)));
 				float fillW = barW * MathHelper.Clamp(timer / (float)maxDuration, 0f, 1f);
 				spriteBatch.Draw(pixel, new Rectangle((int)barX, (int)barY, (int)fillW, (int)barH), new Color(76, 168, 216) * 0.9f);
-				DrawBorder(spriteBatch, new Rectangle((int)barX, (int)barY, (int)barW, (int)barH), new Color(42, 68, 108) * 0.85f, 1);
+				DrawBorder(spriteBatch, new Rectangle((int)barX, (int)barY, (int)barW, (int)barH), PanelChrome.Tone(new Color(42, 68, 108)) * 0.85f, 1);
 			}
 
 			private static void DrawBorder(SpriteBatch sb, Rectangle rect, Color col, int th)
@@ -613,7 +601,7 @@ namespace Augments
 				Texture2D pixel = TextureAssets.MagicPixel.Value;
 
 				// Subtle corner crosshair reticle markers [+]
-				Color gridCol = new Color(42, 62, 98) * 0.42f;
+				Color gridCol = PanelChrome.Tone(new Color(42, 62, 98)) * 0.42f;
 				DrawCrosshair(spriteBatch, pixel, new Vector2(rect.X + 22f, rect.Y + 22f), gridCol);
 				DrawCrosshair(spriteBatch, pixel, new Vector2(rect.Right - 22f, rect.Y + 22f), gridCol);
 				DrawCrosshair(spriteBatch, pixel, new Vector2(rect.X + 22f, rect.Bottom - 22f), gridCol);
@@ -628,7 +616,7 @@ namespace Augments
 				string stamp = "YORHA POD // NEURAL SYNTHESIS ARRAY REV 4.2";
 				Vector2 stampSize = ChatManager.GetStringSize(font, stamp, new Vector2(0.64f));
 				Vector2 stampPos = new Vector2(rect.Right - stampSize.X - 28f, rect.Bottom - stampSize.Y - 8f);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, stamp, stampPos, new Color(75, 95, 125) * 0.42f, 0f, Vector2.Zero, new Vector2(0.64f));
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, stamp, stampPos, PanelChrome.Tone(new Color(75, 95, 125)) * 0.42f, 0f, Vector2.Zero, new Vector2(0.64f));
 			}
 
 			private static void DrawCrosshair(SpriteBatch sb, Texture2D pixel, Vector2 pos, Color col)
@@ -667,8 +655,8 @@ namespace Augments
 				float protoPillY = centerY - protoPillH * 0.5f;
 
 				Rectangle protoRect = new Rectangle((int)protoPillX, (int)protoPillY, (int)protoPillW, (int)protoPillH);
-				spriteBatch.Draw(pixel, protoRect, new Color(12, 16, 28) * 0.95f);
-				DrawBorder(spriteBatch, protoRect, new Color(42, 68, 108) * 0.75f, 1);
+				spriteBatch.Draw(pixel, protoRect, PanelChrome.Tone(new Color(12, 16, 28)) * 0.95f);
+				DrawBorder(spriteBatch, protoRect, PanelChrome.Tone(new Color(42, 68, 108)) * 0.75f, 1);
 				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, $"[c/7A9AB8:Protocol:] [c/68C2D8:{protocolName}]", new Vector2(protoPillX + 12f, protoPillY + (protoPillH - protoSize.Y) * 0.5f), Color.White, 0f, Vector2.Zero, new Vector2(0.78f));
 
 				// 2. Right: 4 Sleek Rarity Odds Pills
@@ -686,7 +674,7 @@ namespace Augments
 
 			private static void DrawOddsPill(SpriteBatch sb, Texture2D pixel, DynamicSpriteFont font, Rectangle rect, string tier, string pct, Color textCol, Color borderCol)
 			{
-				sb.Draw(pixel, rect, new Color(12, 16, 28) * 0.95f);
+				sb.Draw(pixel, rect, PanelChrome.Tone(new Color(12, 16, 28)) * 0.95f);
 				DrawBorder(sb, rect, borderCol * 0.85f, 1);
 
 				string label = $"{tier} {pct}";
@@ -717,7 +705,7 @@ namespace Augments
 				this.augment = augment;
 				this.rarityColor = rarityColor;
 				SetPadding(0f);
-				BackgroundColor = new Color(14, 20, 36) * 0.96f;
+				BackgroundColor = PanelChrome.Tone(new Color(14, 20, 36)) * 0.96f;
 				BorderColor = rarityColor * 0.85f;
 
 				// Chip Name
@@ -731,13 +719,7 @@ namespace Augments
 
 				// Rarity & Class pill
 				string rarityLabel = augment.KeystoneFamily != null ? $"[{augment.Rarity.ToString().ToUpper()} CORE OVERRIDE]" : $"[{augment.Rarity.ToString().ToUpper()}]";
-				string rarityHex = augment.Rarity switch
-				{
-					AugmentRarity.Legendary => "E6BE44",
-					AugmentRarity.Epic => "B470E0",
-					AugmentRarity.Rare => "4CA8D8",
-					_ => "B8C4D4"
-				};
+				string rarityHex = RarityLook.Of(augment.Rarity).Hex3();
 
 				var tierLabel = new ColoredLabel($"[c/{rarityHex}:{rarityLabel}]   •   [c/A2B8D0:Class: {augment.Class}]", 0.82f, centerH: false, centerV: true);
 				tierLabel.Left.Set(TextLeft, 0f);
@@ -842,17 +824,17 @@ namespace Augments
 				var font = FontAssets.MouseText.Value;
 
 				float pulse = 0.6f + 0.4f * (float)Math.Sin(Main.timeForVisualEffects * 0.12f);
-				Color bg = isHovered ? new Color(26, 38, 62) : new Color(16, 22, 38);
+				Color bg = isHovered ? PanelChrome.Tone(new Color(26, 38, 62)) : PanelChrome.Tone(new Color(16, 22, 38));
 				Color border = isHovered
-					? new Color(88, 150, 215)
-					: (isPrimary ? Color.Lerp(new Color(42, 66, 102), new Color(76, 120, 178), pulse * 0.5f) : new Color(38, 56, 88));
+					? PanelChrome.Tone(new Color(88, 150, 215))
+					: (isPrimary ? Color.Lerp(PanelChrome.Tone(new Color(42, 66, 102)), PanelChrome.Tone(new Color(76, 120, 178)), pulse * 0.5f) : PanelChrome.Tone(new Color(38, 56, 88)));
 
 				// Main background rect
 				Rectangle rect = new Rectangle((int)d.X, (int)d.Y, (int)d.Width, (int)d.Height);
 				spriteBatch.Draw(pixel, rect, bg * 0.96f);
 
 				// Top bevel highlight line
-				spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, rect.Width, 1), new Color(74, 108, 152) * (isHovered ? 0.6f : 0.35f));
+				spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, rect.Width, 1), PanelChrome.Tone(new Color(74, 108, 152)) * (isHovered ? 0.6f : 0.35f));
 
 				// Clean 1px border
 				int thickness = isHovered ? 2 : 1;
@@ -867,7 +849,7 @@ namespace Augments
 					// Single centered text (e.g. Return to Storage)
 					Vector2 titleSize = ChatManager.GetStringSize(font, titleText, new Vector2(0.86f));
 					Vector2 titlePos = new Vector2(d.X + (d.Width - titleSize.X) * 0.5f, d.Y + (d.Height - titleSize.Y) * 0.5f);
-					Color textCol = isHovered ? Color.White : new Color(175, 195, 220);
+					Color textCol = isHovered ? Color.White : PanelChrome.Tone(new Color(175, 195, 220));
 					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, titleText, titlePos, textCol, 0f, Vector2.Zero, new Vector2(0.86f));
 				}
 				else
@@ -894,7 +876,7 @@ namespace Augments
 					float badgeY = d.Y + (d.Height - badgeH) * 0.5f;
 					Rectangle badgeRect = new Rectangle((int)badgeX, (int)badgeY, (int)badgeW, (int)badgeH);
 
-					spriteBatch.Draw(pixel, badgeRect, new Color(10, 14, 24) * 0.9f);
+					spriteBatch.Draw(pixel, badgeRect, PanelChrome.Tone(new Color(10, 14, 24)) * 0.9f);
 					spriteBatch.Draw(pixel, new Rectangle(badgeRect.X, badgeRect.Y, badgeRect.Width, 1), new Color(212, 184, 114) * 0.4f);
 					spriteBatch.Draw(pixel, new Rectangle(badgeRect.X, badgeRect.Bottom - 1, badgeRect.Width, 1), new Color(212, 184, 114) * 0.4f);
 					spriteBatch.Draw(pixel, new Rectangle(badgeRect.X, badgeRect.Y, 1, badgeRect.Height), new Color(212, 184, 114) * 0.4f);
@@ -915,14 +897,14 @@ namespace Augments
 				this.onClick = onClick;
 
 				SetPadding(0f);
-				BackgroundColor = new Color(18, 24, 44);
-				BorderColor = new Color(42, 64, 102);
+				BackgroundColor = PanelChrome.Tone(new Color(18, 24, 44));
+				BorderColor = PanelChrome.Tone(new Color(42, 64, 102));
 
 				var label = new UIText(text, 0.82f)
 				{
 					HAlign = 0.5f,
 					VAlign = 0.5f,
-					TextColor = new Color(165, 195, 230)
+					TextColor = PanelChrome.Tone(new Color(165, 195, 230))
 				};
 				Append(label);
 			}
@@ -937,13 +919,13 @@ namespace Augments
 			public override void MouseOver(UIMouseEvent evt)
 			{
 				base.MouseOver(evt);
-				BackgroundColor = new Color(28, 38, 70);
+				BackgroundColor = PanelChrome.Tone(new Color(28, 38, 70));
 			}
 
 			public override void MouseOut(UIMouseEvent evt)
 			{
 				base.MouseOut(evt);
-				BackgroundColor = new Color(18, 24, 44);
+				BackgroundColor = PanelChrome.Tone(new Color(18, 24, 44));
 			}
 		}
 

@@ -51,22 +51,16 @@ namespace Augments
 			// Keep the swap-lock readout live while the Loadouts tab is open.
 			if (showLoadouts && Main.GameUpdateCount % 20 == 0 && Main.LocalPlayer != null)
 				RefreshLoadoutView(Main.LocalPlayer.GetModPlayer<AugmentPlayer>());
-
-			if (backPanel != null && Main.rand.NextBool(8))
-			{
-				CalculatedStyle dims = backPanel.GetDimensions();
-				if (dims.Width > 0)
-				{
-					Rectangle rect = new Rectangle((int)dims.X, (int)dims.Y, (int)dims.Width, (int)dims.Height);
-					Color emberCol = Main.rand.NextBool(3) ? new Color(0, 220, 255) : new Color(60, 140, 240);
-					shopParticles.SpawnAmbient(rect, emberCol, 1.8f);
-				}
-			}
 		}
+
+		// Title-screen style glitch on opening and now and then (see PanelGlitch).
+		private readonly PanelGlitch panelGlitch = new PanelGlitch(3);
 
 		public override void Draw(SpriteBatch spriteBatch)
 		{
 			base.Draw(spriteBatch);
+			if (backPanel != null)
+				panelGlitch.Draw(spriteBatch, backPanel.GetDimensions().ToRectangle());
 			shopParticles.Draw(spriteBatch);
 		}
 
@@ -78,8 +72,8 @@ namespace Augments
 			backPanel.HAlign = 0.5f;
 			backPanel.VAlign = 0.5f;
 			backPanel.SetPadding(0f);
-			backPanel.BackgroundColor = new Color(10, 16, 28, 250);
-			backPanel.BorderColor = new Color(30, 41, 59);
+			backPanel.BackgroundColor = PanelChrome.Tone(new Color(10, 16, 28, 250));
+			backPanel.BorderColor = PanelChrome.Tone(new Color(30, 41, 59));
 
 			// Close button (shared across all panels)
 			PanelChrome.AddCloseButton(backPanel, () => ModContent.GetInstance<AugmentUISystem>().HideShop());
@@ -91,24 +85,18 @@ namespace Augments
 			essenceBadge.Left.Set(536f, 0f);
 			essenceBadge.Top.Set(12f, 0f);
 
-			essenceLabel = new ColoredLabel("[c/D4B872:Machine Cores:] [c/68C2D8:0]", 0.82f);
+			essenceLabel = new ColoredLabel(PanelChrome.CoreCounter(0), 0.82f);
 			essenceBadge.Append(essenceLabel);
 			backPanel.Append(essenceBadge);
 
 			// Title Header
-			UIText title = new UIText("Plugin Storage", 1.15f)
-			{
-				HAlign = 0.5f,
-				TextColor = new Color(248, 250, 252)
-			};
-			title.Top.Set(18f, 0f);
-			backPanel.Append(title);
+			backPanel.Append(new PanelTitleTab("Plugin Storage", 36));
 
 			// Subtitle
 			subtitleText = new UIText("Mistress 2B's Archive — Stash or dismantle equipped plugins, re-acquire archived ones", 0.76f)
 			{
 				HAlign = 0.5f,
-				TextColor = new Color(148, 163, 184)
+				TextColor = PanelChrome.Tone(new Color(148, 163, 184))
 			};
 			subtitleText.Top.Set(42f, 0f);
 			backPanel.Append(subtitleText);
@@ -141,7 +129,7 @@ namespace Augments
 			UIText buyBackHeader = new UIText("Stash & Archive", 0.85f)
 			{
 				HAlign = 0f,
-				TextColor = new Color(148, 210, 255)
+				TextColor = PanelChrome.Tone(new Color(148, 210, 255))
 			};
 			buyBackHeader.Left.Set(18f, 0f);
 			buyBackHeader.Top.Set(98f, 0f);
@@ -151,7 +139,7 @@ namespace Augments
 			UIText removeHeader = new UIText("Equipped (Dismantle)", 0.85f)
 			{
 				HAlign = 0f,
-				TextColor = new Color(251, 146, 60)
+				TextColor = MenuLook.Current.Amber
 			};
 			removeHeader.Left.Set(410f, 0f);
 			removeHeader.Top.Set(98f, 0f);
@@ -211,12 +199,12 @@ namespace Augments
 			loadoutView.Width.Set(764f, 0f);
 			loadoutView.Height.Set(420f, 0f);
 
-			lockStatusText = new UIText("", 0.78f) { TextColor = new Color(148, 163, 184) };
+			lockStatusText = new UIText("", 0.78f) { TextColor = PanelChrome.Tone(new Color(148, 163, 184)) };
 			lockStatusText.HAlign = 1f;
 			lockStatusText.Top.Set(4f, 0f);
 			loadoutView.Append(lockStatusText);
 
-			slotInfoText = new UIText("", 0.78f) { TextColor = new Color(148, 163, 184) };
+			slotInfoText = new UIText("", 0.78f) { TextColor = PanelChrome.Tone(new Color(148, 163, 184)) };
 			slotInfoText.Top.Set(4f, 0f);
 			loadoutView.Append(slotInfoText);
 
@@ -235,7 +223,7 @@ namespace Augments
 
 			var help = new UIText("Swaps use your equipped plugins and your stash. Locked during boss fights and briefly after damage.\nArchived plugins are skipped until bought back. Bind hotkeys in Settings > Controls > Mod Controls.", 0.72f)
 			{
-				TextColor = new Color(110, 124, 150)
+				TextColor = PanelChrome.Tone(new Color(110, 124, 150))
 			};
 			help.Top.Set(340f, 0f);
 			loadoutView.Append(help);
@@ -365,7 +353,7 @@ namespace Augments
 				var empty = new UIText("Nothing stashed or archived.\nStashed and dismantled plugins appear here.", 0.8f)
 				{
 					HAlign = 0.5f,
-					TextColor = new Color(130, 145, 175)
+					TextColor = PanelChrome.Tone(new Color(130, 145, 175))
 				};
 				empty.Top.Set(40f, 0f);
 				buyBackList.Add(empty);
@@ -395,7 +383,7 @@ namespace Augments
 				var empty = new UIText("No plugins currently equipped.", 0.8f)
 				{
 					HAlign = 0.5f,
-					TextColor = new Color(130, 145, 175)
+					TextColor = PanelChrome.Tone(new Color(130, 145, 175))
 				};
 				empty.Top.Set(40f, 0f);
 				removeList.Add(empty);
@@ -415,7 +403,7 @@ namespace Augments
 
 			string reason = ap.GetLoadoutLockReason();
 			lockStatusText.SetText("● " + (reason ?? "Swaps ready"));
-			lockStatusText.TextColor = reason == null ? new Color(74, 222, 128) : new Color(248, 180, 100);
+			lockStatusText.TextColor = reason == null ? MenuLook.Current.Ivory : MenuLook.Current.Amber;
 			slotInfoText.SetText($"Slots unlocked: {ap.LoadoutSlotsUnlocked}/{AugmentPlayer.MaxLoadouts}");
 			foreach (var card in loadoutCards)
 				card.Bind(ap);
@@ -451,7 +439,7 @@ namespace Augments
 		private void RefreshEssenceText()
 		{
 			int count = Main.LocalPlayer.CountItem(ModContent.ItemType<AugmentEssenceItem>());
-			essenceLabel?.SetText($"[c/D4B872:Machine Cores:] [c/68C2D8:{count:N0}]");
+			essenceLabel?.SetText(PanelChrome.CoreCounter(count));
 		}
 
 		private void BuyBack(Augment augment)
@@ -492,13 +480,13 @@ namespace Augments
 		private static void DrawFlatButton(SpriteBatch spriteBatch, Rectangle rect, string label, bool hovered, bool active, bool enabled, Color accent)
 		{
 			Texture2D pixel = TextureAssets.MagicPixel.Value;
-			Color bg = !enabled ? new Color(10, 16, 28) * 0.95f
-				: active ? new Color(18, 34, 62)
-				: hovered ? new Color(18, 32, 56) * 0.98f : new Color(12, 22, 40) * 0.94f;
-			Color border = !enabled ? new Color(30, 42, 60)
+			Color bg = !enabled ? PanelChrome.Tone(new Color(10, 16, 28)) * 0.95f
+				: active ? PanelChrome.Tone(new Color(18, 34, 62))
+				: hovered ? PanelChrome.Tone(new Color(18, 32, 56)) * 0.98f : PanelChrome.Tone(new Color(12, 22, 40)) * 0.94f;
+			Color border = !enabled ? PanelChrome.Tone(new Color(30, 42, 60))
 				: active ? accent
-				: hovered ? accent * 0.9f : new Color(30, 58, 92);
-			Color textColor = !enabled ? new Color(100, 116, 139) : (hovered || active) ? Color.White : new Color(220, 235, 250);
+				: hovered ? accent * 0.9f : PanelChrome.Tone(new Color(30, 58, 92));
+			Color textColor = !enabled ? PanelChrome.Tone(new Color(100, 116, 139)) : (hovered || active) ? Color.White : PanelChrome.Tone(new Color(220, 235, 250));
 
 			if (hovered && enabled)
 				spriteBatch.Draw(pixel, new Rectangle(rect.X - 1, rect.Y - 1, rect.Width + 2, rect.Height + 2), border * 0.12f);
@@ -554,7 +542,7 @@ namespace Augments
 			protected override void DrawSelf(SpriteBatch spriteBatch)
 			{
 				CalculatedStyle d = GetDimensions();
-				DrawFlatButton(spriteBatch, new Rectangle((int)d.X, (int)d.Y, (int)d.Width, (int)d.Height), label, isHovered, IsActive, true, new Color(56, 189, 248));
+				DrawFlatButton(spriteBatch, new Rectangle((int)d.X, (int)d.Y, (int)d.Width, (int)d.Height), label, isHovered, IsActive, true, PanelChrome.Tone(new Color(56, 189, 248)));
 			}
 		}
 
@@ -563,7 +551,7 @@ namespace Augments
 			public event Action Clicked;
 			public string Label = "";
 			public bool Enabled = true;
-			public Color Accent = new Color(56, 189, 248);
+			public Color Accent = PanelChrome.Tone(new Color(56, 189, 248));
 			private bool isHovered;
 
 			public override void LeftClick(UIMouseEvent evt)
@@ -622,7 +610,7 @@ namespace Augments
 				saveBtn.Clicked += onSave;
 				Append(saveBtn);
 
-				applyBtn = new ShopButton { Label = "Apply", Accent = new Color(74, 222, 128) };
+				applyBtn = new ShopButton { Label = "Apply", Accent = PanelChrome.Accent };
 				applyBtn.Left.Set(12f, 0f);
 				applyBtn.Top.Set(244f, 0f);
 				applyBtn.Width.Set(-24f, 1f);
@@ -630,7 +618,7 @@ namespace Augments
 				applyBtn.Clicked += onApply;
 				Append(applyBtn);
 
-				buyBtn = new ShopButton { Label = "Unlock", Accent = new Color(250, 204, 21) };
+				buyBtn = new ShopButton { Label = "Unlock", Accent = MenuLook.Current.Amber };
 				buyBtn.Left.Set(12f, 0f);
 				buyBtn.Top.Set(244f, 0f);
 				buyBtn.Width.Set(-24f, 1f);
@@ -672,9 +660,9 @@ namespace Augments
 				CalculatedStyle d = GetDimensions();
 				var rect = new Rectangle((int)d.X, (int)d.Y, (int)d.Width, (int)d.Height);
 				Texture2D pixel = TextureAssets.MagicPixel.Value;
-				Color accent = isActive ? new Color(56, 189, 248) : unlocked ? new Color(30, 41, 59) : new Color(120, 48, 56);
+				Color accent = isActive ? PanelChrome.Tone(new Color(56, 189, 248)) : unlocked ? PanelChrome.Tone(new Color(30, 41, 59)) : MenuLook.Current.Muted * 0.6f;
 
-				spriteBatch.Draw(pixel, rect, new Color(10, 16, 28) * 0.94f);
+				spriteBatch.Draw(pixel, rect, PanelChrome.Tone(new Color(10, 16, 28)) * 0.94f);
 				Color hair = Color.White * 0.04f;
 				spriteBatch.Draw(pixel, new Rectangle(rect.X + 1, rect.Y + 1, rect.Width - 2, 1), hair);
 				spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, rect.Width, 1), accent);
@@ -683,12 +671,12 @@ namespace Augments
 				spriteBatch.Draw(pixel, new Rectangle(rect.Right - 1, rect.Y, 1, rect.Height), accent);
 
 				var font = FontAssets.MouseText.Value;
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, $"Loadout {slot + 1}", new Vector2(rect.X + 12f, rect.Y + 10f), new Color(248, 250, 252), 0f, Vector2.Zero, new Vector2(0.9f));
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, $"Loadout {slot + 1}", new Vector2(rect.X + 12f, rect.Y + 10f), MenuLook.Current.Ivory, 0f, Vector2.Zero, new Vector2(0.9f));
 
 				string status = !unlocked ? "Locked" : isActive ? "Active" : chipIds.Count == 0 ? "Empty" : $"{chipIds.Count} plugin{(chipIds.Count == 1 ? "" : "s")}";
-				Color statusCol = !unlocked ? new Color(250, 204, 21) : isActive ? new Color(56, 189, 248) : new Color(148, 163, 184);
+				Color statusCol = !unlocked ? MenuLook.Current.Amber : isActive ? PanelChrome.Tone(new Color(56, 189, 248)) : PanelChrome.Tone(new Color(148, 163, 184));
 				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, status, new Vector2(rect.X + 12f, rect.Y + 32f), statusCol, 0f, Vector2.Zero, new Vector2(0.72f));
-				spriteBatch.Draw(pixel, new Rectangle(rect.X + 12, rect.Y + 56, rect.Width - 24, 1), new Color(30, 41, 59));
+				spriteBatch.Draw(pixel, new Rectangle(rect.X + 12, rect.Y + 56, rect.Width - 24, 1), PanelChrome.Tone(new Color(30, 41, 59)));
 
 				// Five slot rows show the capacity; filled rows carry a rarity-colored edge.
 				for (int row = 0; row < 5; row++)
@@ -697,21 +685,21 @@ namespace Augments
 					Augment a = unlocked && row < chipIds.Count ? AugmentDatabase.GetById(chipIds[row]) : null;
 					if (a == null)
 					{
-						spriteBatch.Draw(pixel, r, new Color(8, 13, 24) * (unlocked ? 0.9f : 0.6f));
-						Color edge = new Color(22, 32, 50) * (unlocked ? 1f : 0.6f);
+						spriteBatch.Draw(pixel, r, PanelChrome.Tone(new Color(8, 13, 24)) * (unlocked ? 0.9f : 0.6f));
+						Color edge = PanelChrome.Tone(new Color(22, 32, 50)) * (unlocked ? 1f : 0.6f);
 						spriteBatch.Draw(pixel, new Rectangle(r.X, r.Y, r.Width, 1), edge);
 						spriteBatch.Draw(pixel, new Rectangle(r.X, r.Bottom - 1, r.Width, 1), edge);
 						spriteBatch.Draw(pixel, new Rectangle(r.X, r.Y, 1, r.Height), edge);
 						spriteBatch.Draw(pixel, new Rectangle(r.Right - 1, r.Y, 1, r.Height), edge);
-						ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, (row + 1).ToString(), new Vector2(r.X + 9f, r.Y + 5f), new Color(55, 68, 92), 0f, Vector2.Zero, new Vector2(0.68f));
+						ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, (row + 1).ToString(), new Vector2(r.X + 9f, r.Y + 5f), PanelChrome.Tone(new Color(55, 68, 92)), 0f, Vector2.Zero, new Vector2(0.68f));
 						continue;
 					}
 
 					bool here = available.Contains(chipIds[row]);
-					Color rc = a.Rarity == AugmentRarity.Common ? new Color(225, 230, 240) : AugmentListEntry.RarityColor(a.Rarity);
-					spriteBatch.Draw(pixel, r, new Color(16, 26, 44) * 0.95f);
-					spriteBatch.Draw(pixel, new Rectangle(r.X, r.Y, 3, r.Height), here ? rc : new Color(70, 82, 104));
-					Color col = here ? rc : new Color(100, 116, 139);
+					Color rc = a.Rarity == AugmentRarity.Common ? RarityLook.Common : AugmentListEntry.RarityColor(a.Rarity);
+					spriteBatch.Draw(pixel, r, PanelChrome.Tone(new Color(16, 26, 44)) * 0.95f);
+					spriteBatch.Draw(pixel, new Rectangle(r.X, r.Y, 3, r.Height), here ? rc : PanelChrome.Tone(new Color(70, 82, 104)));
+					Color col = here ? rc : PanelChrome.Tone(new Color(100, 116, 139));
 					string tag = equipped.Contains(chipIds[row]) ? "" : here ? "  (stash)" : "  (archived)";
 					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, a.DisplayName + tag, new Vector2(r.X + 11f, r.Y + 5f), col, 0f, Vector2.Zero, new Vector2(0.72f));
 				}
@@ -719,12 +707,12 @@ namespace Augments
 				if (!unlocked)
 				{
 					Vector2 sz = ChatManager.GetStringSize(font, "Locked slot", new Vector2(0.8f));
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "Locked slot", new Vector2(rect.X + (rect.Width - sz.X) * 0.5f, rect.Y + 66f + 52f - sz.Y * 0.5f + 4f), new Color(250, 204, 21) * 0.8f, 0f, Vector2.Zero, new Vector2(0.8f));
+					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "Locked slot", new Vector2(rect.X + (rect.Width - sz.X) * 0.5f, rect.Y + 66f + 52f - sz.Y * 0.5f + 4f), MenuLook.Current.Amber * 0.8f, 0f, Vector2.Zero, new Vector2(0.8f));
 				}
 				else if (chipIds.Count == 0)
 				{
 					Vector2 sz = ChatManager.GetStringSize(font, "Nothing saved yet", new Vector2(0.74f));
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "Nothing saved yet", new Vector2(rect.X + (rect.Width - sz.X) * 0.5f, rect.Y + 66f + 52f - sz.Y * 0.5f + 4f), new Color(130, 145, 175), 0f, Vector2.Zero, new Vector2(0.74f));
+					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "Nothing saved yet", new Vector2(rect.X + (rect.Width - sz.X) * 0.5f, rect.Y + 66f + 52f - sz.Y * 0.5f + 4f), PanelChrome.Tone(new Color(130, 145, 175)), 0f, Vector2.Zero, new Vector2(0.74f));
 				}
 			}
 		}
@@ -739,14 +727,14 @@ namespace Augments
 
 				CalculatedStyle dims = GetDimensions();
 				Texture2D pixel = TextureAssets.MagicPixel.Value;
-				Color divColor = new Color(30, 41, 59) * 0.90f;
+				Color divColor = PanelChrome.Tone(new Color(30, 41, 59)) * 0.90f;
 				Rectangle bRect = dims.ToRectangle();
 
 				PanelChrome.DrawFrame(spriteBatch, bRect);
 
 				// Faint radar watermark
 				Vector2 center = new Vector2(bRect.X + bRect.Width * 0.5f, bRect.Y + bRect.Height * 0.58f);
-				Color watermarkCol = new Color(56, 189, 248) * 0.04f;
+				Color watermarkCol = PanelChrome.Tone(new Color(56, 189, 248)) * 0.04f;
 				foreach (float radius in new[] { 60f, 130f, 200f })
 				{
 					const int segments = 36;
@@ -763,7 +751,7 @@ namespace Augments
 				int divY1 = (int)dims.Y + 66;
 				spriteBatch.Draw(pixel, new Rectangle((int)dims.X + 18, divY1, (int)dims.Width - 36, 1), divColor);
 				int nodeX = bRect.X + bRect.Width / 2;
-				spriteBatch.Draw(pixel, new Rectangle(nodeX - 1, divY1 - 1, 3, 3), new Color(56, 189, 248) * 0.85f);
+				spriteBatch.Draw(pixel, new Rectangle(nodeX - 1, divY1 - 1, 3, 3), PanelChrome.Tone(new Color(56, 189, 248)) * 0.85f);
 				spriteBatch.Draw(pixel, new Rectangle(nodeX, divY1, 1, 1), Color.White * 0.9f);
 
 				if (!ShowColumns)
@@ -869,15 +857,15 @@ namespace Augments
 
 				if (!enabled)
 				{
-					bg = new Color(10, 16, 28) * 0.95f;
-					border = new Color(30, 42, 60);
-					textColor = new Color(120, 130, 150);
+					bg = PanelChrome.Tone(new Color(10, 16, 28)) * 0.95f;
+					border = PanelChrome.Tone(new Color(30, 42, 60));
+					textColor = PanelChrome.Tone(new Color(120, 130, 150));
 				}
 				else
 				{
-					bg = isHovered ? new Color(18, 32, 56) * 0.98f : new Color(12, 22, 40) * 0.94f;
-					border = isHovered ? new Color(56, 189, 248) : new Color(30, 58, 92);
-					textColor = isHovered ? Color.White : new Color(220, 235, 250);
+					bg = isHovered ? PanelChrome.Tone(new Color(18, 32, 56)) * 0.98f : PanelChrome.Tone(new Color(12, 22, 40)) * 0.94f;
+					border = isHovered ? PanelChrome.Tone(new Color(56, 189, 248)) : PanelChrome.Tone(new Color(30, 58, 92));
+					textColor = isHovered ? Color.White : PanelChrome.Tone(new Color(220, 235, 250));
 				}
 
 				if (isHovered && enabled)

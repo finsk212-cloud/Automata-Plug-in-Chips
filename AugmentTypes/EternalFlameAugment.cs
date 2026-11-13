@@ -11,7 +11,7 @@ namespace Augments
         public override string Description =>
             $"Permanently immune to fire-based debuffs (On Fire!, Hellfire, Cursed Inferno, Shadowflame, Burning). " +
             $"Each time one would have been applied, gain {AugmentText.BonusDamage("+15% magic damage")} " +
-            $"for {AugmentText.Duration("4s")} instead.";
+            $"for {AugmentText.Duration("4 seconds")} instead.";
 
         public override AugmentRarity Rarity => AugmentRarity.Rare;
         public override AugmentClass Class => AugmentClass.Magic;

@@ -11,7 +11,10 @@ namespace Augments
 		public override bool RunsKillHookOnKillerClient => true;
 		public override string DisplayName => "Trophy Hunter";
 		public override string Description =>
-			$"The first melee kill against each unique enemy type permanently grants {AugmentText.BonusDamage("+0.25% melee damage")}.\n" +
+			$"The first melee kill against each unique enemy type permanently grants {AugmentText.BonusDamage("+0.25% melee damage")}.";
+
+		public override string GetDetailedDescription(Player player) =>
+			Description + "\n" +
 			AugmentText.Note("(Permanent bonus with no stack cap.)");
 
 		public override AugmentRarity Rarity => AugmentRarity.Epic;

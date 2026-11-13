@@ -108,7 +108,7 @@ namespace Augments
             Texture2D pixel = TextureAssets.MagicPixel.Value;
 
             // 1. Sleek high-tech dark navy background
-            Color bgNavy = new Color(10, 16, 28) * 0.90f;
+            Color bgNavy = PanelChrome.Tone(new Color(10, 16, 28)) * 0.90f;
             spriteBatch.Draw(pixel, boxRect, bgNavy);
 
             // 2. Bottom-up translucent charge fill
@@ -283,14 +283,14 @@ namespace Augments
             spriteBatch.Draw(pixel, new Rectangle(boxRect.X - 2, boxRect.Y - 2, boxRect.Width + 4, boxRect.Height + 4), new Color(0, 0, 0, 160));
 
             // 2. High-tech cyber navy background fill (#0A101C)
-            Color bgNavy = new Color(10, 16, 28, 248);
+            Color bgNavy = PanelChrome.Tone(new Color(10, 16, 28, 248));
             spriteBatch.Draw(pixel, boxRect, bgNavy);
 
             // 3. Subtle ambient accent underglow
             spriteBatch.Draw(pixel, boxRect, accentColor * 0.045f);
 
             // 4. 1px outer border tinted with accent
-            Color outerBorder = Color.Lerp(new Color(30, 41, 59), accentColor, 0.40f) * 0.90f;
+            Color outerBorder = Color.Lerp(PanelChrome.Tone(new Color(30, 41, 59)), accentColor, 0.40f) * 0.90f;
             spriteBatch.Draw(pixel, new Rectangle(boxRect.X, boxRect.Y, boxRect.Width, 1), outerBorder);
             spriteBatch.Draw(pixel, new Rectangle(boxRect.X, boxRect.Bottom - 1, boxRect.Width, 1), outerBorder);
             spriteBatch.Draw(pixel, new Rectangle(boxRect.X, boxRect.Y, 1, boxRect.Height), outerBorder);

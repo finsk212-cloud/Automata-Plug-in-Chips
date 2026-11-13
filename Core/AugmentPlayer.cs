@@ -1031,17 +1031,34 @@ namespace Augments
 			LastReforgeCost = 0;
 		}
 
-		public bool TryTriggerCleanseServer()
+		public const int CleanseCooldownTicks = 900; // 15s
+
+		// ownerDebuffs: the owner's own debuffs as they were before their game removed them (type -> ticks left).
+		public bool TryTriggerCleanseServer(System.Collections.Generic.Dictionary<int, int> ownerDebuffs = null)
 		{
 			if (Main.netMode == NetmodeID.MultiplayerClient || !HasAugment("cleanse") || CleanseCooldown > 0 || Player.dead)
 				return false;
 
-			CleanseCooldown = 1800;
+			CleanseCooldown = CleanseCooldownTicks;
+
+			// Everything cleansed off the team is collected first, then thrown at the enemies around the owner.
+			var pool = new System.Collections.Generic.Dictionary<int, int>();
+			if (ownerDebuffs != null)
+			{
+				foreach (var kv in ownerDebuffs)
+					pool[kv.Key] = kv.Value;
+			}
+
 			foreach (Player target in Main.player)
 			{
-				if (SupportEffects.IsAllyInRange(Player, target, SupportEffects.AuraRadius, includeOwner: true))
-					SupportEffects.ServerClearDebuffs(target);
+				if (!SupportEffects.IsAllyInRange(Player, target, SupportEffects.AuraRadius, includeOwner: true))
+					continue;
+
+				SupportEffects.CollectCleansableDebuffs(target, pool);
+				SupportEffects.ServerClearDebuffs(target);
 			}
+
+			SupportEffects.ThrowDebuffsAtEnemies(Player, pool);
 
 			if (Main.netMode == NetmodeID.Server)
 				AugmentNet.SendSyncPlayer(Player);
@@ -1660,7 +1677,7 @@ namespace Augments
 
 			if (HasAugment("cleanse") && CleanseCooldown == 0 && Augments.CleanseKeybind?.JustPressed == true && !isTyping)
 			{
-				CleanseCooldown = 1800;
+				CleanseCooldown = CleanseCooldownTicks;
 				SoundEngine.PlaySound(SoundID.Item4, Player.Center);
 				for (int i = 0; i < 25; i++)
 				{
@@ -1668,6 +1685,10 @@ namespace Augments
 					Dust d = Dust.NewDustDirect(Player.position, Player.width, Player.height, DustID.PurificationPowder, speed.X, speed.Y);
 					d.noGravity = true;
 				}
+
+				// Remember what is being removed: it is thrown at the nearby enemies afterwards.
+				var removedDebuffs = new System.Collections.Generic.Dictionary<int, int>();
+				SupportEffects.CollectCleansableDebuffs(Player, removedDebuffs);
 
 				bool removedAny = false;
 				for (int i = Player.buffType.Length - 1; i >= 0; i--)
@@ -1685,13 +1706,23 @@ namespace Augments
 
 				if (Main.netMode == NetmodeID.SinglePlayer)
 				{
-					TryTriggerCleanseServer();
+					TryTriggerCleanseServer(removedDebuffs);
 				}
 				else if (Main.netMode == NetmodeID.MultiplayerClient)
 				{
 					NetMessage.SendData(MessageID.PlayerBuffs, -1, -1, null, Player.whoAmI);
 					ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
 					packet.Write((byte)AugmentPacketType.CleanseRequest);
+					int sent = Math.Min(removedDebuffs.Count, 32);
+					packet.Write((byte)sent);
+					int written = 0;
+					foreach (var kv in removedDebuffs)
+					{
+						if (written++ >= sent)
+							break;
+						packet.Write((ushort)kv.Key);
+						packet.Write(kv.Value);
+					}
 					packet.Send();
 				}
 			}
@@ -1722,6 +1753,18 @@ namespace Augments
 
 			if (HasAugment("blade_dance") && Augments.BladeDanceKeybind?.JustPressed == true && !isTyping && !Player.dead)
 				BladeDanceAugment.TryActivate(Player);
+
+			if (HasAugment("danger_close") && Augments.DangerCloseKeybind?.JustPressed == true && !isTyping && !Player.dead)
+				DangerCloseAugment.TryActivate(Player);
+
+			if (HasAugment("discount_rod") && Augments.DiscountRodKeybind?.JustPressed == true && !isTyping && !Player.dead)
+				DiscountRodAugment.TryActivate(Player);
+
+			if (HasAugment("long_distance_relationship") && Augments.LongDistanceKeybind?.JustPressed == true && !isTyping && !Player.dead)
+				LongDistanceRelationshipAugment.TryActivate(Player);
+
+			if (HasAugment("run_as_administrator") && Augments.AdminKeybind?.JustPressed == true && !isTyping && !Player.dead)
+				RunAsAdministratorAugment.TryActivate(Player);
 
 			if (HasAugment("reforgers_patience") && Augments.UndoReforgeKeybind?.JustPressed == true)
 			{
@@ -1772,6 +1815,10 @@ namespace Augments
 			ChronobreakCooldown = 0;
 			GetOverHereCooldown = 0;
 			BladeDanceAugment.ResetCooldown(Player);
+			DangerCloseAugment.ResetCooldown(Player);
+			DiscountRodAugment.ResetCooldown(Player);
+			LongDistanceRelationshipAugment.ResetCooldown(Player);
+			RunAsAdministratorAugment.ResetCooldown(Player);
 			LastRitesCooldown = 0;
 			LifelineCooldown = 0;
 			soulLinkRequestCooldown = 0;
@@ -2279,6 +2326,12 @@ namespace Augments
 				a.ModifyWeaponCrit(Player, item, ref crit);
 		}
 
+		public override void ModifyItemScale(Item item, ref float scale)
+		{
+			foreach (var a in Owned)
+				a.ModifyItemScale(Player, item, ref scale);
+		}
+
 		public override void GetHealLife(Item item, bool quickHeal, ref int healValue)
 		{
 			foreach (var a in Owned)
@@ -2377,6 +2430,12 @@ namespace Augments
 			if (Main.netMode != NetmodeID.Server && Player.whoAmI == Main.myPlayer)
 			{
 				if (ModContent.GetInstance<AugmentUISystem>()?.IsPlayerInputBlocked() == true)
+					return false;
+			}
+
+			foreach (var a in Owned)
+			{
+				if (!a.CanUseItem(Player, item))
 					return false;
 			}
 

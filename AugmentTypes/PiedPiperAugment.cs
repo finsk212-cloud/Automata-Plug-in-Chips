@@ -14,7 +14,7 @@ namespace Augments
         public override string Id => "pied_piper";
         public override string DisplayName => "Pied Piper";
         public override string Description =>
-            $"While you have an active minion, gain {AugmentText.Defense("25% damage reduction")} for {AugmentText.Duration("3s")} every {AugmentText.Cooldown("8s")}.";
+            $"While you have an active minion, gain {AugmentText.Defense("25% damage reduction")} for {AugmentText.Duration("3 seconds")} every {AugmentText.Cooldown("8 seconds")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Summon;

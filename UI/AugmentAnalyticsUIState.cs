@@ -75,23 +75,17 @@ namespace Augments
 			backPanel.Height.Set(PanelHeight, 0f);
 			backPanel.HAlign = 0.5f;
 			backPanel.VAlign = 0.5f;
-			backPanel.BackgroundColor = new Color(10, 16, 28, 250);
-			backPanel.BorderColor = new Color(30, 41, 59);
+			backPanel.BackgroundColor = PanelChrome.Tone(new Color(10, 16, 28, 250));
+			backPanel.BorderColor = PanelChrome.Tone(new Color(30, 41, 59));
 			Append(backPanel);
 
 			// 2. Title & Subtitle Header (Cleanly separated at Y = 12 & Y = 38)
-			UIText titleText = new UIText("COMBAT ANALYTICS & TELEMETRY", 1.05f)
-			{
-				HAlign = 0.5f,
-				TextColor = new Color(248, 250, 252)
-			};
-			titleText.Top.Set(14f, 0f);
-			backPanel.Append(titleText);
+			backPanel.Append(new PanelTitleTab("Combat Analytics", 34));
 
 			UIText subtitle = new UIText("Real-time neural telemetry and plugin performance metrics", 0.74f)
 			{
 				HAlign = 0.5f,
-				TextColor = new Color(148, 163, 184)
+				TextColor = PanelChrome.Tone(new Color(148, 163, 184))
 			};
 			subtitle.Top.Set(38f, 0f);
 			backPanel.Append(subtitle);
@@ -103,7 +97,7 @@ namespace Augments
 			float barTop = 76f;
 			float barHeight = 28f;
 
-			modeButton = new AnalyticsActionButton("Mode: Last 10 Mins", new Color(56, 189, 248), new Color(10, 16, 28));
+			modeButton = new AnalyticsActionButton("Mode: Last 10 Mins", PanelChrome.Tone(new Color(56, 189, 248)), PanelChrome.Tone(new Color(10, 16, 28)));
 			modeButton.Left.Set(20f, 0f);
 			modeButton.Top.Set(barTop, 0f);
 			modeButton.Width.Set(175f, 0f);
@@ -118,7 +112,7 @@ namespace Augments
 			};
 			backPanel.Append(modeButton);
 
-			pauseButton = new AnalyticsActionButton("Pause Feed", new Color(250, 204, 21), new Color(10, 16, 28));
+			pauseButton = new AnalyticsActionButton("Pause Feed", new Color(250, 204, 21), PanelChrome.Tone(new Color(10, 16, 28)));
 			pauseButton.Left.Set(203f, 0f);
 			pauseButton.Top.Set(barTop, 0f);
 			pauseButton.Width.Set(105f, 0f);
@@ -130,7 +124,7 @@ namespace Augments
 			};
 			backPanel.Append(pauseButton);
 
-			resetButton = new AnalyticsActionButton("Reset Data", new Color(248, 113, 113), new Color(10, 16, 28));
+			resetButton = new AnalyticsActionButton("Reset Data", new Color(248, 113, 113), PanelChrome.Tone(new Color(10, 16, 28)));
 			resetButton.Left.Set(316f, 0f);
 			resetButton.Top.Set(barTop, 0f);
 			resetButton.Width.Set(95f, 0f);
@@ -143,7 +137,7 @@ namespace Augments
 			};
 			backPanel.Append(resetButton);
 
-			filterButton = new AnalyticsActionButton("Filters", new Color(168, 85, 247), new Color(10, 16, 28));
+			filterButton = new AnalyticsActionButton("Filters", new Color(168, 85, 247), PanelChrome.Tone(new Color(10, 16, 28)));
 			filterButton.Left.Set(419f, 0f);
 			filterButton.Top.Set(barTop, 0f);
 			filterButton.Width.Set(120f, 0f);
@@ -214,23 +208,23 @@ namespace Augments
 			float cardWidth = 156f;
 
 			// Card 1: Live DPS (Left = 20f, ends at 176f)
-			var dpsCard = CreateSingleCard(20f, cardTop, cardWidth, cardHeight, new Color(74, 222, 128), "LIVE DPS (3S)", PinnedStatType.LiveDPS, out dpsValueText);
+			var dpsCard = CreateSingleCard(20f, cardTop, cardWidth, cardHeight, PanelChrome.StatAccent(PinnedStatType.LiveDPS), "LIVE DPS (3S)", PinnedStatType.LiveDPS, out dpsValueText);
 			backPanel.Append(dpsCard);
 
 			// Card 2: Total Damage (Left = 186f, ends at 342f)
-			var dmgCard = CreateSingleCard(186f, cardTop, cardWidth, cardHeight, new Color(56, 189, 248), "RECORDED DAMAGE", PinnedStatType.TotalDamage, out totalDmgValueText);
+			var dmgCard = CreateSingleCard(186f, cardTop, cardWidth, cardHeight, PanelChrome.StatAccent(PinnedStatType.TotalDamage), "RECORDED DAMAGE", PinnedStatType.TotalDamage, out totalDmgValueText);
 			backPanel.Append(dmgCard);
 
 			// Card 3: Damage Blocked (Left = 352f, ends at 508f)
-			var blockCard = CreateSingleCard(352f, cardTop, cardWidth, cardHeight, new Color(52, 211, 153), "DAMAGE BLOCKED", PinnedStatType.DamageBlocked, out blockedValueText);
+			var blockCard = CreateSingleCard(352f, cardTop, cardWidth, cardHeight, PanelChrome.StatAccent(PinnedStatType.DamageBlocked), "DAMAGE BLOCKED", PinnedStatType.DamageBlocked, out blockedValueText);
 			backPanel.Append(blockCard);
 
 			// Card 4: Combat Time (Left = 518f, ends at 674f)
-			var durCard = CreateSingleCard(518f, cardTop, cardWidth, cardHeight, new Color(192, 132, 252), "COMBAT TIME", PinnedStatType.CombatTime, out durationValueText);
+			var durCard = CreateSingleCard(518f, cardTop, cardWidth, cardHeight, PanelChrome.StatAccent(PinnedStatType.CombatTime), "COMBAT TIME", PinnedStatType.CombatTime, out durationValueText);
 			backPanel.Append(durCard);
 
 			// Card 5: Hits & Crits Summary (Left = 684f, ends at 840f - exactly 20px buffer from right edge!)
-			var hitsCard = CreateSingleCard(684f, cardTop, cardWidth, cardHeight, new Color(250, 204, 21), "HITS & CRIT RATE", PinnedStatType.HitsAndCrits, out hitsValueText);
+			var hitsCard = CreateSingleCard(684f, cardTop, cardWidth, cardHeight, PanelChrome.StatAccent(PinnedStatType.HitsAndCrits), "HITS & CRIT RATE", PinnedStatType.HitsAndCrits, out hitsValueText);
 			backPanel.Append(hitsCard);
 		}
 
@@ -242,7 +236,7 @@ namespace Augments
 			card.Width.Set(width, 0f);
 			card.Height.Set(height, 0f);
 			card.SetPadding(0f);
-			card.BackgroundColor = new Color(10, 16, 28, 245);
+			card.BackgroundColor = PanelChrome.Tone(new Color(10, 16, 28, 245));
 			card.BorderColor = accent * 0.55f;
 
 			UIText labelText = new UIText(label, 0.58f)
@@ -250,7 +244,7 @@ namespace Augments
 				Left = new StyleDimension(8f, 0f),
 				Top = new StyleDimension(6f, 0f),
 				HAlign = 0f,
-				TextColor = new Color(148, 163, 184)
+				TextColor = PanelChrome.Tone(new Color(148, 163, 184))
 			};
 			card.Append(labelText);
 
@@ -314,8 +308,8 @@ namespace Augments
 				}
 				else
 				{
-					BackgroundColor = isHovered ? new Color(28, 38, 68) : new Color(16, 22, 40);
-					BorderColor = isHovered ? Color.White * 0.8f : new Color(42, 58, 92);
+					BackgroundColor = isHovered ? PanelChrome.Tone(new Color(28, 38, 68)) : PanelChrome.Tone(new Color(16, 22, 40));
+					BorderColor = isHovered ? Color.White * 0.8f : PanelChrome.Tone(new Color(42, 58, 92));
 				}
 
 				base.DrawSelf(spriteBatch);
@@ -324,8 +318,8 @@ namespace Augments
 				int cx = (int)dims.X + 8;
 				int cy = (int)dims.Y + 8;
 
-				Color headCol = isPinned ? new Color(255, 215, 75) : (isHovered ? Color.White : new Color(160, 180, 210));
-				Color needleCol = isPinned ? new Color(255, 245, 200) : new Color(210, 225, 245);
+				Color headCol = isPinned ? new Color(255, 215, 75) : (isHovered ? Color.White : PanelChrome.Tone(new Color(160, 180, 210)));
+				Color needleCol = isPinned ? new Color(255, 245, 200) : PanelChrome.Tone(new Color(210, 225, 245));
 				Color shadowCol = new Color(0, 0, 0, 160);
 
 				// 1px Drop Shadow for 3D depth
@@ -418,13 +412,13 @@ namespace Augments
 			header.Width.Set(820f, 0f);
 			header.Height.Set(26f, 0f);
 			header.SetPadding(0f);
-			header.BackgroundColor = new Color(14, 23, 38, 240);
-			header.BorderColor = new Color(30, 41, 59);
+			header.BackgroundColor = PanelChrome.Tone(new Color(14, 23, 38, 240));
+			header.BorderColor = PanelChrome.Tone(new Color(30, 41, 59));
 
-			var col1 = new UIText("PLUGIN / DAMAGE SOURCE", 0.70f) { Top = new StyleDimension(5f, 0f), Left = new StyleDimension(14f, 0f), TextColor = new Color(148, 163, 184) };
-			var col2 = new UIText("HITS & CRITS", 0.70f) { Top = new StyleDimension(5f, 0f), Left = new StyleDimension(325f, 0f), TextColor = new Color(148, 163, 184) };
-			var col3 = new UIText("MAX HIT", 0.70f) { Top = new StyleDimension(5f, 0f), Left = new StyleDimension(495f, 0f), TextColor = new Color(148, 163, 184) };
-			var col4 = new UIText("DAMAGE (% SHARE)", 0.70f) { Top = new StyleDimension(5f, 0f), Left = new StyleDimension(625f, 0f), TextColor = new Color(148, 163, 184) };
+			var col1 = new UIText("PLUGIN / DAMAGE SOURCE", 0.70f) { Top = new StyleDimension(5f, 0f), Left = new StyleDimension(14f, 0f), TextColor = PanelChrome.Tone(new Color(148, 163, 184)) };
+			var col2 = new UIText("HITS & CRITS", 0.70f) { Top = new StyleDimension(5f, 0f), Left = new StyleDimension(325f, 0f), TextColor = PanelChrome.Tone(new Color(148, 163, 184)) };
+			var col3 = new UIText("MAX HIT", 0.70f) { Top = new StyleDimension(5f, 0f), Left = new StyleDimension(495f, 0f), TextColor = PanelChrome.Tone(new Color(148, 163, 184)) };
+			var col4 = new UIText("DAMAGE (% SHARE)", 0.70f) { Top = new StyleDimension(5f, 0f), Left = new StyleDimension(625f, 0f), TextColor = PanelChrome.Tone(new Color(148, 163, 184)) };
 
 			header.Append(col1);
 			header.Append(col2);
@@ -576,17 +570,6 @@ namespace Augments
 
 			particles.Update();
 
-			if (backPanel != null && Main.rand.NextBool(6))
-			{
-				CalculatedStyle dims = backPanel.GetDimensions();
-				if (dims.Width > 0)
-				{
-					Rectangle rect = new Rectangle((int)dims.X, (int)dims.Y, (int)dims.Width, (int)dims.Height);
-					Color emberCol = Main.rand.NextBool(2) ? new Color(56, 189, 248) : new Color(96, 165, 250);
-					particles.SpawnAmbient(rect, emberCol, 1.6f);
-				}
-			}
-
 			// Live metrics updates
 			float dps = AugmentDamageTracker.GetCurrentDPS();
 			if (dpsValueText != null)
@@ -639,9 +622,14 @@ namespace Augments
 			}
 		}
 
+		// Title-screen style glitch on opening and now and then (see PanelGlitch).
+		private readonly PanelGlitch panelGlitch = new PanelGlitch(2);
+
 		public override void Draw(SpriteBatch spriteBatch)
 		{
 			base.Draw(spriteBatch);
+			if (backPanel != null)
+				panelGlitch.Draw(spriteBatch, backPanel.GetDimensions().ToRectangle());
 			particles.Draw(spriteBatch);
 		}
 
@@ -715,8 +703,8 @@ namespace Augments
 				emptyRow.Left.Set(2f, 0f);
 				emptyRow.Width.Set(-4f, 1f);
 				emptyRow.Height.Set(48f, 0f);
-				emptyRow.BackgroundColor = new Color(16, 22, 42) * 0.8f;
-				emptyRow.BorderColor = new Color(30, 42, 70);
+				emptyRow.BackgroundColor = PanelChrome.Tone(new Color(16, 22, 42)) * 0.8f;
+				emptyRow.BorderColor = PanelChrome.Tone(new Color(30, 42, 70));
 
 				bool hasFilters = HasActiveFilters || !string.IsNullOrWhiteSpace(currentSearchQuery);
 				string emptyMsg = hasFilters
@@ -727,7 +715,7 @@ namespace Augments
 				{
 					HAlign = 0.5f,
 					VAlign = 0.5f,
-					TextColor = hasFilters ? new Color(255, 215, 75) : new Color(148, 163, 184)
+					TextColor = hasFilters ? new Color(255, 215, 75) : PanelChrome.Tone(new Color(148, 163, 184))
 				};
 				if (hasFilters)
 				{
@@ -763,14 +751,14 @@ namespace Augments
 
 				// 2. Header horizontal divider (at Y = 66)
 				int divY = (int)dims.Y + 66;
-				spriteBatch.Draw(pixel, new Rectangle((int)dims.X + 20, divY, (int)dims.Width - 40, 1), new Color(30, 41, 59) * 0.90f);
+				spriteBatch.Draw(pixel, new Rectangle((int)dims.X + 20, divY, (int)dims.Width - 40, 1), PanelChrome.Tone(new Color(30, 41, 59)) * 0.90f);
 				int midX = (int)dims.X + (int)(dims.Width * 0.5f);
-				spriteBatch.Draw(pixel, new Rectangle(midX - 1, divY - 1, 3, 3), new Color(56, 189, 248) * 0.85f);
+				spriteBatch.Draw(pixel, new Rectangle(midX - 1, divY - 1, 3, 3), PanelChrome.Tone(new Color(56, 189, 248)) * 0.85f);
 				spriteBatch.Draw(pixel, new Rectangle(midX, divY, 1, 1), Color.White * 0.9f);
 
 				// 3. Cybernetic Background Radar / Telemetry Reticle Watermark
 				Vector2 center = new Vector2(dims.X + dims.Width * 0.5f, dims.Y + 380f);
-				Color watermarkCol = new Color(56, 189, 248) * 0.04f;
+				Color watermarkCol = PanelChrome.Tone(new Color(56, 189, 248)) * 0.04f;
 
 				DrawRadarCircle(spriteBatch, center, 50f, watermarkCol);
 				DrawRadarCircle(spriteBatch, center, 110f, watermarkCol);
@@ -781,12 +769,12 @@ namespace Augments
 
 				// 4. Footer Horizontal Divider & Status Line (at Y = bRect.Bottom - 32)
 				int footerY = bRect.Bottom - 32;
-				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 20, footerY, bRect.Width - 40, 1), new Color(30, 41, 59) * 0.75f);
+				spriteBatch.Draw(pixel, new Rectangle(bRect.X + 20, footerY, bRect.Width - 40, 1), PanelChrome.Tone(new Color(30, 41, 59)) * 0.75f);
 
 				var font = FontAssets.MouseText.Value;
 				string footerLeft = "TELEMETRY ENGINE v2.0  •  [Hold Left Alt] To Drag Pinned HUD Widgets";
 				string footerRight = "[L] Toggle  •  [ESC] Close";
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, footerLeft, new Vector2(bRect.X + 20f, footerY + 8f), new Color(130, 150, 185) * 0.70f, 0f, Vector2.Zero, new Vector2(0.58f));
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, footerLeft, new Vector2(bRect.X + 20f, footerY + 8f), PanelChrome.Tone(new Color(130, 150, 185)) * 0.70f, 0f, Vector2.Zero, new Vector2(0.58f));
 
 				long healingTotal = AugmentDamageTracker.GetViewHealing();
 				long teamBonusTotal = AugmentDamageTracker.GetViewTeamBonus();
@@ -800,7 +788,7 @@ namespace Augments
 				}
 
 				Vector2 rSz = ChatManager.GetStringSize(font, footerRight, new Vector2(0.58f));
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, footerRight, new Vector2(bRect.Right - 20f - rSz.X, footerY + 8f), new Color(100, 125, 160) * 0.65f, 0f, Vector2.Zero, new Vector2(0.58f));
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, footerRight, new Vector2(bRect.Right - 20f - rSz.X, footerY + 8f), PanelChrome.Tone(new Color(100, 125, 160)) * 0.65f, 0f, Vector2.Zero, new Vector2(0.58f));
 			}
 
 			private static void DrawRadarCircle(SpriteBatch spriteBatch, Vector2 center, float radius, Color color)
@@ -867,8 +855,8 @@ namespace Augments
 				var rect = new Rectangle((int)dims.X, (int)dims.Y, (int)dims.Width, (int)dims.Height);
 				Texture2D pixel = TextureAssets.MagicPixel.Value;
 
-				Color bg = isHovered ? new Color(18, 28, 48, 250) : new Color(10, 16, 28, 245);
-				Color border = isHovered ? accentColor : new Color(30, 41, 59);
+				Color bg = isHovered ? PanelChrome.Tone(new Color(18, 28, 48, 250)) : PanelChrome.Tone(new Color(10, 16, 28, 245));
+				Color border = isHovered ? accentColor : PanelChrome.Tone(new Color(30, 41, 59));
 
 				// Ambient hover underglow
 				if (isHovered)
@@ -912,20 +900,20 @@ namespace Augments
 			public event Action Clicked;
 			private bool isHovered;
 			public bool IsActiveHighlight { get; set; }
-			public Color CustomActiveBg { get; set; } = new Color(18, 28, 50);
-			public Color CustomActiveBorder { get; set; } = new Color(56, 189, 248);
+			public Color CustomActiveBg { get; set; } = PanelChrome.Tone(new Color(18, 28, 50));
+			public Color CustomActiveBorder { get; set; } = PanelChrome.Tone(new Color(56, 189, 248));
 
 			public FilterPillButton(string initialText, float textScale = 0.70f)
 			{
 				SetPadding(0f);
-				BackgroundColor = new Color(10, 16, 28);
-				BorderColor = new Color(30, 41, 59);
+				BackgroundColor = PanelChrome.Tone(new Color(10, 16, 28));
+				BorderColor = PanelChrome.Tone(new Color(30, 41, 59));
 
 				Label = new UIText(initialText, textScale)
 				{
 					HAlign = 0.5f,
 					VAlign = 0.5f,
-					TextColor = new Color(200, 215, 235)
+					TextColor = PanelChrome.Tone(new Color(200, 215, 235))
 				};
 				Append(Label);
 			}
@@ -963,9 +951,9 @@ namespace Augments
 				}
 				else
 				{
-					BackgroundColor = isHovered ? new Color(32, 44, 82) : new Color(18, 24, 46);
-					BorderColor = isHovered ? Color.White * 0.7f : new Color(42, 54, 95);
-					Label.TextColor = isHovered ? Color.White : new Color(180, 195, 220);
+					BackgroundColor = isHovered ? PanelChrome.Tone(new Color(32, 44, 82)) : PanelChrome.Tone(new Color(18, 24, 46));
+					BorderColor = isHovered ? Color.White * 0.7f : PanelChrome.Tone(new Color(42, 54, 95));
+					Label.TextColor = isHovered ? Color.White : PanelChrome.Tone(new Color(180, 195, 220));
 				}
 
 				base.DrawSelf(spriteBatch);
@@ -986,8 +974,8 @@ namespace Augments
 			public AnalyticsSearchBar()
 			{
 				SetPadding(0f);
-				BackgroundColor = new Color(16, 22, 44) * 0.95f;
-				BorderColor = new Color(45, 60, 105);
+				BackgroundColor = PanelChrome.Tone(new Color(16, 22, 44)) * 0.95f;
+				BorderColor = PanelChrome.Tone(new Color(45, 60, 105));
 			}
 
 			public void Clear()
@@ -1092,18 +1080,18 @@ namespace Augments
 						_textBlinkerCount = 0;
 					}
 
-					BackgroundColor = new Color(18, 26, 56) * 0.98f;
-					BorderColor = new Color(110, 185, 255);
+					BackgroundColor = PanelChrome.Tone(new Color(18, 26, 56)) * 0.98f;
+					BorderColor = PanelChrome.Tone(new Color(110, 185, 255));
 				}
 				else if (isHovered)
 				{
-					BackgroundColor = new Color(22, 30, 60) * 0.95f;
-					BorderColor = new Color(75, 115, 185);
+					BackgroundColor = PanelChrome.Tone(new Color(22, 30, 60)) * 0.95f;
+					BorderColor = PanelChrome.Tone(new Color(75, 115, 185));
 				}
 				else
 				{
-					BackgroundColor = new Color(16, 22, 44) * 0.95f;
-					BorderColor = new Color(45, 60, 105);
+					BackgroundColor = PanelChrome.Tone(new Color(16, 22, 44)) * 0.95f;
+					BorderColor = PanelChrome.Tone(new Color(45, 60, 105));
 				}
 
 				base.DrawSelf(spriteBatch);
@@ -1127,7 +1115,7 @@ namespace Augments
 								font,
 								"|",
 								new Vector2(textX, textY),
-								new Color(110, 185, 255),
+								PanelChrome.Tone(new Color(110, 185, 255)),
 								0f,
 								Vector2.Zero,
 								scale
@@ -1145,7 +1133,7 @@ namespace Augments
 							font,
 							placeholder,
 							new Vector2(textX, textY),
-							new Color(130, 148, 175) * 0.75f,
+							PanelChrome.Tone(new Color(130, 148, 175)) * 0.75f,
 							0f,
 							Vector2.Zero,
 							scale
@@ -1184,7 +1172,7 @@ namespace Augments
 
 					// Draw Clear [✕] button
 					bool clearHover = isHovered && Main.MouseScreen.X >= dims.X + dims.Width - 20f;
-					Color clearColor = clearHover ? new Color(255, 110, 110) : new Color(160, 175, 205) * 0.8f;
+					Color clearColor = clearHover ? new Color(255, 110, 110) : PanelChrome.Tone(new Color(160, 175, 205)) * 0.8f;
 					Vector2 xSize = ChatManager.GetStringSize(font, "✕", scale);
 					float xX = dims.X + dims.Width - 16f;
 					float xY = dims.Y + (dims.Height - xSize.Y) / 2f + textYOffset;
@@ -1221,8 +1209,8 @@ namespace Augments
 			{
 				this.state = state;
 				SetPadding(8f);
-				BackgroundColor = new Color(10, 16, 28, 250);
-				BorderColor = new Color(30, 41, 59);
+				BackgroundColor = PanelChrome.Tone(new Color(10, 16, 28, 250));
+				BorderColor = PanelChrome.Tone(new Color(30, 41, 59));
 
 				// Title
 				UIText title = new UIText("Combat Telemetry Filters", 0.84f)
@@ -1305,7 +1293,7 @@ namespace Augments
 					if (def.rar.HasValue)
 					{
 						Color rColor = AugmentListEntry.RarityColor(def.rar.Value);
-						if (def.rar.Value == AugmentRarity.Common) rColor = new Color(225, 230, 240);
+						if (def.rar.Value == AugmentRarity.Common) rColor = RarityLook.Common;
 						btn.CustomActiveBorder = rColor;
 					}
 					btn.Clicked += () => state.SetRarityFilter(def.rar);
@@ -1330,8 +1318,8 @@ namespace Augments
 				closeApplyBtn.Height.Set(24f, 0f);
 				closeApplyBtn.Left.Set(120f, 0f);
 				closeApplyBtn.Top.Set(curY, 0f);
-				closeApplyBtn.BackgroundColor = new Color(14, 23, 38);
-				closeApplyBtn.BorderColor = new Color(56, 189, 248) * 0.7f;
+				closeApplyBtn.BackgroundColor = PanelChrome.Tone(new Color(14, 23, 38));
+				closeApplyBtn.BorderColor = PanelChrome.Tone(new Color(56, 189, 248)) * 0.7f;
 				closeApplyBtn.Clicked += state.ToggleFilterMenu;
 				Append(closeApplyBtn);
 
@@ -1339,7 +1327,7 @@ namespace Augments
 				{
 					Left = { Pixels = 240f },
 					Top = { Pixels = curY + 4f },
-					TextColor = new Color(200, 215, 235)
+					TextColor = PanelChrome.Tone(new Color(200, 215, 235))
 				};
 				Append(summaryText);
 			}
@@ -1348,7 +1336,7 @@ namespace Augments
 			{
 				UIText label = new UIText(text, 0.65f)
 				{
-					TextColor = new Color(56, 189, 248),
+					TextColor = PanelChrome.Tone(new Color(56, 189, 248)),
 					Top = { Pixels = top },
 					Left = { Pixels = 4f }
 				};
@@ -1459,7 +1447,7 @@ namespace Augments
 			Rectangle rect = new Rectangle(rx, ry, rw, rh);
 
 			Color baseBorder = record.Color;
-			Color bgColor = isHovered ? new Color(14, 23, 38, 250) : new Color(10, 16, 28, 245);
+			Color bgColor = isHovered ? PanelChrome.Tone(new Color(14, 23, 38, 250)) : PanelChrome.Tone(new Color(10, 16, 28, 245));
 			Color borderColor = isHovered ? baseBorder : baseBorder * 0.40f;
 
 			// Row Background
@@ -1475,7 +1463,7 @@ namespace Augments
 
 			// 1. Icon Box on the Left
 			Rectangle iconBox = new Rectangle(rect.X + 12, rect.Y + 8, 32, 32);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, iconBox, new Color(10, 16, 28, 250));
+			spriteBatch.Draw(TextureAssets.MagicPixel.Value, iconBox, PanelChrome.Tone(new Color(10, 16, 28, 250)));
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(iconBox.X, iconBox.Y, iconBox.Width, 1), borderColor * 0.5f);
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(iconBox.X, iconBox.Bottom - 1, iconBox.Width, 1), borderColor * 0.5f);
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(iconBox.X, iconBox.Y, 1, iconBox.Height), borderColor * 0.5f);
@@ -1573,12 +1561,12 @@ namespace Augments
 			if (record.HitCount > 0 && record.BlockCount > 0)
 			{
 				hitsText = $"{record.HitCount:N0} Hits  •  {record.BlockCount:N0} Blocked";
-				hitsCol = new Color(200, 215, 235);
+				hitsCol = PanelChrome.Tone(new Color(200, 215, 235));
 			}
 			else if (record.HitCount > 0)
 			{
 				hitsText = $"{record.HitCount:N0} Hits  •  {record.CritCount:N0} Crits ({critRate:0.0}%)";
-				hitsCol = new Color(200, 215, 235);
+				hitsCol = PanelChrome.Tone(new Color(200, 215, 235));
 			}
 			else if (record.BlockCount > 0)
 			{
@@ -1598,7 +1586,7 @@ namespace Augments
 			else
 			{
 				hitsText = "--";
-				hitsCol = new Color(148, 163, 184);
+				hitsCol = PanelChrome.Tone(new Color(148, 163, 184));
 			}
 			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, hitsText, new Vector2(rect.X + 330f, rect.Y + 16f), hitsCol, 0f, Vector2.Zero, new Vector2(0.72f));
 
@@ -1643,7 +1631,7 @@ namespace Augments
 				string shareText = $"({sharePercent * 100f:0.0}%)";
 				Vector2 dmgSz = ChatManager.GetStringSize(font, dmgText, new Vector2(0.82f));
 				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, dmgText, new Vector2(rightColX, rect.Y + 14f), new Color(245, 248, 255), 0f, Vector2.Zero, new Vector2(0.82f));
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, shareText, new Vector2(rightColX + dmgSz.X + 6f, rect.Y + 16f), (record.Color == Color.White ? new Color(56, 189, 248) : record.Color), 0f, Vector2.Zero, new Vector2(0.72f));
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, shareText, new Vector2(rightColX + dmgSz.X + 6f, rect.Y + 16f), (record.Color == Color.White ? PanelChrome.Tone(new Color(56, 189, 248)) : record.Color), 0f, Vector2.Zero, new Vector2(0.72f));
 			}
 
 			// 6. Sleek 2px Progress Fill Bar across the bottom of the row
@@ -1653,7 +1641,7 @@ namespace Augments
 				? new Color(74, 222, 128)
 				: (record.TotalDamage == 0 && record.DamageBlocked > 0)
 					? new Color(52, 211, 153)
-					: (record.Color == Color.White ? new Color(56, 189, 248) : record.Color);
+					: (record.Color == Color.White ? PanelChrome.Tone(new Color(56, 189, 248)) : record.Color);
 
 			float fillRatio = 0f;
 			if (record.TotalDamage > 0 && totalSessionDamage > 0)
@@ -1666,7 +1654,7 @@ namespace Augments
 				fillRatio = (float)record.TeamBonusDamage / totalSessionTeamBonus;
 
 			Rectangle barBg = new Rectangle(rect.X + 6, rect.Bottom - 3, rect.Width - 12, 2);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, barBg, new Color(10, 14, 26, 200));
+			spriteBatch.Draw(TextureAssets.MagicPixel.Value, barBg, PanelChrome.Tone(new Color(10, 14, 26, 200)));
 
 			int fillW = Math.Max((record.TotalDamage > 0 || record.DamageBlocked > 0 || record.HealingDone > 0 || record.TeamBonusDamage > 0) ? 3 : 0, (int)((rect.Width - 12) * Math.Min(1f, fillRatio)));
 			Rectangle barFill = new Rectangle(rect.X + 6, rect.Bottom - 3, fillW, 2);

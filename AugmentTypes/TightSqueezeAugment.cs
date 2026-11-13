@@ -16,7 +16,7 @@ namespace Augments
         public override string DisplayName => "Tight Squeeze";
         public override string Description =>
             $"Multi-projectile ranged weapons have their spread angle reduced by {AugmentText.Trigger("45%")}. " +
-            $"Striking a single enemy with 3 or more projectiles from the same blast inflicts {AugmentText.Trigger("Concussive Fracture")}, making it take {AugmentText.BonusDamage("+12% bonus ranged damage")} for {AugmentText.Duration("4s")}.";
+            $"Striking a single enemy with 3 or more projectiles from the same blast inflicts {AugmentText.Trigger("Concussive Fracture")}, making it take {AugmentText.BonusDamage("+12% bonus ranged damage")} for {AugmentText.Duration("4 seconds")}.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +

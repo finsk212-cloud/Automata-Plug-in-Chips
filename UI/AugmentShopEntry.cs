@@ -115,7 +115,7 @@ namespace Augments
 
 			Color rarityColor = AugmentListEntry.RarityColor(augment.Rarity);
 			if (augment.Rarity == AugmentRarity.Common)
-				rarityColor = new Color(225, 230, 240);
+				rarityColor = RarityLook.Common;
 
 			// 1. Ambient underglow on hover
 			if (isHovered)
@@ -124,7 +124,7 @@ namespace Augments
 			}
 
 			// 2. Cybernetic Chassis Fill (#0A101C)
-			Color bgColor = isHovered ? new Color(16, 24, 42) * 0.96f : new Color(10, 16, 28) * 0.94f;
+			Color bgColor = isHovered ? PanelChrome.Tone(new Color(16, 24, 42)) * 0.96f : PanelChrome.Tone(new Color(10, 16, 28)) * 0.94f;
 			spriteBatch.Draw(pixel, rect, bgColor);
 
 			// 3. 1px Inner Hairline Highlight Accent
@@ -135,7 +135,7 @@ namespace Augments
 			spriteBatch.Draw(pixel, new Rectangle(rx + rw - 2, ry + 1, 1, rh - 2), innerHairline);
 
 			// 4. 1px Outer Border (clean, no corner ticks)
-			Color borderColor = isHovered ? rarityColor * 0.75f : Color.Lerp(new Color(30, 41, 59), rarityColor, 0.30f) * 0.70f;
+			Color borderColor = isHovered ? rarityColor * 0.75f : Color.Lerp(PanelChrome.PanelBorder, rarityColor, 0.30f) * 0.85f;
 			spriteBatch.Draw(pixel, new Rectangle(rx, ry, rw, 1), borderColor);
 			spriteBatch.Draw(pixel, new Rectangle(rx, ry + rh - 1, rw, 1), borderColor);
 			spriteBatch.Draw(pixel, new Rectangle(rx, ry, 1, rh), borderColor);
@@ -173,10 +173,10 @@ namespace Augments
 			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, rarName, subPos, rarityColor * 0.85f, 0f, Vector2.Zero, subScale);
 			float curSubX = subPos.X + ChatManager.GetStringSize(font, rarName, subScale).X;
 
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "  •  ", new Vector2(curSubX, subPos.Y), new Color(100, 116, 139), 0f, Vector2.Zero, subScale);
+			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "  •  ", new Vector2(curSubX, subPos.Y), MenuLook.Current.Muted, 0f, Vector2.Zero, subScale);
 			curSubX += ChatManager.GetStringSize(font, "  •  ", subScale).X;
 
-			Color clsCol = AugmentTooltipDrawer.GetClassColor(augment.Class);
+			Color clsCol = MenuLook.Current.Idle; // the class is told by the icon, so its name stays in the scheme colour
 			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, clsName, new Vector2(curSubX, subPos.Y), clsCol * 0.85f, 0f, Vector2.Zero, subScale);
 		}
 
@@ -244,40 +244,44 @@ namespace Augments
 				var rect = new Rectangle((int)dims.X, (int)dims.Y, (int)dims.Width, (int)dims.Height);
 				Texture2D pixel = TextureAssets.MagicPixel.Value;
 
+				// A small framed button in the scheme colours. "Primary" actions (buy back, install) are lit with the scheme's accent;
+				// the rest (remove, stash) are plain; a disabled one (Permanent) is dim.
+				Color fill;
+				Color border;
 				Color textColor;
 
 				if (disabled)
 				{
-					textColor = new Color(100, 116, 139);
-				}
-				else if (neutral)
-				{
-					textColor = isHovered ? Color.White : new Color(104, 194, 216);
+					fill = PanelChrome.Tone(new Color(10, 16, 28)) * 0.9f;
+					border = PanelChrome.PanelBorder * 0.7f;
+					textColor = MenuLook.Current.Muted * 0.8f;
 				}
 				else if (isBuy)
 				{
-					textColor = isHovered ? Color.White : new Color(74, 222, 128);
+					fill = isHovered ? PanelChrome.Tone(new Color(24, 44, 78)) : PanelChrome.Tone(new Color(18, 34, 62));
+					border = isHovered ? MenuLook.Current.Ivory : PanelChrome.Accent * 0.85f;
+					textColor = isHovered ? Color.White : MenuLook.Current.Ivory;
 				}
 				else
 				{
-					// Dismantle / Refund
-					textColor = isHovered ? Color.White : new Color(248, 113, 113);
+					fill = isHovered ? PanelChrome.Tone(new Color(18, 32, 56)) : PanelChrome.Tone(new Color(12, 22, 40)) * 0.94f;
+					border = isHovered ? PanelChrome.Accent * 0.8f : PanelChrome.PanelBorder;
+					textColor = isHovered ? Color.White : MenuLook.Current.Idle;
 				}
 
-				// Soft ambient hover wash — ZERO outline boxes or border lines
-				if (isHovered && !disabled)
-				{
-					Color washColor = neutral ? new Color(56, 189, 248) * 0.14f : isBuy ? new Color(34, 197, 94) * 0.14f : new Color(239, 68, 68) * 0.14f;
-					spriteBatch.Draw(pixel, rect, washColor);
-				}
+				spriteBatch.Draw(pixel, rect, fill);
+				spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, rect.Width, 1), border);
+				spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Bottom - 1, rect.Width, 1), border);
+				spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, 1, rect.Height), border);
+				spriteBatch.Draw(pixel, new Rectangle(rect.Right - 1, rect.Y, 1, rect.Height), border);
 
-				// Pure unboxed typography, perfectly centered vertically and horizontally
+				// The label, centred in the box. The font's line height is measured so it sits level whatever the button height.
 				var font = FontAssets.MouseText.Value;
 				Vector2 scale = new Vector2(0.72f);
 				Vector2 textSize = ChatManager.GetStringSize(font, label, scale);
 				Vector2 textPos = new Vector2(
-					rect.X + (rect.Width - textSize.X) * 0.5f,
-					rect.Y + (rect.Height - 12.2f) * 0.5f - 1.5f
+					MathF.Round(rect.X + (rect.Width - textSize.X) * 0.5f),
+					MathF.Round(rect.Y + (rect.Height - textSize.Y) * 0.5f + 2f)
 				);
 				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, label, textPos, textColor, 0f, Vector2.Zero, scale);
 			}

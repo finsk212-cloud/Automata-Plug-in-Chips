@@ -15,7 +15,7 @@ namespace Augments
         public override string Description =>
             $"While you have an active minion, reduce incoming damage by {AugmentText.Defense("20%")}. " +
             $"Taking damage commands your nearest minion to counter-dash the attacker for {AugmentText.BonusDamage("200% minion damage")}. " +
-            $"{AugmentText.Cooldown("2s counter cooldown")}.";
+            $"{AugmentText.Cooldown("2 seconds counter cooldown")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Summon;

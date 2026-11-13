@@ -7,7 +7,7 @@ namespace Augments
         public override string Id => "potion_rush";
         public override string DisplayName => "Potion Rush";
         public override string Description =>
-            $"After using a healing potion, gain {AugmentText.MovementSpeed("+10% movement speed")} for {AugmentText.Duration("4s")}.";
+            $"After using a healing potion, gain {AugmentText.MovementSpeed("+10% movement speed")} for {AugmentText.Duration("4 seconds")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Common;
         public override AugmentClass Class => AugmentClass.Universal;

@@ -23,7 +23,7 @@ namespace Augments
 
         public override string GetDetailedDescription(Player player) =>
             AugmentScaling.ApplyToText(Description, GetScalingEntries()) + "\n" +
-            AugmentText.Note("(Critical strikes guarantee a Wild Surge with double the chance to hit the Jackpot. Internal cooldown: 0.16s.)");
+            AugmentText.Note("(Critical strikes guarantee a Wild Surge with double the chance to hit the Jackpot. Internal cooldown: 0.16 seconds.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Magic;

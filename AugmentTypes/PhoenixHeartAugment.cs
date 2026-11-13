@@ -10,7 +10,7 @@ namespace Augments
         public override string Id => "phoenix_heart";
         public override string DisplayName => "Phoenix Heart";
         public override string Description =>
-            $"A killing blow instead restores you to {AugmentText.Healing("max HP")}, with {AugmentText.Duration("3s")} of invulnerability.";
+            $"A killing blow instead restores you to {AugmentText.Healing("max HP")}, with {AugmentText.Duration("3 seconds")} of invulnerability.";
 
         public override string CooldownText => "12hr cooldown";
 

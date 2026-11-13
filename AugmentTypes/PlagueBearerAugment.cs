@@ -10,7 +10,10 @@ namespace Augments
         public override string DisplayName => "Plague Bearer";
         public override string Description =>
             $"Killing an enemy with active debuffs transfers them to the nearest enemy, " +
-            $"{AugmentText.Duration("refreshed at full duration")}.\n" +
+            $"{AugmentText.Duration("refreshed at full duration")}.";
+
+        public override string GetDetailedDescription(Player player) =>
+            Description + "\n" +
             AugmentText.Note("(Triggers on kills from any damage class.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Rare;

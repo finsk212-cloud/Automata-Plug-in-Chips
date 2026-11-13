@@ -10,8 +10,8 @@ namespace Augments
 		public override string Id => "momentum_crash";
 		public override string DisplayName => "Momentum Crash";
 		public override string Description =>
-			$"Dashing grants 75% reduced damage taken for {AugmentText.Duration("0.25s")}. Landing a melee hit during this " +
-			$"window deals {AugmentText.BonusDamage("+30% bonus damage")} and applies {AugmentText.Immobilize("Confused")} for {AugmentText.Duration("1.5s")}.";
+			$"Dashing grants 75% reduced damage taken for {AugmentText.Duration("0.25 seconds")}. Landing a melee hit during this " +
+			$"window deals {AugmentText.BonusDamage("+30% bonus damage")} and applies {AugmentText.Immobilize("Confused")} for {AugmentText.Duration("1.5 seconds")}.";
 
 		public override AugmentRarity Rarity => AugmentRarity.Epic;
 		public override AugmentClass Class => AugmentClass.Melee;

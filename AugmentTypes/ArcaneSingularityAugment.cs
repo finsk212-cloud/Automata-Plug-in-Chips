@@ -10,8 +10,8 @@ namespace Augments
         public override string DisplayName => "Arcane Singularity";
         public override string Description =>
             $"Magic hits build up to {AugmentText.Trigger("8 charges")}. At full charge, your next magic hit opens a vortex " +
-            $"for {AugmentText.Duration("3s")}, pulling enemies within 300 pixels toward its core and dealing " +
-            $"{AugmentText.BonusDamage("20 magic damage")} every {AugmentText.Duration("0.5s")}.";
+            $"for {AugmentText.Duration("3 seconds")}, pulling enemies within 300 pixels toward its core and dealing " +
+            $"{AugmentText.BonusDamage("20 magic damage")} every {AugmentText.Duration("0.5 seconds")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Legendary;
         public override AugmentClass Class => AugmentClass.Magic;

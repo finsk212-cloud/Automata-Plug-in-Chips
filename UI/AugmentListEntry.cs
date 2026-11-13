@@ -77,17 +77,7 @@ namespace Augments
 
 		public static Color RarityColor(AugmentRarity rarity)
 		{
-			switch (rarity)
-			{
-				case AugmentRarity.Rare:
-					return Color.SkyBlue;
-				case AugmentRarity.Epic:
-					return Color.MediumPurple;
-				case AugmentRarity.Legendary:
-					return Color.Orange;
-				default:
-					return Color.White;
-			}
+			return RarityLook.Of(rarity); // the shared tier colours (Epic and Legendary move)
 		}
 	}
 }

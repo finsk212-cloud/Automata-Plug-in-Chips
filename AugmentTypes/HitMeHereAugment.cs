@@ -14,13 +14,13 @@ namespace Augments
         public override string Id => "hit_me_here";
         public override string DisplayName => "Hit Me Here";
         public override string Description =>
-            $"Ranged hits scan the target, projecting a glowing cybernetic weakpoint reticle for {AugmentText.Duration("4s")}. " +
+            $"Ranged hits scan the target, projecting a glowing cybernetic weakpoint reticle for {AugmentText.Duration("4 seconds")}. " +
             $"Hitting the weakpoint guarantees a {AugmentText.Crit("Critical Strike")} that {AugmentText.BonusDamage("ignores 100% defense")}, " +
-            $"ruptures the target, and grants {AugmentText.MovementSpeed("+15% movement speed")} for {AugmentText.Duration("2s")}.";
+            $"ruptures the target, and grants {AugmentText.MovementSpeed("+15% movement speed")} for {AugmentText.Duration("2 seconds")}.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +
-            AugmentText.Note("(Scanning places a tactical reticle on the enemy. Precise hits inside the reticle rupture the weakpoint, triggering a defense-piercing crit and speed boost with a 1s cooldown.)");
+            AugmentText.Note("(Scanning places a tactical reticle on the enemy. Precise hits inside the reticle rupture the weakpoint, triggering a defense-piercing crit and speed boost with a 1 second cooldown.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;
         public override AugmentClass Class => AugmentClass.Ranged;

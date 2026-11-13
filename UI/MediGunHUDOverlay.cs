@@ -37,12 +37,12 @@ namespace Augments
 			Rectangle bgRect = new Rectangle((int)x, (int)y, (int)barWidth, (int)barHeight);
 
 			// 1. Outer Dark Slate Background with subtle depth
-			spriteBatch.Draw(pixel, bgRect, new Color(12, 16, 24, 210));
+			spriteBatch.Draw(pixel, bgRect, PanelChrome.Tone(new Color(12, 16, 24, 210)));
 
 			// Border
 			Color borderColor = mediPlayer.OverclockCharge >= 100f
 				? new Color(255, 220, 60, 230)
-				: new Color(35, 55, 80, 200);
+				: PanelChrome.Tone(new Color(35, 55, 80, 200));
 
 			DrawBorder(spriteBatch, pixel, bgRect, borderColor);
 
@@ -90,7 +90,7 @@ namespace Augments
 
 			// Text drop shadow
 			spriteBatch.DrawString(font, label, textPos + new Vector2(1f, 1f), Color.Black * 0.9f, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
-			Color textCol = mediPlayer.OverclockCharge >= 100f ? new Color(255, 255, 200) : new Color(210, 235, 255);
+			Color textCol = mediPlayer.OverclockCharge >= 100f ? new Color(255, 255, 200) : PanelChrome.Tone(new Color(210, 235, 255));
 			spriteBatch.DrawString(font, label, textPos, textCol, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
 		}
 

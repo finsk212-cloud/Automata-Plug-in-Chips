@@ -9,7 +9,10 @@ namespace Augments
         public override string Id => "taunt";
         public override string DisplayName => "Taunt";
         public override string Description =>
-            $"Nearby enemies preferentially {AugmentText.Trigger("target you")} instead of teammates.\n" +
+            $"Nearby enemies preferentially {AugmentText.Trigger("target you")} instead of teammates.";
+
+        public override string GetDetailedDescription(Player player) =>
+            Description + "\n" +
             AugmentText.Note("(Draws enemy aggro within 800 pixels.)");
         public override AugmentRarity Rarity => AugmentRarity.Rare;
         public override AugmentClass Class => AugmentClass.Support;

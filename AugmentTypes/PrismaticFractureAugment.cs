@@ -15,7 +15,7 @@ namespace Augments
         public override string DisplayName => "Prismatic Fracture";
         public override string Description =>
             $"Magic hits shatter into {AugmentText.SpecialDamage("3 Homing Prismatic Shards")} dealing {AugmentText.BonusDamage("30% damage")}.\n" +
-            $"Magic {AugmentText.Crit("Critical Strikes")} release {AugmentText.Trigger("5 shards")} and inflict {AugmentText.Immobilize("Prismatic Daze")} for {AugmentText.Duration("3s")}.";
+            $"Magic {AugmentText.Crit("Critical Strikes")} release {AugmentText.Trigger("5 shards")} and inflict {AugmentText.Immobilize("Prismatic Daze")} for {AugmentText.Duration("3 seconds")}.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +

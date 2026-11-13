@@ -304,6 +304,11 @@ namespace Augments.Projectiles
             if (!target.active || target.life <= 0)
                 return;
 
+            // Corrosive Tip. DealSiphonDamage only runs on the beam owner's client, which sends the
+            // strike to the server, so the boosted amount is what every client and the server see.
+            if (player.GetModPlayer<AugmentPlayer>().HasAugment("corrosive_tip"))
+                amount = Math.Max(amount + 1, (int)Math.Round(amount * CorrosiveTipAugment.SiphonDamageMultiplier));
+
             int hitDir = player.direction;
             if (target.Center.X != player.Center.X)
                 hitDir = target.Center.X > player.Center.X ? 1 : -1;

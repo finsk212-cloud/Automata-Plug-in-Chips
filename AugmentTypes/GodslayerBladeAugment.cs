@@ -12,7 +12,7 @@ namespace Augments
         public override string Description =>
             $"Melee {AugmentText.Crit("crits")} summon a falling sword that deals {AugmentText.BonusDamage("75% of base weapon damage")} to the target and nearby enemies. " +
             $"Enemies struck are inflicted with {AugmentText.Ichor("Ichor")} for 2 seconds. " +
-            $"{AugmentText.Cooldown("2s cooldown")}.";
+            $"{AugmentText.Cooldown("2 seconds cooldown")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Legendary;
         public override AugmentClass Class => AugmentClass.Melee;

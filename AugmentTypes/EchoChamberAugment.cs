@@ -93,6 +93,7 @@ namespace Augments
             echoTag.OnHitEffectiveness = EchoEffectiveness;
             echoTag.PreventEchoChamberCopy = true;
             echoTag.IsEchoChamberEcho = true;
+            echoTag.FromRocketLauncher = pending.FromRocketLauncher;
             echo.alpha = Math.Max(echo.alpha, 110);
             echo.netUpdate = true;
 
@@ -119,9 +120,11 @@ namespace Augments
             public readonly DamageClass DamageType;
             public readonly int CritChance;
             public readonly int ArmorPenetration;
+            public readonly bool FromRocketLauncher;
 
             public PendingEcho(Projectile projectile)
             {
+                FromRocketLauncher = projectile.GetGlobalProjectile<AugmentProjectileTag>().FromRocketLauncher;
                 Position = projectile.Center;
                 Velocity = projectile.velocity;
                 Type = projectile.type;

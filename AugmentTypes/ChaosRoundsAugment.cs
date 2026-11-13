@@ -11,7 +11,7 @@ namespace Augments
         public override string Id          => "chaos_rounds";
         public override string DisplayName => "Chaos Rounds";
         public override string Description =>
-            $"Ranged hits apply a random debuff for {AugmentText.Duration("3s")}: " +
+            $"Ranged hits apply a random debuff for {AugmentText.Duration("3 seconds")}: " +
             $"{AugmentText.Color("On Fire", "FB923C")}, {AugmentText.Frostburn("Frostburn")}, " +
             $"{AugmentText.Color("Poisoned", "84CC16")}, {AugmentText.Color("Venom", "A855F7")} or {AugmentText.Ichor("Ichor")}.";
 

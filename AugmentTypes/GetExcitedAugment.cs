@@ -7,7 +7,7 @@ namespace Augments
         public override string Id => "get_excited";
         public override string DisplayName => "Get Excited!";
         public override string Description =>
-            $"After killing an enemy, gain {AugmentText.MovementSpeed("+8% movement speed")} for {AugmentText.Duration("2s")}, " +
+            $"After killing an enemy, gain {AugmentText.MovementSpeed("+8% movement speed")} for {AugmentText.Duration("2 seconds")}, " +
             $"stacking up to {AugmentText.MovementSpeed("+24% movement speed")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Common;

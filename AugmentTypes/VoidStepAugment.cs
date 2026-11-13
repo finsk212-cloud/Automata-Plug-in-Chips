@@ -9,7 +9,10 @@ namespace Augments
         public override string DisplayName => "Void Step";
         public override string Description =>
             $"Enemy kills grant {AugmentText.Defense("+2% dodge chance")}, stacking up to {AugmentText.Defense("+20%")}. " +
-            $"Resets if {AugmentText.Duration("4s")} pass without a kill.\n" +
+            $"Resets if {AugmentText.Duration("4 seconds")} pass without a kill.";
+
+        public override string GetDetailedDescription(Player player) =>
+            Description + "\n" +
             AugmentText.Note("(Stacks independently alongside other dodge sources.)");
 
         public override AugmentRarity Rarity => AugmentRarity.Epic;

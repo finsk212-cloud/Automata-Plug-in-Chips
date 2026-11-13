@@ -9,8 +9,8 @@ namespace Augments
         public override string Id => "overwhelm";
         public override string DisplayName => "Overwhelm";
         public override string Description =>
-            $"Hitting the same enemy {AugmentText.Trigger("3 times")} within {AugmentText.Duration("1.5s")} applies " +
-            $"{AugmentText.Immobilize("Confused")} for {AugmentText.Duration("1s")}. Switching targets or waiting too long resets the count.";
+            $"Hitting the same enemy {AugmentText.Trigger("3 times")} within {AugmentText.Duration("1.5 seconds")} applies " +
+            $"{AugmentText.Immobilize("Confused")} for {AugmentText.Duration("1 second")}. Switching targets or waiting too long resets the count.";
 
         public override AugmentRarity Rarity => AugmentRarity.Rare;
         public override AugmentClass Class => AugmentClass.Melee;

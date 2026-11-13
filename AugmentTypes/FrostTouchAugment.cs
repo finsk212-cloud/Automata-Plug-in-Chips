@@ -10,7 +10,7 @@ namespace Augments
         public override string Id => "frost_touch";
         public override string DisplayName => "Frost Touch";
         public override string Description =>
-            $"Magic {AugmentText.Crit("crits")} apply {AugmentText.Frostburn("Frostburn")} for {AugmentText.Duration("4s")}.";
+            $"Magic {AugmentText.Crit("crits")} apply {AugmentText.Frostburn("Frostburn")} for {AugmentText.Duration("4 seconds")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Common;
         public override AugmentClass Class => AugmentClass.Magic;

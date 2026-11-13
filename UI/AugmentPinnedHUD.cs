@@ -339,32 +339,32 @@ namespace Augments
 				switch (w.Type)
 				{
 					case PinnedStatType.LiveDPS:
-						accentColor = new Color(74, 222, 128); // Emerald Neon Green
+						accentColor = PanelChrome.StatAccent(w.Type);
 						labelText = "DPS";
 						valueText = $"{Math.Round(currentDps):N0} /s";
 						break;
 
 					case PinnedStatType.HitsAndCrits:
-						accentColor = new Color(250, 204, 21); // Amber Gold
+						accentColor = PanelChrome.StatAccent(w.Type);
 						labelText = "CRIT";
 						valueText = $"{critRate:0.0}% ({totalHits:N0})";
 						break;
 
 					case PinnedStatType.TotalDamage:
-						accentColor = new Color(56, 189, 248); // Electric Cyan
+						accentColor = PanelChrome.StatAccent(w.Type);
 						labelText = "DMG";
 						valueText = $"{viewDamage:N0}";
 						break;
 
 					case PinnedStatType.DamageBlocked:
-						accentColor = new Color(52, 211, 153); // Shield Emerald
+						accentColor = PanelChrome.StatAccent(w.Type);
 						labelText = "BLOCKED";
 						valueText = $"{viewBlocked:N0}";
 						break;
 
 					case PinnedStatType.CombatTime:
 					default:
-						accentColor = new Color(192, 132, 252); // Violet
+						accentColor = PanelChrome.StatAccent(w.Type);
 						labelText = "TIME";
 						valueText = $"{combatSec / 60:D2}:{combatSec % 60:D2}";
 						break;
@@ -390,7 +390,7 @@ namespace Augments
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, rect, accentColor * underglowAlpha);
 
 				// 2. Solid Cyber Chassis Background
-				Color bgColor = new Color(10, 16, 28) * 0.94f;
+				Color bgColor = PanelChrome.Tone(new Color(10, 16, 28)) * 0.94f;
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, rect, bgColor);
 
 				// 3. Cybernetic Chassis Border
@@ -399,6 +399,15 @@ namespace Augments
 					: (hovered ? Color.Lerp(accentColor, Color.White, 0.30f) : accentColor * 0.60f);
 
 				DrawCyberBorder(spriteBatch, rect, borderColor);
+
+				// The title screen's glitch: now and then the card tears sideways for a moment (each card at its own time).
+				float burst = PanelGlitch.IdleStrength(Main.GameUpdateCount, (int)w.Type + 11);
+				if (burst > 0f)
+				{
+					int glitchSeed = (int)(Main.GameUpdateCount / 2) + (int)w.Type * 7;
+					PanelGlitch.Bands(spriteBatch, rect, glitchSeed, 1, burst);
+					PanelGlitch.Ghost(spriteBatch, rect, glitchSeed, burst * 0.8f);
+				}
 
 				// 4. Floating Procedural Stat Icon (zero box outline)
 				int icx = rect.X + 15;
@@ -413,7 +422,7 @@ namespace Augments
 				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, labelText, new Vector2(textX, textY), accentColor, 0f, Vector2.Zero, textScale);
 
 				// Separator dot
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, dotSep, new Vector2(textX + labelW, textY), new Color(100, 125, 155) * 0.80f, 0f, Vector2.Zero, textScale);
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, dotSep, new Vector2(textX + labelW, textY), PanelChrome.Tone(new Color(100, 125, 155)) * 0.80f, 0f, Vector2.Zero, textScale);
 
 				// Value
 				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, valueText, new Vector2(textX + labelW + dotW, textY), Color.White, 0f, Vector2.Zero, textScale);
@@ -423,7 +432,7 @@ namespace Augments
 				{
 					Rectangle closeRect = new Rectangle(rect.Right - 18, rect.Y + 4, 14, 14);
 					bool closeHover = closeRect.Contains((int)mouse.X, (int)mouse.Y);
-					Color closeColor = closeHover ? new Color(248, 113, 113) : new Color(148, 163, 184) * 0.8f;
+					Color closeColor = closeHover ? new Color(248, 113, 113) : PanelChrome.Tone(new Color(148, 163, 184)) * 0.8f;
 
 					Vector2 xSz = ChatManager.GetStringSize(font, "✕", new Vector2(0.55f));
 					Vector2 xPos = new Vector2(closeRect.X + (closeRect.Width - xSz.X) * 0.5f, closeRect.Y + (closeRect.Height - xSz.Y) * 0.5f);
@@ -525,25 +534,9 @@ namespace Augments
 			spriteBatch.Draw(pixel, new Rectangle(rect.X + 1, rect.Y + 1, 1, rect.Height - 2), innerHairline);
 			spriteBatch.Draw(pixel, new Rectangle(rect.Right - 2, rect.Y + 1, 1, rect.Height - 2), innerHairline);
 
-			// Flush corner micro-accents (3x1 and 1x3 flush notches)
+			// Corner marks, in the frame style chosen on the COSMETICS page
 			Color cornerCol = Color.Lerp(color, Color.White, 0.40f);
-			const int cLen = 3;
-
-			// Top-left
-			spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, cLen, 1), cornerCol);
-			spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, 1, cLen), cornerCol);
-
-			// Top-right
-			spriteBatch.Draw(pixel, new Rectangle(rect.Right - cLen, rect.Y, cLen, 1), cornerCol);
-			spriteBatch.Draw(pixel, new Rectangle(rect.Right - 1, rect.Y, 1, cLen), cornerCol);
-
-			// Bottom-left
-			spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Bottom - 1, cLen, 1), cornerCol);
-			spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Bottom - cLen, 1, cLen), cornerCol);
-
-			// Bottom-right
-			spriteBatch.Draw(pixel, new Rectangle(rect.Right - cLen, rect.Bottom - 1, cLen, 1), cornerCol);
-			spriteBatch.Draw(pixel, new Rectangle(rect.Right - 1, rect.Bottom - cLen, 1, cLen), cornerCol);
+			PanelChrome.DrawCorners(spriteBatch, rect, cornerCol, 0.7f);
 		}
 	}
 }

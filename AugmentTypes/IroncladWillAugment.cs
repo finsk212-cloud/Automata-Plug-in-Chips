@@ -8,8 +8,7 @@ namespace Augments
         public override string Id => "ironclad_will";
         public override string DisplayName => "Ironclad Will";
         public override string Description =>
-            $"Melee hits have a {FormatCurrentChance(ProcChance)} to {AugmentText.BonusDamage("ignore 100% of enemy defense")}.\n" +
-            AugmentText.Note("(Deals full unmitigated damage for that hit.)");
+            $"Melee hits have a {FormatCurrentChance(ProcChance)} to {AugmentText.BonusDamage("ignore 100% of enemy defense")}.";
 
         public override string GetDetailedDescription(Player player) =>
             $"Melee hits have a {FormatFortuneChance(ProcChance, player)} to {AugmentText.BonusDamage("ignore 100% of enemy defense")}.\n" +

@@ -78,21 +78,15 @@ namespace Augments
 			backPanel.HAlign = 0.5f;
 			backPanel.VAlign = 0.5f;
 			backPanel.SetPadding(0f);
-			backPanel.BackgroundColor = new Color(10, 16, 28, 250);
-			backPanel.BorderColor = new Color(30, 41, 59);
+			backPanel.BackgroundColor = PanelChrome.Tone(new Color(10, 16, 28, 250));
+			backPanel.BorderColor = PanelChrome.Tone(new Color(30, 41, 59));
 
-			UIText titleText = new UIText("CHOOSE A PLUGIN", 1.22f)
-			{
-				HAlign = 0.5f,
-				TextColor = new Color(248, 250, 252)
-			};
-			titleText.Top.Set(16f, 0f);
-			backPanel.Append(titleText);
+			backPanel.Append(new PanelTitleTab("Choose a Plugin", 40));
 
 			UIText subtitle = new UIText("Select a plugin to install into your neural frame", 0.76f)
 			{
 				HAlign = 0.5f,
-				TextColor = new Color(148, 163, 184)
+				TextColor = PanelChrome.Tone(new Color(148, 163, 184))
 			};
 			subtitle.Top.Set(44f, 0f);
 			backPanel.Append(subtitle);
@@ -106,7 +100,7 @@ namespace Augments
 			backPanel.Append(capNoticeText);
 
 			// Minimize Button (ends at 862px, exact 18px buffer from right edge)
-			minimizeButton = new ModalButton("-", new Color(10, 16, 28, 240), new Color(18, 30, 52, 250), new Color(56, 189, 248));
+			minimizeButton = new ModalButton("-", PanelChrome.Tone(new Color(10, 16, 28, 240)), PanelChrome.Tone(new Color(18, 30, 52, 250)), PanelChrome.Tone(new Color(56, 189, 248)));
 			minimizeButton.Width.Set(24f, 0f);
 			minimizeButton.Height.Set(24f, 0f);
 			minimizeButton.Left.Set(838f, 0f);
@@ -175,7 +169,7 @@ namespace Augments
 			confirmBox.Height.Set(ConfirmBoxHeight, 0f);
 			confirmBox.HAlign = 0.5f;
 			confirmBox.VAlign = 0.5f;
-			confirmBox.BackgroundColor = new Color(10, 16, 28, 250);
+			confirmBox.BackgroundColor = PanelChrome.Tone(new Color(10, 16, 28, 250));
 			confirmBox.BorderColor = new Color(248, 113, 113);
 			confirmOverlay.Append(confirmBox);
 
@@ -209,7 +203,7 @@ namespace Augments
 			confirmButton.Clicked += HandleConfirmOverlayConfirmed;
 			confirmBox.Append(confirmButton);
 
-			var cancelButton = new ModalButton("Cancel", new Color(14, 20, 32, 240), new Color(22, 32, 54, 250), new Color(56, 189, 248));
+			var cancelButton = new ModalButton("Cancel", PanelChrome.Tone(new Color(14, 20, 32, 240)), PanelChrome.Tone(new Color(22, 32, 54, 250)), PanelChrome.Tone(new Color(56, 189, 248)));
 			cancelButton.Width.Set(ConfirmButtonWidth, 0f);
 			cancelButton.Height.Set(ConfirmButtonHeight, 0f);
 			cancelButton.Left.Set(-pairWidth / 2f + ConfirmButtonWidth + buttonGap, 0.5f);
@@ -234,9 +228,14 @@ namespace Augments
 			}
 		}
 
+		// Title-screen style glitch on opening and now and then (see PanelGlitch).
+		private readonly PanelGlitch panelGlitch = new PanelGlitch(5);
+
 		public override void Draw(SpriteBatch spriteBatch)
 		{
 			base.Draw(spriteBatch);
+			if (backPanel != null && !isMinimized)
+				panelGlitch.Draw(spriteBatch, backPanel.GetDimensions().ToRectangle());
 			AugmentChoiceCard.DrawActiveTooltip(spriteBatch);
 		}
 
@@ -280,16 +279,8 @@ namespace Augments
 			float totalWidth = count * CardWidth + (count - 1) * CardSpacing;
 			float startX = (PanelWidth - totalWidth) / 2f;
 
-			// Dynamically determine the maximum required height across all cards in this roll
-			float maxRequired = AugmentChoiceCard.MinCardHeight;
-			for (int i = 0; i < count; i++)
-			{
-				float reqH = AugmentChoiceCard.CalculateRequiredHeight(choices[i], CardWidth);
-				if (reqH > maxRequired)
-					maxRequired = reqH;
-			}
-
-			float cardHeight = maxRequired;
+			// Every card is the same fixed size, whatever the description length: a long description scrolls inside its card.
+			float cardHeight = AugmentChoiceCard.MinCardHeight;
 			float desiredPanelHeight = CardsTop + cardHeight + RerollGap + RerollButtonHeight + BottomMargin;
 
 			// Responsive clamp for 720p / high UI scale
@@ -550,9 +541,9 @@ namespace Augments
 		{
 			public event Action Clicked;
 
-			private static readonly Color DefaultIdleColor = new Color(10, 16, 28, 245);
-			private static readonly Color DefaultHoverColor = new Color(18, 32, 54, 250);
-			private static readonly Color DisabledColor = new Color(10, 14, 24, 200);
+			private static Color DefaultIdleColor => PanelChrome.Tone(new Color(10, 16, 28, 245));
+			private static Color DefaultHoverColor => PanelChrome.Tone(new Color(18, 32, 54, 250));
+			private static Color DisabledColor => PanelChrome.Tone(new Color(10, 14, 24, 200));
 
 			private readonly Color idleColor;
 			private readonly Color hoverColor;
@@ -561,7 +552,7 @@ namespace Augments
 			private bool enabledState = true;
 			private bool isHovered = false;
 
-			public RerollButton() : this(DefaultIdleColor, DefaultHoverColor, new Color(56, 189, 248))
+			public RerollButton() : this(DefaultIdleColor, DefaultHoverColor, PanelChrome.Tone(new Color(56, 189, 248)))
 			{
 			}
 
@@ -616,8 +607,8 @@ namespace Augments
 				if (!enabledState)
 				{
 					bg = DisabledColor;
-					border = new Color(25, 33, 48);
-					textColor = new Color(100, 116, 139);
+					border = PanelChrome.Tone(new Color(25, 33, 48));
+					textColor = PanelChrome.Tone(new Color(100, 116, 139));
 				}
 				else if (isHovered)
 				{
@@ -628,7 +619,7 @@ namespace Augments
 				else
 				{
 					bg = idleColor;
-					border = new Color(30, 41, 59);
+					border = PanelChrome.Tone(new Color(30, 41, 59));
 					textColor = new Color(226, 232, 240);
 				}
 
@@ -681,7 +672,7 @@ namespace Augments
 				this.label = label;
 				this.idleColor = idleColor;
 				this.hoverColor = hoverColor;
-				this.hoverBorderColor = hoverBorderColor ?? new Color(56, 189, 248);
+				this.hoverBorderColor = hoverBorderColor ?? PanelChrome.Tone(new Color(56, 189, 248));
 			}
 
 			public override void LeftClick(UIMouseEvent evt)
@@ -710,7 +701,7 @@ namespace Augments
 				Texture2D pixel = TextureAssets.MagicPixel.Value;
 
 				Color bg = isHovered ? hoverColor : idleColor;
-				Color border = isHovered ? hoverBorderColor : new Color(30, 41, 59);
+				Color border = isHovered ? hoverBorderColor : PanelChrome.Tone(new Color(30, 41, 59));
 
 				if (isHovered)
 				{
@@ -745,7 +736,7 @@ namespace Augments
 		{
 			public event Action Clicked;
 
-			private static readonly Color BaseBorderColor = new Color(56, 189, 248);
+			private static Color BaseBorderColor => PanelChrome.Tone(new Color(56, 189, 248));
 			private const float PulseSpeed = 2.2f;
 
 			private float pulseTimer;
@@ -786,7 +777,7 @@ namespace Augments
 				float pulse = (float)Math.Sin(pulseTimer * PulseSpeed) * 0.5f + 0.5f;
 				Color border = isHovered ? Color.White : Color.Lerp(BaseBorderColor, new Color(250, 204, 21), pulse * 0.5f);
 
-				spriteBatch.Draw(pixel, rect, new Color(10, 16, 28, 250));
+				spriteBatch.Draw(pixel, rect, PanelChrome.Tone(new Color(10, 16, 28, 250)));
 
 				Color innerHairline = Color.White * (isHovered ? 0.08f : 0.04f);
 				spriteBatch.Draw(pixel, new Rectangle(rect.X + 1, rect.Y + 1, rect.Width - 2, 1), innerHairline);
@@ -823,11 +814,11 @@ namespace Augments
 
 				// Header horizontal divider spanning X = 18f to X = 862f (exact 18px bilateral symmetry)
 				int divY = (int)dims.Y + 86;
-				spriteBatch.Draw(pixel, new Rectangle((int)dims.X + 18, divY, (int)dims.Width - 36, 1), new Color(30, 41, 59) * 0.90f);
+				spriteBatch.Draw(pixel, new Rectangle((int)dims.X + 18, divY, (int)dims.Width - 36, 1), PanelChrome.Tone(new Color(30, 41, 59)) * 0.90f);
 
 				// Center diamond node
 				int midX = (int)dims.X + (int)(dims.Width * 0.5f);
-				spriteBatch.Draw(pixel, new Rectangle(midX - 1, divY - 1, 3, 3), new Color(56, 189, 248) * 0.85f);
+				spriteBatch.Draw(pixel, new Rectangle(midX - 1, divY - 1, 3, 3), PanelChrome.Tone(new Color(56, 189, 248)) * 0.85f);
 				spriteBatch.Draw(pixel, new Rectangle(midX, divY, 1, 1), Color.White * 0.9f);
 			}
 		}

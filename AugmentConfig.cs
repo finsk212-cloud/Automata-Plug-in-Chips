@@ -43,5 +43,18 @@ namespace Augments
 
 		[DefaultValue(true)]
 		public bool EnableGetOverHereSfx;
+
+		[Header("TitleMenuSettings")]
+
+		[DefaultValue(true)]
+		public bool UseAutomataTitleMenu;
+
+		// The Earth backdrop, title card, corner text and menu buttons (moved here from the Automata: Music mod).
+		[DefaultValue(true)]
+		public bool BunkerMenuTheme;
+
+		// Makes the Automata title screen the active menu theme automatically when the mod is enabled.
+		[DefaultValue(true)]
+		public bool SetAsDefaultMenuTheme;
 	}
 }

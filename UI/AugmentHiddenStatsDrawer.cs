@@ -63,6 +63,7 @@ namespace Augments
 
 		private static float slideProgress = 0f;
 		private static bool isOpen = false;
+		internal static bool IsOpen => isOpen;
 		private static bool wasMouseLeft = false;
 		private static float hoverTimer = 0f;
 
@@ -71,8 +72,9 @@ namespace Augments
 		private static double lastDrawerRowClickTime = 0;
 		private static StatTooltipType? currentHoveredRowStat = null;
 
-		private static readonly Color ThemeGold = new Color(245, 180, 50);
-		private static readonly Color MutedSlate = new Color(148, 163, 184);
+		private static readonly PanelGlitch drawerGlitch = new PanelGlitch(5);
+		private static Color ThemeGold => PanelChrome.Accent; // was a fixed gold; now the colour scheme's bright colour
+		private static Color MutedSlate => PanelChrome.Tone(new Color(148, 163, 184));
 		private static readonly Color ValueWhite = new Color(245, 248, 252);
 		private static readonly Color LightGreen = new Color(134, 239, 172);
 		private static readonly Color BrightGreen = new Color(34, 197, 94);
@@ -119,7 +121,7 @@ namespace Augments
 					? currentPanelX - TabWidth
 					: currentPanelX + PanelWidth;
 
-				Rectangle tabRect = new Rectangle((int)currentTabX, (int)tabY, (int)TabWidth, (int)TabHeight);
+				Rectangle tabRect = AugmentFamilyHUD.DiagButton; // the drawer now opens from the Diagnostics button in the dock, not a tab on the screen edge
 				Rectangle panelRect = new Rectangle((int)currentPanelX, (int)startY, (int)PanelWidth, (int)PanelHeight);
 
 				Point mouse = new Point(Main.mouseX, Main.mouseY);
@@ -308,7 +310,7 @@ namespace Augments
 					? currentPanelX - TabWidth
 					: currentPanelX + PanelWidth;
 
-				Rectangle tabRect = new Rectangle((int)currentTabX, (int)tabY, (int)TabWidth, (int)TabHeight);
+				Rectangle tabRect = AugmentFamilyHUD.DiagButton; // the drawer now opens from the Diagnostics button in the dock, not a tab on the screen edge
 				Rectangle panelRect = new Rectangle((int)currentPanelX, (int)startY, (int)PanelWidth, (int)PanelHeight);
 
 				Point mouse = new Point(Main.mouseX, Main.mouseY);
@@ -319,13 +321,16 @@ namespace Augments
 				tooltipLines.Clear();
 				currentHoveredRowStat = null;
 
-				// 1. Draw Arrow Tab
-				DrawArrowTab(spriteBatch, tabRect, isRightDocked, mouseOverTab);
+				// 1. (There is no arrow tab any more: the drawer opens from the Diagnostics button in the dock.)
 
 				// 2. Draw Diagnostics Panel (if sliding out or open)
 				if (slideProgress > 0.01f)
 				{
 					DrawDiagnosticsPanel(spriteBatch, panelRect, player, slideProgress, isRightDocked, mouse);
+						drawerGlitch.Draw(spriteBatch, panelRect, withFlash: false);
+
+						// The panel can slide over the dock, so the Diagnostics button is drawn again on top, still there to close it.
+						AugmentFamilyHUD.DrawDiagButton(spriteBatch);
 
 					// 3. Draw Hover Tooltip if hovering a stat row
 					if (!string.IsNullOrEmpty(tooltipTitle) && tooltipLines.Count > 0 && slideProgress > 0.85f)
@@ -345,7 +350,7 @@ namespace Augments
 
 		private static void DrawArrowTab(SpriteBatch spriteBatch, Rectangle tabRect, bool isRightDocked, bool isHovered)
 		{
-			Color bgColor = isHovered ? new Color(16, 24, 36, 220) : new Color(8, 12, 18, 180);
+			Color bgColor = isHovered ? PanelChrome.Tone(new Color(16, 24, 36, 220)) : PanelChrome.Tone(new Color(8, 12, 18, 180));
 			Color borderColor = isHovered ? Color.Lerp(ThemeGold, Color.White, 0.45f) : ThemeGold * 0.70f;
 
 			// Tab ambient shadow
@@ -380,7 +385,7 @@ namespace Augments
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X - 2, rect.Y - 2, rect.Width + 4, rect.Height + 4), new Color(0, 0, 0, (int)(120 * progress)));
 
 			// Translucent Chassis Fill (see-through dark slate, does not obstruct game)
-			Color panelBg = new Color(8, 14, 22, 185);
+			Color panelBg = PanelChrome.Tone(new Color(8, 14, 22, 185));
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, rect, panelBg * progress);
 
 			// Subtle scanline tint
@@ -542,7 +547,7 @@ namespace Augments
 			}
 			else
 			{
-				iFrameText = player.longInvince ? "1.33s (Extended)" : "0.67s (Normal)";
+				iFrameText = player.longInvince ? "1.33 seconds (Extended)" : "0.67 seconds (Normal)";
 				iFrameCol = player.longInvince ? LightGreen : ValueWhite;
 			}
 			RenderInteractiveRow(spriteBatch, font, rect, leftX, rightAlignX, curY, "Invincibility", iFrameText, iFrameCol, progress, 0.65f, mouse, StatTooltipType.Invincibility);
@@ -578,7 +583,7 @@ namespace Augments
 			int rocketTicks = player.rocketTimeMax;
 			int totalFlightTicks = wingTicks + rocketTicks;
 			float flightSeconds = totalFlightTicks / 60f;
-			string flightText = flightSeconds > 0 ? $"{flightSeconds:0.00}s ({totalFlightTicks}t)" : "0s (No Wings)";
+			string flightText = flightSeconds > 0 ? $"{flightSeconds:0.00} seconds ({totalFlightTicks}t)" : "0 seconds (No Wings)";
 			Color flightCol = flightSeconds >= 2.5f ? BrightGreen : (flightSeconds > 0 ? LightGreen : ValueWhite);
 			RenderInteractiveRow(spriteBatch, font, rect, leftX, rightAlignX, curY, "Flight Duration", flightText, flightCol, progress, 0.65f, mouse, StatTooltipType.FlightDuration);
 			curY += 12f;
@@ -711,7 +716,7 @@ namespace Augments
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(tipRect.X - 2, tipRect.Y - 2, tipRect.Width + 4, tipRect.Height + 4), new Color(0, 0, 0, 160));
 
 			// Translucent chassis
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, tipRect, new Color(8, 14, 22, 240));
+			spriteBatch.Draw(TextureAssets.MagicPixel.Value, tipRect, PanelChrome.Tone(new Color(8, 14, 22, 240)));
 
 			// High-tech 1px border with corner brackets
 			DrawHighTechBorder(spriteBatch, tipRect, ThemeGold * 0.85f);
@@ -772,7 +777,7 @@ namespace Augments
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X - 1, rect.Y - 1, rect.Width + 2, rect.Height + 2), new Color(0, 0, 0, 140));
 
 				// 2. Translucent dark chassis (sleek NieR styling)
-				Color bgCol = hovered || w.IsDragging ? new Color(16, 24, 36, 235) : new Color(8, 14, 22, 205);
+				Color bgCol = hovered || w.IsDragging ? PanelChrome.Tone(new Color(16, 24, 36, 235)) : PanelChrome.Tone(new Color(8, 14, 22, 205));
 				spriteBatch.Draw(TextureAssets.MagicPixel.Value, rect, bgCol);
 
 				// 3. 1px High-tech border with corner notches
@@ -875,7 +880,7 @@ namespace Augments
 				case StatTooltipType.Invincibility:
 					if (player.immuneTime > 0)
 						return ("Invincible", $"{player.immuneTime}t left", BrightGreen);
-					return ("Invincible", player.longInvince ? "1.33s" : "0.67s", player.longInvince ? LightGreen : ValueWhite);
+					return ("Invincible", player.longInvince ? "1.33 seconds" : "0.67 seconds", player.longInvince ? LightGreen : ValueWhite);
 
 				case StatTooltipType.EnemyAggro:
 					int aggro = player.aggro;
@@ -891,7 +896,7 @@ namespace Augments
 				case StatTooltipType.FlightDuration:
 					int totalFlightTicks = player.wingTimeMax + player.rocketTimeMax;
 					float flightSeconds = totalFlightTicks / 60f;
-					return ("Flight", flightSeconds > 0 ? $"{flightSeconds:0.0}s" : "0s", flightSeconds >= 2.5f ? BrightGreen : (flightSeconds > 0 ? LightGreen : ValueWhite));
+					return ("Flight", flightSeconds > 0 ? $"{flightSeconds:0.0} seconds" : "0 seconds", flightSeconds >= 2.5f ? BrightGreen : (flightSeconds > 0 ? LightGreen : ValueWhite));
 
 				case StatTooltipType.MiningSpeed:
 					float pickSpeedBonus = (1f - player.pickSpeed) * 100f;
@@ -1215,10 +1220,10 @@ namespace Augments
 					tooltipLines.Add(("equipped wings and rocket boots before gliding.", ValueWhite));
 					tooltipLines.Add(("", Color.Transparent));
 					tooltipLines.Add(("+ FLIGHT TIERS:", BrightGreen));
-					tooltipLines.Add(("  • Basic Wings (Angel/Demon): 1.67s (100t)", ValueWhite));
-					tooltipLines.Add(("  • Mid Wings (Leaf/Frozen): 2.17s to 2.50s", LightGreen));
-					tooltipLines.Add(("  • High Wings (Steampunk/Hoverboard): 3.00s", LightGreen));
-					tooltipLines.Add(("  • Celestial Wings (Solar/Stardust): 3.00s", BrightGreen));
+					tooltipLines.Add(("  • Basic Wings (Angel/Demon): 1.67 seconds (100t)", ValueWhite));
+					tooltipLines.Add(("  • Mid Wings (Leaf/Frozen): 2.17 seconds to 2.50 seconds", LightGreen));
+					tooltipLines.Add(("  • High Wings (Steampunk/Hoverboard): 3.00 seconds", LightGreen));
+					tooltipLines.Add(("  • Celestial Wings (Solar/Stardust): 3.00 seconds", BrightGreen));
 					tooltipLines.Add(("  • Rocket/Spectre/Terraspark Boots add bonus flight!", ThemeGold));
 					break;
 
@@ -1399,25 +1404,8 @@ namespace Augments
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X, rect.Y, 1, rect.Height), color * 0.65f);
 			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.Right - 1, rect.Y, 1, rect.Height), color * 0.65f);
 
-			// Iconic NieR Corner brackets (tiny 4px notches)
-			const int cornerLen = 4;
-			const int cornerThick = 2;
-
-			// Top-left
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X, rect.Y, cornerLen, cornerThick), color);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X, rect.Y, cornerThick, cornerLen), color);
-
-			// Top-right
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.Right - cornerLen, rect.Y, cornerLen, cornerThick), color);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.Right - cornerThick, rect.Y, cornerThick, cornerLen), color);
-
-			// Bottom-left
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X, rect.Bottom - cornerThick, cornerLen, cornerThick), color);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X, rect.Bottom - cornerLen, cornerThick, cornerLen), color);
-
-			// Bottom-right
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.Right - cornerLen, rect.Bottom - cornerThick, cornerLen, cornerThick), color);
-			spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.Right - cornerThick, rect.Bottom - cornerLen, cornerThick, cornerLen), color);
+			// NieR corner brackets, in the frame style chosen on the COSMETICS page
+			PanelChrome.DrawCorners(spriteBatch, rect, color, 0.8f);
 		}
 	}
 }

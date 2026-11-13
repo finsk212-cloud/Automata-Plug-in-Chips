@@ -9,7 +9,7 @@ namespace Augments
         public override string Id => "siege_battery";
         public override string DisplayName => "Siege Battery";
         public override string Description =>
-            $"Every {AugmentText.Cooldown("6s")}, each sentry also fires a siege shell at the {AugmentText.Trigger("highest-HP enemy")} in range " +
+            $"Every {AugmentText.Cooldown("6 seconds")}, each sentry also fires a siege shell at the {AugmentText.Trigger("highest-HP enemy")} in range " +
             $"for {AugmentText.BonusDamage("400% of its damage")}, with splash.";
 
         public override string GetDetailedDescription(Player player) =>

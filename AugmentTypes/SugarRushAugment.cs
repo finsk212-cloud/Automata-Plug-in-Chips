@@ -15,7 +15,7 @@ namespace Augments
         public override string DisplayName => "Sugar Rush";
         public override string Description =>
             $"Drinking Mana Potions no longer inflicts the damage penalty of Mana Sickness. " +
-            $"Instead, excess mana grants {AugmentText.Duration("Sugar Rush")}, giving decaying {AugmentText.BonusDamage("+15% magic damage")} and {AugmentText.Crit("+10% magic crit")} over {AugmentText.Duration("5s")}.";
+            $"Instead, excess mana grants {AugmentText.Duration("Sugar Rush")}, giving decaying {AugmentText.BonusDamage("+15% magic damage")} and {AugmentText.Crit("+10% magic crit")} over {AugmentText.Duration("5 seconds")}.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +

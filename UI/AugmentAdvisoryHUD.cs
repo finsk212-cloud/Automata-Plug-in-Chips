@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -178,6 +178,14 @@ namespace Augments
 			}
 		}
 
+		// True while the current tip is still being "spoken" (revealed letter by letter); the Pod pet bobs faster meanwhile.
+		// The tip's heading: Pod 042 becomes the name of the Pod's upgrade (Pod 153 with Autopilot) when the player has one.
+		private static string ShownPrefix => string.IsNullOrEmpty(currentPrefix) ? "" : currentPrefix.Replace(PodUpgrades.BasePodName, PodUpgrades.PodName(Main.LocalPlayer));
+
+		internal static bool IsTalking => displayTimer > 0f && fadeAlpha > 0.1f && (DisplayDuration - displayTimer) * RevealLettersPerSecond < currentMessage.Length;
+
+		private const float RevealLettersPerSecond = 55f;
+
 		public static void TriggerNextRandomTip()
 		{
 			if (RotatingTips.Length == 0)
@@ -194,80 +202,85 @@ namespace Augments
 			ShowAdvisory(prefix, text, true);
 		}
 
-		private static Texture2D podTexture;
+		// The Pod sprite comes from PodSprites (one texture per skin). These two stay so the other UI that used them keeps working.
+		internal static Texture2D GetPodTexture() => PodSprites.Get(Cosmetic.EquippedPodIndex);
 
-		// Option A: Tactical Pod 042 (NieR: Automata authentic)
-		private static readonly string[] PodMask = new string[]
+		internal static void DrawPodIcon(SpriteBatch sb, Rectangle box, Color skin) => PodSprites.DrawBlocks(sb, box, skin);
+		private static string bubbleFor = "";
+		private static List<string> bubbleLines = new List<string>();
+
+		// Chat colour tags like [c/94A3B8:text] are dropped for the bubble, keeping the text, so the letter-by-letter reveal never cuts through a tag.
+		private static readonly System.Text.RegularExpressions.Regex TagRegex =
+			new System.Text.RegularExpressions.Regex(@"\[[A-Za-z]+(/[^:\]]*)?:([^\]]*)\]", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+		// The tip as a speech bubble beside the player's own Pod. Only this player's game draws it, so nobody else sees the tips.
+		// It takes no clicks (so it can never get in the way of using an item); the tip keybind still moves on to the next one.
+		private static void DrawBubble(SpriteBatch sb, Vector2 pod)
 		{
-			"        AA        ",
-			"        AA        ",
-			"        ..        ",
-			"    ..........    ",
-			"    .BBBBBBBS.    ",
-			"    .BMMMMMMS.    ",
-			"..  .BMMMMMMS.  ..",
-			".LL..BMMMMMMS..LL.",
-			".LL..BMMEEMMS..LL.",
-			".LL..BMMeWMMS..LL.",
-			".LL..BMMeEMMS..LL.",
-			".LL..BMMMMMMS..LL.",
-			".ll..BMMMMMMS..ll.",
-			"..  .BMMMMMMS.  ..",
-			"    .BMMMMMMS.    ",
-			"    .SSSSSSSS.    ",
-			"    ....TT....    ",
-			"        TT        ",
-		};
+			bounds = Rectangle.Empty;
 
-		private static void EnsurePodTexture()
-		{
-			if (podTexture != null && !podTexture.IsDisposed)
-				return;
+			var font = FontAssets.MouseText.Value;
+			const float scale = 0.6f;
+			const float maxTextWidth = 190f;
 
-			if (Main.graphics?.GraphicsDevice == null)
-				return;
-
-			int width = 18;
-			int height = 18;
-			podTexture = new Texture2D(Main.graphics.GraphicsDevice, width, height);
-			Color[] data = new Color[width * height];
-
-			Color outline = new Color(14, 20, 30, 255);
-			Color antenna = new Color(160, 175, 195, 255);
-			Color bevel = new Color(155, 170, 190, 255);
-			Color body = new Color(74, 88, 108, 255);
-			Color shadow = new Color(48, 58, 74, 255);
-			Color arm = new Color(66, 80, 100, 255);
-			Color armJoint = new Color(38, 48, 62, 255);
-			Color eyeOuter = new Color(2, 132, 199, 255);
-			Color eyeBright = new Color(56, 189, 248, 255);
-			Color eyeGlint = new Color(245, 252, 255, 255);
-			Color thruster = new Color(14, 165, 233, 235);
-
-			for (int y = 0; y < height; y++)
+			if (bubbleFor != currentMessage)
 			{
-				string row = PodMask[y];
-				for (int x = 0; x < width; x++)
-				{
-					char c = row[x];
-					Color col = Color.Transparent;
-					if (c == '.') col = outline;
-					else if (c == 'A') col = antenna;
-					else if (c == 'B') col = bevel;
-					else if (c == 'M') col = body;
-					else if (c == 'S') col = shadow;
-					else if (c == 'L') col = arm;
-					else if (c == 'l') col = armJoint;
-					else if (c == 'E') col = eyeOuter;
-					else if (c == 'e') col = eyeBright;
-					else if (c == 'W') col = eyeGlint;
-					else if (c == 'T') col = thruster;
-
-					data[y * width + x] = col;
-				}
+				bubbleFor = currentMessage;
+				bubbleLines = HubDraw.Wrap(TagRegex.Replace(currentMessage, m => m.Groups[2].Value), maxTextWidth, scale);
 			}
 
-			podTexture.SetData(data);
+			float lineHeight = font.LineSpacing * scale;
+			float widest = 0f;
+			foreach (string line in bubbleLines)
+				widest = Math.Max(widest, HubDraw.Width(line, scale));
+
+			const float headerHeight = 12f;
+			float w = Math.Max(widest, 80f) + 18f;
+			float h = headerHeight + bubbleLines.Count * lineHeight + 12f;
+
+			float uiW = Main.screenWidth / Main.UIScale;
+			float uiH = Main.screenHeight / Main.UIScale;
+			bool toRight = pod.X + 24f + w + 8f < uiW;
+			float bx = toRight ? pod.X + 24f : pod.X - 24f - w;
+			float by = MathHelper.Clamp(pod.Y - h - 8f, 8f, Math.Max(8f, uiH - h - 8f));
+			var box = new Rectangle((int)bx, (int)by, (int)w, (int)h);
+
+			float a = fadeAlpha * 0.75f; // kept subtle: the tip should be easy to ignore
+			Color cyan = PanelChrome.Tone(new Color(56, 189, 248));
+			
+			HubDraw.Fill(sb, box, PanelChrome.Tone(new Color(10, 16, 26)) * (0.70f * a));
+			HubDraw.Border(sb, box, cyan * (0.35f * a));
+			HubDraw.Corners(sb, new Rectangle(box.X - 2, box.Y - 2, box.Width + 4, box.Height + 4), cyan * (0.7f * a), 5, 1);
+
+			// A little tail pointing down toward the Pod.
+			int tailX = toRight ? box.X + 12 : box.Right - 12;
+			for (int i = 0; i < 7; i++)
+			{
+				int half = 6 - i;
+				HubDraw.Fill(sb, new Rectangle(tailX - half, box.Bottom + i, half * 2 + 1, 1), PanelChrome.Tone(new Color(10, 16, 26)) * (0.92f * a));
+				HubDraw.Fill(sb, new Rectangle(tailX - half, box.Bottom + i, 1, 1), cyan * (0.8f * a));
+				HubDraw.Fill(sb, new Rectangle(tailX + half, box.Bottom + i, 1, 1), cyan * (0.8f * a));
+			}
+
+			Vector2 textScale = new Vector2(scale);
+			Color shadowColor = Color.Black * (0.5f * a);
+			ChatManager.DrawColorCodedStringWithShadow(sb, font, ShownPrefix, new Vector2(box.X + 9, box.Y + 5), cyan * (0.8f * a), 0f, Vector2.Zero, new Vector2(0.5f));
+
+			// The text appears letter by letter, as if the Pod were saying it.
+			int revealed = (int)Math.Max(0f, Math.Min(currentMessage.Length, (DisplayDuration - displayTimer) * RevealLettersPerSecond));
+			float y = box.Y + 5 + headerHeight;
+			foreach (string line in bubbleLines)
+			{
+				if (revealed <= 0)
+					break;
+
+				string shown = revealed >= line.Length ? line : line.Substring(0, revealed);
+				revealed -= line.Length + 1; // +1 for the space the wrap removed
+				var pos = new Vector2(box.X + 9, y);
+				ChatManager.DrawColorCodedStringWithShadow(sb, font, shown, pos + new Vector2(1f, 1f), shadowColor, 0f, Vector2.Zero, textScale);
+				ChatManager.DrawColorCodedStringWithShadow(sb, font, shown, pos, new Color(210, 220, 232) * a, 0f, Vector2.Zero, textScale);
+				y += lineHeight;
+			}
 		}
 
 		public static void Draw(SpriteBatch spriteBatch)
@@ -275,16 +288,23 @@ namespace Augments
 			if (Main.dedServ || Main.gameMenu || fadeAlpha <= 0.001f || string.IsNullOrEmpty(currentMessage))
 				return;
 
-			EnsurePodTexture();
+			// With a Pod beside you the tip is a speech bubble next to it. Without one (it is switched off) the old ticker at the bottom is used.
+			if (PodPetPlayer.TryGetLocalPodScreenPos(out Vector2 podScreen))
+			{
+				DrawBubble(spriteBatch, podScreen);
+				return;
+			}
+
+			Texture2D podTexture = PodSprites.Get(Cosmetic.EquippedPodIndex);
 
 			var font = FontAssets.MouseText.Value;
 			Vector2 scale = new Vector2(0.74f);
 
-			Vector2 prefixSize = ChatManager.GetStringSize(font, currentPrefix, scale);
+			Vector2 prefixSize = ChatManager.GetStringSize(font, ShownPrefix, scale);
 			Vector2 msgSize = ChatManager.GetStringSize(font, currentMessage, scale);
 
 			const float gap = 8f;
-			const float podWidth = 18f;
+			const float podWidth = 20f;
 			const float podGap = 7f;
 			float totalWidth = podWidth + podGap + prefixSize.X + gap + msgSize.X;
 			float textHeight = Math.Max(prefixSize.Y, msgSize.Y);
@@ -315,21 +335,21 @@ namespace Augments
 
 				// Breathing optical lens cyan eye glow
 				float eyePulse = (float)Math.Sin(Main.GlobalTimeWrappedHourly * 4.5f) * 0.5f + 0.5f;
-				Vector2 eyeCenter = podPos + new Vector2(9f, 9.5f);
+				Vector2 eyeCenter = podPos + PodSprites.Lens;
 				int glowSize = (int)(4f + eyePulse * 2f);
-				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle((int)eyeCenter.X - glowSize / 2, (int)eyeCenter.Y - glowSize / 2, glowSize, glowSize), new Color(56, 189, 248) * ((0.20f + eyePulse * 0.25f) * fadeAlpha));
+				spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle((int)eyeCenter.X - glowSize / 2, (int)eyeCenter.Y - glowSize / 2, glowSize, glowSize), PanelChrome.Tone(new Color(56, 189, 248)) * ((0.20f + eyePulse * 0.25f) * fadeAlpha));
 			}
 
-			Color pColor = new Color(56, 189, 248) * fadeAlpha; // Cyan
+			Color pColor = PanelChrome.Tone(new Color(56, 189, 248)) * fadeAlpha; // Cyan
 			Color mColor = new Color(241, 245, 249) * fadeAlpha; // Crisp white
 
 			// Soft subtle drop shadow behind so the text pops cleanly on any bright or dark terrain
 			Color shadowColor = Color.Black * (0.80f * fadeAlpha);
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, currentPrefix, prefixPos + new Vector2(1f, 1f), shadowColor, 0f, Vector2.Zero, scale);
+			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, ShownPrefix, prefixPos + new Vector2(1f, 1f), shadowColor, 0f, Vector2.Zero, scale);
 			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, currentMessage, msgPos + new Vector2(1f, 1f), shadowColor, 0f, Vector2.Zero, scale);
 
 			// Primary text
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, currentPrefix, prefixPos, pColor, 0f, Vector2.Zero, scale);
+			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, ShownPrefix, prefixPos, pColor, 0f, Vector2.Zero, scale);
 			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, currentMessage, msgPos, mColor, 0f, Vector2.Zero, scale);
 
 			// Subtle interaction hint when hovered
@@ -339,7 +359,7 @@ namespace Augments
 				Vector2 hintScale = new Vector2(0.56f);
 				Vector2 hintSize = ChatManager.GetStringSize(font, hint, hintScale);
 				Vector2 hintPos = new Vector2((Main.screenWidth - hintSize.X) * 0.5f, posY + textHeight + 4f);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, hint, hintPos, new Color(148, 163, 184) * (0.85f * fadeAlpha), 0f, Vector2.Zero, hintScale);
+				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, hint, hintPos, PanelChrome.Tone(new Color(148, 163, 184)) * (0.85f * fadeAlpha), 0f, Vector2.Zero, hintScale);
 			}
 		}
 	}

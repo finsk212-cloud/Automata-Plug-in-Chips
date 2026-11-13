@@ -9,8 +9,7 @@ namespace Augments
         public override bool RunsKillHookOnKillerClient => true;
         public override string DisplayName => "Ravenous Swarm";
         public override string Description =>
-            $"Minion kills have a {FormatCurrentChance(ProcChance)} to grant {AugmentText.BonusDamage("+1 max minion slot")}.\n" +
-            AugmentText.Note("(Capped at +3 total slots per session.)");
+            $"Minion kills have a {FormatCurrentChance(ProcChance)} to grant {AugmentText.BonusDamage("+1 max minion slot")}.";
 
         public override string GetDetailedDescription(Player player) =>
             $"Minion kills have a {FormatFortuneChance(ProcChance, player)} to grant {AugmentText.BonusDamage("+1 max minion slot")}.\n" +
