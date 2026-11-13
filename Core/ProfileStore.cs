@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -19,6 +19,10 @@ namespace Augments
 	// is for display and cosmetic use only: nothing in the game's rules should ever trust it.
 	public static class ProfileStore
 	{
+		// Bumped when the Archive collection has to be reset for everyone. A profile file saved before this reads as 0, so the first
+		// launch of the update clears the collected plugins once (update 1.4.0 is reset 1).
+		public const int CurrentResetVersion = 1;
+
 		public sealed class CharacterRecord
 		{
 			public string Name { get; set; } = "";
@@ -44,6 +48,7 @@ namespace Augments
 
 		private sealed class ProfileFile
 		{
+			public int ResetVersion { get; set; }
 			public List<CharacterRecord> Characters { get; set; } = new List<CharacterRecord>();
 		}
 
@@ -119,11 +124,24 @@ namespace Augments
 				{
 					ProfileFile loaded = JsonSerializer.Deserialize<ProfileFile>(File.ReadAllText(FilePath));
 					if (loaded?.Characters != null)
-						ordered = null;
+					{
 						file = loaded;
+
+						// One time reset of the Archive collection: every character in the file starts again from zero.
+						if (file.ResetVersion < CurrentResetVersion)
+						{
+							foreach (CharacterRecord c in file.Characters)
+								c.EverOwned = new List<string>();
+							file.ResetVersion = CurrentResetVersion;
+							WriteFile();
+						}
+					}
 				}
-			}
-			catch (Exception e)
+				else
+				{
+					file.ResetVersion = CurrentResetVersion;
+				}
+			}			catch (Exception e)
 			{
 				// A damaged file just means "no profile yet": it is rewritten the next time a character saves.
 				ModContent.GetInstance<Augments>().Logger.Warn("The profile file could not be read and will be replaced: " + e.Message);
@@ -136,6 +154,16 @@ namespace Augments
 		{
 			ordered = null;
 			file = new ProfileFile();
+		}
+
+		// Writes the profile file. A temporary file is written first so a crash halfway through never leaves a half-written profile.
+		private static void WriteFile()
+		{
+			Directory.CreateDirectory(Path.GetDirectoryName(FilePath));
+			string temp = FilePath + ".tmp";
+			File.WriteAllText(temp, JsonSerializer.Serialize(file, new JsonSerializerOptions { WriteIndented = true }));
+			File.Copy(temp, FilePath, true);
+			File.Delete(temp);
 		}
 
 		// Updates the summary for this character and writes the file.
@@ -156,19 +184,15 @@ namespace Augments
 					BossesDefeated = ap.BossAugmentKills.Count,
 					TotalBossKills = ap.BossAugmentKills.Values.Sum(),
 					LoadoutSlots = ap.LoadoutSlotsUnlocked,
-					EverOwned = ap.EverOwnedIds.OrderBy(id => id, StringComparer.Ordinal).ToList()
+					EverOwned = ap.ArchiveCollectedIds.OrderBy(id => id, StringComparer.Ordinal).ToList()
 				};
 
 				file.Characters.RemoveAll(c => string.Equals(c.Name, record.Name, StringComparison.Ordinal));
 				file.Characters.Add(record);
 				ordered = null;
 
-				// Write to a temporary file first so a crash halfway through never leaves a half-written profile.
-				Directory.CreateDirectory(Path.GetDirectoryName(FilePath));
-				string temp = FilePath + ".tmp";
-				File.WriteAllText(temp, JsonSerializer.Serialize(file, new JsonSerializerOptions { WriteIndented = true }));
-				File.Copy(temp, FilePath, true);
-				File.Delete(temp);
+				file.ResetVersion = CurrentResetVersion;
+				WriteFile();
 			}
 			catch (Exception e)
 			{

@@ -4,6 +4,7 @@
 
 ### Highlights
 - **Automata Music**: There is now a companion mod that gives Terraria a NieR: Automata mood. It swaps the boss and biome music and turns the main menu into a live view from the Bunker, and you can switch any part of it off in its config. Grab it on the Steam Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=3814903011
+- **A fresh start for the Archive**: With this update the Archive collection and your Data Fragments are reset to zero, once, for every player. Your characters, plugins, stash, shop unlocks and finished orders are not touched. The Archive simply starts counting again from today.
 - **A NieR: Automata look for everything**: All the menus and HUD pieces now share one NieR: Automata style. Panels, buttons, corners and titles follow the colour scheme and frame style you pick on the Cosmetics page of the title screen, and the panels flicker with a faint glitch like the main menu does. You will see it in the Plugins menu, Combat Analytics, Plugin Storage, the Gacha, the reward choice cards and the HUD.
 - **Plugin tiers look different now**: Common, Rare, Epic and Legendary each have their own shape instead of just a colour. Rare has long corner brackets, Epic has a double border, and Legendary is a cream plate with dark text. All six classes also have new simple icons.
 - **A friendlier Plugins menu**: It opens on the newest plugins first, the Filters panel has been rebuilt, and every plugin shows its class right under its name.

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
@@ -28,6 +28,8 @@ namespace Augments
 		public sealed class AccountData
 		{
 			public int Version { get; set; } = 1;
+			// Which Data Fragments reset this account has been through. A file saved before the reset reads as 0.
+			public int ResetVersion { get; set; }
 			public int Balance { get; set; }
 			public long LifetimeEarned { get; set; }
 			public double PlaySeconds { get; set; }
@@ -46,7 +48,11 @@ namespace Augments
 			public string Sig { get; set; } = "";
 		}
 
-		private static AccountData committed = new AccountData();
+		// Bumped when everyone's Data Fragments have to go back to zero (update 1.4.0 is reset 1). The first launch of the update does it once,
+		// then records it in the file, so it never happens again.
+		public const int CurrentResetVersion = 1;
+
+		private static AccountData committed = new AccountData { ResetVersion = CurrentResetVersion };
 
 		// Changes made by this copy of the game that are not in the file yet.
 		private static int pendingBalance;
@@ -186,7 +192,24 @@ namespace Augments
 		{
 			try
 			{
-				committed = ReadFile() ?? new AccountData();
+				AccountData read = ReadFile();
+				if (read == null)
+				{
+					// No account yet (or an unreadable one set aside): it starts empty, and there is nothing to reset.
+					committed = new AccountData { ResetVersion = CurrentResetVersion };
+				}
+				else
+				{
+					committed = read;
+					if (committed.ResetVersion < CurrentResetVersion)
+					{
+						// One time reset of the Data Fragments (update 1.4.0). Shop unlocks and finished orders are kept.
+						committed.Balance = 0;
+						committed.LifetimeEarned = 0;
+						committed.ResetVersion = CurrentResetVersion;
+						WriteFile(committed);
+					}
+				}
 			}
 			catch (IOException e)
 			{
@@ -234,7 +257,8 @@ namespace Augments
 					LifetimeEarned = fresh.LifetimeEarned + pendingLifetime,
 					PlaySeconds = fresh.PlaySeconds + pendingPlay,
 					CoopSeconds = fresh.CoopSeconds + pendingCoop,
-					Unlocked = new HashSet<string>(fresh.Unlocked),
+					ResetVersion = Math.Max(fresh.ResetVersion, committed.ResetVersion),
+						Unlocked = new HashSet<string>(fresh.Unlocked),
 					BossIds = new HashSet<string>(fresh.BossIds),
 					MissionsDone = new HashSet<string>(fresh.MissionsDone),
 					Equipped = new Dictionary<string, string>(fresh.Equipped),

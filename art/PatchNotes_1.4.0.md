@@ -8,6 +8,9 @@ This is the biggest update so far. The whole mod has a new NieR: Automata look, 
 A companion mod that gives Terraria a NieR: Automata mood. It swaps the boss and biome music and turns the main menu into a live view from the Bunker. You can switch any part of it off in its config.
 https://steamcommunity.com/sharedfiles/filedetails/?id=3814903011
 
+**A fresh start for the Archive**
+With this update the Archive collection and your Data Fragments are reset to zero, once, for every player. Your characters, plugins, stash, shop unlocks and finished orders are not touched. The Archive simply starts counting again from today.
+
 **A NieR: Automata look for everything**
 All the menus and HUD pieces now share one style. Panels, buttons, corners and titles follow the colour scheme and frame style you pick on the Cosmetics page of the title screen, and the panels flicker with a faint glitch like the main menu does.
 

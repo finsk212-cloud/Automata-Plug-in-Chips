@@ -191,6 +191,7 @@ namespace Augments
 		{
 			ownedIds.Clear();
 			everOwnedIds.Clear();
+			archiveBaseline.Clear();
 			soldAugmentIds.Clear();
 			lockedKeystoneFamilies.Clear();
 			ResetLoadoutState();
@@ -490,6 +491,8 @@ namespace Augments
 			tag["ownedAugmentIds"] = new List<string>(ownedIds);
 			tag["augmentCustomData"] = customData;
 			tag["everOwnedIds"] = new List<string>(everOwnedIds);
+			tag["archiveBaseline"] = new List<string>(archiveBaseline);
+			tag["archiveReset"] = archiveResetVersion;
 			tag["soldAugmentIds"] = new List<string>(soldAugmentIds);
 			tag["lockedKeystoneFamilies"] = new List<string>(lockedKeystoneFamilies);
 			tag["stashedIds"] = new List<string>(stashedIds);
@@ -547,6 +550,7 @@ namespace Augments
 		{
 			ownedIds.Clear();
 			everOwnedIds.Clear();
+			archiveBaseline.Clear();
 			soldAugmentIds.Clear();
 			lockedKeystoneFamilies.Clear();
 			SeenAdvisoryTriggers.Clear();
@@ -606,6 +610,20 @@ namespace Augments
 				}
 				everOwnedIds.UnionWith(stashedIds);
 			}
+			// One time reset of the Archive collection (update 1.4.0): a character saved before the reset has its current history become the
+			// baseline, so the Archive starts again from zero and only counts plugins collected from now on. The plugins the character owns,
+			// has stashed or has sold are not changed.
+			int savedReset = tag.ContainsKey("archiveReset") ? tag.GetInt("archiveReset") : 0;
+			if (savedReset < ProfileStore.CurrentResetVersion)
+			{
+				archiveBaseline.UnionWith(everOwnedIds);
+			}
+			else if (tag.ContainsKey("archiveBaseline"))
+			{
+				foreach (string id in tag.GetList<string>("archiveBaseline"))
+					archiveBaseline.Add(id);
+			}
+			archiveResetVersion = ProfileStore.CurrentResetVersion;
 			if (tag.ContainsKey("loadoutSlotsUnlocked"))
 				loadoutSlotsUnlocked = Math.Clamp(tag.GetInt("loadoutSlotsUnlocked"), 1, MaxLoadouts);
 			for (int s = 0; s < MaxLoadouts; s++)

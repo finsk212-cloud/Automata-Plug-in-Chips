@@ -22,6 +22,9 @@ namespace Augments
 
 		private readonly HashSet<string> ownedIds = new HashSet<string>();
 		private readonly HashSet<string> everOwnedIds = new HashSet<string>();
+		// Plugins that were already collected when the Archive was reset (once, in update 1.4.0). The Archive on the title screen counts only plugins collected AFTER that, so everyone starts it from zero. Nothing the character owns, stashed or sold is touched.
+		private readonly HashSet<string> archiveBaseline = new HashSet<string>();
+		private int archiveResetVersion = ProfileStore.CurrentResetVersion;
 		private readonly HashSet<string> soldAugmentIds = new HashSet<string>();
 		private readonly HashSet<string> lockedKeystoneFamilies = new HashSet<string>();
 		private readonly List<Augment> owned = new List<Augment>();
@@ -30,6 +33,8 @@ namespace Augments
 
 		public IReadOnlySet<string> OwnedIds => ownedIds;
 		public IReadOnlySet<string> EverOwnedIds => everOwnedIds;
+		// The plugins the Archive shows as collected: everything collected since the Archive reset.
+		public IEnumerable<string> ArchiveCollectedIds => everOwnedIds.Where(id => !archiveBaseline.Contains(id));
 		public IReadOnlySet<string> SoldAugmentIds => soldAugmentIds;
 		public IReadOnlySet<string> LockedKeystoneFamilies => lockedKeystoneFamilies;
 		public IReadOnlyList<Augment> Owned => owned;
