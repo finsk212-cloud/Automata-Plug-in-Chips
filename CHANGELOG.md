@@ -4,8 +4,12 @@
 
 ### Highlights
 - **Automata Music**: [TODO: describe the Automata Music mod and add its Workshop link here]
-- **Full UI Visual Overhaul**: Every menu and HUD now shares one clean "cybernetic chassis" look: Plugins menu and inspector, Shop, reward choice cards, tooltips, Combat Analytics, pinned stat HUD, Protocol sidebar, cooldown/charge tiles, and the new Pod 042 advisory ticker.
-- **Diagnostics Drawer**: A slide-out panel on the edge of the screen (click or hover to open, dockable left or right, can be turned off in the config) showing hidden stats such as Luck, fishing multipliers and combat mechanics.
+- **NieR: Automata Look**: Every menu and HUD now has a NieR: Automata style. Panels, buttons, corners and titles follow the colour scheme and frame style you pick on the COSMETICS page of the title screen, and panels get a faint glitch effect like the main menu. This covers the Plugins menu, Combat Analytics, Plugin Storage, the Gacha, reward choice cards and the HUD.
+- **New Plugin Tiers Look**: Common, Rare, Epic and Legendary each have their own shape, not just a colour. Rare has long corner brackets, Epic has a double border, and Legendary is a cream plate with dark text. All six classes have new simple icons.
+- **Plugins Menu**: Opens on the newest plugins first (sort: Recently Added), has a rebuilt Filters panel, and shows the plugin's class under its name.
+- **Pod Redesign and Upgrades**: Your Pod has a new NieR: Automata look, and plugins can now upgrade it (Autopilot is the first one, see below).
+- **Command Dock**: The Combat, Diagnostics and Protocol buttons are now one compact dock under the minimap. Support and Protocol panels open when you click them, so you no longer block your screen by hovering while you fight.
+- **Diagnostics Drawer**: A slide-out panel on the edge of the screen (open it from the Diagnostics button in the dock, dockable left or right, can be turned off in the config) showing hidden stats such as Luck, fishing multipliers and combat mechanics.
 - **Automata Protocols**: 12 chip-set bonuses (see section 1).
 - **Loadout Presets & Stash**: Save up to 3 chip setups and swap between them in one click, from the Plugins menu, the Mistress 2B shop, or a hotkey (see section 8).
 - **Core Overrides**: build-defining one-per-character chips (see section 2).
