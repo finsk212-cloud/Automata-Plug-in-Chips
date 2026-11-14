@@ -309,7 +309,7 @@ namespace Augments.Core
 		// THE ADDRESS OF THE AUTHOR'S STATS SERVER. Left empty on purpose: while it is empty nothing is collected, nothing is
 		// sent and the "Share anonymous stats" prompt is not shown. Fill it in with the https address of the deployed server
 		// (see server/README.md) when it is ready.
-		public const string Endpoint = "";
+		public const string Endpoint = "https://automata-stats.automata-plugins.workers.dev/";
 
 		public static bool Configured => Endpoint.StartsWith("https://", StringComparison.Ordinal);
 

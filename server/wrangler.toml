@@ -2,11 +2,15 @@ name = "automata-stats"
 main = "src/worker.js"
 compatibility_date = "2025-01-01"
 
+# Reachable at the workers.dev address, but with no extra preview addresses.
+workers_dev = true
+preview_urls = false
+
 # After "wrangler d1 create automata-stats" (see README.md), paste the database_id it prints here.
 [[d1_databases]]
 binding = "DB"
 database_name = "automata-stats"
-database_id = "PASTE-THE-ID-HERE"
+database_id = "03af99a5-d911-452f-b6f6-0809822fa093"
 
 # Keep Cloudflare from keeping request logs that could hold IP addresses.
 [observability]
