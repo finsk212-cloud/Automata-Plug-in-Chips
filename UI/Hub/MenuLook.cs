@@ -169,7 +169,7 @@ namespace Augments
 
 		// Data Fragments each design costs. Holo glass is free for now: raise its price later and it becomes a Shop item
 		// (it is then owned only once its "tierdesign:holo" unlock is bought). -1 would make it an Operation reward.
-		public static readonly int[] TierDesignPrices = { 0, 0, 0, 0 };
+		public static readonly int[] TierDesignPrices = { 0, 400, 350, 300 };
 
 		private static int tierDesignSelected;
 

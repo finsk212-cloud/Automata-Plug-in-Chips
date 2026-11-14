@@ -11,7 +11,7 @@ There is a new Tier Design row on the Cosmetics page. It changes how the borders
 - Hard shadow: a solid block shadow behind each card that gets deeper with the tier
 - Folder tabs: a file folder tab on each card that gets wider with the tier
 
-All four are free for now.
+You can buy the three new ones in the Shop on the new Tiers tab: Holo glass costs 400 Data Fragments, Hard shadow 350 and Folder tabs 300.
 
 **A Cosmetics page that scrolls**
 The page is longer, so you can scroll it with the mouse wheel. The colour scheme cards are taller, so their previews fit above the name.

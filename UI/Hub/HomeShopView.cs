@@ -30,6 +30,7 @@ namespace Augments
 
 			public bool IsScheme => Kind == RewardKind.Scheme;
 			public bool IsFrame => Kind == RewardKind.Frame;
+			public bool IsTier => Kind == RewardKind.TierDesign;
 
 			public string KindLabel
 			{
@@ -39,6 +40,7 @@ namespace Augments
 					{
 						case RewardKind.Scheme: return "COLOUR SCHEME";
 						case RewardKind.Frame: return "PANEL FRAME";
+						case RewardKind.TierDesign: return "TIER DESIGN";
 						default: return Reward.KindLabel;
 					}
 				}
@@ -52,6 +54,7 @@ namespace Augments
 					{
 						case RewardKind.Scheme: return MenuLook.SchemeOwned(Index);
 						case RewardKind.Frame: return MenuLook.FrameOwned(Index);
+						case RewardKind.TierDesign: return MenuLook.TierDesignOwned(Index);
 						default: return Operations.IsOwned(Reward);
 					}
 				}
@@ -65,6 +68,7 @@ namespace Augments
 					{
 						case RewardKind.Scheme: return MenuLook.SelectedIndex == Index;
 						case RewardKind.Frame: return MenuLook.FrameIndex == Index;
+						case RewardKind.TierDesign: return MenuLook.TierDesignIndex == Index;
 						default: return Operations.IsEquipped(Reward);
 					}
 				}
@@ -72,8 +76,8 @@ namespace Augments
 		}
 
 		// The shelves, in tab order. Each tab shows one kind of item.
-		private static readonly RewardKind[] Categories = { RewardKind.Scheme, RewardKind.Frame, RewardKind.PodSkin, RewardKind.Title, RewardKind.Emblem };
-		private static readonly string[] CategoryNames = { "SCHEMES", "FRAMES", "PODS", "TITLES", "EMBLEMS" };
+		private static readonly RewardKind[] Categories = { RewardKind.Scheme, RewardKind.Frame, RewardKind.TierDesign, RewardKind.PodSkin, RewardKind.Title, RewardKind.Emblem };
+		private static readonly string[] CategoryNames = { "SCHEMES", "FRAMES", "TIERS", "PODS", "TITLES", "EMBLEMS" };
 
 		private static ShopItem MakeItem(RewardKind kind, string id, int price)
 		{
@@ -96,6 +100,8 @@ namespace Augments
 					if (MenuLook.SchemePrices[i] >= 0) items.Add(new ShopItem { Kind = RewardKind.Scheme, Index = i, Name = MenuLook.All[i].Name, Blurb = MenuLook.All[i].Blurb, Price = MenuLook.SchemePrices[i], UnlockId = MenuLook.SchemeUnlockId(i) });
 				for (int i = 1; i < MenuLook.Frames.Length; i++)
 					if (MenuLook.FramePrices[i] >= 0) items.Add(new ShopItem { Kind = RewardKind.Frame, Index = i, Name = MenuLook.Frames[i].Name, Blurb = MenuLook.Frames[i].Blurb, Price = MenuLook.FramePrices[i], UnlockId = MenuLook.FrameUnlockId(i) });
+				for (int i = 1; i < MenuLook.TierDesigns.Length; i++)
+					if (MenuLook.TierDesignPrices[i] > 0) items.Add(new ShopItem { Kind = RewardKind.TierDesign, Index = i, Name = MenuLook.TierDesigns[i].Name, Blurb = MenuLook.TierDesigns[i].Blurb.Replace("\n", " "), Price = MenuLook.TierDesignPrices[i], UnlockId = MenuLook.TierDesignUnlockId(i) });
 				foreach (Cosmetic.PodSkinInfo skin in Cosmetic.PodSkins)
 					if (Cosmetic.PodSkinPrice(skin.Id) >= 0) items.Add(MakeItem(RewardKind.PodSkin, skin.Id, Cosmetic.PodSkinPrice(skin.Id)));
 				foreach (string[] title in Cosmetic.Titles)
@@ -214,6 +220,8 @@ namespace Augments
 						MenuLook.SelectScheme(item.Index);
 					else if (item.IsFrame)
 						MenuLook.SelectFrame(item.Index);
+					else if (item.IsTier)
+						MenuLook.SelectTierDesign(item.Index);
 					else
 						Operations.Equip(item.Reward);
 					SoundEngine.PlaySound(SoundID.MenuOpen);
@@ -331,6 +339,36 @@ namespace Augments
 				{
 					HubDraw.Brackets(sb, new Rectangle(inner.X - 8, inner.Y - 8, inner.Width + 16, inner.Height + 16), HubTheme.Accent, 12, 2);
 					HubDraw.Brackets(sb, new Rectangle(inner.X - 3, inner.Y - 3, inner.Width + 6, inner.Height + 6), HubTheme.Accent, 6, 1);
+				}
+			}
+			else if (item.IsTier)
+			{
+				// Two sample plugin cards (a Rare and an Epic) drawn by the real card code with this design switched on for a moment.
+				HubDraw.Fill(sb, area, HubTheme.Panel);
+				HubDraw.Border(sb, area, HubTheme.Line);
+				int side = Math.Max(20, Math.Min(area.Height - 28, (area.Width - 36) / 2));
+				var rare = new Rectangle(area.Center.X - side - 8, area.Center.Y - side / 2, side, side);
+				var epic = new Rectangle(area.Center.X + 8, area.Center.Y - side / 2, side, side);
+				Color chassis = PanelChrome.Tone(new Color(10, 16, 28));
+				RarityLook.SampleDesign = (TierDesign)item.Index;
+				try
+				{
+					if (item.Index == 1)
+					{
+						RarityLook.RoundFill(sb, rare, chassis, RarityLook.HoloRadius(rare));
+						RarityLook.RoundFill(sb, epic, chassis, RarityLook.HoloRadius(epic));
+					}
+					else
+					{
+						HubDraw.Fill(sb, rare, chassis);
+						HubDraw.Fill(sb, epic, chassis);
+					}
+					RarityLook.DrawTierFrame(sb, rare, AugmentRarity.Rare, false);
+					RarityLook.DrawTierFrame(sb, epic, AugmentRarity.Epic, false);
+				}
+				finally
+				{
+					RarityLook.SampleDesign = null;
 				}
 			}
 			else

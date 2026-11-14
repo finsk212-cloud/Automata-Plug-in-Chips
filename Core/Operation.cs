@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 
@@ -11,7 +11,8 @@ namespace Augments
 		Frame,     // a panel frame that cannot be bought in the Shop
 		PodSkin,   // a colour for the Pod beside you in game
 		Title,     // a title line shown on the Profile page
-		Emblem     // a small emblem shown on the Profile page
+		Emblem,    // a small emblem shown on the Profile page
+		TierDesign // how the plugin card borders are built (Shop only, never an Operation reward)
 	}
 
 	public sealed class OperationReward
