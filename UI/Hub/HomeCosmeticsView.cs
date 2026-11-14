@@ -372,8 +372,8 @@ namespace Augments
 			HubDraw.TextFit(sb, d.Name, new Vector2(tx, card.Y + 22), HubTheme.Text, 0.8f, 2f, room);
 
 			int price = MenuLook.TierDesignPrices[index];
-			string tag = equipped ? "EQUIPPED" : (owned ? "CLICK TO EQUIP" : (price < 0 ? "CAMPAIGN REWARD" : price + " FRAGMENTS  //  SHOP"));
-			HubDraw.TextFit(sb, tag, new Vector2(tx, card.Bottom - 24), equipped ? HubTheme.Warn : HubTheme.Dim, 0.56f, 2f, room);
+			string tag = equipped ? "EQUIPPED" : (owned ? "CLICK TO EQUIP" : (price < 0 ? "CAMPAIGN REWARD" : price + " FRAGMENTS"));
+			HubDraw.TextFit(sb, tag, new Vector2(tx, card.Bottom - 24), equipped || !owned ? HubTheme.Warn : HubTheme.Dim, 0.6f, 1f, room);
 		}
 
 		// The same bracket shapes MenuLook.DrawFrame uses, smaller, so the card shows what you would get.
