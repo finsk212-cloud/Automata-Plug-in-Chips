@@ -7,7 +7,7 @@
 // PRIVACY: this code never reads or stores the sender's IP address, name or anything that identifies them. A batch is only
 // numbers about plugins and weapons, and it is ADDED into running totals, so single players cannot be picked out.
 
-const MAX_BODY_BYTES = 64 * 1024;
+const MAX_BODY_BYTES = 256 * 1024;
 const MAX_ROWS = 400;
 const PLUGIN_ID = /^[a-z0-9_]{2,48}$/;          // plugin ids are lower case letters, digits and _
 const WEAPON_KEY = /^[A-Za-z0-9_./-]{1,80}$/;   // "Terraria/Uzi", "CalamityMod/SomeGun", or "none"
@@ -42,7 +42,7 @@ async function ingest(request, env) {
   const statements = [];
 
   for (const r of body.rows.slice(0, MAX_ROWS)) {
-    if (!r || typeof r.p !== 'string' || !PLUGIN_ID.test(r.p) || typeof r.w !== 'string' || !WEAPON_KEY.test(r.w)) continue;
+    if (!r || typeof r.p !== 'string' || !PLUGIN_ID.test(r.p) || typeof r.w !== 'string' || !WEAPON_KEY.test(r.w) || r.w.includes('..')) continue;
 
     const c = int(r.c, LIMITS.c), g = int(r.g, LIMITS.g);
     const pd = int(r.pd, LIMITS.pd), ph = int(r.ph, LIMITS.ph), wd = int(r.wd, LIMITS.wd), wh = int(r.wh, LIMITS.wh);

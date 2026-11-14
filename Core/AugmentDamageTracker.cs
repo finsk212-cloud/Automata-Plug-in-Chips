@@ -132,7 +132,11 @@ namespace Augments.Core
 			if (damage > 0)
 			{
 				if (isWeapon)
-					StatsCollector.NoteWeaponHit(damage);
+				{
+					// Support "weapons" (the Medigun's healing beam) are not damage, so they stay out of the balance numbers.
+					if (sourceClass != AugmentClass.Support)
+						StatsCollector.NoteWeaponHit(damage);
+				}
 				else if (!isProtocol)
 					StatsCollector.NotePluginDamage(sourceId, damage);
 			}

@@ -61,15 +61,23 @@ namespace Augments.Core
 		private const int MaxAttempts = 3;
 
 		private static readonly object gate = new object();
-		private static readonly Dictionary<string, StatsBucket> buckets = new Dictionary<string, StatsBucket>();
+		private static readonly Dictionary<(string plugin, string weapon, int stage), StatsBucket> buckets = new Dictionary<(string, string, int), StatsBucket>();
+
+		// Each weapon's key and damage class are worked out once per item type. The class belongs to the WEAPON (not to whichever
+		// weapon hit last), because the server groups rows by it, and one plugin on one weapon must always land in the same row.
+		private static readonly Dictionary<int, string> keyByType = new Dictionary<int, string>();
+		private static readonly Dictionary<string, int> classByKey = new Dictionary<string, int>();
 
 		private static string lastWeapon = "none";
-		private static AugmentClass lastClass = AugmentClass.Universal;
 		private static uint lastWeaponTick;
 		private static int flushCounter;
 
-		// On only when the player agreed and there is somewhere to send it.
-		public static bool Enabled => !Main.dedServ && StatsUploader.Configured && (AugmentConfig.Instance?.ShareAnonymousStats ?? false);
+		// Developer testing (the /statsdebug command): collects on this computer without the player switch or a server, and
+		// never sends anything. Not saved anywhere, so it is off again after a restart.
+		public static bool DevLocal;
+
+		// On only when the player agreed and there is somewhere to send it (or a developer test is running).
+		public static bool Enabled => !Main.dedServ && (DevLocal || (StatsUploader.Configured && (AugmentConfig.Instance?.ShareAnonymousStats ?? false)));
 
 		// A short, stable, language independent name for a weapon. Item.Name changes with the game language, so it is not used.
 		public static string WeaponKey(Item item)
@@ -77,10 +85,29 @@ namespace Augments.Core
 			if (item == null || item.IsAir)
 				return "none";
 
-			if (item.ModItem != null)
-				return Clean(item.ModItem.FullName);
+			if (keyByType.TryGetValue(item.type, out string cached))
+				return cached;
 
-			return "Terraria/" + (ItemID.Search.TryGetName(item.type, out string name) ? Clean(name) : item.type.ToString());
+			string key = item.ModItem != null
+				? Clean(item.ModItem.FullName)
+				: "Terraria/" + (ItemID.Search.TryGetName(item.type, out string name) ? Clean(name) : item.type.ToString());
+
+			keyByType[item.type] = key;
+			classByKey[key] = (int)ClassOf(item);
+			return key;
+		}
+
+		private static AugmentClass ClassOf(Item item)
+		{
+			if (item.CountsAsClass(DamageClass.Ranged))
+				return AugmentClass.Ranged;
+			if (item.CountsAsClass(DamageClass.Magic))
+				return AugmentClass.Magic;
+			if (item.CountsAsClass(DamageClass.Summon) || item.CountsAsClass(DamageClass.SummonMeleeSpeed))
+				return AugmentClass.Summon;
+			if (item.CountsAsClass(DamageClass.Melee))
+				return AugmentClass.Melee;
+			return AugmentClass.Universal;
 		}
 
 		// Only letters, digits and a few separators survive, so no free text can ever leave the computer.
@@ -107,24 +134,30 @@ namespace Augments.Core
 				return;
 
 			if (!string.IsNullOrEmpty(weaponKey))
+			{
 				lastWeapon = weaponKey;
-			if (weaponClass.HasValue)
-				lastClass = weaponClass.Value;
+
+				// Normally WeaponKey() has already recorded the weapon's class; only fill it in here if it never did.
+				if (weaponClass.HasValue && !classByKey.ContainsKey(weaponKey))
+					classByKey[weaponKey] = (int)weaponClass.Value;
+			}
 			lastWeaponTick = Main.GameUpdateCount;
 		}
 
 		private static string CurrentWeapon() =>
 			lastWeaponTick != 0 && Main.GameUpdateCount - lastWeaponTick <= WeaponWindowTicks ? lastWeapon : "none";
 
-		private static StatsBucket Get(string plugin, string weapon)
+		private static StatsBucket Get(string plugin, string weapon, int stage)
 		{
-			string key = plugin + "|" + weapon + "|" + (int)AugmentScaling.CurrentStage;
+			var key = (plugin, weapon, stage);
 			if (!buckets.TryGetValue(key, out StatsBucket b))
 			{
 				if (buckets.Count >= MaxBuckets)
 					return null;
 
-				b = new StatsBucket { Plugin = plugin, Weapon = weapon, Class = (int)lastClass, Stage = (int)AugmentScaling.CurrentStage };
+				if (!classByKey.TryGetValue(weapon, out int cls))
+					cls = (int)AugmentClass.Universal; // "none", or a weapon that was never seen
+				b = new StatsBucket { Plugin = plugin, Weapon = weapon, Class = cls, Stage = stage };
 				buckets[key] = b;
 			}
 			return b;
@@ -137,11 +170,12 @@ namespace Augments.Core
 				return;
 
 			string weapon = CurrentWeapon();
+			int stage = (int)AugmentScaling.CurrentStage;
 			lock (gate)
 			{
 				foreach (Augment a in Main.LocalPlayer.GetModPlayer<AugmentPlayer>().Owned)
 				{
-					StatsBucket b = Get(a.Id, weapon);
+					StatsBucket b = Get(a.Id, weapon, stage);
 					if (b == null)
 						continue;
 					b.WeaponDamage += damage;
@@ -150,15 +184,28 @@ namespace Augments.Core
 			}
 		}
 
-		// A plugin dealt damage (a proc, or its share of a boosted hit).
+		// A plugin dealt damage (a proc, or its share of a boosted hit). Only plugins the local player really has equipped count.
 		public static void NotePluginDamage(string pluginId, int damage)
 		{
-			if (!Enabled || damage <= 0 || string.IsNullOrEmpty(pluginId) || AugmentDatabase.GetById(pluginId) == null)
+			if (!Enabled || damage <= 0 || string.IsNullOrEmpty(pluginId) || Main.LocalPlayer == null)
 				return;
 
+			bool owned = false;
+			foreach (Augment a in Main.LocalPlayer.GetModPlayer<AugmentPlayer>().Owned)
+			{
+				if (a.Id == pluginId)
+				{
+					owned = true;
+					break;
+				}
+			}
+			if (!owned)
+				return;
+
+			int stage = (int)AugmentScaling.CurrentStage;
 			lock (gate)
 			{
-				StatsBucket b = Get(pluginId, CurrentWeapon());
+				StatsBucket b = Get(pluginId, CurrentWeapon(), stage);
 				if (b == null)
 					return;
 				b.PluginDamage += damage;
@@ -181,11 +228,12 @@ namespace Augments.Core
 			if (lastWeaponTick == 0 || Main.GameUpdateCount - lastWeaponTick > CombatWindowTicks)
 				return;
 
+			int stage = (int)AugmentScaling.CurrentStage;
 			lock (gate)
 			{
 				foreach (Augment a in player.GetModPlayer<AugmentPlayer>().Owned)
 				{
-					StatsBucket b = Get(a.Id, lastWeapon);
+					StatsBucket b = Get(a.Id, lastWeapon, stage);
 					if (b != null)
 						b.Seconds += 1.0 / 60.0;
 				}
@@ -195,7 +243,8 @@ namespace Augments.Core
 		// Sends what has been gathered and starts again from zero. Safe to call at any time.
 		public static void Flush()
 		{
-			if (!Enabled)
+			// With no server address (a developer test) nothing is sent, and the numbers stay for /statsdebug show.
+			if (!Enabled || !StatsUploader.Configured)
 				return;
 
 			List<StatsBucket> rows;
@@ -220,7 +269,7 @@ namespace Augments.Core
 					if (r.Attempts >= MaxAttempts)
 						continue;
 
-					string key = r.Plugin + "|" + r.Weapon + "|" + r.Stage;
+					var key = (r.Plugin, r.Weapon, r.Stage);
 					if (buckets.TryGetValue(key, out StatsBucket existing))
 						existing.Add(r);
 					else if (buckets.Count < MaxBuckets)
@@ -237,6 +286,21 @@ namespace Augments.Core
 			lastWeaponTick = 0;
 			flushCounter = 0;
 		}
+
+		// For the developer command: what is waiting to be sent, biggest plugin damage first.
+		public static List<string> DescribePending(int max)
+		{
+			lock (gate)
+			{
+				var lines = new List<string> { buckets.Count + " rows waiting (never sent in a developer test)." };
+				foreach (StatsBucket b in buckets.Values.OrderByDescending(x => x.PluginDamage).Take(max))
+				{
+					double dps = b.Seconds > 0.5 ? b.PluginDamage / b.Seconds : 0;
+					lines.Add($"{b.Plugin} on {b.Weapon} (class {b.Class}, stage {b.Stage}): plugin {b.PluginDamage} dmg / {b.PluginHits} hits, weapon {b.WeaponDamage} dmg / {b.WeaponHits} hits, {b.Seconds:0.0}s = {dps:0} per second");
+				}
+				return lines;
+			}
+		}
 	}
 
 	// Sends a batch to the author's server in the background.
@@ -249,13 +313,23 @@ namespace Augments.Core
 
 		public static bool Configured => Endpoint.StartsWith("https://", StringComparison.Ordinal);
 
-		private static readonly HttpClient http = CreateClient();
+		private static HttpClient http;
 
-		private static HttpClient CreateClient()
+		private static HttpClient Client()
 		{
-			var client = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
-			client.DefaultRequestHeaders.UserAgent.ParseAdd("AutomataStats/1");
-			return client;
+			if (http == null)
+			{
+				http = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
+				http.DefaultRequestHeaders.UserAgent.ParseAdd("AutomataStats/1");
+			}
+			return http;
+		}
+
+		// Called when the mod unloads, so the network client does not outlive it.
+		public static void Shutdown()
+		{
+			http?.Dispose();
+			http = null;
 		}
 
 		public static void Send(List<StatsBucket> rows)
@@ -291,13 +365,15 @@ namespace Augments.Core
 				return;
 			}
 
+			HttpClient client = Client();
+
 			// Runs on a worker thread so the game never waits for the network. Every failure is swallowed.
 			Task.Run(async () =>
 			{
 				try
 				{
 					using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
-					using (HttpResponseMessage response = await http.PostAsync(Endpoint, content).ConfigureAwait(false))
+					using (HttpResponseMessage response = await client.PostAsync(Endpoint, content).ConfigureAwait(false))
 					{
 						if (!response.IsSuccessStatusCode)
 							StatsCollector.Restore(rows);
@@ -331,37 +407,81 @@ namespace Augments.Core
 
 		public static bool Sharing => AugmentConfig.Instance?.ShareAnonymousStats ?? false;
 
-		// The first-launch prompt shows only when there is a server to send to and the player has not chosen yet.
-		public static bool NeedsPrompt => !Main.dedServ && StatsUploader.Configured && !Answered && !Sharing;
+		// Developer testing: makes the prompt show even with no server address (see /statsdebug prompt).
+		public static bool ForcePrompt;
+
+		// The first-launch prompt shows only when there is a server to send to (or a developer test forces it) and the player has not chosen yet.
+		public static bool NeedsPrompt => !Main.dedServ && (StatsUploader.Configured || ForcePrompt) && !Answered && !Sharing;
 
 		public static void Answer(bool share)
 		{
+			bool saved = true;
 			AugmentConfig config = AugmentConfig.Instance;
 			if (config != null)
 			{
 				config.ShareAnonymousStats = share;
 				try
 				{
-					config.SaveChanges(silent: true, broadcast: false); // writes the config file like pressing Save in the config screen
+					// Writes the config file, like pressing Save in the config screen.
+					ConfigSaveResult result = config.SaveChanges(silent: true, broadcast: false);
+					if (result != ConfigSaveResult.Success)
+					{
+						saved = false;
+						ModContent.GetInstance<Augments>().Logger.Warn("The stats choice was not saved to the config file: " + result);
+					}
 				}
 				catch (Exception e)
 				{
+					saved = false;
 					ModContent.GetInstance<Augments>().Logger.Warn("The stats choice could not be saved to the config: " + e.Message);
 				}
 			}
 
+			// If the yes could not be saved, do not mark the question answered: the player is asked again next launch
+			// instead of believing they are sharing when they are not. A "no" is safe either way (off is the default).
+			if (saved || !share)
+			{
+				try
+				{
+					Directory.CreateDirectory(Path.GetDirectoryName(FilePath));
+					File.WriteAllText(FilePath, share ? "yes" : "no");
+				}
+				catch (IOException)
+				{
+				}
+				answered = true;
+			}
+
+			ForcePrompt = false;
+			if (!share)
+				StatsCollector.Clear();
+		}
+
+		// Developer testing: forget the answer so the prompt can be tried again.
+		public static void ResetForTesting()
+		{
 			try
 			{
-				Directory.CreateDirectory(Path.GetDirectoryName(FilePath));
-				File.WriteAllText(FilePath, share ? "yes" : "no");
+				if (File.Exists(FilePath))
+					File.Delete(FilePath);
 			}
 			catch (IOException)
 			{
 			}
-			answered = true;
+			answered = false;
 
-			if (!share)
-				StatsCollector.Clear();
+			AugmentConfig config = AugmentConfig.Instance;
+			if (config != null && config.ShareAnonymousStats)
+			{
+				config.ShareAnonymousStats = false;
+				try
+				{
+					config.SaveChanges(silent: true, broadcast: false);
+				}
+				catch
+				{
+				}
+			}
 		}
 	}
 
@@ -385,6 +505,9 @@ namespace Augments.Core
 		public override void Unload()
 		{
 			StatsCollector.Clear();
+			StatsCollector.DevLocal = false;
+			StatsConsent.ForcePrompt = false;
+			StatsUploader.Shutdown();
 		}
 	}
 }
