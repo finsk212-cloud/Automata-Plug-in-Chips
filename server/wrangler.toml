@@ -1,0 +1,13 @@
+name = "automata-stats"
+main = "src/worker.js"
+compatibility_date = "2025-01-01"
+
+# After "wrangler d1 create automata-stats" (see README.md), paste the database_id it prints here.
+[[d1_databases]]
+binding = "DB"
+database_name = "automata-stats"
+database_id = "PASTE-THE-ID-HERE"
+
+# Keep Cloudflare from keeping request logs that could hold IP addresses.
+[observability]
+enabled = false

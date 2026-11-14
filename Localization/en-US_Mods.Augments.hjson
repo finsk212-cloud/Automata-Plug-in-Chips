@@ -1,4 +1,4 @@
-﻿Keybinds: {
+Keybinds: {
 	OpenAugmentList.DisplayName: Open Plugins
 	DebugTriggerPopup.DisplayName: Debug Trigger Popup
 	DebugSpawnVendor.DisplayName: Spawn Mistress 2B (Vendor)
@@ -362,6 +362,7 @@ Configs: {
 			AdvisorySettings: Pod 042 Advisory Tips
 			SoundSettings: Sound Settings
 			TitleMenuSettings: Title Screen
+			PrivacySettings: Anonymous Statistics
 		}
 
 		EnableHiddenStatsPanel: {
@@ -407,6 +408,11 @@ Configs: {
 		SetAsDefaultMenuTheme: {
 			Label: Set as Default Menu Theme
 			Tooltip: Automatically makes the Automata title screen the active menu theme when the mod is enabled.
+		}
+
+		ShareAnonymousStats: {
+			Label: Share Anonymous Stats
+			Tooltip: Helps balance Plug-in Chips and improve the mod. Sends only plugin damage numbers: which plugin, which weapon, how much damage and how long the fight lasted. No name, Steam account, world name or IP address is stored. Turn this off at any time.
 		}
 	}
 

@@ -56,5 +56,11 @@ namespace Augments
 		// Makes the Automata title screen the active menu theme automatically when the mod is enabled.
 		[DefaultValue(true)]
 		public bool SetAsDefaultMenuTheme;
+
+		[Header("PrivacySettings")]
+
+		// Off until the player says yes, either here or on the first-launch prompt on the title screen.
+		[DefaultValue(false)]
+		public bool ShareAnonymousStats;
 	}
 }

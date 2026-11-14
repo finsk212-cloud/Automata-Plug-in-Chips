@@ -31,6 +31,8 @@ namespace Augments
         public string SourceAugmentId;
         // Name of the weapon that fired this projectile (local only, used by the DPS panel).
         public string SourceItemName;
+        // Language independent key of that weapon (local only, used by the optional anonymous balance stats).
+        public string SourceItemKey;
         public string SourceProtocolId;
 
         public override void SendExtraAI(Projectile projectile, BitWriter bitWriter, BinaryWriter binaryWriter)

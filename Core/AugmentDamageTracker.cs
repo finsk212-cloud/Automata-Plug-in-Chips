@@ -127,6 +127,16 @@ namespace Augments.Core
 
 		public static void RecordHit(string sourceId, string displayName, int damage, bool isCrit, Color color, AugmentRarity? rarity = null, AugmentClass? sourceClass = null, bool isProtocol = false, bool isWeapon = false)
 		{
+			// The optional anonymous balance stats see every hit, even while this panel is paused or was reset
+			// (they do nothing unless the player agreed to share them).
+			if (damage > 0)
+			{
+				if (isWeapon)
+					StatsCollector.NoteWeaponHit(damage);
+				else if (!isProtocol)
+					StatsCollector.NotePluginDamage(sourceId, damage);
+			}
+
 			if (IsPaused || damage <= 0)
 				return;
 

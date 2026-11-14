@@ -1884,6 +1884,7 @@ namespace Augments
 				else if (item.CountsAsClass(DamageClass.Generic) || item.DamageType == DamageClass.Generic)
 					wClass = AugmentClass.Universal;
 
+				StatsCollector.BeginHit(StatsCollector.WeaponKey(item), wClass);
 				AugmentDamageTracker.RecordWeaponHit(item.Name, ApplyChipContributions(damageDone, hit.Crit), hit.Crit, wClass);
 			}
 
@@ -1942,6 +1943,10 @@ namespace Augments
 			{
 				if (tag.IsAugmentProcDamage)
 				{
+					// A proc remembers which weapon started it; the stats credit that weapon.
+					if (!string.IsNullOrEmpty(tag.SourceItemKey))
+						StatsCollector.BeginHit(tag.SourceItemKey, null);
+
 					if (!string.IsNullOrEmpty(tag.SourceProtocolId))
 					{
 						string protoName = AugmentFamilyRegistry.Families.TryGetValue(tag.SourceProtocolId, out var f) ? f.DisplayName : tag.SourceProtocolId;
@@ -1979,6 +1984,7 @@ namespace Augments
 					else if (proj.CountsAsClass(DamageClass.Summon) || proj.DamageType == DamageClass.Summon || proj.CountsAsClass(DamageClass.SummonMeleeSpeed))
 						wClass = AugmentClass.Summon;
 
+					StatsCollector.BeginHit(!string.IsNullOrEmpty(tag.SourceItemKey) ? tag.SourceItemKey : (heldIsWeapon ? StatsCollector.WeaponKey(held) : "none"), wClass);
 					AugmentDamageTracker.RecordWeaponHit(weaponName, ApplyChipContributions(damageDone, hit.Crit), hit.Crit, wClass);
 				}
 			}

@@ -13,7 +13,10 @@ namespace Augments
 			// Remember which weapon fired this so the DPS panel credits the real weapon
 			// instead of whatever the player is holding when the hit lands.
 			if (source is EntitySource_ItemUse weaponSource && weaponSource.Item != null && !weaponSource.Item.IsAir)
+			{
 				projectileTag.SourceItemName = weaponSource.Item.Name;
+				projectileTag.SourceItemKey = Core.StatsCollector.WeaponKey(weaponSource.Item);
+			}
 			if (source is EntitySource_ItemUse rocketSource && rocketSource.Item != null && !rocketSource.Item.IsAir
 				&& rocketSource.Item.useAmmo == Terraria.ID.AmmoID.Rocket)
 				projectileTag.FromRocketLauncher = true;
@@ -31,6 +34,8 @@ namespace Augments
 				AugmentProjectileTag parentTag = parentProjectile.GetGlobalProjectile<AugmentProjectileTag>();
 				if (projectileTag.SourceItemName == null)
 					projectileTag.SourceItemName = parentTag.SourceItemName;
+				if (projectileTag.SourceItemKey == null)
+					projectileTag.SourceItemKey = parentTag.SourceItemKey;
 				if (parentTag.IsAugmentProcDamage)
 				{
 					projectileTag.SourceAugmentId ??= parentTag.SourceAugmentId;
