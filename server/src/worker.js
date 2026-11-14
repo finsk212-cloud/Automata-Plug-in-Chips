@@ -141,7 +141,7 @@ const PAGE = `<!doctype html><meta charset="utf-8"><meta name="viewport" content
  <label>Weapon search<input type="text" id="f-q" placeholder="e.g. Uzi"></label>
  <label>Min uploads<input type="number" id="f-b" value="3" min="1"></label>
  <label>Min seconds<input type="number" id="f-s" value="20" min="0"></label>
- <label style="flex-direction:row;align-items:center;margin-top:16px"><input type="checkbox" id="f-low">Show rows with little data</label>
+ <label style="flex-direction:row;align-items:center;margin-top:16px"><input type="checkbox" id="f-low" checked>Show rows with little data (greyed)</label>
  <label style="flex-direction:row;align-items:center;margin-top:16px"><input type="checkbox" id="f-cal">Calamity players only</label>
 </div>
 
@@ -164,7 +164,7 @@ function weaponName(key) {
 }
 function fmt(n) { return n >= 1e6 ? (n / 1e6).toFixed(2) + 'M' : n >= 1e4 ? (n / 1e3).toFixed(1) + 'k' : n >= 100 ? n.toFixed(0) : n.toFixed(1); }
 function pct(n) { return n >= 10 ? n.toFixed(0) + '%' : n.toFixed(1) + '%'; }
-function mmss(s) { var m = Math.floor(s / 60), r = Math.round(s % 60); return m + ':' + (r < 10 ? '0' : '') + r; }
+function mmss(s) { s = Math.round(s); var m = Math.floor(s / 60), r = s % 60; return m + ':' + (r < 10 ? '0' : '') + r; }
 function median(a) { a = a.slice().sort(function (x, y) { return x - y; }); var m = a.length >> 1; return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; }
 
 function build() {
@@ -216,14 +216,14 @@ function render() {
   $('head').innerHTML = '<tr>' + cols.map(function (c) { return '<th class="' + (c[2] ? 'l' : '') + '" data-k="' + c[0] + '">' + c[1] + (sortKey === c[0] ? (sortDir < 0 ? ' ▼' : ' ▲') : '') + '</th>'; }).join('') + '</tr>';
 
   $('body').innerHTML = list.map(function (x) {
-    var strength = x.power < 0 ? '<span class="dim">-</span>' :
+    var strength = x.power < 0 || !x.pd ? '<span class="dim">-</span> ' :
       '<span class="meter"><i style="width:' + Math.min(100, x.power / 3 * 100).toFixed(0) + '%;background:' + (COLOR[x.verdict] || 'var(--dim)') + '"></i></span>' + x.power.toFixed(2) + 'x ';
     var cells = ['<td class="pl">' + esc(nice(x.plugin)) + '</td>'];
     if (view === 'weapon') cells.push('<td class="l">' + esc(weaponName(x.weapon)) + '</td>');
     cells.push('<td class="l">' + esc(STAGES[x.stage] || ('Stage ' + x.stage)) + '</td>', '<td class="l">' + (CLASSES[x.cls] || x.cls) + '</td>',
       '<td class="l q-' + QUALITY[x.quality] + '">' + QUALITY[x.quality] + ' <span class="mini">(' + x.batches + ' uploads)</span></td>',
       '<td>' + mmss(x.sec) + '</td>', '<td>' + fmt(x.wdps) + '</td>', '<td>' + (x.pd ? fmt(x.dps) : '<span class="dim">0</span>') + '</td>',
-      '<td>' + (x.pd ? '+' + pct(x.boost) : '<span class="dim">-</span>') + '</td>', '<td>' + (x.pd ? pct(x.share) : '<span class="dim">-</span>') + '</td>',
+      '<td>' + (x.pd && x.wd ? '+' + pct(x.boost) : '<span class="dim">-</span>') + '</td>', '<td>' + (x.pd ? pct(x.share) : '<span class="dim">-</span>') + '</td>',
       '<td>' + (x.ph ? fmt(x.avg) : '<span class="dim">-</span>') + '</td>',
       '<td>' + strength + '<span class="chip c-' + x.verdict + '">' + VERDICT[x.verdict] + '</span></td>');
     return '<tr class="v-' + x.verdict + (x.enough ? '' : ' few') + '">' + cells.join('') + '</tr>';
