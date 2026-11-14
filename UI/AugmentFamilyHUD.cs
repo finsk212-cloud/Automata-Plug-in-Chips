@@ -453,11 +453,11 @@ namespace Augments
 
 			string countText = $"{ownedCount}/{fam.MaxMembers}";
 			Vector2 numScale = new Vector2(0.55f);
-			Vector2 numSize = ChatManager.GetStringSize(font, countText, numScale);
+			Vector2 numSize = ModText.Size(font, countText, numScale);
 			float numX = cx - numSize.X * 0.5f;
 			float numY = countArea.Y + (countArea.Height - numSize.Y) * 0.5f + 8f;
 			Color countColor = (isActive || hasUnlockedThreshold) ? AugmentTextColors.Healing : PanelChrome.Tone(new Color(175, 195, 220));
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, countText, new Vector2(numX, numY), countColor, 0f, Vector2.Zero, numScale);
+			ModText.DrawCoded(spriteBatch, font, countText, new Vector2(numX, numY), countColor, 0f, Vector2.Zero, numScale);
 		}
 
 		private static void DrawFamilyGraphic(SpriteBatch spriteBatch, AugmentFamily fam, int cx, int cy, bool isActive)
@@ -1075,17 +1075,17 @@ namespace Augments
 
 			void Measure(string text, Vector2 scale, float extraPad = 36f)
 			{
-				float w = ChatManager.GetStringSize(font, text, scale).X + extraPad;
+				float w = ModText.Size(font, text, scale).X + extraPad;
 				if (w > maxContentWidth)
 					maxContentWidth = w;
 			}
 
 			// Header block
-			Vector2 tSz = ChatManager.GetStringSize(font, titleText, titleScale);
+			Vector2 tSz = ModText.Size(font, titleText, titleScale);
 			curHeight += tSz.Y + 2f;
 			Measure(titleText, titleScale, 36f);
 
-			Vector2 sSz = ChatManager.GetStringSize(font, statusText, statusScale);
+			Vector2 sSz = ModText.Size(font, statusText, statusScale);
 			curHeight += sSz.Y + 8f;
 			Measure(statusText, statusScale, 36f);
 
@@ -1094,7 +1094,7 @@ namespace Augments
 				: null;
 			if (fortuneStatLine != null)
 			{
-				curHeight += ChatManager.GetStringSize(font, fortuneStatLine, statusScale).Y + 4f;
+				curHeight += ModText.Size(font, fortuneStatLine, statusScale).Y + 4f;
 				Measure(fortuneStatLine, statusScale, 36f);
 			}
 
@@ -1103,7 +1103,7 @@ namespace Augments
 
 			// Set Bonuses Section
 			string bSectionHeader = "PROTOCOL SPECIFICATIONS";
-			curHeight += ChatManager.GetStringSize(font, bSectionHeader, sectionScale).Y + 6f;
+			curHeight += ModText.Size(font, bSectionHeader, sectionScale).Y + 6f;
 			Measure(bSectionHeader, sectionScale, 36f);
 
 			foreach (var kv in fam.ThresholdBonuses)
@@ -1112,13 +1112,13 @@ namespace Augments
 				var bonus = kv.Value;
 				string bonusLine = $"✓ ({thresh}) {bonus.Title}  •  Active";
 
-				curHeight += ChatManager.GetStringSize(font, bonusLine, itemScale).Y + lineSpacing;
+				curHeight += ModText.Size(font, bonusLine, itemScale).Y + lineSpacing;
 				Measure(bonusLine, itemScale, 36f);
 
 				foreach (var desc in bonus.Descriptions)
 				{
 					string perkLine = $"• {desc.Trim()}";
-					curHeight += ChatManager.GetStringSize(font, perkLine, perkScale).Y + lineSpacing;
+					curHeight += ModText.Size(font, perkLine, perkScale).Y + lineSpacing;
 					Measure(perkLine, perkScale, 48f);
 				}
 				curHeight += 4f;
@@ -1129,7 +1129,7 @@ namespace Augments
 
 			// Synergy Members Section
 			string mSectionHeader = "ASSIGNED PLUGINS";
-			curHeight += ChatManager.GetStringSize(font, mSectionHeader, sectionScale).Y + 6f;
+			curHeight += ModText.Size(font, mSectionHeader, sectionScale).Y + 6f;
 			Measure(mSectionHeader, sectionScale, 36f);
 
 			foreach (var memberId in fam.MemberIds)
@@ -1138,7 +1138,7 @@ namespace Augments
 				string mName = m?.DisplayName ?? memberId;
 				string mLine = $"✓ {mName}  •  INSTALLED";
 
-				curHeight += ChatManager.GetStringSize(font, mLine, itemScale).Y + lineSpacing;
+				curHeight += ModText.Size(font, mLine, itemScale).Y + lineSpacing;
 				Measure(mLine, itemScale, 36f);
 			}
 
@@ -1169,23 +1169,23 @@ namespace Augments
 			float leftX = panelRect.X + 16f;
 
 			// 1. Title (Centered)
-			Vector2 titleSz = ChatManager.GetStringSize(font, titleText, titleScale);
+			Vector2 titleSz = ModText.Size(font, titleText, titleScale);
 			Vector2 titlePos = new Vector2(panelRect.X + (panelRect.Width - titleSz.X) * 0.5f, drawY);
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, titleText, titlePos, RarityLook.Pale(fam.ThemeColor, 0.30f) * progress, 0f, Vector2.Zero, titleScale);
+			ModText.DrawCoded(spriteBatch, font, titleText, titlePos, RarityLook.Pale(fam.ThemeColor, 0.30f) * progress, 0f, Vector2.Zero, titleScale);
 			drawY += titleSz.Y + 2f;
 
 			// 2. Status Subtitle (Centered, clean inline typography)
-			Vector2 statusSz = ChatManager.GetStringSize(font, statusText, statusScale);
+			Vector2 statusSz = ModText.Size(font, statusText, statusScale);
 			Vector2 statusPos = new Vector2(panelRect.X + (panelRect.Width - statusSz.X) * 0.5f, drawY);
 			Color statusCol = isActive ? AugmentTextColors.Healing : PanelChrome.Tone(new Color(148, 163, 184));
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, statusText, statusPos, RarityLook.Pale(statusCol, 0.30f) * progress, 0f, Vector2.Zero, statusScale);
+			ModText.DrawCoded(spriteBatch, font, statusText, statusPos, RarityLook.Pale(statusCol, 0.30f) * progress, 0f, Vector2.Zero, statusScale);
 			drawY += statusSz.Y + 6f;
 
 			if (fortuneStatLine != null)
 			{
-				Vector2 fSz = ChatManager.GetStringSize(font, fortuneStatLine, statusScale);
+				Vector2 fSz = ModText.Size(font, fortuneStatLine, statusScale);
 				Vector2 fPos = new Vector2(panelRect.X + (panelRect.Width - fSz.X) * 0.5f, drawY);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, fortuneStatLine, fPos, new Color(255, 215, 120) * progress, 0f, Vector2.Zero, statusScale);
+				ModText.DrawCoded(spriteBatch, font, fortuneStatLine, fPos, new Color(255, 215, 120) * progress, 0f, Vector2.Zero, statusScale);
 				drawY += fSz.Y + 6f;
 			}
 
@@ -1195,8 +1195,8 @@ namespace Augments
 
 			// 4. Set Bonuses Section
 			string bonusSectionHeader = "PROTOCOL SPECIFICATIONS";
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, bonusSectionHeader, new Vector2(leftX, drawY), MenuLook.Current.Amber * progress, 0f, Vector2.Zero, sectionScale);
-			drawY += ChatManager.GetStringSize(font, bonusSectionHeader, sectionScale).Y + 6f;
+			ModText.DrawCoded(spriteBatch, font, bonusSectionHeader, new Vector2(leftX, drawY), MenuLook.Current.Amber * progress, 0f, Vector2.Zero, sectionScale);
+			drawY += ModText.Size(font, bonusSectionHeader, sectionScale).Y + 6f;
 
 			foreach (var kv in fam.ThresholdBonuses)
 			{
@@ -1216,25 +1216,25 @@ namespace Augments
 				float curX = leftX;
 
 				// Symbol (✓ or •)
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, sym, new Vector2(curX, drawY), RarityLook.Pale(symCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
-				curX += ChatManager.GetStringSize(font, sym, itemScale).X;
+				ModText.DrawCoded(spriteBatch, font, sym, new Vector2(curX, drawY), RarityLook.Pale(symCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
+				curX += ModText.Size(font, sym, itemScale).X;
 
 				// Threshold (e.g. " (2) ")
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, threshStr, new Vector2(curX, drawY), RarityLook.Pale(threshCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
-				curX += ChatManager.GetStringSize(font, threshStr, itemScale).X;
+				ModText.DrawCoded(spriteBatch, font, threshStr, new Vector2(curX, drawY), RarityLook.Pale(threshCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
+				curX += ModText.Size(font, threshStr, itemScale).X;
 
 				// Title
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, title, new Vector2(curX, drawY), RarityLook.Pale(titleCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
-				curX += ChatManager.GetStringSize(font, title, itemScale).X;
+				ModText.DrawCoded(spriteBatch, font, title, new Vector2(curX, drawY), RarityLook.Pale(titleCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
+				curX += ModText.Size(font, title, itemScale).X;
 
 				// Separator
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "  •  ", new Vector2(curX, drawY), PanelChrome.Tone(new Color(71, 85, 105)) * progress, 0f, Vector2.Zero, itemScale);
-				curX += ChatManager.GetStringSize(font, "  •  ", itemScale).X;
+				ModText.DrawCoded(spriteBatch, font, "  •  ", new Vector2(curX, drawY), PanelChrome.Tone(new Color(71, 85, 105)) * progress, 0f, Vector2.Zero, itemScale);
+				curX += ModText.Size(font, "  •  ", itemScale).X;
 
 				// Status Tag (Active or Locked)
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, tag, new Vector2(curX, drawY), RarityLook.Pale(tagCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
+				ModText.DrawCoded(spriteBatch, font, tag, new Vector2(curX, drawY), RarityLook.Pale(tagCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
 
-				drawY += ChatManager.GetStringSize(font, title, itemScale).Y + lineSpacing;
+				drawY += ModText.Size(font, title, itemScale).Y + lineSpacing;
 
 				// Indented perk descriptions
 				float perkIndent = leftX + 16f;
@@ -1242,8 +1242,8 @@ namespace Augments
 				{
 					string perkLine = $"• {desc.Trim()}";
 					Color perkCol = unlocked ? new Color(210, 238, 225) : PanelChrome.Tone(new Color(125, 138, 158));
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, RarityLook.PaleTags(perkLine, 0.30f), new Vector2(perkIndent, drawY), RarityLook.Pale(perkCol, 0.30f) * progress, 0f, Vector2.Zero, perkScale);
-					drawY += ChatManager.GetStringSize(font, perkLine, perkScale).Y + lineSpacing;
+					ModText.DrawCoded(spriteBatch, font, RarityLook.PaleTags(perkLine, 0.30f), new Vector2(perkIndent, drawY), RarityLook.Pale(perkCol, 0.30f) * progress, 0f, Vector2.Zero, perkScale);
+					drawY += ModText.Size(font, perkLine, perkScale).Y + lineSpacing;
 				}
 
 				drawY += 4f;
@@ -1256,8 +1256,8 @@ namespace Augments
 
 			// 5. Synergy Members Section
 			string membersSectionHeader = "ASSIGNED PLUGINS";
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, membersSectionHeader, new Vector2(leftX, drawY), MenuLook.Current.Amber * progress, 0f, Vector2.Zero, sectionScale);
-			drawY += ChatManager.GetStringSize(font, membersSectionHeader, sectionScale).Y + 6f;
+			ModText.DrawCoded(spriteBatch, font, membersSectionHeader, new Vector2(leftX, drawY), MenuLook.Current.Amber * progress, 0f, Vector2.Zero, sectionScale);
+			drawY += ModText.Size(font, membersSectionHeader, sectionScale).Y + 6f;
 
 			foreach (var memberId in fam.MemberIds)
 			{
@@ -1270,17 +1270,17 @@ namespace Augments
 				Color mNameCol = owned ? Color.White : PanelChrome.Tone(new Color(148, 163, 184));
 
 				// Draw symbol
-				Vector2 symSz = ChatManager.GetStringSize(font, mSymbol, itemScale);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mSymbol, new Vector2(leftX, drawY), RarityLook.Pale(mSymbolCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
+				Vector2 symSz = ModText.Size(font, mSymbol, itemScale);
+				ModText.DrawCoded(spriteBatch, font, mSymbol, new Vector2(leftX, drawY), RarityLook.Pale(mSymbolCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
 
 				// Draw name
-				Vector2 nameSz = ChatManager.GetStringSize(font, mName, itemScale);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mName, new Vector2(leftX + 16f, drawY), RarityLook.Pale(mNameCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
+				Vector2 nameSz = ModText.Size(font, mName, itemScale);
+				ModText.DrawCoded(spriteBatch, font, mName, new Vector2(leftX + 16f, drawY), RarityLook.Pale(mNameCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
 
 				// Draw status
 				string mStatus = owned ? "  •  INSTALLED" : "  •  NOT INSTALLED";
 				Color mStatusCol = owned ? AugmentTextColors.Healing * progress : PanelChrome.Tone(new Color(100, 116, 139)) * progress;
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mStatus, new Vector2(leftX + 16f + nameSz.X, drawY), RarityLook.Pale(mStatusCol, 0.30f), 0f, Vector2.Zero, itemScale);
+				ModText.DrawCoded(spriteBatch, font, mStatus, new Vector2(leftX + 16f + nameSz.X, drawY), RarityLook.Pale(mStatusCol, 0.30f), 0f, Vector2.Zero, itemScale);
 
 				drawY += symSz.Y + lineSpacing;
 			}
@@ -1326,11 +1326,11 @@ namespace Augments
 
 			string countText = isActive ? (count >= 5 ? "5/5" : $"{count}/5") : $"{count}/2";
 			Vector2 numScale = new Vector2(0.55f);
-			Vector2 numSize = ChatManager.GetStringSize(font, countText, numScale);
+			Vector2 numSize = ModText.Size(font, countText, numScale);
 			float numX = cx - numSize.X * 0.5f;
 			float numY = countArea.Y + (countArea.Height - numSize.Y) * 0.5f + 8f;
 			Color countColor = isActive ? AugmentTextColors.Healing : PanelChrome.Tone(new Color(175, 195, 220));
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, countText, new Vector2(numX, numY), countColor, 0f, Vector2.Zero, numScale);
+			ModText.DrawCoded(spriteBatch, font, countText, new Vector2(numX, numY), countColor, 0f, Vector2.Zero, numScale);
 		}
 
 		private static Texture2D supportShieldActive;
@@ -1466,21 +1466,21 @@ namespace Augments
 
 			void Measure(string text, Vector2 scale, float extraPad = 36f)
 			{
-				float w = ChatManager.GetStringSize(font, text, scale).X + extraPad;
+				float w = ModText.Size(font, text, scale).X + extraPad;
 				if (w > maxContentWidth)
 					maxContentWidth = w;
 			}
 
 			// Header block
-			Vector2 tSz = ChatManager.GetStringSize(font, titleText, titleScale);
+			Vector2 tSz = ModText.Size(font, titleText, titleScale);
 			curHeight += tSz.Y + 2f;
 			Measure(titleText, titleScale, 36f);
 
-			Vector2 sSz = ChatManager.GetStringSize(font, statusText, statusScale);
+			Vector2 sSz = ModText.Size(font, statusText, statusScale);
 			curHeight += sSz.Y + 2f;
 			Measure(statusText, statusScale, 36f);
 
-			Vector2 dSz = ChatManager.GetStringSize(font, descText, statusScale);
+			Vector2 dSz = ModText.Size(font, descText, statusScale);
 			curHeight += dSz.Y + 6f;
 			Measure(descText, statusScale, 36f);
 
@@ -1489,7 +1489,7 @@ namespace Augments
 
 			// Threshold Matrix Section
 			string bSectionHeader = "SUPPORT LEVEL BONUSES";
-			curHeight += ChatManager.GetStringSize(font, bSectionHeader, sectionScale).Y + 6f;
+			curHeight += ModText.Size(font, bSectionHeader, sectionScale).Y + 6f;
 			Measure(bSectionHeader, sectionScale, 36f);
 
 			var thresholds = new (int Threshold, string Label, int Defense, int Damage, string Note)[]
@@ -1512,11 +1512,11 @@ namespace Augments
 				bool isCurrent = (req == 5 && activeTier >= 5) || (req == activeTier);
 				string tag = isCurrent ? "Active [CURRENT]" : (unlocked ? "Active" : "Locked");
 				string lineHeader = $"✓ ({req}) {note}  •  {tag}";
-				curHeight += ChatManager.GetStringSize(font, lineHeader, itemScale).Y + lineSpacing;
+				curHeight += ModText.Size(font, lineHeader, itemScale).Y + lineSpacing;
 				Measure(lineHeader, itemScale, 36f);
 
 				string perkLine = $"• +{def} Defense, {dmg}% Damage Output";
-				curHeight += ChatManager.GetStringSize(font, perkLine, perkScale).Y + lineSpacing;
+				curHeight += ModText.Size(font, perkLine, perkScale).Y + lineSpacing;
 				Measure(perkLine, perkScale, 48f);
 				curHeight += 4f;
 			}
@@ -1526,7 +1526,7 @@ namespace Augments
 
 			// Assigned Support Plugins Section
 			string mSectionHeader = "ASSIGNED SUPPORT PLUGINS";
-			curHeight += ChatManager.GetStringSize(font, mSectionHeader, sectionScale).Y + 6f;
+			curHeight += ModText.Size(font, mSectionHeader, sectionScale).Y + 6f;
 			Measure(mSectionHeader, sectionScale, 36f);
 
 			var supportAugs = new List<Augment>();
@@ -1539,7 +1539,7 @@ namespace Augments
 			if (supportAugs.Count == 0)
 			{
 				string emptyLine = "• No Support Plugins Installed";
-				curHeight += ChatManager.GetStringSize(font, emptyLine, itemScale).Y + lineSpacing;
+				curHeight += ModText.Size(font, emptyLine, itemScale).Y + lineSpacing;
 				Measure(emptyLine, itemScale, 36f);
 			}
 			else
@@ -1547,13 +1547,13 @@ namespace Augments
 				foreach (var a in supportAugs)
 				{
 					string aLine = $"✓ {a.DisplayName}  •  INSTALLED";
-					curHeight += ChatManager.GetStringSize(font, aLine, itemScale).Y + lineSpacing;
+					curHeight += ModText.Size(font, aLine, itemScale).Y + lineSpacing;
 					Measure(aLine, itemScale, 36f);
 				}
 			}
 
 			string footerNote = "• Autonomous calibration: Class adapts dynamically as plugins change.";
-			curHeight += 4f + ChatManager.GetStringSize(font, footerNote, perkScale).Y + lineSpacing;
+			curHeight += 4f + ModText.Size(font, footerNote, perkScale).Y + lineSpacing;
 			Measure(footerNote, perkScale, 48f);
 
 			curHeight += pad;
@@ -1583,22 +1583,22 @@ namespace Augments
 			float leftX = panelRect.X + 16f;
 
 			// 1. Title (Centered)
-			Vector2 titleSz = ChatManager.GetStringSize(font, titleText, titleScale);
+			Vector2 titleSz = ModText.Size(font, titleText, titleScale);
 			Vector2 titlePos = new Vector2(panelRect.X + (panelRect.Width - titleSz.X) * 0.5f, drawY);
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, titleText, titlePos, RarityLook.Pale(themeCol, 0.30f) * progress, 0f, Vector2.Zero, titleScale);
+			ModText.DrawCoded(spriteBatch, font, titleText, titlePos, RarityLook.Pale(themeCol, 0.30f) * progress, 0f, Vector2.Zero, titleScale);
 			drawY += titleSz.Y + 2f;
 
 			// 2. Status Subtitle (Centered)
-			Vector2 statusSz = ChatManager.GetStringSize(font, statusText, statusScale);
+			Vector2 statusSz = ModText.Size(font, statusText, statusScale);
 			Vector2 statusPos = new Vector2(panelRect.X + (panelRect.Width - statusSz.X) * 0.5f, drawY);
 			Color statusCol = isActive ? AugmentTextColors.Healing : PanelChrome.Tone(new Color(148, 163, 184));
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, statusText, statusPos, RarityLook.Pale(statusCol, 0.30f) * progress, 0f, Vector2.Zero, statusScale);
+			ModText.DrawCoded(spriteBatch, font, statusText, statusPos, RarityLook.Pale(statusCol, 0.30f) * progress, 0f, Vector2.Zero, statusScale);
 			drawY += statusSz.Y + 2f;
 
 			// 3. Description Note (Centered)
-			Vector2 descSz = ChatManager.GetStringSize(font, descText, statusScale);
+			Vector2 descSz = ModText.Size(font, descText, statusScale);
 			Vector2 descPos = new Vector2(panelRect.X + (panelRect.Width - descSz.X) * 0.5f, drawY);
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, descText, descPos, PanelChrome.Tone(new Color(175, 190, 215)) * progress, 0f, Vector2.Zero, statusScale);
+			ModText.DrawCoded(spriteBatch, font, descText, descPos, PanelChrome.Tone(new Color(175, 190, 215)) * progress, 0f, Vector2.Zero, statusScale);
 			drawY += descSz.Y + 6f;
 
 			// Divider 1
@@ -1606,8 +1606,8 @@ namespace Augments
 			drawY += 8f;
 
 			// 4. Threshold Matrix Section
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, bSectionHeader, new Vector2(leftX, drawY), MenuLook.Current.Amber * progress, 0f, Vector2.Zero, sectionScale);
-			drawY += ChatManager.GetStringSize(font, bSectionHeader, sectionScale).Y + 6f;
+			ModText.DrawCoded(spriteBatch, font, bSectionHeader, new Vector2(leftX, drawY), MenuLook.Current.Amber * progress, 0f, Vector2.Zero, sectionScale);
+			drawY += ModText.Size(font, bSectionHeader, sectionScale).Y + 6f;
 
 			foreach (var (req, label, def, dmg, note) in thresholds)
 			{
@@ -1626,32 +1626,32 @@ namespace Augments
 				float curX = leftX;
 
 				// Symbol
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, sym, new Vector2(curX, drawY), RarityLook.Pale(symCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
-				curX += ChatManager.GetStringSize(font, sym, itemScale).X;
+				ModText.DrawCoded(spriteBatch, font, sym, new Vector2(curX, drawY), RarityLook.Pale(symCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
+				curX += ModText.Size(font, sym, itemScale).X;
 
 				// Threshold
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, threshStr, new Vector2(curX, drawY), RarityLook.Pale(threshCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
-				curX += ChatManager.GetStringSize(font, threshStr, itemScale).X;
+				ModText.DrawCoded(spriteBatch, font, threshStr, new Vector2(curX, drawY), RarityLook.Pale(threshCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
+				curX += ModText.Size(font, threshStr, itemScale).X;
 
 				// Title
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, title, new Vector2(curX, drawY), RarityLook.Pale(titleCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
-				curX += ChatManager.GetStringSize(font, title, itemScale).X;
+				ModText.DrawCoded(spriteBatch, font, title, new Vector2(curX, drawY), RarityLook.Pale(titleCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
+				curX += ModText.Size(font, title, itemScale).X;
 
 				// Separator
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "  •  ", new Vector2(curX, drawY), PanelChrome.Tone(new Color(71, 85, 105)) * progress, 0f, Vector2.Zero, itemScale);
-				curX += ChatManager.GetStringSize(font, "  •  ", itemScale).X;
+				ModText.DrawCoded(spriteBatch, font, "  •  ", new Vector2(curX, drawY), PanelChrome.Tone(new Color(71, 85, 105)) * progress, 0f, Vector2.Zero, itemScale);
+				curX += ModText.Size(font, "  •  ", itemScale).X;
 
 				// Status Tag
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, tag, new Vector2(curX, drawY), RarityLook.Pale(tagCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
+				ModText.DrawCoded(spriteBatch, font, tag, new Vector2(curX, drawY), RarityLook.Pale(tagCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
 
-				drawY += ChatManager.GetStringSize(font, title, itemScale).Y + lineSpacing;
+				drawY += ModText.Size(font, title, itemScale).Y + lineSpacing;
 
 				// Indented perk line
 				float perkIndent = leftX + 16f;
 				string perkLine = $"• +{def} Defense, {dmg}% Damage Output";
 				Color perkCol = unlocked ? new Color(210, 238, 225) : PanelChrome.Tone(new Color(125, 138, 158));
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, RarityLook.PaleTags(perkLine, 0.30f), new Vector2(perkIndent, drawY), RarityLook.Pale(perkCol, 0.30f) * progress, 0f, Vector2.Zero, perkScale);
-				drawY += ChatManager.GetStringSize(font, perkLine, perkScale).Y + lineSpacing;
+				ModText.DrawCoded(spriteBatch, font, RarityLook.PaleTags(perkLine, 0.30f), new Vector2(perkIndent, drawY), RarityLook.Pale(perkCol, 0.30f) * progress, 0f, Vector2.Zero, perkScale);
+				drawY += ModText.Size(font, perkLine, perkScale).Y + lineSpacing;
 
 				drawY += 4f;
 			}
@@ -1662,14 +1662,14 @@ namespace Augments
 			drawY += 8f;
 
 			// 5. Assigned Support Plugins Section
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mSectionHeader, new Vector2(leftX, drawY), MenuLook.Current.Amber * progress, 0f, Vector2.Zero, sectionScale);
-			drawY += ChatManager.GetStringSize(font, mSectionHeader, sectionScale).Y + 6f;
+			ModText.DrawCoded(spriteBatch, font, mSectionHeader, new Vector2(leftX, drawY), MenuLook.Current.Amber * progress, 0f, Vector2.Zero, sectionScale);
+			drawY += ModText.Size(font, mSectionHeader, sectionScale).Y + 6f;
 
 			if (supportAugs.Count == 0)
 			{
 				string emptyLine = "• No Support Plugins Installed";
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, emptyLine, new Vector2(leftX, drawY), PanelChrome.Tone(new Color(148, 163, 184)) * progress, 0f, Vector2.Zero, itemScale);
-				drawY += ChatManager.GetStringSize(font, emptyLine, itemScale).Y + lineSpacing;
+				ModText.DrawCoded(spriteBatch, font, emptyLine, new Vector2(leftX, drawY), PanelChrome.Tone(new Color(148, 163, 184)) * progress, 0f, Vector2.Zero, itemScale);
+				drawY += ModText.Size(font, emptyLine, itemScale).Y + lineSpacing;
 			}
 			else
 			{
@@ -1680,22 +1680,22 @@ namespace Augments
 					string mName = a.DisplayName;
 					Color mNameCol = Color.White;
 
-					Vector2 symSz = ChatManager.GetStringSize(font, mSymbol, itemScale);
-					Vector2 nameSz = ChatManager.GetStringSize(font, mName, itemScale);
+					Vector2 symSz = ModText.Size(font, mSymbol, itemScale);
+					Vector2 nameSz = ModText.Size(font, mName, itemScale);
 
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mSymbol, new Vector2(leftX, drawY), RarityLook.Pale(mSymbolCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mName, new Vector2(leftX + 16f, drawY), RarityLook.Pale(mNameCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
+					ModText.DrawCoded(spriteBatch, font, mSymbol, new Vector2(leftX, drawY), RarityLook.Pale(mSymbolCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
+					ModText.DrawCoded(spriteBatch, font, mName, new Vector2(leftX + 16f, drawY), RarityLook.Pale(mNameCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
 
 					string mStatus = "  •  INSTALLED";
 					Color mStatusCol = AugmentTextColors.Healing;
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, mStatus, new Vector2(leftX + 16f + nameSz.X, drawY), RarityLook.Pale(mStatusCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
+					ModText.DrawCoded(spriteBatch, font, mStatus, new Vector2(leftX + 16f + nameSz.X, drawY), RarityLook.Pale(mStatusCol, 0.30f) * progress, 0f, Vector2.Zero, itemScale);
 
 					drawY += symSz.Y + lineSpacing;
 				}
 			}
 
 			drawY += 4f;
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, footerNote, new Vector2(leftX, drawY), PanelChrome.Tone(new Color(148, 163, 184)) * progress, 0f, Vector2.Zero, perkScale);
+			ModText.DrawCoded(spriteBatch, font, footerNote, new Vector2(leftX, drawY), PanelChrome.Tone(new Color(148, 163, 184)) * progress, 0f, Vector2.Zero, perkScale);
 		}
 
 		private static void DrawDivider(SpriteBatch spriteBatch, Rectangle panelRect, float y, Color themeCol, float progress)

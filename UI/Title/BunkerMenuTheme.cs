@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -119,25 +119,25 @@ namespace Augments
 			string tlHeader = "[ YoRHa ORBITAL PATROL // BUNKER PERIMETER ]";
 			string tlSub = "TARGET: THE BUNKER [IN VIEW] // COMM: STABLE // OPERATOR: 6O";
 
-			Utils.DrawBorderString(sb, tlHeader, new Vector2(inset + padX, inset + padY), MenuLook.Tint(new Color(245, 236, 212)), textScale);
-			Utils.DrawBorderString(sb, tlSub, new Vector2(inset + padX, inset + padY + 18), MenuLook.Tint(new Color(180, 175, 160)) * 0.90f, subScale);
+			ModText.DrawBorder(sb, tlHeader, new Vector2(inset + padX, inset + padY), MenuLook.Tint(new Color(245, 236, 212)), textScale);
+			ModText.DrawBorder(sb, tlSub, new Vector2(inset + padX, inset + padY + 18), MenuLook.Tint(new Color(180, 175, 160)) * 0.90f, subScale);
 
 			// Top-Right Corner: Snug within the ┐ bracket (Right-Aligned)
 			DateTime now = DateTime.Now;
 			string trHeader = $"SYS TIME: {now:HH:mm:ss} // CYCLE: 11945.03.10";
 			string trSub = "FFCS: ONLINE // LINK QUALITY: 99.8% // STATUS: NOMINAL";
-			Vector2 trHeaderSize = font.MeasureString(trHeader) * textScale;
-			Vector2 trSubSize = font.MeasureString(trSub) * subScale;
+			Vector2 trHeaderSize = ModText.Measure(font, trHeader, textScale);
+			Vector2 trSubSize = ModText.Measure(font, trSub, subScale);
 
-			Utils.DrawBorderString(sb, trHeader, new Vector2(screenW - inset - padX - trHeaderSize.X, inset + padY), MenuLook.Tint(new Color(240, 232, 210)), textScale);
-			Utils.DrawBorderString(sb, trSub, new Vector2(screenW - inset - padX - trSubSize.X, inset + padY + 18), MenuLook.Tint(new Color(180, 175, 160)) * 0.90f, subScale);
+			ModText.DrawBorder(sb, trHeader, new Vector2(screenW - inset - padX - trHeaderSize.X, inset + padY), MenuLook.Tint(new Color(240, 232, 210)), textScale);
+			ModText.DrawBorder(sb, trSub, new Vector2(screenW - inset - padX - trSubSize.X, inset + padY + 18), MenuLook.Tint(new Color(180, 175, 160)) * 0.90f, subScale);
 
 			// Bottom-Left Corner: Snug within the └ bracket
 			string blHeader = "POD 042: STANDBY [NORMAL] // FFCS: ENGAGED";
 			string blSub = "PROGRAMS: LASER [ONLINE] // GATLING [ARMED] // SHIELD [READY]";
 
-			Utils.DrawBorderString(sb, blHeader, new Vector2(inset + padX, screenH - inset - padY - 30), MenuLook.Tint(new Color(242, 234, 212)), textScale);
-			Utils.DrawBorderString(sb, blSub, new Vector2(inset + padX, screenH - inset - padY - 12), MenuLook.Tint(new Color(175, 170, 155)) * 0.90f, subScale);
+			ModText.DrawBorder(sb, blHeader, new Vector2(inset + padX, screenH - inset - padY - 30), MenuLook.Tint(new Color(242, 234, 212)), textScale);
+			ModText.DrawBorder(sb, blSub, new Vector2(inset + padX, screenH - inset - padY - 12), MenuLook.Tint(new Color(175, 170, 155)) * 0.90f, subScale);
 
 			// Bottom-Right Corner: Audio visualizer
 			DrawAudioVisualizer(sb, pixel, screenW - inset - padX, screenH - inset - padY, time);
@@ -156,8 +156,8 @@ namespace Augments
 
 			if (font != null)
 			{
-				Vector2 lSize = font.MeasureString(label) * 0.58f;
-				Utils.DrawBorderString(sb, label, new Vector2(rightX - lSize.X, bottomY - 26), MenuLook.Tint(new Color(188, 178, 155)) * 0.90f, 0.58f);
+				Vector2 lSize = ModText.Measure(font, label, 0.58f);
+				ModText.DrawBorder(sb, label, new Vector2(rightX - lSize.X, bottomY - 26), MenuLook.Tint(new Color(188, 178, 155)) * 0.90f, 0.58f);
 			}
 
 			Color barColor = MenuLook.Tint(new Color(240, 226, 192)) * 0.92f;
@@ -527,7 +527,7 @@ namespace Augments
 			float kataW = Math.Max(
 				fontMouse.MeasureString(cjk ? " / オートマタ" : " / Automata").X,
 				fontMouse.MeasureString(cjk ? " / テラリア" : " / Terraria").X) * katakanaScale;
-			Vector2 subSize = fontMouse.MeasureString(subTitle) * subScale;
+			Vector2 subSize = ModText.Measure(fontMouse, subTitle, subScale);
 
 			float totalTitleW = slotsTotalW + kataW + 12f;
 			float cardW = Math.Max(totalTitleW, subSize.X) + 84f;
@@ -576,7 +576,7 @@ namespace Augments
 			float hdrScale = 0.52f;
 			string headerText = "[ YoRHa FFCS // PROJECT: TERRARIA // VER. 1.1945 ]";
 			Vector2 hdrPos = new Vector2(cardRect.X + 16, cardRect.Y + 7);
-			Utils.DrawBorderString(sb, headerText, hdrPos, MenuLook.Tint(new Color(175, 168, 150)) * 0.85f, hdrScale);
+			ModText.DrawBorder(sb, headerText, hdrPos, MenuLook.Tint(new Color(175, 168, 150)) * 0.85f, hdrScale);
 
 			// 5. Main Title Letters & Katakana Sub-Logo
 			float textStartX = centerX - totalTitleW / 2f + glitchShake;
@@ -587,7 +587,7 @@ namespace Augments
 			for (int i = 0; i < 8; i++)
 			{
 				string letter = displayLetters[i];
-				Vector2 lSize = fontDeath.MeasureString(letter) * titleScale;
+				Vector2 lSize = ModText.Measure(fontDeath, letter, titleScale);
 				float slotX = textStartX + i * slotWidth;
 				float drawX = slotX + (slotWidth - lSize.X) / 2f + jitterX[i];
 				float drawY = titleY + 6f + jitterY[i];
@@ -597,14 +597,14 @@ namespace Augments
 				if (ghostAlpha > 0f)
 				{
 					Vector2 ghostPos = charPos + new Vector2(0f, 11f);
-					sb.DrawString(fontDeath, letter, ghostPos, ghostCol * ghostAlpha, 0f, Vector2.Zero, titleScale, SpriteEffects.None, 0f);
+					ModText.DrawString(sb, fontDeath, letter, ghostPos, ghostCol * ghostAlpha, 0f, Vector2.Zero, titleScale, SpriteEffects.None, 0f);
 				}
 
 				// Clean drop shadow
-				sb.DrawString(fontDeath, letter, charPos + new Vector2(2, 2), Color.Black * 0.85f, 0f, Vector2.Zero, titleScale, SpriteEffects.None, 0f);
+				ModText.DrawString(sb, fontDeath, letter, charPos + new Vector2(2, 2), Color.Black * 0.85f, 0f, Vector2.Zero, titleScale, SpriteEffects.None, 0f);
 
 				// Main letter glyph
-				sb.DrawString(fontDeath, letter, charPos, mainTitleCol, 0f, Vector2.Zero, titleScale, SpriteEffects.None, 0f);
+				ModText.DrawString(sb, fontDeath, letter, charPos, mainTitleCol, 0f, Vector2.Zero, titleScale, SpriteEffects.None, 0f);
 			}
 
 			// Button-style data blocks: alternating bright blocks and card-colour cutouts, clamped to the letter bodies
@@ -632,17 +632,17 @@ namespace Augments
 			if (ghostAlpha > 0f)
 			{
 				Vector2 kataGhostPos = kataPos + new Vector2(0f, 9f);
-				sb.DrawString(fontMouse, displayKatakana, kataGhostPos, ghostCol * (ghostAlpha * 0.70f), 0f, Vector2.Zero, katakanaScale, SpriteEffects.None, 0f);
+				ModText.DrawString(sb, fontMouse, displayKatakana, kataGhostPos, ghostCol * (ghostAlpha * 0.70f), 0f, Vector2.Zero, katakanaScale, SpriteEffects.None, 0f);
 			}
 
 			if (glitchChroma > 0.4f)
 			{
-				sb.DrawString(fontMouse, displayKatakana, kataPos + new Vector2(-glitchChroma * 0.6f, 0f), new Color(235, 95, 85) * 0.5f, 0f, Vector2.Zero, katakanaScale, SpriteEffects.None, 0f);
-				sb.DrawString(fontMouse, displayKatakana, kataPos + new Vector2(glitchChroma * 0.6f, 0f), new Color(110, 225, 235) * 0.5f, 0f, Vector2.Zero, katakanaScale, SpriteEffects.None, 0f);
+				ModText.DrawString(sb, fontMouse, displayKatakana, kataPos + new Vector2(-glitchChroma * 0.6f, 0f), new Color(235, 95, 85) * 0.5f, 0f, Vector2.Zero, katakanaScale, SpriteEffects.None, 0f);
+				ModText.DrawString(sb, fontMouse, displayKatakana, kataPos + new Vector2(glitchChroma * 0.6f, 0f), new Color(110, 225, 235) * 0.5f, 0f, Vector2.Zero, katakanaScale, SpriteEffects.None, 0f);
 			}
 
-			sb.DrawString(fontMouse, displayKatakana, kataPos + new Vector2(1, 1), Color.Black * 0.70f, 0f, Vector2.Zero, katakanaScale, SpriteEffects.None, 0f);
-			sb.DrawString(fontMouse, displayKatakana, kataPos, MenuLook.Tint(new Color(212, 198, 168)), 0f, Vector2.Zero, katakanaScale, SpriteEffects.None, 0f);
+			ModText.DrawString(sb, fontMouse, displayKatakana, kataPos + new Vector2(1, 1), Color.Black * 0.70f, 0f, Vector2.Zero, katakanaScale, SpriteEffects.None, 0f);
+			ModText.DrawString(sb, fontMouse, displayKatakana, kataPos, MenuLook.Tint(new Color(212, 198, 168)), 0f, Vector2.Zero, katakanaScale, SpriteEffects.None, 0f);
 
 			// Horizontal tear lines, kept inside the title card
 			for (int i = 0; i < tearCount; i++)
@@ -672,7 +672,7 @@ namespace Augments
 			// 7. Subtitle line (For the Glory of Mankind)
 			Vector2 subPos = new Vector2(centerX - subSize.X / 2f, divY + 6f);
 			Color subColor = MenuLook.Tint(new Color(195, 186, 165)) * 0.92f;
-			Utils.DrawBorderString(sb, subTitle, subPos, subColor, subScale);
+			ModText.DrawBorder(sb, subTitle, subPos, subColor, subScale);
 		}
 	}
 }

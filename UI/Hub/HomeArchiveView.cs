@@ -152,7 +152,7 @@ namespace Augments
 		}
 
 		// A row of filter chips that shrinks its text until the whole row fits.
-		private static Rectangle[] ChipRects(string[] labels, int x, int y, int maxWidth, out float scale)
+		private static Rectangle[] ChipRects(string[] labels, int x, int y, int maxWidth, out float scale, bool swatches = false)
 		{
 			scale = 0.62f;
 			float total = 0f;
@@ -162,7 +162,8 @@ namespace Augments
 				total = 0f;
 				for (int i = 0; i < labels.Length; i++)
 				{
-					widths[i] = HubDraw.Width(labels[i], scale, 1.5f) + 22f;
+					// Equal padding either side of the text; a chip with a rarity square also has room for the square on the left.
+						widths[i] = HubDraw.Width(labels[i], scale, 1.5f) + (swatches && i > 0 ? 33f : 22f);
 					total += widths[i];
 				}
 
@@ -372,7 +373,7 @@ namespace Augments
 					return;
 				}
 
-				Rectangle[] rarityChips = ChipRects(RarityLabels, f.LeftX, f.RarityY, f.LeftW, out _);
+				Rectangle[] rarityChips = ChipRects(RarityLabels, f.LeftX, f.RarityY, f.LeftW, out _, true);
 				for (int i = 0; i < rarityChips.Length; i++)
 				{
 					if (rarityChips[i].Contains(p))
@@ -569,7 +570,7 @@ namespace Augments
 
 		private void DrawChips(SpriteBatch sb, string[] labels, int x, int y, int maxWidth, int selectedIndex, bool rarityRow)
 		{
-			Rectangle[] rects = ChipRects(labels, x, y, maxWidth, out float scale);
+			Rectangle[] rects = ChipRects(labels, x, y, maxWidth, out float scale, rarityRow);
 			Point mouse = Main.MouseScreen.ToPoint();
 			for (int i = 0; i < rects.Length; i++)
 			{
@@ -591,7 +592,8 @@ namespace Augments
 				}
 
 				Color c = active ? HubTheme.OnAccent : HubTheme.Text;
-				HubDraw.Text(sb, labels[i], new Vector2(textX, chip.Y + (chip.Height - HubDraw.LineHeight(scale)) / 2f + 1f), c, scale, 1.5f);
+				// The font puts its capitals above the middle of the line, so nudge the text down to the chip's centre line (where the square sits).
+					HubDraw.Text(sb, labels[i], new Vector2(textX, (float)Math.Round(chip.Y + (chip.Height - HubDraw.LineHeight(scale)) / 2f + 4.2f * scale)), c, scale, 1.5f);
 			}
 		}
 

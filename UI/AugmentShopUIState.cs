@@ -93,7 +93,7 @@ namespace Augments
 			backPanel.Append(new PanelTitleTab("Plugin Storage", 36));
 
 			// Subtitle
-			subtitleText = new UIText("Mistress 2B's Archive — Stash or dismantle equipped plugins, re-acquire archived ones", 0.76f)
+			subtitleText = new ModUIText("Mistress 2B's Archive — Stash or dismantle equipped plugins, re-acquire archived ones", 0.76f)
 			{
 				HAlign = 0.5f,
 				TextColor = PanelChrome.Tone(new Color(148, 163, 184))
@@ -126,7 +126,7 @@ namespace Augments
 			undoReforgeBar.Height.Set(22f, 0f);
 
 			// Column Headers (symmetrical at Left = 18f and Left = 410f)
-			UIText buyBackHeader = new UIText("Stash & Archive", 0.85f)
+			UIText buyBackHeader = new ModUIText("Stash & Archive", 0.85f)
 			{
 				HAlign = 0f,
 				TextColor = PanelChrome.Tone(new Color(148, 210, 255))
@@ -136,7 +136,7 @@ namespace Augments
 			backPanel.Append(buyBackHeader);
 			storageElements.Add(buyBackHeader);
 
-			UIText removeHeader = new UIText("Equipped (Dismantle)", 0.85f)
+			UIText removeHeader = new ModUIText("Equipped (Dismantle)", 0.85f)
 			{
 				HAlign = 0f,
 				TextColor = MenuLook.Current.Amber
@@ -199,12 +199,12 @@ namespace Augments
 			loadoutView.Width.Set(764f, 0f);
 			loadoutView.Height.Set(420f, 0f);
 
-			lockStatusText = new UIText("", 0.78f) { TextColor = PanelChrome.Tone(new Color(148, 163, 184)) };
+			lockStatusText = new ModUIText("", 0.78f) { TextColor = PanelChrome.Tone(new Color(148, 163, 184)) };
 			lockStatusText.HAlign = 1f;
 			lockStatusText.Top.Set(4f, 0f);
 			loadoutView.Append(lockStatusText);
 
-			slotInfoText = new UIText("", 0.78f) { TextColor = PanelChrome.Tone(new Color(148, 163, 184)) };
+			slotInfoText = new ModUIText("", 0.78f) { TextColor = PanelChrome.Tone(new Color(148, 163, 184)) };
 			slotInfoText.Top.Set(4f, 0f);
 			loadoutView.Append(slotInfoText);
 
@@ -221,7 +221,7 @@ namespace Augments
 				loadoutView.Append(card);
 			}
 
-			var help = new UIText("Swaps use your equipped plugins and your stash. Locked during boss fights and briefly after damage.\nArchived plugins are skipped until bought back. Bind hotkeys in Settings > Controls > Mod Controls.", 0.72f)
+			var help = new ModUIText("Swaps use your equipped plugins and your stash. Locked during boss fights and briefly after damage.\nArchived plugins are skipped until bought back. Bind hotkeys in Settings > Controls > Mod Controls.", 0.72f)
 			{
 				TextColor = PanelChrome.Tone(new Color(110, 124, 150))
 			};
@@ -350,7 +350,7 @@ namespace Augments
 
 			if (buyBackCount == 0)
 			{
-				var empty = new UIText("Nothing stashed or archived.\nStashed and dismantled plugins appear here.", 0.8f)
+				var empty = new ModUIText("Nothing stashed or archived.\nStashed and dismantled plugins appear here.", 0.8f)
 				{
 					HAlign = 0.5f,
 					TextColor = PanelChrome.Tone(new Color(130, 145, 175))
@@ -380,7 +380,7 @@ namespace Augments
 
 			if (removeCount == 0)
 			{
-				var empty = new UIText("No plugins currently equipped.", 0.8f)
+				var empty = new ModUIText("No plugins currently equipped.", 0.8f)
 				{
 					HAlign = 0.5f,
 					TextColor = PanelChrome.Tone(new Color(130, 145, 175))
@@ -502,9 +502,9 @@ namespace Augments
 
 			var font = FontAssets.MouseText.Value;
 			Vector2 scale = new Vector2(0.72f);
-			Vector2 size = ChatManager.GetStringSize(font, label, scale);
+			Vector2 size = ModText.Size(font, label, scale);
 			Vector2 pos = new Vector2(rect.X + (rect.Width - size.X) * 0.5f, rect.Y + (rect.Height - size.Y) * 0.5f + 5f);
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, label, pos, textColor, 0f, Vector2.Zero, scale);
+			ModText.DrawCoded(spriteBatch, font, label, pos, textColor, 0f, Vector2.Zero, scale);
 		}
 
 		private class ShopTabButton : UIElement
@@ -671,11 +671,11 @@ namespace Augments
 				spriteBatch.Draw(pixel, new Rectangle(rect.Right - 1, rect.Y, 1, rect.Height), accent);
 
 				var font = FontAssets.MouseText.Value;
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, $"Loadout {slot + 1}", new Vector2(rect.X + 12f, rect.Y + 10f), MenuLook.Current.Ivory, 0f, Vector2.Zero, new Vector2(0.9f));
+				ModText.DrawCoded(spriteBatch, font, $"Loadout {slot + 1}", new Vector2(rect.X + 12f, rect.Y + 10f), MenuLook.Current.Ivory, 0f, Vector2.Zero, new Vector2(0.9f));
 
 				string status = !unlocked ? "Locked" : isActive ? "Active" : chipIds.Count == 0 ? "Empty" : $"{chipIds.Count} plugin{(chipIds.Count == 1 ? "" : "s")}";
 				Color statusCol = !unlocked ? MenuLook.Current.Amber : isActive ? PanelChrome.Tone(new Color(56, 189, 248)) : PanelChrome.Tone(new Color(148, 163, 184));
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, status, new Vector2(rect.X + 12f, rect.Y + 32f), statusCol, 0f, Vector2.Zero, new Vector2(0.72f));
+				ModText.DrawCoded(spriteBatch, font, status, new Vector2(rect.X + 12f, rect.Y + 32f), statusCol, 0f, Vector2.Zero, new Vector2(0.72f));
 				spriteBatch.Draw(pixel, new Rectangle(rect.X + 12, rect.Y + 56, rect.Width - 24, 1), PanelChrome.Tone(new Color(30, 41, 59)));
 
 				// Five slot rows show the capacity; filled rows carry a rarity-colored edge.
@@ -691,7 +691,7 @@ namespace Augments
 						spriteBatch.Draw(pixel, new Rectangle(r.X, r.Bottom - 1, r.Width, 1), edge);
 						spriteBatch.Draw(pixel, new Rectangle(r.X, r.Y, 1, r.Height), edge);
 						spriteBatch.Draw(pixel, new Rectangle(r.Right - 1, r.Y, 1, r.Height), edge);
-						ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, (row + 1).ToString(), new Vector2(r.X + 9f, r.Y + 5f), PanelChrome.Tone(new Color(55, 68, 92)), 0f, Vector2.Zero, new Vector2(0.68f));
+						ModText.DrawCoded(spriteBatch, font, (row + 1).ToString(), new Vector2(r.X + 9f, r.Y + 5f), PanelChrome.Tone(new Color(55, 68, 92)), 0f, Vector2.Zero, new Vector2(0.68f));
 						continue;
 					}
 
@@ -701,18 +701,18 @@ namespace Augments
 					spriteBatch.Draw(pixel, new Rectangle(r.X, r.Y, 3, r.Height), here ? rc : PanelChrome.Tone(new Color(70, 82, 104)));
 					Color col = here ? rc : PanelChrome.Tone(new Color(100, 116, 139));
 					string tag = equipped.Contains(chipIds[row]) ? "" : here ? "  (stash)" : "  (archived)";
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, a.DisplayName + tag, new Vector2(r.X + 11f, r.Y + 5f), col, 0f, Vector2.Zero, new Vector2(0.72f));
+					ModText.DrawCoded(spriteBatch, font, a.DisplayName + tag, new Vector2(r.X + 11f, r.Y + 5f), col, 0f, Vector2.Zero, new Vector2(0.72f));
 				}
 
 				if (!unlocked)
 				{
-					Vector2 sz = ChatManager.GetStringSize(font, "Locked slot", new Vector2(0.8f));
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "Locked slot", new Vector2(rect.X + (rect.Width - sz.X) * 0.5f, rect.Y + 66f + 52f - sz.Y * 0.5f + 4f), MenuLook.Current.Amber * 0.8f, 0f, Vector2.Zero, new Vector2(0.8f));
+					Vector2 sz = ModText.Size(font, "Locked slot", new Vector2(0.8f));
+					ModText.DrawCoded(spriteBatch, font, "Locked slot", new Vector2(rect.X + (rect.Width - sz.X) * 0.5f, rect.Y + 66f + 52f - sz.Y * 0.5f + 4f), MenuLook.Current.Amber * 0.8f, 0f, Vector2.Zero, new Vector2(0.8f));
 				}
 				else if (chipIds.Count == 0)
 				{
-					Vector2 sz = ChatManager.GetStringSize(font, "Nothing saved yet", new Vector2(0.74f));
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "Nothing saved yet", new Vector2(rect.X + (rect.Width - sz.X) * 0.5f, rect.Y + 66f + 52f - sz.Y * 0.5f + 4f), PanelChrome.Tone(new Color(130, 145, 175)), 0f, Vector2.Zero, new Vector2(0.74f));
+					Vector2 sz = ModText.Size(font, "Nothing saved yet", new Vector2(0.74f));
+					ModText.DrawCoded(spriteBatch, font, "Nothing saved yet", new Vector2(rect.X + (rect.Width - sz.X) * 0.5f, rect.Y + 66f + 52f - sz.Y * 0.5f + 4f), PanelChrome.Tone(new Color(130, 145, 175)), 0f, Vector2.Zero, new Vector2(0.74f));
 				}
 			}
 		}
@@ -888,12 +888,12 @@ namespace Augments
 				spriteBatch.Draw(pixel, new Rectangle(rect.Right - 1, rect.Y, 1, rect.Height), border);
 
 				var font = FontAssets.MouseText.Value;
-				Vector2 textSize = ChatManager.GetStringSize(font, text, new Vector2(0.75f));
+				Vector2 textSize = ModText.Size(font, text, new Vector2(0.75f));
 				Vector2 textPos = new Vector2(
 					rect.X + (rect.Width - textSize.X) * 0.5f,
 					rect.Y + (rect.Height - textSize.Y) * 0.5f + 1f
 				);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text, textPos, textColor, 0f, Vector2.Zero, new Vector2(0.75f));
+				ModText.DrawCoded(spriteBatch, font, text, textPos, textColor, 0f, Vector2.Zero, new Vector2(0.75f));
 			}
 		}
 	}

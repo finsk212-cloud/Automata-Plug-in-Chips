@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using Microsoft.Xna.Framework;
 using Terraria;
@@ -150,6 +150,32 @@ namespace Augments
 		public static string FrameUnlockId(int index) => "frame:" + Frames[index].Id;
 		public static bool FrameOwned(int index) => index == 0 || AccountStore.IsUnlocked(FrameUnlockId(index));
 
+		// --- Tier designs: how the borders of the plugin cards are built (the colours always come from the colour scheme) ---
+
+		internal sealed class TierDesignStyle
+		{
+			public string Id;
+			public string Name;
+			public string Blurb;
+		}
+
+		internal static readonly TierDesignStyle[] TierDesigns =
+		{
+			new TierDesignStyle { Id = "nier", Name = "NIER", Blurb = "BRACKETS AND DOUBLE LINES\nCREAM PLATE FOR LEGENDARY" },
+			new TierDesignStyle { Id = "holo", Name = "HOLO GLASS", Blurb = "ROUNDED CORNERS\nCLEAN FLAT LINES" },
+			new TierDesignStyle { Id = "shadow", Name = "HARD SHADOW", Blurb = "A BLOCK SHADOW BEHIND\nTHE CARD, DEEPER PER TIER" },
+			new TierDesignStyle { Id = "folder", Name = "FOLDER TABS", Blurb = "FILE FOLDER TABS THAT\nGET WIDER PER TIER" }
+		};
+
+		// Data Fragments each design costs. Holo glass is free for now: raise its price later and it becomes a Shop item
+		// (it is then owned only once its "tierdesign:holo" unlock is bought). -1 would make it an Operation reward.
+		public static readonly int[] TierDesignPrices = { 0, 0, 0, 0 };
+
+		private static int tierDesignSelected;
+
+		public static int TierDesignIndex => tierDesignSelected;
+		public static string TierDesignUnlockId(int index) => "tierdesign:" + TierDesigns[index].Id;
+		public static bool TierDesignOwned(int index) => index == 0 || TierDesignPrices[index] == 0 || AccountStore.IsUnlocked(TierDesignUnlockId(index));
 		// Draws the selected frame around `panel`.
 		public static void DrawFrame(Microsoft.Xna.Framework.Graphics.SpriteBatch sb, Rectangle panel, Color color)
 		{
@@ -184,6 +210,7 @@ namespace Augments
 		{
 			selected = FindEquipped("scheme", i => All[i].Id, All.Length, SchemeOwned);
 			frameSelected = FindEquipped("frame", i => Frames[i].Id, Frames.Length, FrameOwned);
+			tierDesignSelected = FindEquipped("tierdesign", i => TierDesigns[i].Id, TierDesigns.Length, TierDesignOwned);
 		}
 
 		private static int FindEquipped(string slot, Func<int, string> idOf, int count, Func<int, bool> owned)
@@ -213,6 +240,14 @@ namespace Augments
 
 			frameSelected = index;
 			AccountStore.Equip("frame", Frames[index].Id);
+		}
+		public static void SelectTierDesign(int index)
+		{
+			if (index < 0 || index >= TierDesigns.Length || index == tierDesignSelected || !TierDesignOwned(index))
+				return;
+
+			tierDesignSelected = index;
+			AccountStore.Equip("tierdesign", TierDesigns[index].Id);
 		}
 	}
 }

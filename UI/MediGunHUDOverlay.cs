@@ -82,16 +82,16 @@ namespace Augments
 
 			// 3. Perfectly Centered Label Text
 			float scale = 0.5f;
-			Vector2 textSize = font.MeasureString(label) * scale;
+			Vector2 textSize = ModText.Measure(font, label, scale);
 			Vector2 textPos = new Vector2(
 				(float)Math.Floor(x + (barWidth - textSize.X) / 2f),
 				(float)Math.Floor(y + (barHeight - textSize.Y) / 2f + 1.5f)
 			);
 
 			// Text drop shadow
-			spriteBatch.DrawString(font, label, textPos + new Vector2(1f, 1f), Color.Black * 0.9f, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+			ModText.DrawString(spriteBatch, font, label, textPos + new Vector2(1f, 1f), Color.Black * 0.9f, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
 			Color textCol = mediPlayer.OverclockCharge >= 100f ? new Color(255, 255, 200) : PanelChrome.Tone(new Color(210, 235, 255));
-			spriteBatch.DrawString(font, label, textPos, textCol, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+			ModText.DrawString(spriteBatch, font, label, textPos, textCol, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
 		}
 
 		private static void DrawBorder(SpriteBatch spriteBatch, Texture2D pixel, Rectangle rect, Color color)

@@ -243,13 +243,13 @@ namespace Augments
             }
 
             // 6. Text with shadow
-            Vector2 textSize = ChatManager.GetStringSize(font, icon.TileText, scale);
+            Vector2 textSize = ModText.Size(font, icon.TileText, scale);
             Vector2 textPos = new Vector2(
                 boxRect.X + (boxRect.Width - textSize.X) / 2f,
                 boxRect.Y + (boxRect.Height - textSize.Y) / 2f + textSize.Y * VerticalCenterNudge
             );
 
-            ChatManager.DrawColorCodedStringWithShadow(
+            ModText.DrawCoded(
                 spriteBatch, font, icon.TileText, textPos,
                 icon.TileTextColor, 0f, Vector2.Zero, scale
             );
@@ -266,7 +266,7 @@ namespace Augments
             var descScale = new Vector2(0.76f);
 
             var titleLines = AugmentColorText.Wrap(font, icon.Title, maxContentWidth, titleScale);
-            Vector2 subSize = ChatManager.GetStringSize(font, icon.Subtitle, subScale);
+            Vector2 subSize = ModText.Size(font, icon.Subtitle, subScale);
 
             var descLines = !string.IsNullOrEmpty(icon.Description)
                 ? AugmentColorText.Wrap(font, icon.Description, maxContentWidth, descScale)
@@ -276,12 +276,12 @@ namespace Augments
             float contentW = subSize.X;
             foreach (var l in titleLines)
             {
-                float w = ChatManager.GetStringSize(font, l, titleScale).X;
+                float w = ModText.Size(font, l, titleScale).X;
                 if (w > contentW) contentW = w;
             }
             foreach (var l in descLines)
             {
-                float w = ChatManager.GetStringSize(font, l, descScale).X;
+                float w = ModText.Size(font, l, descScale).X;
                 if (w > contentW) contentW = w;
             }
             contentW = Math.Clamp(contentW, 220f, maxContentWidth);
@@ -289,7 +289,7 @@ namespace Augments
             // Calculate total height
             float totalH = 0f;
             foreach (var l in titleLines)
-                totalH += ChatManager.GetStringSize(font, l, titleScale).Y + lineSpacing;
+                totalH += ModText.Size(font, l, titleScale).Y + lineSpacing;
 
             totalH += 2f;
             totalH += subSize.Y;
@@ -298,7 +298,7 @@ namespace Augments
             {
                 totalH += 6f;
                 foreach (var l in descLines)
-                    totalH += ChatManager.GetStringSize(font, l, descScale).Y + lineSpacing;
+                    totalH += ModText.Size(font, l, descScale).Y + lineSpacing;
             }
 
             float boxW = contentW + padding * 2f;
@@ -315,16 +315,16 @@ namespace Augments
             // Title
             foreach (var l in titleLines)
             {
-                ChatManager.DrawColorCodedStringWithShadow(
+                ModText.DrawCoded(
                     spriteBatch, font, l, new Vector2(curX, curY), icon.AccentColor, 0f, Vector2.Zero, titleScale
                 );
-                curY += ChatManager.GetStringSize(font, l, titleScale).Y + lineSpacing;
+                curY += ModText.Size(font, l, titleScale).Y + lineSpacing;
             }
 
             curY += 2f;
 
             // Clean inline subtitle text
-            ChatManager.DrawColorCodedStringWithShadow(
+            ModText.DrawCoded(
                 spriteBatch, font, icon.Subtitle, new Vector2(curX, curY), icon.TileTextColor, 0f, Vector2.Zero, subScale
             );
             curY += subSize.Y;
@@ -335,10 +335,10 @@ namespace Augments
                 curY += 6f;
                 foreach (var l in descLines)
                 {
-                    ChatManager.DrawColorCodedStringWithShadow(
+                    ModText.DrawCoded(
                         spriteBatch, font, l, new Vector2(curX, curY), new Color(225, 235, 248), 0f, Vector2.Zero, descScale
                     );
-                    curY += ChatManager.GetStringSize(font, l, descScale).Y + lineSpacing;
+                    curY += ModText.Size(font, l, descScale).Y + lineSpacing;
                 }
             }
         }

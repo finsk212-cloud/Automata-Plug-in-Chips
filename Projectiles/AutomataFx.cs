@@ -20,7 +20,7 @@ namespace Augments
         // Text that starts at a point and runs to the right (the other text helper centres on the point). For terminal lines.
         public static void TextLeft(string text, Vector2 worldPosition, Color color, float scale)
         {
-            Utils.DrawBorderString(Main.spriteBatch, text, worldPosition - Main.screenPosition, color, scale, 0f, 0.5f);
+            ModText.DrawBorder(Main.spriteBatch, text, worldPosition - Main.screenPosition, color, scale, 0f, 0.5f);
         }
 
         // A little gold 8-bit star, built from squares, with a gentle twinkle.

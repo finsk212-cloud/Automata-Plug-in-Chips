@@ -286,7 +286,11 @@ namespace Augments
 			else
 			{
 				Color bg = PanelChrome.PanelBackground;
-				HubDraw.Fill(sb, rect, isHovered ? Color.Lerp(bg, Color.White, 0.05f) : bg);
+				Color fill = isHovered ? Color.Lerp(bg, Color.White, 0.05f) : bg;
+					if (RarityLook.Holo)
+						RarityLook.RoundFill(sb, rect, fill, RarityLook.HoloRadius(rect)); // Holo glass: rounded corners
+					else
+						HubDraw.Fill(sb, rect, fill);
 			}
 
 			// 2. Frame.
@@ -295,7 +299,7 @@ namespace Augments
 			// 3. Pips along the top edge.
 			int pips = RarityLook.Pips(Augment.Rarity);
 			int midX = rect.X + rect.Width / 2;
-			for (int i = 0; i < pips; i++)
+			for (int i = 0; i < pips && !RarityLook.CustomDesign; i++) // the other designs show the tier with their own marks, not pips
 				sb.Draw(px, new Rectangle(midX + (int)Math.Round((i - (pips - 1) * 0.5f) * 9f) - 2, rect.Y + 7, 5, 5), fg);
 
 			// 4. Name, then the class in small spaced capitals.
@@ -611,13 +615,13 @@ namespace Augments
 			if (RarityLook.Inverted(Augment.Rarity))
 				themeColor = Darken(themeColor, 0.5f);
 			Vector2 scale = new Vector2(0.66f);
-			Vector2 textSize = ChatManager.GetStringSize(font, text, scale);
+			Vector2 textSize = ModText.Size(font, text, scale);
 			float maxTextWidth = cardRect.Width - 24f;
 			if (textSize.X > maxTextWidth)
 			{
 				float fitFactor = maxTextWidth / textSize.X;
 				scale *= fitFactor;
-				textSize = ChatManager.GetStringSize(font, text, scale);
+				textSize = ModText.Size(font, text, scale);
 			}
 
 			int textX = cardRect.X + (int)((cardRect.Width - textSize.X) * 0.5f);
@@ -654,12 +658,12 @@ namespace Augments
 			if (RarityLook.Inverted(Augment.Rarity))
 				alertColor = Darken(alertColor, 0.55f);
 			Vector2 scale = new Vector2(0.66f);
-			Vector2 textSize = ChatManager.GetStringSize(font, text, scale);
+			Vector2 textSize = ModText.Size(font, text, scale);
 			float maxTextWidth = cardRect.Width - 44f;
 			if (textSize.X > maxTextWidth)
 			{
 				scale *= maxTextWidth / textSize.X;
-				textSize = ChatManager.GetStringSize(font, text, scale);
+				textSize = ModText.Size(font, text, scale);
 			}
 
 			int textX = cardRect.X + (int)((cardRect.Width - textSize.X) * 0.5f);
@@ -681,7 +685,7 @@ namespace Augments
 		private Rectangle DrawPillBadge(SpriteBatch spriteBatch, DynamicSpriteFont font, Rectangle cardRect, int y, string text, Color accentColor, Color _)
 		{
 			Vector2 scale = new Vector2(0.70f);
-			Vector2 textSize = ChatManager.GetStringSize(font, text, scale);
+			Vector2 textSize = ModText.Size(font, text, scale);
 			int pillW = (int)textSize.X + 20;
 			int pillH = 22;
 			int pillX = cardRect.X + (cardRect.Width - pillW) / 2;
@@ -713,7 +717,7 @@ namespace Augments
 			float textY = pillRect.Y + (pillRect.Height - 12f) * 0.5f - 1.5f;
 			Vector2 textPos = new Vector2(pillRect.X + (pillRect.Width - textSize.X) * 0.5f, textY);
 			Color drawColor = isTagHovered ? Color.White : RarityLook.Pale(accentColor, 0.30f);
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text, textPos, drawColor, 0f, Vector2.Zero, scale);
+			ModText.DrawCoded(spriteBatch, font, text, textPos, drawColor, 0f, Vector2.Zero, scale);
 
 			return pillRect;
 		}
@@ -743,7 +747,7 @@ namespace Augments
 				installColor = slotsFull ? new Color(150, 55, 45) : (isHovered ? RarityLook.OnPlate : RarityLook.OnPlate * 0.75f);
 
 			Vector2 installScale = new Vector2(isHovered ? 0.76f : 0.70f);
-			Vector2 installSize = ChatManager.GetStringSize(font, installText, installScale);
+			Vector2 installSize = ModText.Size(font, installText, installScale);
 			Vector2 installPos = new Vector2(rect.X + (rect.Width - installSize.X) * 0.5f, textY);
 			RarityLook.DrawCoded(spriteBatch, font, installText, installPos, installColor, installScale, !RarityLook.Inverted(Augment.Rarity));
 		}
@@ -760,7 +764,7 @@ namespace Augments
 		{
 			foreach (var line in lines)
 			{
-				Vector2 size = ChatManager.GetStringSize(font, line, scale);
+				Vector2 size = ModText.Size(font, line, scale);
 				RarityLook.DrawCoded(spriteBatch, font, line, new Vector2(centerX - size.X / 2f, y), color, scale, shadow);
 				y += size.Y + LineSpacing;
 			}
@@ -787,7 +791,7 @@ namespace Augments
 			int fitFromEnd = 0;
 			for (int i = descLines.Count - 1; i >= 0; i--)
 			{
-				float h = ChatManager.GetStringSize(font, descLines[i], DescScale).Y + LineSpacing;
+				float h = ModText.Size(font, descLines[i], DescScale).Y + LineSpacing;
 				if (used + h - LineSpacing > viewHeight)
 					break;
 				used += h;
@@ -802,7 +806,7 @@ namespace Augments
 			for (int i = descScrollLines; i < descLines.Count; i++)
 			{
 				string line = descLines[i];
-				float h = ChatManager.GetStringSize(font, line, DescScale).Y;
+				float h = ModText.Size(font, line, DescScale).Y;
 				if (y + h > viewBottom)
 					break;
 
@@ -917,7 +921,7 @@ namespace Augments
 			float totalHeight = 0f;
 			foreach (var (text, _) in lines)
 			{
-				Vector2 size = ChatManager.GetStringSize(font, text, scale);
+				Vector2 size = ModText.Size(font, text, scale);
 				if (size.X > maxWidth) maxWidth = size.X;
 				totalHeight += size.Y + lineSpacing;
 			}
@@ -935,8 +939,8 @@ namespace Augments
 			float x = boxRect.X + padding;
 			foreach (var (text, color) in lines)
 			{
-				Vector2 size = ChatManager.GetStringSize(font, text, scale);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text, new Vector2(x, y), color, 0f, Vector2.Zero, scale);
+				Vector2 size = ModText.Size(font, text, scale);
+				ModText.DrawCoded(spriteBatch, font, text, new Vector2(x, y), color, 0f, Vector2.Zero, scale);
 				y += size.Y + lineSpacing;
 			}
 		}
@@ -1021,7 +1025,7 @@ namespace Augments
 					totalHeight += 9f;
 					continue;
 				}
-				Vector2 size = ChatManager.GetStringSize(font, text, scale);
+				Vector2 size = ModText.Size(font, text, scale);
 				if (size.X > maxWidth) maxWidth = size.X;
 				totalHeight += size.Y + lineSpacing;
 			}
@@ -1046,8 +1050,8 @@ namespace Augments
 					y += 5f;
 					continue;
 				}
-				Vector2 size = ChatManager.GetStringSize(font, text, scale);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text, new Vector2(x, y), color, 0f, Vector2.Zero, scale);
+				Vector2 size = ModText.Size(font, text, scale);
+				ModText.DrawCoded(spriteBatch, font, text, new Vector2(x, y), color, 0f, Vector2.Zero, scale);
 				y += size.Y + lineSpacing;
 			}
 		}
@@ -1136,7 +1140,7 @@ namespace Augments
 					totalHeight += 9f;
 					continue;
 				}
-				Vector2 size = ChatManager.GetStringSize(font, text, scale);
+				Vector2 size = ModText.Size(font, text, scale);
 				if (size.X + indent > maxWidth) maxWidth = size.X + indent;
 				totalHeight += size.Y + lineSpacing;
 			}
@@ -1161,9 +1165,9 @@ namespace Augments
 					y += 5f;
 					continue;
 				}
-				Vector2 size = ChatManager.GetStringSize(font, text, scale);
+				Vector2 size = ModText.Size(font, text, scale);
 				float drawX = center ? boxRect.X + (boxRect.Width - size.X) * 0.5f : x + indent;
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text, new Vector2((float)Math.Round(drawX), (float)Math.Round(y)), color, 0f, Vector2.Zero, scale);
+				ModText.DrawCoded(spriteBatch, font, text, new Vector2((float)Math.Round(drawX), (float)Math.Round(y)), color, 0f, Vector2.Zero, scale);
 				y += size.Y + lineSpacing;
 			}
 		}

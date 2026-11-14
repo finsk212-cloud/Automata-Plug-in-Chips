@@ -1070,7 +1070,7 @@ namespace Augments
 				string msg = hasQuery
 					? $"No plugins found matching \"{query}\"."
 					: "No plugins match the current filters.";
-				var emptyText = new UIText(msg, 0.9f)
+				var emptyText = new ModUIText(msg, 0.9f)
 				{
 					HAlign = 0.5f
 				};
@@ -1160,7 +1160,7 @@ namespace Augments
 			{
 				TabName = tabName;
 
-				label = new UIText(tabName, 0.75f)
+				label = new ModUIText(tabName, 0.75f)
 				{
 					HAlign = 0.5f,
 					VAlign = 0.5f
@@ -1421,7 +1421,7 @@ namespace Augments
 			{
 				if (!platePanel)
 				{
-					ChatManager.DrawColorCodedStringWithShadow(sb, font, text, pos, color, rotation, origin, scale);
+					ModText.DrawCoded(sb, font, text, pos, color, rotation, origin, scale);
 					return;
 				}
 
@@ -1557,7 +1557,7 @@ namespace Augments
 				{
 					var emptyFont = FontAssets.MouseText.Value;
 					string prompt = "Select any plugin slot\nto view specifications.";
-					Vector2 pSize = ChatManager.GetStringSize(emptyFont, prompt, new Vector2(0.82f));
+					Vector2 pSize = ModText.Size(emptyFont, prompt, new Vector2(0.82f));
 					Vector2 pPos = new Vector2(dims.X + (dims.Width - pSize.X) * 0.5f, dims.Y + (dims.Height - pSize.Y) * 0.42f);
 					DrawDetailText(spriteBatch, emptyFont, prompt, pPos, PanelChrome.Tone(new Color(148, 163, 184)) * 0.75f, 0f, Vector2.Zero, new Vector2(0.82f));
 					return;
@@ -1658,7 +1658,7 @@ namespace Augments
 						iconColor = RarityLook.Common;
 
 					spriteBatch.Draw(classIcon, new Vector2(x, y - 2f), iconColor);
-					float nameH = ChatManager.GetStringSize(font, currentAugment.DisplayName, new Vector2(0.95f)).Y;
+					float nameH = ModText.Size(font, currentAugment.DisplayName, new Vector2(0.95f)).Y;
 					if (nier)
 					{
 						// NieR style: the class sits right under the name, beside the icon, in small spaced capitals.
@@ -1667,8 +1667,8 @@ namespace Augments
 						float textLeft = x + classIcon.Width + 8f;
 
 						// A long name shrinks to fit beside the icon instead of running to the panel edge.
-						float nameFit = Math.Min(0.95f, (maxTextWidth - classIcon.Width - 8f) / Math.Max(1f, ChatManager.GetStringSize(font, currentAugment.DisplayName, Vector2.One).X));
-						nameH = ChatManager.GetStringSize(font, currentAugment.DisplayName, new Vector2(nameFit)).Y;
+						float nameFit = Math.Min(0.95f, (maxTextWidth - classIcon.Width - 8f) / Math.Max(1f, ModText.Size(font, currentAugment.DisplayName, Vector2.One).X));
+						nameH = ModText.Size(font, currentAugment.DisplayName, new Vector2(nameFit)).Y;
 
 						float classH = font.MeasureString("M").Y * classScale;
 						float blockH = nameH + 1f + classH;
@@ -1685,7 +1685,7 @@ namespace Augments
 						{
 							string s = ch.ToString();
 							RarityLook.DrawCoded(spriteBatch, font, s, new Vector2((float)Math.Round(cx), cy), classInk, new Vector2(classScale), !platePanel);
-							cx += font.MeasureString(s).X * classScale + classTracking;
+							cx += ModText.Measure(font, s, classScale).X + classTracking;
 						}
 						y += classIcon.Height + 4f;
 					}
@@ -1702,7 +1702,7 @@ namespace Augments
 					DrawDetailText(
 						spriteBatch, font, currentAugment.DisplayName, new Vector2(x, y), nameColor, 0f, Vector2.Zero, new Vector2(0.95f)
 					);
-					y += ChatManager.GetStringSize(font, currentAugment.DisplayName, new Vector2(0.95f)).Y + 3f;
+					y += ModText.Size(font, currentAugment.DisplayName, new Vector2(0.95f)).Y + 3f;
 				}
 
 				// 2. Rarity Tier Stars & Class Name
@@ -1780,7 +1780,7 @@ namespace Augments
 					DrawDetailText(
 						spriteBatch, font, currentAugment.Class.ToString(), new Vector2(classX, y - 1f), classColor, 0f, Vector2.Zero, new Vector2(0.82f)
 					);
-					y += Math.Max(starTex.Height, ChatManager.GetStringSize(font, currentAugment.Class.ToString(), new Vector2(0.82f)).Y) + 6f;
+					y += Math.Max(starTex.Height, ModText.Size(font, currentAugment.Class.ToString(), new Vector2(0.82f)).Y) + 6f;
 				}
 				else
 				{
@@ -1788,7 +1788,7 @@ namespace Augments
 					DrawDetailText(
 						spriteBatch, font, tierClassText, new Vector2(x, y), Color.LightGray, 0f, Vector2.Zero, new Vector2(0.78f)
 					);
-					y += ChatManager.GetStringSize(font, tierClassText, new Vector2(0.78f)).Y + 4f;
+					y += ModText.Size(font, tierClassText, new Vector2(0.78f)).Y + 4f;
 				}
 
 				// 3. Ownership Status (Clean unboxed indicator)
@@ -1798,7 +1798,7 @@ namespace Augments
 					spriteBatch, font, statusText, new Vector2(x, y), statusColor, 0f, Vector2.Zero, new Vector2(0.80f)
 				);
 
-				y += ChatManager.GetStringSize(font, statusText, new Vector2(0.80f)).Y + 8f;
+				y += ModText.Size(font, statusText, new Vector2(0.80f)).Y + 8f;
 
 				// 4. Subtle Divider Line (matches rarity tier)
 				Color divColor = (platePanel ? RarityLook.OnPlate : AugmentListEntry.RarityColor(currentAugment.Rarity)) * 0.35f;
@@ -1829,7 +1829,7 @@ namespace Augments
 					{
 						string s = ch.ToString();
 						RarityLook.DrawCoded(spriteBatch, font, s, new Vector2((float)Math.Round(hx), (float)Math.Round(y)), headInk, new Vector2(0.72f), !platePanel);
-						hx += font.MeasureString(s).X * 0.72f + 3f;
+						hx += ModText.Measure(font, s, 0.72f).X + 3f;
 					}
 				}
 				else
@@ -1838,7 +1838,7 @@ namespace Augments
 						spriteBatch, font, headerTitle, new Vector2(x, y), new Color(250, 204, 21), 0f, Vector2.Zero, new Vector2(0.72f)
 					);
 				}
-				y += ChatManager.GetStringSize(font, headerTitle, new Vector2(0.72f)).Y + 4f;
+				y += ModText.Size(font, headerTitle, new Vector2(0.72f)).Y + 4f;
 
 				// 6. Wrapped Description with chat colors (stripping inline cooldown clause)
 				ExtractDescriptionAndCooldown(currentAugment, out string effectText, out string cooldownText, isCtrlDown, Main.LocalPlayer);
@@ -1855,7 +1855,7 @@ namespace Augments
 				float totalContentHeight = 0f;
 				foreach (var line in lines)
 				{
-					totalContentHeight += ChatManager.GetStringSize(font, line, descScale).Y + 2f;
+					totalContentHeight += ModText.Size(font, line, descScale).Y + 2f;
 				}
 				if (canRebind && KeybindEditor.IsListeningFor(currentAugment.ActiveModKeybind))
 				{
@@ -1873,7 +1873,7 @@ namespace Augments
 						totalContentHeight = 0f;
 						foreach (var line in lines)
 						{
-							totalContentHeight += ChatManager.GetStringSize(font, line, descScale).Y + 2f;
+							totalContentHeight += ModText.Size(font, line, descScale).Y + 2f;
 						}
 						if (canRebind && KeybindEditor.IsListeningFor(currentAugment.ActiveModKeybind))
 						{
@@ -1888,7 +1888,7 @@ namespace Augments
 				float currentY = descStartY - descScroll;
 				foreach (var line in lines)
 				{
-					float lineHeight = ChatManager.GetStringSize(font, line, descScale).Y;
+					float lineHeight = ModText.Size(font, line, descScale).Y;
 
 					// Only draw line if it's within the visible viewport bounds
 					if (currentY + lineHeight >= descStartY && currentY <= footerTop)
@@ -1903,8 +1903,8 @@ namespace Augments
 							chars[labelStart + labelLength - 1] = ' ';
 							drawLine = new string(chars);
 
-							float labelX = x + ChatManager.GetStringSize(font, drawLine.Substring(0, labelStart), descScale).X;
-							float labelW = ChatManager.GetStringSize(font, drawLine.Substring(labelStart, labelLength), descScale).X;
+							float labelX = x + ModText.Size(font, drawLine.Substring(0, labelStart), descScale).X;
+							float labelW = ModText.Size(font, drawLine.Substring(labelStart, labelLength), descScale).X;
 
 							// The letters sit in the upper part of the font's line box, so the box is centred on the letters (about 41% down the
 							// line), not on the whole line height.
@@ -1996,10 +1996,10 @@ namespace Augments
 
 				// Guarantee hint text never clips outside the card borders
 				float maxAllowedWidth = maxTextWidth - 12f;
-				Vector2 rawHintSize = ChatManager.GetStringSize(font, hintText, Vector2.One);
+				Vector2 rawHintSize = ModText.Size(font, hintText, Vector2.One);
 				float hintScaleVal = Math.Min(0.66f, maxAllowedWidth / Math.Max(1f, rawHintSize.X));
 				var hintScale = new Vector2(hintScaleVal);
-				Vector2 hintSize = ChatManager.GetStringSize(font, hintText, hintScale);
+				Vector2 hintSize = ModText.Size(font, hintText, hintScale);
 
 				DrawDetailText(
 					spriteBatch, font, hintText,
@@ -2023,7 +2023,7 @@ namespace Augments
 				CalculatedStyle dims = GetDimensions();
 				float width = 0f;
 				foreach (char ch in Word)
-					width += font.MeasureString(ch.ToString()).X * Scale + Tracking;
+					width += ModText.Measure(font, ch.ToString(), Scale).X + Tracking;
 				width -= Tracking;
 
 				// Same centre the old title used (slightly left of the container middle, clear of the DEV badge).
@@ -2050,7 +2050,7 @@ namespace Augments
 					string s = ch.ToString();
 					RarityLook.DrawCoded(spriteBatch, font, s, new Vector2(x, y), ink, new Vector2(Scale), false);
 					RarityLook.DrawCoded(spriteBatch, font, s, new Vector2(x + 1f, y), ink, new Vector2(Scale), false);
-					x += font.MeasureString(s).X * Scale + Tracking;
+					x += ModText.Measure(font, s, Scale).X + Tracking;
 				}
 			}
 		}
@@ -2350,10 +2350,10 @@ namespace Augments
 					{
 						if (_textBlinkerState == 1)
 						{
-							Vector2 cursorSize = ChatManager.GetStringSize(font, "|", scale);
+							Vector2 cursorSize = ModText.Size(font, "|", scale);
 							float textX = dims.X + (dims.Width - cursorSize.X) / 2f;
 							float textY = dims.Y + (dims.Height - cursorSize.Y) / 2f + textYOffset;
-							ChatManager.DrawColorCodedStringWithShadow(
+							ModText.DrawCoded(
 								spriteBatch,
 								font,
 								"|",
@@ -2368,10 +2368,10 @@ namespace Augments
 					else
 					{
 						string placeholder = "Search plugins...";
-						Vector2 textSize = ChatManager.GetStringSize(font, placeholder, scale);
+						Vector2 textSize = ModText.Size(font, placeholder, scale);
 						float textX = dims.X + (dims.Width - textSize.X) / 2f;
 						float textY = dims.Y + (dims.Height - textSize.Y) / 2f + textYOffset;
-						ChatManager.DrawColorCodedStringWithShadow(
+						ModText.DrawCoded(
 							spriteBatch,
 							font,
 							placeholder,
@@ -2393,18 +2393,18 @@ namespace Augments
 
 					float clearBtnReserve = 24f;
 					float maxTextWidth = dims.Width - 16f - clearBtnReserve;
-					while (display.Length > 0 && ChatManager.GetStringSize(font, display, scale).X > maxTextWidth)
+					while (display.Length > 0 && ModText.Size(font, display, scale).X > maxTextWidth)
 					{
 						display = display.Substring(1);
 					}
 
-					Vector2 textSize = ChatManager.GetStringSize(font, display, scale);
+					Vector2 textSize = ModText.Size(font, display, scale);
 					float textX = dims.X + (dims.Width - clearBtnReserve - textSize.X) / 2f + 4f;
 					if (textX < dims.X + 8f)
 						textX = dims.X + 8f;
 					float textY = dims.Y + (dims.Height - textSize.Y) / 2f + textYOffset;
 
-					ChatManager.DrawColorCodedStringWithShadow(
+					ModText.DrawCoded(
 						spriteBatch,
 						font,
 						display,
@@ -2418,11 +2418,11 @@ namespace Augments
 					// Draw Clear [✕] button
 					bool clearHover = isHovered && Main.MouseScreen.X >= dims.X + dims.Width - 22f;
 					Color clearColor = clearHover ? new Color(255, 110, 110) : PanelChrome.Tone(new Color(160, 175, 205)) * 0.8f;
-					Vector2 xSize = ChatManager.GetStringSize(font, "✕", scale);
+					Vector2 xSize = ModText.Size(font, "✕", scale);
 					float xX = dims.X + dims.Width - 18f;
 					float xY = dims.Y + (dims.Height - xSize.Y) / 2f + textYOffset;
 
-					ChatManager.DrawColorCodedStringWithShadow(
+					ModText.DrawCoded(
 						spriteBatch,
 						font,
 						"✕",
@@ -2462,7 +2462,7 @@ namespace Augments
 			public CodexFilterButton(string initialText, float textScale = 0.72f)
 			{
 				baseText = initialText ?? "";
-				Label = new UIText(initialText, textScale)
+				Label = new ModUIText(initialText, textScale)
 				{
 					HAlign = 0.5f,
 					VAlign = 0.5f
@@ -2697,10 +2697,10 @@ namespace Augments
 				uint age = Main.GameUpdateCount - hoverTick;
 				string shownText = isHovered && age < 14 && Text.Length > 1 ? PanelGlitch.Decode(Text, (int)(age / 2) + Text.Length) : Text;
 				Vector2 scale = new Vector2(0.72f);
-				Vector2 textSize = ChatManager.GetStringSize(font, Text, scale);
+				Vector2 textSize = ModText.Size(font, Text, scale);
 				float textY = rect.Y + (rect.Height - textSize.Y) / 2f + 1.5f;
 
-				ChatManager.DrawColorCodedStringWithShadow(
+				ModText.DrawCoded(
 					spriteBatch,
 					font,
 					shownText,
@@ -2826,7 +2826,7 @@ namespace Augments
 				BorderColor = Color.Transparent;
 
 				// Title
-				UIText title = new UIText("Filters & Sorting", 0.85f)
+				UIText title = new ModUIText("Filters & Sorting", 0.85f)
 				{
 					TextColor = MenuLook.Current.Amber,
 					Top = { Pixels = 8f },
@@ -2944,7 +2944,7 @@ namespace Augments
 
 			private void AddSectionLabel(string text, float y)
 			{
-				UIText label = new UIText(text, 0.72f)
+				UIText label = new ModUIText(text, 0.72f)
 				{
 					TextColor = PanelChrome.Tone(new Color(148, 163, 184)),
 					Top = { Pixels = y },

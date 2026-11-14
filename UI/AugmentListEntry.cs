@@ -27,7 +27,7 @@ namespace Augments
 			BackgroundColor = RarityColor(augment.Rarity) * 0.3f;
 			BorderColor = RarityColor(augment.Rarity);
 
-			UIText nameText = new UIText(augment.DisplayName, 0.85f)
+			UIText nameText = new ModUIText(augment.DisplayName, 0.85f)
 			{
 				HAlign = 0f,
 				VAlign = 0.5f
@@ -46,7 +46,7 @@ namespace Augments
 			var font = FontAssets.MouseText.Value;
 			const string hint = "No key bound";
 			Vector2 hintScale = new Vector2(0.72f);
-			Vector2 hintSize = ChatManager.GetStringSize(font, hint, hintScale);
+			Vector2 hintSize = ModText.Size(font, hint, hintScale);
 
 			CalculatedStyle dims = GetInnerDimensions();
 			Vector2 hintPos = new Vector2(
@@ -54,7 +54,7 @@ namespace Augments
 				dims.Y + (dims.Height - hintSize.Y) * 0.5f
 			);
 
-			ChatManager.DrawColorCodedStringWithShadow(
+			ModText.DrawCoded(
 				spriteBatch, font, hint, hintPos,
 				new Color(255, 100, 80) * 0.9f, 0f, Vector2.Zero, hintScale
 			);

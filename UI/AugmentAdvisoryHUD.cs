@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -264,7 +264,7 @@ namespace Augments
 
 			Vector2 textScale = new Vector2(scale);
 			Color shadowColor = Color.Black * (0.5f * a);
-			ChatManager.DrawColorCodedStringWithShadow(sb, font, ShownPrefix, new Vector2(box.X + 9, box.Y + 5), cyan * (0.8f * a), 0f, Vector2.Zero, new Vector2(0.5f));
+			ModText.DrawCoded(sb, font, ShownPrefix, new Vector2(box.X + 9, box.Y + 5), cyan * (0.8f * a), 0f, Vector2.Zero, new Vector2(0.5f));
 
 			// The text appears letter by letter, as if the Pod were saying it.
 			int revealed = (int)Math.Max(0f, Math.Min(currentMessage.Length, (DisplayDuration - displayTimer) * RevealLettersPerSecond));
@@ -277,8 +277,8 @@ namespace Augments
 				string shown = revealed >= line.Length ? line : line.Substring(0, revealed);
 				revealed -= line.Length + 1; // +1 for the space the wrap removed
 				var pos = new Vector2(box.X + 9, y);
-				ChatManager.DrawColorCodedStringWithShadow(sb, font, shown, pos + new Vector2(1f, 1f), shadowColor, 0f, Vector2.Zero, textScale);
-				ChatManager.DrawColorCodedStringWithShadow(sb, font, shown, pos, new Color(210, 220, 232) * a, 0f, Vector2.Zero, textScale);
+				ModText.DrawCoded(sb, font, shown, pos + new Vector2(1f, 1f), shadowColor, 0f, Vector2.Zero, textScale);
+				ModText.DrawCoded(sb, font, shown, pos, new Color(210, 220, 232) * a, 0f, Vector2.Zero, textScale);
 				y += lineHeight;
 			}
 		}
@@ -300,8 +300,8 @@ namespace Augments
 			var font = FontAssets.MouseText.Value;
 			Vector2 scale = new Vector2(0.74f);
 
-			Vector2 prefixSize = ChatManager.GetStringSize(font, ShownPrefix, scale);
-			Vector2 msgSize = ChatManager.GetStringSize(font, currentMessage, scale);
+			Vector2 prefixSize = ModText.Size(font, ShownPrefix, scale);
+			Vector2 msgSize = ModText.Size(font, currentMessage, scale);
 
 			const float gap = 8f;
 			const float podWidth = 20f;
@@ -345,21 +345,21 @@ namespace Augments
 
 			// Soft subtle drop shadow behind so the text pops cleanly on any bright or dark terrain
 			Color shadowColor = Color.Black * (0.80f * fadeAlpha);
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, ShownPrefix, prefixPos + new Vector2(1f, 1f), shadowColor, 0f, Vector2.Zero, scale);
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, currentMessage, msgPos + new Vector2(1f, 1f), shadowColor, 0f, Vector2.Zero, scale);
+			ModText.DrawCoded(spriteBatch, font, ShownPrefix, prefixPos + new Vector2(1f, 1f), shadowColor, 0f, Vector2.Zero, scale);
+			ModText.DrawCoded(spriteBatch, font, currentMessage, msgPos + new Vector2(1f, 1f), shadowColor, 0f, Vector2.Zero, scale);
 
 			// Primary text
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, ShownPrefix, prefixPos, pColor, 0f, Vector2.Zero, scale);
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, currentMessage, msgPos, mColor, 0f, Vector2.Zero, scale);
+			ModText.DrawCoded(spriteBatch, font, ShownPrefix, prefixPos, pColor, 0f, Vector2.Zero, scale);
+			ModText.DrawCoded(spriteBatch, font, currentMessage, msgPos, mColor, 0f, Vector2.Zero, scale);
 
 			// Subtle interaction hint when hovered
 			if (bounds.Contains(new Point(Main.mouseX, Main.mouseY)) && fadeAlpha > 0.5f)
 			{
 				string hint = "[Left Click: Next Tip  •  Right Click: Dismiss]";
 				Vector2 hintScale = new Vector2(0.56f);
-				Vector2 hintSize = ChatManager.GetStringSize(font, hint, hintScale);
+				Vector2 hintSize = ModText.Size(font, hint, hintScale);
 				Vector2 hintPos = new Vector2((Main.screenWidth - hintSize.X) * 0.5f, posY + textHeight + 4f);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, hint, hintPos, PanelChrome.Tone(new Color(148, 163, 184)) * (0.85f * fadeAlpha), 0f, Vector2.Zero, hintScale);
+				ModText.DrawCoded(spriteBatch, font, hint, hintPos, PanelChrome.Tone(new Color(148, 163, 184)) * (0.85f * fadeAlpha), 0f, Vector2.Zero, hintScale);
 			}
 		}
 	}

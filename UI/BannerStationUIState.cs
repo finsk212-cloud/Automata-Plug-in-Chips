@@ -171,16 +171,16 @@ namespace Augments
 				int tier = station.GetTier();
 				DynamicSpriteFont font = FontAssets.MouseText.Value;
 
-				Utils.DrawBorderString(spriteBatch, "Banner Station " + BannerStationData.TierNames[tier], new Vector2(rect.X + 22, rect.Y + 14), Color.White, 0.95f);
+				ModText.DrawBorder(spriteBatch, "Banner Station " + BannerStationData.TierNames[tier], new Vector2(rect.X + 22, rect.Y + 14), Color.White, 0.95f);
 
 				string count = $"{station.Banners.Count} / {station.SlotCount}";
-				Utils.DrawBorderString(spriteBatch, count, new Vector2(rect.Right - 60 - font.MeasureString(count).X * 0.9f, rect.Y + 15), PanelChrome.Accent, 0.9f);
+				ModText.DrawBorder(spriteBatch, count, new Vector2(rect.Right - 60 - ModText.Measure(font, count, 0.9f).X, rect.Y + 15), PanelChrome.Accent, 0.9f);
 
 				int footerY = rect.Bottom - 120;
 				string range = $"Range: {BannerStationData.RangeTilesX(tier)} x {BannerStationData.RangeTilesY(tier)} tiles around the station";
-				Utils.DrawBorderString(spriteBatch, range, new Vector2(rect.X + 22, footerY), Color.LightGray, 0.8f);
-				Utils.DrawBorderString(spriteBatch, "Click a slot holding a banner on your cursor to store it.", new Vector2(rect.X + 22, footerY + 18), Color.Gray, 0.75f);
-				Utils.DrawBorderString(spriteBatch, "Click a stored banner to take it out.", new Vector2(rect.X + 22, footerY + 34), Color.Gray, 0.75f);
+				ModText.DrawBorder(spriteBatch, range, new Vector2(rect.X + 22, footerY), Color.LightGray, 0.8f);
+				ModText.DrawBorder(spriteBatch, "Click a slot holding a banner on your cursor to store it.", new Vector2(rect.X + 22, footerY + 18), Color.Gray, 0.75f);
+				ModText.DrawBorder(spriteBatch, "Click a stored banner to take it out.", new Vector2(rect.X + 22, footerY + 34), Color.Gray, 0.75f);
 			}
 		}
 
@@ -367,8 +367,8 @@ namespace Augments
 				spriteBatch.Draw(pixel, new Rectangle(rect.X, rect.Y, 1, rect.Height), edge);
 				spriteBatch.Draw(pixel, new Rectangle(rect.Right - 1, rect.Y, 1, rect.Height), edge);
 
-				Vector2 size = FontAssets.MouseText.Value.MeasureString(label) * 0.85f;
-				Utils.DrawBorderString(spriteBatch, label, new Vector2(rect.Center.X - size.X / 2f, rect.Center.Y - size.Y / 2f + 2f), Color.White, 0.85f);
+				Vector2 size = ModText.Measure(FontAssets.MouseText.Value, label, 0.85f);
+				ModText.DrawBorder(spriteBatch, label, new Vector2(rect.Center.X - size.X / 2f, rect.Center.Y - size.Y / 2f + 2f), Color.White, 0.85f);
 			}
 		}
 	}

@@ -169,7 +169,7 @@ namespace Augments
             // Title width
             foreach (var line in titleLines)
             {
-                float w = ChatManager.GetStringSize(font, line, TitleScale).X;
+                float w = ModText.Size(font, line, TitleScale).X;
                 if (w > maxContentWidth) maxContentWidth = w;
             }
 
@@ -178,7 +178,7 @@ namespace Augments
             float subtitleHeight = 0f;
             foreach (var (sText, _) in subtitleParts)
             {
-                Vector2 sz = ChatManager.GetStringSize(font, sText, SubtitleScale);
+                Vector2 sz = ModText.Size(font, sText, SubtitleScale);
                 subtitleWidth += sz.X;
                 if (sz.Y > subtitleHeight) subtitleHeight = sz.Y;
             }
@@ -187,21 +187,21 @@ namespace Augments
             // Description lines width
             foreach (var line in descLines)
             {
-                float w = ChatManager.GetStringSize(font, line, DescScale).X;
+                float w = ModText.Size(font, line, DescScale).X;
                 if (w > maxContentWidth) maxContentWidth = w;
             }
 
             // Meta lines width
             foreach (var (mText, _) in metaLines)
             {
-                float w = ChatManager.GetStringSize(font, mText, MetaScale).X;
+                float w = ModText.Size(font, mText, MetaScale).X;
                 if (w > maxContentWidth) maxContentWidth = w;
             }
 
             // Protocol lines width
             foreach (var (pText, _, pScale) in protocolLines)
             {
-                float w = ChatManager.GetStringSize(font, pText, pScale).X;
+                float w = ModText.Size(font, pText, pScale).X;
                 if (w > maxContentWidth) maxContentWidth = w;
             }
 
@@ -212,7 +212,7 @@ namespace Augments
 
             // Title height
             foreach (var line in titleLines)
-                totalHeight += ChatManager.GetStringSize(font, line, TitleScale).Y + LineSpacing;
+                totalHeight += ModText.Size(font, line, TitleScale).Y + LineSpacing;
 
             totalHeight += 2f; // spacing to subtitle
 
@@ -223,14 +223,14 @@ namespace Augments
 
             // Description height
             foreach (var line in descLines)
-                totalHeight += ChatManager.GetStringSize(font, line, DescScale).Y + LineSpacing;
+                totalHeight += ModText.Size(font, line, DescScale).Y + LineSpacing;
 
             // Meta height
             if (metaLines.Count > 0)
             {
                 totalHeight += 4f;
                 foreach (var (mText, _) in metaLines)
-                    totalHeight += ChatManager.GetStringSize(font, mText, MetaScale).Y + LineSpacing;
+                    totalHeight += ModText.Size(font, mText, MetaScale).Y + LineSpacing;
             }
 
             // Protocol section height
@@ -240,7 +240,7 @@ namespace Augments
                 totalHeight += 7f; // divider + margin
 
                 foreach (var (pText, _, pScale) in protocolLines)
-                    totalHeight += ChatManager.GetStringSize(font, pText, pScale).Y + LineSpacing;
+                    totalHeight += ModText.Size(font, pText, pScale).Y + LineSpacing;
             }
 
             float boxWidth = contentWidth + Padding * 2f;
@@ -260,10 +260,10 @@ namespace Augments
             // Title
             foreach (var line in titleLines)
             {
-                ChatManager.DrawColorCodedStringWithShadow(
+                ModText.DrawCoded(
                     spriteBatch, font, line, new Vector2(contentX, curY), rarityColor, 0f, Vector2.Zero, TitleScale
                 );
-                curY += ChatManager.GetStringSize(font, line, TitleScale).Y + LineSpacing;
+                curY += ModText.Size(font, line, TitleScale).Y + LineSpacing;
             }
 
             curY += 2f;
@@ -272,20 +272,20 @@ namespace Augments
             float curSubX = contentX;
             foreach (var (sText, sColor) in subtitleParts)
             {
-                ChatManager.DrawColorCodedStringWithShadow(
+                ModText.DrawCoded(
                     spriteBatch, font, sText, new Vector2(curSubX, curY), sColor, 0f, Vector2.Zero, SubtitleScale
                 );
-                curSubX += ChatManager.GetStringSize(font, sText, SubtitleScale).X;
+                curSubX += ModText.Size(font, sText, SubtitleScale).X;
             }
             curY += subtitleHeight + 8f;
 
             // Description
             foreach (var line in descLines)
             {
-                ChatManager.DrawColorCodedStringWithShadow(
+                ModText.DrawCoded(
                     spriteBatch, font, RarityLook.PaleTags(line, 0.30f), new Vector2(contentX, curY), new Color(228, 236, 248), 0f, Vector2.Zero, DescScale
                 );
-                curY += ChatManager.GetStringSize(font, line, DescScale).Y + LineSpacing;
+                curY += ModText.Size(font, line, DescScale).Y + LineSpacing;
             }
 
             // Meta lines
@@ -294,10 +294,10 @@ namespace Augments
                 curY += 4f;
                 foreach (var (mText, mColor) in metaLines)
                 {
-                    ChatManager.DrawColorCodedStringWithShadow(
+                    ModText.DrawCoded(
                         spriteBatch, font, mText, new Vector2(contentX, curY), mColor, 0f, Vector2.Zero, MetaScale
                     );
-                    curY += ChatManager.GetStringSize(font, mText, MetaScale).Y + LineSpacing;
+                    curY += ModText.Size(font, mText, MetaScale).Y + LineSpacing;
                 }
             }
 
@@ -310,10 +310,10 @@ namespace Augments
 
                 foreach (var (pText, pColor, pScale) in protocolLines)
                 {
-                    ChatManager.DrawColorCodedStringWithShadow(
+                    ModText.DrawCoded(
                         spriteBatch, font, RarityLook.PaleTags(pText, 0.30f), new Vector2(contentX, curY), RarityLook.Pale(pColor, 0.30f), 0f, Vector2.Zero, pScale
                     );
-                    curY += ChatManager.GetStringSize(font, pText, pScale).Y + LineSpacing;
+                    curY += ModText.Size(font, pText, pScale).Y + LineSpacing;
                 }
             }
         }

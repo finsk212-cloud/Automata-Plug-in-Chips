@@ -372,9 +372,9 @@ namespace Augments
 
 				Vector2 textScale = new Vector2(0.62f);
 				string dotSep = "  •  ";
-				float labelW = ChatManager.GetStringSize(font, labelText, textScale).X;
-				float dotW = ChatManager.GetStringSize(font, dotSep, textScale).X;
-				float valW = ChatManager.GetStringSize(font, valueText, textScale).X;
+				float labelW = ModText.Size(font, labelText, textScale).X;
+				float dotW = ModText.Size(font, dotSep, textScale).X;
+				float valW = ModText.Size(font, valueText, textScale).X;
 				float totalTextW = labelW + dotW + valW;
 
 				// Dynamic width adaptation: ensures zero text clipping even with huge damage numbers
@@ -419,13 +419,13 @@ namespace Augments
 				float textY = rect.Y + (rect.Height - 12.2f) * 0.5f - 1.5f;
 
 				// Label
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, labelText, new Vector2(textX, textY), accentColor, 0f, Vector2.Zero, textScale);
+				ModText.DrawCoded(spriteBatch, font, labelText, new Vector2(textX, textY), accentColor, 0f, Vector2.Zero, textScale);
 
 				// Separator dot
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, dotSep, new Vector2(textX + labelW, textY), PanelChrome.Tone(new Color(100, 125, 155)) * 0.80f, 0f, Vector2.Zero, textScale);
+				ModText.DrawCoded(spriteBatch, font, dotSep, new Vector2(textX + labelW, textY), PanelChrome.Tone(new Color(100, 125, 155)) * 0.80f, 0f, Vector2.Zero, textScale);
 
 				// Value
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, valueText, new Vector2(textX + labelW + dotW, textY), Color.White, 0f, Vector2.Zero, textScale);
+				ModText.DrawCoded(spriteBatch, font, valueText, new Vector2(textX + labelW + dotW, textY), Color.White, 0f, Vector2.Zero, textScale);
 
 				// 6. Alt Drag / Unpin Controls Overlay
 				if (isAltDown)
@@ -434,9 +434,9 @@ namespace Augments
 					bool closeHover = closeRect.Contains((int)mouse.X, (int)mouse.Y);
 					Color closeColor = closeHover ? new Color(248, 113, 113) : PanelChrome.Tone(new Color(148, 163, 184)) * 0.8f;
 
-					Vector2 xSz = ChatManager.GetStringSize(font, "✕", new Vector2(0.55f));
+					Vector2 xSz = ModText.Size(font, "✕", new Vector2(0.55f));
 					Vector2 xPos = new Vector2(closeRect.X + (closeRect.Width - xSz.X) * 0.5f, closeRect.Y + (closeRect.Height - xSz.Y) * 0.5f);
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "✕", xPos, closeColor, 0f, Vector2.Zero, new Vector2(0.55f));
+					ModText.DrawCoded(spriteBatch, font, "✕", xPos, closeColor, 0f, Vector2.Zero, new Vector2(0.55f));
 
 					if (hovered)
 					{

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
@@ -692,10 +692,10 @@ namespace Augments
 			string rank = profile != null ? profile.Rank.ToString("00") : "--";
 
 			OperationArt.Fragment(sb, new Rectangle(r.X + 6, r.Y + 6, 28, 28), AutomataHomeUIState.Amber);
-			HubDraw.Text(sb, "DATA FRAGMENTS", new Vector2(r.X + 34, r.Y + 11), AutomataHomeUIState.Muted, 0.62f, 2f);
+			HubDraw.Text(sb, "DATA FRAGMENTS", new Vector2(r.X + 46, r.Y + 11), AutomataHomeUIState.Muted, 0.62f, 2f);
 			HubDraw.TextRight(sb, cores, r.Right - 16, r.Y + 7, AutomataHomeUIState.Amber, 1.0f, 2f);
 			HubDraw.HLine(sb, r.X + 14, r.Y + 36, r.Width - 28, AutomataHomeUIState.Ivory * 0.2f);
-			HubDraw.Text(sb, "UNIT RANK", new Vector2(r.X + 34, r.Y + 42), AutomataHomeUIState.Muted, 0.58f, 2f);
+			HubDraw.Text(sb, "UNIT RANK", new Vector2(r.X + 46, r.Y + 42), AutomataHomeUIState.Muted, 0.58f, 2f);
 			HubDraw.TextRight(sb, rank, r.Right - 16, r.Y + 41, AutomataHomeUIState.Idle, 0.7f, 2f);
 		}
 	}

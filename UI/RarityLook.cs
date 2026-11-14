@@ -17,9 +17,28 @@ namespace Augments
 		Ice   // animated: Epic drifts through ice colours, Legendary cycles faster with a ring and a circling light
 	}
 
-	internal static class RarityLook
+	// The DESIGN of the tier borders, chosen on the COSMETICS page. It changes how the borders are built, never their colours: those always
+// come from the colour scheme.
+internal enum TierDesign
+{
+	Nier, // the default: thin line, corner brackets, double border, cream plate
+	Holo,   // rounded corners, clean flat lines (the glow is a separate unlock for later)
+	Shadow, // a hard block shadow behind the card that gets deeper with the tier
+	Folder  // a file folder: the tab on top gets wider with the tier
+}
+
+internal static class RarityLook
 	{
 		public static TierStyle Style = TierStyle.Nier;
+
+		// Set for a moment by the Cosmetics page to draw a sample of a design that is not the equipped one.
+		internal static TierDesign? SampleDesign;
+		public static TierDesign Design => SampleDesign ?? (Enum.IsDefined(typeof(TierDesign), MenuLook.TierDesignIndex) ? (TierDesign)MenuLook.TierDesignIndex : TierDesign.Nier);
+		public static bool Shadow => Style == TierStyle.Nier && Design == TierDesign.Shadow;
+		public static bool Folder => Style == TierStyle.Nier && Design == TierDesign.Folder;
+		// Any design other than the default NieR one (they draw their own frame and skip the NieR corner marks and pips).
+		public static bool CustomDesign => Style == TierStyle.Nier && Design != TierDesign.Nier;
+		public static bool Holo => Style == TierStyle.Nier && Design == TierDesign.Holo;
 
 		// --- The NieR style -------------------------------------------------------------------------------------------------------
 		// NieR: Automata's menus have almost no colour: they are paper tones, and importance is shown by shape. So the tiers follow the
@@ -94,7 +113,13 @@ namespace Augments
 		{
 			if (shadow)
 			{
-				Terraria.UI.Chat.ChatManager.DrawColorCodedStringWithShadow(sb, font, text, pos, color, 0f, Vector2.Zero, scale);
+				ModText.DrawCoded(sb, font, text, pos, color, 0f, Vector2.Zero, scale);
+				return;
+			}
+
+			if (ModText.UsePixel(font, scale.X))
+			{
+				ModText.DrawPlain(sb, font, text, pos, color, scale);
 				return;
 			}
 
@@ -129,9 +154,286 @@ namespace Augments
 			ReLogic.Graphics.DynamicSpriteFontExtensionMethods.DrawString(sb, font, piece, p, color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
 			p.X += font.MeasureString(piece).X * scale.X;
 		}
+		// --- The Holo glass design: rounded corners, and a soft glow that grows with the tier ------------------------------------------
+		//   Common     a thin rounded line
+		//   Rare       a rounded line with a second thin line inside it
+		//   Epic       a thicker line with a thin line inside it (and a soft glow, when HoloGlow is on)
+		//   Legendary  a rounded cream plate with an amber line (and a stronger glow, when HoloGlow is on)
+
+		// --- Hard shadow and Folder tabs ---------------------------------------------------------------------------------------------
+		//   Hard shadow  a solid block shadow behind the card, offset down and right, that gets bigger and stronger with the tier
+		//   Folder tabs  a file folder: the tab on top gets wider with the tier (none, short, half, long)
+
+		private static Color LineOf(AugmentRarity rarity, bool hovered)
+		{
+			Color col = Of(rarity);
+			return rarity == AugmentRarity.Legendary ? (hovered ? MenuLook.Current.Amber : PlateAccent) : (hovered ? Light(col) : col);
+		}
+
+		private static int BoxThickness(AugmentRarity rarity) => rarity == AugmentRarity.Epic || rarity == AugmentRarity.Legendary ? 3 : 2;
+
+		private static int ShadowOffset(AugmentRarity rarity)
+		{
+			switch (rarity)
+			{
+				case AugmentRarity.Rare: return 4;
+				case AugmentRarity.Epic: return 5;
+				case AugmentRarity.Legendary: return 6;
+				default: return 3;
+			}
+		}
+
+		private static Color ShadowColor(AugmentRarity rarity)
+		{
+			Color c = Of(rarity);
+			switch (rarity)
+			{
+				case AugmentRarity.Rare: return c * 0.45f;
+				case AugmentRarity.Epic: return c * 0.7f;
+				case AugmentRarity.Legendary: return MenuLook.Current.Amber;
+				default: return c * 0.22f;
+			}
+		}
+
+		// The shadow behind `rect`: only the two strips that stick out to the right and below (the card covers the rest).
+		private static void ShadowStrips(SpriteBatch sb, Rectangle rect, AugmentRarity rarity)
+		{
+			Texture2D px = TextureAssets.MagicPixel.Value;
+			int o = ShadowOffset(rarity);
+			Color c = ShadowColor(rarity);
+			sb.Draw(px, new Rectangle(rect.Right, rect.Y + o, o, rect.Height), c);
+			sb.Draw(px, new Rectangle(rect.X + o, rect.Bottom, rect.Width - o, o), c);
+		}
+
+		// The border of a card for these designs: 2px, 3px with a thin line inside for Epic, and a dark thin line inside the Legendary plate.
+		private static void LinedBox(SpriteBatch sb, Rectangle rect, AugmentRarity rarity, bool hovered)
+		{
+			Color line = LineOf(rarity, hovered);
+			HubDraw.Border(sb, rect, rarity == AugmentRarity.Common ? line * 0.75f : line, BoxThickness(rarity));
+			if (rarity == AugmentRarity.Epic)
+				HubDraw.Border(sb, new Rectangle(rect.X + 5, rect.Y + 5, rect.Width - 10, rect.Height - 10), line * 0.55f, 1);
+			else if (rarity == AugmentRarity.Legendary)
+				HubDraw.Border(sb, new Rectangle(rect.X + 5, rect.Y + 5, rect.Width - 10, rect.Height - 10), OnPlate * 0.4f, 1);
+		}
+
+		private const int FolderTabHeight = 8;
+
+		private static float FolderTabFraction(AugmentRarity rarity)
+		{
+			switch (rarity)
+			{
+				case AugmentRarity.Rare: return 0.22f;
+				case AugmentRarity.Epic: return 0.45f;
+				case AugmentRarity.Legendary: return 0.7f;
+				default: return 0f; // Common has no tab
+			}
+		}
+
+		// The folder tab, sticking up above `body`. `fill` is the colour behind it (the card's own), used to open the tab into the body.
+		private static void DrawFolderTab(SpriteBatch sb, Rectangle body, AugmentRarity rarity, Color line, int th, Color fill)
+		{
+			int tw = (int)(body.Width * FolderTabFraction(rarity));
+			if (tw <= 0)
+				return;
+
+			Texture2D px = TextureAssets.MagicPixel.Value;
+			int top = body.Y - FolderTabHeight;
+			int slant = FolderTabHeight / 2;
+			for (int i = 0; i < FolderTabHeight + th; i++) // the fill follows the slanted edge, row by row
+				sb.Draw(px, new Rectangle(body.X, top + i, tw + Math.Min(i, FolderTabHeight) / 2, 1), fill);
+			sb.Draw(px, new Rectangle(body.X, top, tw, th), line);
+			sb.Draw(px, new Rectangle(body.X, top, th, FolderTabHeight + th), line);
+			for (int i = 0; i < FolderTabHeight; i++)
+				sb.Draw(px, new Rectangle(body.X + tw + i / 2, top + i, th, 1), line);
+			// Open the tab into the body: remove the body's top edge under it.
+			sb.Draw(px, new Rectangle(body.X + th, body.Y, tw + slant - th, th), fill);
+		}
+
+		// Where a card's own content (icon, name) goes inside the element, for designs that take some of the room for themselves.
+		public static Rectangle ContentRect(Rectangle rect, AugmentRarity rarity)
+		{
+			if (Shadow)
+			{
+				int o = ShadowOffset(rarity);
+				return new Rectangle(rect.X, rect.Y, rect.Width - o, rect.Height - o);
+			}
+			if (Folder)
+				return new Rectangle(rect.X, rect.Y + FolderTabHeight, rect.Width, rect.Height - FolderTabHeight);
+			return rect;
+		}
+
+		// A whole plugin card (fill and frame) in a design other than the default, for the plugin grid. `rect` is the element; everything
+		// is drawn inside it.
+		public static void DrawDesignCard(SpriteBatch sb, Rectangle rect, AugmentRarity rarity, Color chassis, bool hovered, bool selected, Color selectColor)
+		{
+			Texture2D px = TextureAssets.MagicPixel.Value;
+			bool plate = rarity == AugmentRarity.Legendary;
+			Rectangle body = ContentRect(rect, rarity);
+
+			switch (Design)
+			{
+				case TierDesign.Holo:
+				{
+					int rad = HoloRadius(rect);
+					if (plate)
+						DrawPlate(sb, rect);
+					else
+						RoundFill(sb, rect, chassis, rad);
+					if (selected && !plate)
+						RoundFill(sb, rect, selectColor * 0.10f, rad);
+					DrawHoloFrame(sb, rect, rarity, hovered);
+					if (selected)
+						RoundBorder(sb, rect, selectColor, 4, rad);
+					break;
+				}
+
+				case TierDesign.Shadow:
+				{
+					ShadowStrips(sb, body, rarity);
+					if (plate)
+						DrawPlate(sb, body);
+					else
+						sb.Draw(px, body, chassis);
+					if (selected && !plate)
+						sb.Draw(px, body, selectColor * 0.10f);
+					LinedBox(sb, body, rarity, hovered);
+					if (selected)
+						HubDraw.Border(sb, body, selectColor, 4);
+					break;
+				}
+
+				case TierDesign.Folder:
+				{
+					Color tabFill = plate ? Plate : chassis;
+					if (plate)
+						DrawPlate(sb, body);
+					else
+						sb.Draw(px, body, chassis);
+					if (selected && !plate)
+						sb.Draw(px, body, selectColor * 0.10f);
+					LinedBox(sb, body, rarity, hovered);
+					DrawFolderTab(sb, body, rarity, LineOf(rarity, hovered), BoxThickness(rarity), tabFill);
+					if (selected)
+					{
+						HubDraw.Border(sb, body, selectColor, 4);
+						DrawFolderTab(sb, body, rarity, selectColor, 4, tabFill);
+					}
+					break;
+				}
+			}
+		}
+		// The soft glow around Epic and Legendary is switched OFF: it is being kept as an exclusive unlock for later. Turn this on (or tie it to
+		// an unlock) and the glow comes back; nothing else needs to change.
+		public static bool HoloGlow = false;
+
+		public static int HoloRadius(Rectangle r) => Math.Clamp(Math.Min(r.Width, r.Height) / 12, 4, 9);
+
+		// How many pixels in from the edge a row of a quarter circle (radius `rad`) starts: row 0 is the very edge.
+		private static int RunStart(int rad, int row)
+		{
+			double dy = rad - row - 0.5;
+			double dx = Math.Sqrt(Math.Max(0.0, rad * (double)rad - dy * dy));
+			return Math.Max(0, (int)Math.Ceiling(rad - dx - 0.5));
+		}
+
+		// A filled rectangle with rounded corners.
+		public static void RoundFill(SpriteBatch sb, Rectangle r, Color c, int rad)
+		{
+			Texture2D px = TextureAssets.MagicPixel.Value;
+			rad = Math.Max(1, Math.Min(rad, Math.Min(r.Width, r.Height) / 2));
+			sb.Draw(px, new Rectangle(r.X + rad, r.Y, r.Width - rad * 2, r.Height), c);
+			sb.Draw(px, new Rectangle(r.X, r.Y + rad, rad, r.Height - rad * 2), c);
+			sb.Draw(px, new Rectangle(r.Right - rad, r.Y + rad, rad, r.Height - rad * 2), c);
+			for (int j = 0; j < rad; j++)
+			{
+				int i0 = RunStart(rad, j);
+				int w = rad - i0;
+				if (w <= 0)
+					continue;
+				sb.Draw(px, new Rectangle(r.X + i0, r.Y + j, w, 1), c);
+				sb.Draw(px, new Rectangle(r.Right - rad, r.Y + j, w, 1), c);
+				sb.Draw(px, new Rectangle(r.X + i0, r.Bottom - 1 - j, w, 1), c);
+				sb.Draw(px, new Rectangle(r.Right - rad, r.Bottom - 1 - j, w, 1), c);
+			}
+		}
+
+		// The outline of a rounded rectangle, `th` pixels thick.
+		public static void RoundBorder(SpriteBatch sb, Rectangle r, Color c, int th, int rad)
+		{
+			Texture2D px = TextureAssets.MagicPixel.Value;
+			rad = Math.Max(1, Math.Min(rad, Math.Min(r.Width, r.Height) / 2));
+			th = Math.Max(1, Math.Min(th, rad));
+			sb.Draw(px, new Rectangle(r.X + rad, r.Y, r.Width - rad * 2, th), c);
+			sb.Draw(px, new Rectangle(r.X + rad, r.Bottom - th, r.Width - rad * 2, th), c);
+			sb.Draw(px, new Rectangle(r.X, r.Y + rad, th, r.Height - rad * 2), c);
+			sb.Draw(px, new Rectangle(r.Right - th, r.Y + rad, th, r.Height - rad * 2), c);
+
+			int rin = rad - th;
+			for (int j = 0; j < rad; j++)
+			{
+				int i0 = RunStart(rad, j);
+				int i1 = rad;
+				double dy = rad - j - 0.5;
+				if (rin > 0 && Math.Abs(dy) < rin)
+					i1 = (int)Math.Ceiling(rad - Math.Sqrt(rin * (double)rin - dy * dy) - 0.5);
+				i1 = Math.Min(rad, Math.Max(i0, i1));
+				int w = i1 - i0;
+				if (w <= 0)
+					continue;
+				sb.Draw(px, new Rectangle(r.X + i0, r.Y + j, w, 1), c);
+				sb.Draw(px, new Rectangle(r.Right - i1, r.Y + j, w, 1), c);
+				sb.Draw(px, new Rectangle(r.X + i0, r.Bottom - 1 - j, w, 1), c);
+				sb.Draw(px, new Rectangle(r.Right - i1, r.Bottom - 1 - j, w, 1), c);
+			}
+		}
+
+		// The Holo glass border and glow of a card (the fill behind it is the caller's: RoundFill, or DrawPlate for Legendary).
+		public static void DrawHoloFrame(SpriteBatch sb, Rectangle rect, AugmentRarity rarity, bool hovered)
+		{
+			int rad = HoloRadius(rect);
+			Color col = Of(rarity);
+			Color amber = MenuLook.Current.Amber;
+			Color line = rarity == AugmentRarity.Legendary ? (hovered ? amber : PlateAccent) : (hovered ? Light(col) : col);
+			float breathe = (float)(Math.Sin(Main.GlobalTimeWrappedHourly * 2.2) * 0.5 + 0.5);
+			var outer = new Rectangle(rect.X - 3, rect.Y - 3, rect.Width + 6, rect.Height + 6);
+			var inner = new Rectangle(rect.X + 5, rect.Y + 5, rect.Width - 10, rect.Height - 10);
+			int innerRad = Math.Max(2, rad - 4);
+
+			switch (rarity)
+			{
+				case AugmentRarity.Rare:
+					RoundBorder(sb, rect, line, 2, rad);
+					RoundBorder(sb, new Rectangle(rect.X + 4, rect.Y + 4, rect.Width - 8, rect.Height - 8), line * 0.5f, 1, Math.Max(2, rad - 3));
+					break;
+
+				case AugmentRarity.Epic:
+					if (HoloGlow)
+						RoundBorder(sb, outer, line * (0.12f + 0.08f * breathe), 3, rad + 3);
+					RoundBorder(sb, rect, line, 3, rad);
+					RoundBorder(sb, inner, line * 0.55f, 1, innerRad);
+					break;
+
+				case AugmentRarity.Legendary:
+					if (HoloGlow)
+						RoundBorder(sb, outer, amber * (0.20f + 0.12f * breathe), 3, rad + 3);
+					RoundBorder(sb, rect, line, 3, rad);
+					RoundBorder(sb, inner, OnPlate * 0.4f, 1, innerRad);
+					break;
+
+				default:
+					RoundBorder(sb, rect, line * 0.75f, 2, rad);
+					break;
+			}
+		}
 		// The fine stripes on a Legendary plate.
 		public static void DrawPlate(SpriteBatch sb, Rectangle rect)
 		{
+			if (Holo)
+			{
+				RoundFill(sb, rect, Plate, HoloRadius(rect)); // a clean rounded plate, no stripes
+				return;
+			}
+
 			Texture2D px = TextureAssets.MagicPixel.Value;
 			sb.Draw(px, rect, Plate);
 			Color stripe = OnPlate * 0.10f;
@@ -174,6 +476,24 @@ namespace Augments
 		// `epicPlate` makes Epic a cream plate too (the detail panel does that); Legendary is always the plate.
 		public static void DrawTierFrame(SpriteBatch sb, Rectangle rect, AugmentRarity rarity, bool hovered, bool epicPlate = false, bool closedInner = false)
 		{
+			if (Holo)
+			{
+				DrawHoloFrame(sb, rect, rarity, hovered);
+				return;
+			}
+			if (Shadow)
+			{
+				ShadowStrips(sb, rect, rarity);
+				LinedBox(sb, rect, rarity, hovered);
+				return;
+			}
+			if (Folder)
+			{
+				LinedBox(sb, rect, rarity, hovered);
+				DrawFolderTab(sb, rect, rarity, LineOf(rarity, hovered), BoxThickness(rarity), rarity == AugmentRarity.Legendary ? Plate : PanelChrome.PanelBackground);
+				return;
+			}
+
 			Texture2D px = TextureAssets.MagicPixel.Value;
 			Color col = Of(rarity);
 			Color line = hovered ? Light(col) : col;
@@ -238,7 +558,10 @@ default:
 			Texture2D px = TextureAssets.MagicPixel.Value;
 			Color col = Of(rarity);
 			Color line = hovered ? Light(col) : col;
-			var band = new Rectangle(rect.X + 2, rect.Bottom - TierBandHeight, rect.Width - 4, TierBandHeight - 2);
+			// Holo: the band sits a little further in, so its corners stay inside the rounded card.
+			var band = Holo
+				? new Rectangle(rect.X + 7, rect.Bottom - TierBandHeight - 4, rect.Width - 14, TierBandHeight - 2)
+				: new Rectangle(rect.X + 2, rect.Bottom - TierBandHeight, rect.Width - 4, TierBandHeight - 2);
 			Color text;
 
 			switch (rarity)

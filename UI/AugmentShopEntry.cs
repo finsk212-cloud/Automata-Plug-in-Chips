@@ -160,7 +160,7 @@ namespace Augments
 			// Display Name
 			Color nameColor = isHovered ? Color.Lerp(rarityColor, Color.White, 0.35f) : rarityColor;
 			Vector2 namePos = new Vector2(textLeft, rect.Y + 9f);
-			ChatManager.DrawColorCodedStringWithShadow(
+			ModText.DrawCoded(
 				spriteBatch, font, augment.DisplayName, namePos, nameColor, 0f, Vector2.Zero, new Vector2(0.85f)
 			);
 
@@ -170,14 +170,14 @@ namespace Augments
 			Vector2 subPos = new Vector2(textLeft, rect.Y + 28f);
 			Vector2 subScale = new Vector2(0.72f);
 
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, rarName, subPos, rarityColor * 0.85f, 0f, Vector2.Zero, subScale);
-			float curSubX = subPos.X + ChatManager.GetStringSize(font, rarName, subScale).X;
+			ModText.DrawCoded(spriteBatch, font, rarName, subPos, rarityColor * 0.85f, 0f, Vector2.Zero, subScale);
+			float curSubX = subPos.X + ModText.Size(font, rarName, subScale).X;
 
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "  •  ", new Vector2(curSubX, subPos.Y), MenuLook.Current.Muted, 0f, Vector2.Zero, subScale);
-			curSubX += ChatManager.GetStringSize(font, "  •  ", subScale).X;
+			ModText.DrawCoded(spriteBatch, font, "  •  ", new Vector2(curSubX, subPos.Y), MenuLook.Current.Muted, 0f, Vector2.Zero, subScale);
+			curSubX += ModText.Size(font, "  •  ", subScale).X;
 
 			Color clsCol = MenuLook.Current.Idle; // the class is told by the icon, so its name stays in the scheme colour
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, clsName, new Vector2(curSubX, subPos.Y), clsCol * 0.85f, 0f, Vector2.Zero, subScale);
+			ModText.DrawCoded(spriteBatch, font, clsName, new Vector2(curSubX, subPos.Y), clsCol * 0.85f, 0f, Vector2.Zero, subScale);
 		}
 
 		private class ActionButton : UIElement
@@ -278,12 +278,12 @@ namespace Augments
 				// The label, centred in the box. The font's line height is measured so it sits level whatever the button height.
 				var font = FontAssets.MouseText.Value;
 				Vector2 scale = new Vector2(0.72f);
-				Vector2 textSize = ChatManager.GetStringSize(font, label, scale);
+				Vector2 textSize = ModText.Size(font, label, scale);
 				Vector2 textPos = new Vector2(
 					MathF.Round(rect.X + (rect.Width - textSize.X) * 0.5f),
 					MathF.Round(rect.Y + (rect.Height - textSize.Y) * 0.5f + 2f)
 				);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, label, textPos, textColor, 0f, Vector2.Zero, scale);
+				ModText.DrawCoded(spriteBatch, font, label, textPos, textColor, 0f, Vector2.Zero, scale);
 			}
 		}
 	}

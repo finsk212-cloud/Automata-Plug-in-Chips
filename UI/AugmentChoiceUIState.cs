@@ -83,7 +83,7 @@ namespace Augments
 
 			backPanel.Append(new PanelTitleTab("Choose a Plugin", 40));
 
-			UIText subtitle = new UIText("Select a plugin to install into your neural frame", 0.76f)
+			UIText subtitle = new ModUIText("Select a plugin to install into your neural frame", 0.76f)
 			{
 				HAlign = 0.5f,
 				TextColor = PanelChrome.Tone(new Color(148, 163, 184))
@@ -91,7 +91,7 @@ namespace Augments
 			subtitle.Top.Set(44f, 0f);
 			backPanel.Append(subtitle);
 
-			capNoticeText = new UIText("", 0.76f)
+			capNoticeText = new ModUIText("", 0.76f)
 			{
 				HAlign = 0.5f,
 				TextColor = new Color(248, 113, 113)
@@ -173,7 +173,7 @@ namespace Augments
 			confirmBox.BorderColor = new Color(248, 113, 113);
 			confirmOverlay.Append(confirmBox);
 
-			UIText confirmTitleText = new UIText("Confirm", 1.05f)
+			UIText confirmTitleText = new ModUIText("Confirm", 1.05f)
 			{
 				HAlign = 0.5f,
 				TextColor = new Color(248, 113, 113)
@@ -181,7 +181,7 @@ namespace Augments
 			confirmTitleText.Top.Set(14f, 0f);
 			confirmBox.Append(confirmTitleText);
 
-			confirmMessageText = new UIText("", 0.8f)
+			confirmMessageText = new ModUIText("", 0.8f)
 			{
 				HAlign = 0.5f,
 				IsWrapped = true
@@ -648,12 +648,12 @@ namespace Augments
 				// Centered typography with baseline optical centering
 				var font = FontAssets.MouseText.Value;
 				Vector2 scale = new Vector2(0.80f);
-				Vector2 textSize = ChatManager.GetStringSize(font, currentLabel, scale);
+				Vector2 textSize = ModText.Size(font, currentLabel, scale);
 				Vector2 textPos = new Vector2(
 					rect.X + (rect.Width - textSize.X) * 0.5f,
 					rect.Y + (rect.Height - 13.5f) * 0.5f - 1.5f
 				);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, currentLabel, textPos, textColor, 0f, Vector2.Zero, scale);
+				ModText.DrawCoded(spriteBatch, font, currentLabel, textPos, textColor, 0f, Vector2.Zero, scale);
 			}
 		}
 
@@ -723,12 +723,12 @@ namespace Augments
 
 				var font = FontAssets.MouseText.Value;
 				Vector2 scale = new Vector2(0.85f);
-				Vector2 textSize = ChatManager.GetStringSize(font, label, scale);
+				Vector2 textSize = ModText.Size(font, label, scale);
 				Vector2 textPos = new Vector2(
 					rect.X + (rect.Width - textSize.X) * 0.5f,
 					rect.Y + (rect.Height - 14f) * 0.5f - 1.5f
 				);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, label, textPos, isHovered ? Color.White : new Color(203, 213, 225), 0f, Vector2.Zero, scale);
+				ModText.DrawCoded(spriteBatch, font, label, textPos, isHovered ? Color.White : new Color(203, 213, 225), 0f, Vector2.Zero, scale);
 			}
 		}
 
@@ -792,12 +792,12 @@ namespace Augments
 
 				var font = FontAssets.MouseText.Value;
 				Vector2 scale = new Vector2(1.1f);
-				Vector2 textSize = ChatManager.GetStringSize(font, "?", scale);
+				Vector2 textSize = ModText.Size(font, "?", scale);
 				Vector2 textPos = new Vector2(
 					rect.X + (rect.Width - textSize.X) * 0.5f,
 					rect.Y + (rect.Height - 18f) * 0.5f - 1.5f
 				);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "?", textPos, isHovered ? Color.White : border, 0f, Vector2.Zero, scale);
+				ModText.DrawCoded(spriteBatch, font, "?", textPos, isHovered ? Color.White : border, 0f, Vector2.Zero, scale);
 			}
 		}
 

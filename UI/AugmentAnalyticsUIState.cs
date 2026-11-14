@@ -82,7 +82,7 @@ namespace Augments
 			// 2. Title & Subtitle Header (Cleanly separated at Y = 12 & Y = 38)
 			backPanel.Append(new PanelTitleTab("Combat Analytics", 34));
 
-			UIText subtitle = new UIText("Real-time neural telemetry and plugin performance metrics", 0.74f)
+			UIText subtitle = new ModUIText("Real-time neural telemetry and plugin performance metrics", 0.74f)
 			{
 				HAlign = 0.5f,
 				TextColor = PanelChrome.Tone(new Color(148, 163, 184))
@@ -239,7 +239,7 @@ namespace Augments
 			card.BackgroundColor = PanelChrome.Tone(new Color(10, 16, 28, 245));
 			card.BorderColor = accent * 0.55f;
 
-			UIText labelText = new UIText(label, 0.58f)
+			UIText labelText = new ModUIText(label, 0.58f)
 			{
 				Left = new StyleDimension(8f, 0f),
 				Top = new StyleDimension(6f, 0f),
@@ -248,7 +248,7 @@ namespace Augments
 			};
 			card.Append(labelText);
 
-			valueOutput = new UIText("--", 0.90f)
+			valueOutput = new ModUIText("--", 0.90f)
 			{
 				HAlign = 0.5f,
 				Top = new StyleDimension(25f, 0f),
@@ -371,7 +371,7 @@ namespace Augments
 
 				var font = FontAssets.MouseText.Value;
 				Vector2 scale = new Vector2(0.72f);
-				Vector2 textSize = ChatManager.GetStringSize(font, text, scale);
+				Vector2 textSize = ModText.Size(font, text, scale);
 
 				// Total content width = 6px (dot) + 6px (gap) + text width
 				float totalW = 6f + 6f + textSize.X;
@@ -387,7 +387,7 @@ namespace Augments
 					startX + 12f,
 					rect.Y + (rect.Height - 12.2f) * 0.5f - 1.5f
 				);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, text, textPos, themeColor, 0f, Vector2.Zero, scale);
+				ModText.DrawCoded(spriteBatch, font, text, textPos, themeColor, 0f, Vector2.Zero, scale);
 
 				Point mouse = new Point(Main.mouseX, Main.mouseY);
 				if (rect.Contains(mouse))
@@ -415,10 +415,10 @@ namespace Augments
 			header.BackgroundColor = PanelChrome.Tone(new Color(14, 23, 38, 240));
 			header.BorderColor = PanelChrome.Tone(new Color(30, 41, 59));
 
-			var col1 = new UIText("PLUGIN / DAMAGE SOURCE", 0.70f) { Top = new StyleDimension(5f, 0f), Left = new StyleDimension(14f, 0f), TextColor = PanelChrome.Tone(new Color(148, 163, 184)) };
-			var col2 = new UIText("HITS & CRITS", 0.70f) { Top = new StyleDimension(5f, 0f), Left = new StyleDimension(325f, 0f), TextColor = PanelChrome.Tone(new Color(148, 163, 184)) };
-			var col3 = new UIText("MAX HIT", 0.70f) { Top = new StyleDimension(5f, 0f), Left = new StyleDimension(495f, 0f), TextColor = PanelChrome.Tone(new Color(148, 163, 184)) };
-			var col4 = new UIText("DAMAGE (% SHARE)", 0.70f) { Top = new StyleDimension(5f, 0f), Left = new StyleDimension(625f, 0f), TextColor = PanelChrome.Tone(new Color(148, 163, 184)) };
+			var col1 = new ModUIText("PLUGIN / DAMAGE SOURCE", 0.70f) { Top = new StyleDimension(5f, 0f), Left = new StyleDimension(14f, 0f), TextColor = PanelChrome.Tone(new Color(148, 163, 184)) };
+			var col2 = new ModUIText("HITS & CRITS", 0.70f) { Top = new StyleDimension(5f, 0f), Left = new StyleDimension(325f, 0f), TextColor = PanelChrome.Tone(new Color(148, 163, 184)) };
+			var col3 = new ModUIText("MAX HIT", 0.70f) { Top = new StyleDimension(5f, 0f), Left = new StyleDimension(495f, 0f), TextColor = PanelChrome.Tone(new Color(148, 163, 184)) };
+			var col4 = new ModUIText("DAMAGE (% SHARE)", 0.70f) { Top = new StyleDimension(5f, 0f), Left = new StyleDimension(625f, 0f), TextColor = PanelChrome.Tone(new Color(148, 163, 184)) };
 
 			header.Append(col1);
 			header.Append(col2);
@@ -711,7 +711,7 @@ namespace Augments
 					? "No telemetry records match your active filters. Click here to reset filters."
 					: "No combat damage recorded yet. Strike enemies to gather neural telemetry.";
 
-				UIText emptyLabel = new UIText(emptyMsg, 0.78f)
+				UIText emptyLabel = new ModUIText(emptyMsg, 0.78f)
 				{
 					HAlign = 0.5f,
 					VAlign = 0.5f,
@@ -774,7 +774,7 @@ namespace Augments
 				var font = FontAssets.MouseText.Value;
 				string footerLeft = "TELEMETRY ENGINE v2.0  •  [Hold Left Alt] To Drag Pinned HUD Widgets";
 				string footerRight = "[L] Toggle  •  [ESC] Close";
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, footerLeft, new Vector2(bRect.X + 20f, footerY + 8f), PanelChrome.Tone(new Color(130, 150, 185)) * 0.70f, 0f, Vector2.Zero, new Vector2(0.58f));
+				ModText.DrawCoded(spriteBatch, font, footerLeft, new Vector2(bRect.X + 20f, footerY + 8f), PanelChrome.Tone(new Color(130, 150, 185)) * 0.70f, 0f, Vector2.Zero, new Vector2(0.58f));
 
 				long healingTotal = AugmentDamageTracker.GetViewHealing();
 				long teamBonusTotal = AugmentDamageTracker.GetViewTeamBonus();
@@ -783,12 +783,12 @@ namespace Augments
 					string statFooter = healingTotal > 0 ? $"[c/4ADE80:Healing Done: {healingTotal:N0}]" : "";
 					if (teamBonusTotal > 0)
 						statFooter += (statFooter.Length > 0 ? "   " : "") + $"[c/FFCD46:Team Bonus: {teamBonusTotal:N0}]";
-					Vector2 hfSz = ChatManager.GetStringSize(font, statFooter, new Vector2(0.62f));
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, statFooter, new Vector2(bRect.X + bRect.Width * 0.5f - hfSz.X * 0.5f + 150f, footerY + 7f), Color.White, 0f, Vector2.Zero, new Vector2(0.62f));
+					Vector2 hfSz = ModText.Size(font, statFooter, new Vector2(0.62f));
+					ModText.DrawCoded(spriteBatch, font, statFooter, new Vector2(bRect.X + bRect.Width * 0.5f - hfSz.X * 0.5f + 150f, footerY + 7f), Color.White, 0f, Vector2.Zero, new Vector2(0.62f));
 				}
 
-				Vector2 rSz = ChatManager.GetStringSize(font, footerRight, new Vector2(0.58f));
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, footerRight, new Vector2(bRect.Right - 20f - rSz.X, footerY + 8f), PanelChrome.Tone(new Color(100, 125, 160)) * 0.65f, 0f, Vector2.Zero, new Vector2(0.58f));
+				Vector2 rSz = ModText.Size(font, footerRight, new Vector2(0.58f));
+				ModText.DrawCoded(spriteBatch, font, footerRight, new Vector2(bRect.Right - 20f - rSz.X, footerY + 8f), PanelChrome.Tone(new Color(100, 125, 160)) * 0.65f, 0f, Vector2.Zero, new Vector2(0.58f));
 			}
 
 			private static void DrawRadarCircle(SpriteBatch spriteBatch, Vector2 center, float radius, Color color)
@@ -883,13 +883,13 @@ namespace Augments
 				// Typography with exact optical cap-height centering
 				var font = FontAssets.MouseText.Value;
 				Vector2 scale = new Vector2(0.74f);
-				Vector2 textSize = ChatManager.GetStringSize(font, label, scale);
+				Vector2 textSize = ModText.Size(font, label, scale);
 				Vector2 textPos = new Vector2(
 					rect.X + (rect.Width - textSize.X) * 0.5f,
 					rect.Y + (rect.Height - 12.2f) * 0.5f - 1.5f
 				);
 				Color textCol = isHovered ? Color.White : new Color(226, 232, 240);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, label, textPos, textCol, 0f, Vector2.Zero, scale);
+				ModText.DrawCoded(spriteBatch, font, label, textPos, textCol, 0f, Vector2.Zero, scale);
 			}
 		}
 
@@ -909,7 +909,7 @@ namespace Augments
 				BackgroundColor = PanelChrome.Tone(new Color(10, 16, 28));
 				BorderColor = PanelChrome.Tone(new Color(30, 41, 59));
 
-				Label = new UIText(initialText, textScale)
+				Label = new ModUIText(initialText, textScale)
 				{
 					HAlign = 0.5f,
 					VAlign = 0.5f,
@@ -1107,10 +1107,10 @@ namespace Augments
 					{
 						if (_textBlinkerState == 1)
 						{
-							Vector2 cursorSize = ChatManager.GetStringSize(font, "|", scale);
+							Vector2 cursorSize = ModText.Size(font, "|", scale);
 							float textX = dims.X + 8f;
 							float textY = dims.Y + (dims.Height - cursorSize.Y) / 2f + textYOffset;
-							ChatManager.DrawColorCodedStringWithShadow(
+							ModText.DrawCoded(
 								spriteBatch,
 								font,
 								"|",
@@ -1125,10 +1125,10 @@ namespace Augments
 					else
 					{
 						string placeholder = "Search sources...";
-						Vector2 textSize = ChatManager.GetStringSize(font, placeholder, scale);
+						Vector2 textSize = ModText.Size(font, placeholder, scale);
 						float textX = dims.X + 8f;
 						float textY = dims.Y + (dims.Height - textSize.Y) / 2f + textYOffset;
-						ChatManager.DrawColorCodedStringWithShadow(
+						ModText.DrawCoded(
 							spriteBatch,
 							font,
 							placeholder,
@@ -1150,16 +1150,16 @@ namespace Augments
 
 					float clearBtnReserve = 20f;
 					float maxTextWidth = dims.Width - 12f - clearBtnReserve;
-					while (display.Length > 0 && ChatManager.GetStringSize(font, display, scale).X > maxTextWidth)
+					while (display.Length > 0 && ModText.Size(font, display, scale).X > maxTextWidth)
 					{
 						display = display.Substring(1);
 					}
 
-					Vector2 textSize = ChatManager.GetStringSize(font, display, scale);
+					Vector2 textSize = ModText.Size(font, display, scale);
 					float textX = dims.X + 8f;
 					float textY = dims.Y + (dims.Height - textSize.Y) / 2f + textYOffset;
 
-					ChatManager.DrawColorCodedStringWithShadow(
+					ModText.DrawCoded(
 						spriteBatch,
 						font,
 						display,
@@ -1173,11 +1173,11 @@ namespace Augments
 					// Draw Clear [✕] button
 					bool clearHover = isHovered && Main.MouseScreen.X >= dims.X + dims.Width - 20f;
 					Color clearColor = clearHover ? new Color(255, 110, 110) : PanelChrome.Tone(new Color(160, 175, 205)) * 0.8f;
-					Vector2 xSize = ChatManager.GetStringSize(font, "✕", scale);
+					Vector2 xSize = ModText.Size(font, "✕", scale);
 					float xX = dims.X + dims.Width - 16f;
 					float xY = dims.Y + (dims.Height - xSize.Y) / 2f + textYOffset;
 
-					ChatManager.DrawColorCodedStringWithShadow(
+					ModText.DrawCoded(
 						spriteBatch,
 						font,
 						"✕",
@@ -1213,7 +1213,7 @@ namespace Augments
 				BorderColor = PanelChrome.Tone(new Color(30, 41, 59));
 
 				// Title
-				UIText title = new UIText("Combat Telemetry Filters", 0.84f)
+				UIText title = new ModUIText("Combat Telemetry Filters", 0.84f)
 				{
 					TextColor = new Color(248, 250, 252),
 					Top = { Pixels = 2f },
@@ -1323,7 +1323,7 @@ namespace Augments
 				closeApplyBtn.Clicked += state.ToggleFilterMenu;
 				Append(closeApplyBtn);
 
-				summaryText = new UIText("", 0.70f)
+				summaryText = new ModUIText("", 0.70f)
 				{
 					Left = { Pixels = 240f },
 					Top = { Pixels = curY + 4f },
@@ -1334,7 +1334,7 @@ namespace Augments
 
 			private void AddSectionLabel(string text, float top)
 			{
-				UIText label = new UIText(text, 0.65f)
+				UIText label = new ModUIText(text, 0.65f)
 				{
 					TextColor = PanelChrome.Tone(new Color(56, 189, 248)),
 					Top = { Pixels = top },
@@ -1496,16 +1496,16 @@ namespace Augments
 					AugmentClass.Summon => new Color(192, 132, 252),
 					_ => new Color(225, 230, 240)
 				};
-				Vector2 cSz = ChatManager.GetStringSize(font, weaponGlyph, new Vector2(0.85f));
+				Vector2 cSz = ModText.Size(font, weaponGlyph, new Vector2(0.85f));
 				Vector2 cPos = new Vector2(iconBox.X + (iconBox.Width - cSz.X) * 0.5f, iconBox.Y + (iconBox.Height - cSz.Y) * 0.5f);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, weaponGlyph, cPos, weaponCol, 0f, Vector2.Zero, new Vector2(0.85f));
+				ModText.DrawCoded(spriteBatch, font, weaponGlyph, cPos, weaponCol, 0f, Vector2.Zero, new Vector2(0.85f));
 			}
 			else
 			{
 				string iconChar = record.IsProtocol ? "◆" : "✦";
-				Vector2 cSz = ChatManager.GetStringSize(font, iconChar, new Vector2(0.85f));
+				Vector2 cSz = ModText.Size(font, iconChar, new Vector2(0.85f));
 				Vector2 cPos = new Vector2(iconBox.X + (iconBox.Width - cSz.X) * 0.5f, iconBox.Y + (iconBox.Height - cSz.Y) * 0.5f);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, iconChar, cPos, record.Color, 0f, Vector2.Zero, new Vector2(0.85f));
+				ModText.DrawCoded(spriteBatch, font, iconChar, cPos, record.Color, 0f, Vector2.Zero, new Vector2(0.85f));
 			}
 
 			// 2. Name & Category Tag
@@ -1514,7 +1514,7 @@ namespace Augments
 			if (nameText.Length > 28)
 				nameText = nameText.Substring(0, 26) + "...";
 
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, nameText, new Vector2(textX, rect.Y + 6f), record.Color, 0f, Vector2.Zero, new Vector2(0.80f));
+			ModText.DrawCoded(spriteBatch, font, nameText, new Vector2(textX, rect.Y + 6f), record.Color, 0f, Vector2.Zero, new Vector2(0.80f));
 
 			string subTag;
 			if (augmentRef != null)
@@ -1552,7 +1552,7 @@ namespace Augments
 				subTag += $"  •  [c/FFCD46:+ {record.TeamBonusDamage:N0} Team Bonus]";
 			}
 
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, subTag, new Vector2(textX, rect.Y + 26f), Color.White, 0f, Vector2.Zero, new Vector2(0.65f));
+			ModText.DrawCoded(spriteBatch, font, subTag, new Vector2(textX, rect.Y + 26f), Color.White, 0f, Vector2.Zero, new Vector2(0.65f));
 
 			// 3. Hits & Crits (aligned to 330f)
 			float critRate = record.HitCount > 0 ? ((float)record.CritCount / record.HitCount) * 100f : 0f;
@@ -1588,11 +1588,11 @@ namespace Augments
 				hitsText = "--";
 				hitsCol = PanelChrome.Tone(new Color(148, 163, 184));
 			}
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, hitsText, new Vector2(rect.X + 330f, rect.Y + 16f), hitsCol, 0f, Vector2.Zero, new Vector2(0.72f));
+			ModText.DrawCoded(spriteBatch, font, hitsText, new Vector2(rect.X + 330f, rect.Y + 16f), hitsCol, 0f, Vector2.Zero, new Vector2(0.72f));
 
 			// 4. Max Hit (aligned to 500f)
 			string maxHitText = record.MaxHit > 0 ? $"{record.MaxHit:N0}" : "--";
-			ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, maxHitText, new Vector2(rect.X + 500f, rect.Y + 16f), new Color(253, 224, 71), 0f, Vector2.Zero, new Vector2(0.74f));
+			ModText.DrawCoded(spriteBatch, font, maxHitText, new Vector2(rect.X + 500f, rect.Y + 16f), new Color(253, 224, 71), 0f, Vector2.Zero, new Vector2(0.74f));
 
 			// 5. Total Damage & Share Percentage (aligned to 630f)
 			float rightColX = rect.X + 630f;
@@ -1602,36 +1602,36 @@ namespace Augments
 			{
 				Color goldCol = new Color(255, 205, 70);
 				string bonusText = $"{record.TeamBonusDamage:N0}";
-				Vector2 bonusSz = ChatManager.GetStringSize(font, bonusText, new Vector2(0.82f));
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, bonusText, new Vector2(rightColX, rect.Y + 14f), goldCol, 0f, Vector2.Zero, new Vector2(0.82f));
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, "(Team Bonus)", new Vector2(rightColX + bonusSz.X + 6f, rect.Y + 16f), goldCol * 0.9f, 0f, Vector2.Zero, new Vector2(0.72f));
+				Vector2 bonusSz = ModText.Size(font, bonusText, new Vector2(0.82f));
+				ModText.DrawCoded(spriteBatch, font, bonusText, new Vector2(rightColX, rect.Y + 14f), goldCol, 0f, Vector2.Zero, new Vector2(0.82f));
+				ModText.DrawCoded(spriteBatch, font, "(Team Bonus)", new Vector2(rightColX + bonusSz.X + 6f, rect.Y + 16f), goldCol * 0.9f, 0f, Vector2.Zero, new Vector2(0.72f));
 			}
 			else if (healingOnly)
 			{
 				float healShare = totalSessionHealing > 0 ? (float)record.HealingDone / totalSessionHealing : 0f;
 				string healText = $"{record.HealingDone:N0}";
 				string healShareText = $"(Healed {healShare * 100f:0.0}%)";
-				Vector2 hSz = ChatManager.GetStringSize(font, healText, new Vector2(0.82f));
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, healText, new Vector2(rightColX, rect.Y + 14f), new Color(74, 222, 128), 0f, Vector2.Zero, new Vector2(0.82f));
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, healShareText, new Vector2(rightColX + hSz.X + 6f, rect.Y + 16f), new Color(74, 222, 128) * 0.9f, 0f, Vector2.Zero, new Vector2(0.72f));
+				Vector2 hSz = ModText.Size(font, healText, new Vector2(0.82f));
+				ModText.DrawCoded(spriteBatch, font, healText, new Vector2(rightColX, rect.Y + 14f), new Color(74, 222, 128), 0f, Vector2.Zero, new Vector2(0.82f));
+				ModText.DrawCoded(spriteBatch, font, healShareText, new Vector2(rightColX + hSz.X + 6f, rect.Y + 16f), new Color(74, 222, 128) * 0.9f, 0f, Vector2.Zero, new Vector2(0.72f));
 			}
 			else if (record.TotalDamage == 0 && record.DamageBlocked > 0)
 			{
 				float blockShare = totalSessionBlocked > 0 ? (float)record.DamageBlocked / totalSessionBlocked : 0f;
 				string blockText = $"{record.DamageBlocked:N0}";
 				string blockShareText = $"(Blocked {blockShare * 100f:0.0}%)";
-				Vector2 bSz = ChatManager.GetStringSize(font, blockText, new Vector2(0.82f));
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, blockText, new Vector2(rightColX, rect.Y + 14f), new Color(52, 211, 153), 0f, Vector2.Zero, new Vector2(0.82f));
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, blockShareText, new Vector2(rightColX + bSz.X + 6f, rect.Y + 16f), new Color(52, 211, 153) * 0.9f, 0f, Vector2.Zero, new Vector2(0.72f));
+				Vector2 bSz = ModText.Size(font, blockText, new Vector2(0.82f));
+				ModText.DrawCoded(spriteBatch, font, blockText, new Vector2(rightColX, rect.Y + 14f), new Color(52, 211, 153), 0f, Vector2.Zero, new Vector2(0.82f));
+				ModText.DrawCoded(spriteBatch, font, blockShareText, new Vector2(rightColX + bSz.X + 6f, rect.Y + 16f), new Color(52, 211, 153) * 0.9f, 0f, Vector2.Zero, new Vector2(0.72f));
 			}
 			else
 			{
 				float sharePercent = totalSessionDamage > 0 ? (float)record.TotalDamage / totalSessionDamage : 0f;
 				string dmgText = $"{record.TotalDamage:N0}";
 				string shareText = $"({sharePercent * 100f:0.0}%)";
-				Vector2 dmgSz = ChatManager.GetStringSize(font, dmgText, new Vector2(0.82f));
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, dmgText, new Vector2(rightColX, rect.Y + 14f), new Color(245, 248, 255), 0f, Vector2.Zero, new Vector2(0.82f));
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, shareText, new Vector2(rightColX + dmgSz.X + 6f, rect.Y + 16f), (record.Color == Color.White ? PanelChrome.Tone(new Color(56, 189, 248)) : record.Color), 0f, Vector2.Zero, new Vector2(0.72f));
+				Vector2 dmgSz = ModText.Size(font, dmgText, new Vector2(0.82f));
+				ModText.DrawCoded(spriteBatch, font, dmgText, new Vector2(rightColX, rect.Y + 14f), new Color(245, 248, 255), 0f, Vector2.Zero, new Vector2(0.82f));
+				ModText.DrawCoded(spriteBatch, font, shareText, new Vector2(rightColX + dmgSz.X + 6f, rect.Y + 16f), (record.Color == Color.White ? PanelChrome.Tone(new Color(56, 189, 248)) : record.Color), 0f, Vector2.Zero, new Vector2(0.72f));
 			}
 
 			// 6. Sleek 2px Progress Fill Bar across the bottom of the row

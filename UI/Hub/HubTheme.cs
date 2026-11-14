@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Xna.Framework;
@@ -207,6 +207,13 @@ namespace Augments
 		{
 			if (string.IsNullOrEmpty(text))
 				return 0f;
+			if (PixelFont.Active)
+			{
+				EnsureFontCache();
+				if (PixelFont.CanUse(cachedLineHeight, scale))
+					return PixelFont.Width(text, cachedLineHeight, scale, tracking, Font);
+			}
+
 			if (tracking <= 0f)
 				return Font.MeasureString(text).X * scale;
 
@@ -275,6 +282,9 @@ namespace Augments
 				return 0f;
 
 			bigCache.Ensure(FontAssets.DeathText.Value);
+			if (PixelFont.Active)
+				return PixelFont.Width(text, bigCache.Line, scale, tracking, bigCache.Font, true);
+
 			float w = 0f;
 			foreach (char ch in text)
 				w += bigCache.Width(ch) * scale + tracking;
@@ -287,6 +297,12 @@ namespace Augments
 				return;
 
 			bigCache.Ensure(FontAssets.DeathText.Value);
+			if (PixelFont.Active)
+			{
+				PixelFont.Draw(sb, Pixel, text, pos, c, bigCache.Line, scale, tracking, bigCache.Font, true);
+				return;
+			}
+
 			float x = (float)Math.Round(pos.X);
 			float y = (float)Math.Round(pos.Y);
 			foreach (char ch in text)
@@ -314,6 +330,16 @@ namespace Augments
 				return;
 
 			pos = new Vector2((float)Math.Round(pos.X), (float)Math.Round(pos.Y));
+			if (PixelFont.Active)
+			{
+				EnsureFontCache();
+				if (PixelFont.CanUse(cachedLineHeight, scale))
+				{
+					PixelFont.Draw(sb, Pixel, text, pos, c, cachedLineHeight, scale, tracking, Font);
+					return;
+				}
+			}
+
 			if (tracking <= 0f)
 			{
 				sb.DrawString(Font, text, pos, c, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
@@ -332,12 +358,52 @@ namespace Augments
 		// Draws a line of text, shrinking it if it would be wider than maxWidth, so long footers never run off a panel.
 		public static void TextFit(SpriteBatch sb, string text, Vector2 pos, Color c, float scale, float tracking, float maxWidth)
 		{
+			if (PixelFont.Active)
+			{
+				// The pixel font grows in whole steps, so shrink by trimming the letter spacing first and then the size.
+				for (int i = 0; i < 16 && Width(text, scale, tracking) > maxWidth; i++)
+				{
+					if (tracking > 0f)
+						tracking = Math.Max(0f, tracking - 1f);
+					else
+						scale *= 0.9f;
+				}
+				Text(sb, text, pos, c, scale, tracking);
+				return;
+			}
+
 			float w = Width(text, scale, tracking);
 			if (w > maxWidth && w > 0f)
 				scale *= maxWidth / w;
 			Text(sb, text, pos, c, scale, tracking);
 		}
 
+		// Like TextFit, but a line that is too wide is split onto a second line at a space instead of being shrunk until it is hard to read.
+		public static void TextWrapFit(SpriteBatch sb, string text, Vector2 pos, Color c, float scale, float tracking, float maxWidth, float lineStep)
+		{
+			if (Width(text, scale, tracking) <= maxWidth)
+			{
+				TextFit(sb, text, pos, c, scale, tracking, maxWidth);
+				return;
+			}
+
+			// Split at the space that leaves the first line as long as possible while still fitting.
+			int best = -1;
+			for (int i = 1; i < text.Length - 1; i++)
+			{
+				if (text[i] == ' ' && Width(text.Substring(0, i), scale, tracking) <= maxWidth)
+					best = i;
+			}
+
+			if (best < 0)
+			{
+				TextFit(sb, text, pos, c, scale, tracking, maxWidth);
+				return;
+			}
+
+			TextFit(sb, text.Substring(0, best), pos, c, scale, tracking, maxWidth);
+			TextFit(sb, text.Substring(best + 1), new Vector2(pos.X, pos.Y + lineStep), c, scale, tracking, maxWidth);
+		}
 		public static void TextRight(SpriteBatch sb, string text, int rightX, float y, Color c, float scale = 0.9f, float tracking = 0f)
 		{
 			Text(sb, text, new Vector2(rightX - Width(text, scale, tracking), y), c, scale, tracking);

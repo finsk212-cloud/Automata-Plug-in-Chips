@@ -51,7 +51,7 @@ namespace Augments
 
         public static void Text(string text, Vector2 worldPosition, Color color, float scale)
         {
-            Utils.DrawBorderString(Main.spriteBatch, text, worldPosition - Main.screenPosition, color, scale, 0.5f, 0.5f);
+            ModText.DrawBorder(Main.spriteBatch, text, worldPosition - Main.screenPosition, color, scale, 0.5f, 0.5f);
         }
     }
 }

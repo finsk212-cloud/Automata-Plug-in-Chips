@@ -614,9 +614,9 @@ namespace Augments
 				// Telemetry stamp in bottom-right corner
 				var font = FontAssets.MouseText.Value;
 				string stamp = "YORHA POD // NEURAL SYNTHESIS ARRAY REV 4.2";
-				Vector2 stampSize = ChatManager.GetStringSize(font, stamp, new Vector2(0.64f));
+				Vector2 stampSize = ModText.Size(font, stamp, new Vector2(0.64f));
 				Vector2 stampPos = new Vector2(rect.Right - stampSize.X - 28f, rect.Bottom - stampSize.Y - 8f);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, stamp, stampPos, PanelChrome.Tone(new Color(75, 95, 125)) * 0.42f, 0f, Vector2.Zero, new Vector2(0.64f));
+				ModText.DrawCoded(spriteBatch, font, stamp, stampPos, PanelChrome.Tone(new Color(75, 95, 125)) * 0.42f, 0f, Vector2.Zero, new Vector2(0.64f));
 			}
 
 			private static void DrawCrosshair(SpriteBatch sb, Texture2D pixel, Vector2 pos, Color col)
@@ -648,7 +648,7 @@ namespace Augments
 
 				// 1. Left Badge: Active Protocol Pill
 				string protoText = $"Protocol: {protocolName}";
-				Vector2 protoSize = ChatManager.GetStringSize(font, protoText, new Vector2(0.78f));
+				Vector2 protoSize = ModText.Size(font, protoText, new Vector2(0.78f));
 				float protoPillW = protoSize.X + 24f;
 				float protoPillH = 24f;
 				float protoPillX = d.X + 16f;
@@ -657,7 +657,7 @@ namespace Augments
 				Rectangle protoRect = new Rectangle((int)protoPillX, (int)protoPillY, (int)protoPillW, (int)protoPillH);
 				spriteBatch.Draw(pixel, protoRect, PanelChrome.Tone(new Color(12, 16, 28)) * 0.95f);
 				DrawBorder(spriteBatch, protoRect, PanelChrome.Tone(new Color(42, 68, 108)) * 0.75f, 1);
-				ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, $"[c/7A9AB8:Protocol:] [c/68C2D8:{protocolName}]", new Vector2(protoPillX + 12f, protoPillY + (protoPillH - protoSize.Y) * 0.5f), Color.White, 0f, Vector2.Zero, new Vector2(0.78f));
+				ModText.DrawCoded(spriteBatch, font, $"[c/7A9AB8:Protocol:] [c/68C2D8:{protocolName}]", new Vector2(protoPillX + 12f, protoPillY + (protoPillH - protoSize.Y) * 0.5f), Color.White, 0f, Vector2.Zero, new Vector2(0.78f));
 
 				// 2. Right: 4 Sleek Rarity Odds Pills
 				float pillW = 108f;
@@ -678,9 +678,9 @@ namespace Augments
 				DrawBorder(sb, rect, borderCol * 0.85f, 1);
 
 				string label = $"{tier} {pct}";
-				Vector2 size = font.MeasureString(label) * 0.72f;
+				Vector2 size = ModText.Measure(font, label, 0.72f);
 				Vector2 pos = new Vector2(rect.X + (rect.Width - size.X) * 0.5f, rect.Y + (rect.Height - size.Y) * 0.5f);
-				Utils.DrawBorderString(sb, label, pos, textCol, 0.72f);
+				ModText.DrawBorder(sb, label, pos, textCol, 0.72f);
 			}
 
 			private static void DrawBorder(SpriteBatch sb, Rectangle rect, Color col, int th)
@@ -709,7 +709,7 @@ namespace Augments
 				BorderColor = rarityColor * 0.85f;
 
 				// Chip Name
-				var nameText = new UIText(augment.DisplayName, 1.25f)
+				var nameText = new ModUIText(augment.DisplayName, 1.25f)
 				{
 					TextColor = rarityColor
 				};
@@ -774,8 +774,8 @@ namespace Augments
 					float textY = d.Y + 76f;
 					foreach (var line in lines)
 					{
-						ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, line, new Vector2(textX, textY), Color.White, 0f, Vector2.Zero, new Vector2(0.80f));
-						textY += ChatManager.GetStringSize(font, line, new Vector2(0.80f)).Y + 3f;
+						ModText.DrawCoded(spriteBatch, font, line, new Vector2(textX, textY), Color.White, 0f, Vector2.Zero, new Vector2(0.80f));
+						textY += ModText.Size(font, line, new Vector2(0.80f)).Y + 3f;
 					}
 				}
 			}
@@ -847,16 +847,16 @@ namespace Augments
 				if (string.IsNullOrEmpty(costBadge))
 				{
 					// Single centered text (e.g. Return to Storage)
-					Vector2 titleSize = ChatManager.GetStringSize(font, titleText, new Vector2(0.86f));
+					Vector2 titleSize = ModText.Size(font, titleText, new Vector2(0.86f));
 					Vector2 titlePos = new Vector2(d.X + (d.Width - titleSize.X) * 0.5f, d.Y + (d.Height - titleSize.Y) * 0.5f);
 					Color textCol = isHovered ? Color.White : PanelChrome.Tone(new Color(175, 195, 220));
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, titleText, titlePos, textCol, 0f, Vector2.Zero, new Vector2(0.86f));
+					ModText.DrawCoded(spriteBatch, font, titleText, titlePos, textCol, 0f, Vector2.Zero, new Vector2(0.86f));
 				}
 				else
 				{
 					// Primary action with integrated cost badge
-					Vector2 titleSize = ChatManager.GetStringSize(font, titleText, new Vector2(0.86f));
-					Vector2 costSize = ChatManager.GetStringSize(font, costBadge, new Vector2(0.78f));
+					Vector2 titleSize = ModText.Size(font, titleText, new Vector2(0.86f));
+					Vector2 costSize = ModText.Size(font, costBadge, new Vector2(0.78f));
 
 					float badgePadH = 12f;
 					float badgeW = costSize.X + badgePadH * 2f;
@@ -869,7 +869,7 @@ namespace Augments
 					// Title text
 					float titleY = d.Y + (d.Height - titleSize.Y) * 0.5f;
 					Color titleCol = isHovered ? Color.White : new Color(225, 235, 245);
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, titleText, new Vector2(startX, titleY), titleCol, 0f, Vector2.Zero, new Vector2(0.86f));
+					ModText.DrawCoded(spriteBatch, font, titleText, new Vector2(startX, titleY), titleCol, 0f, Vector2.Zero, new Vector2(0.86f));
 
 					// Inset Cost Badge
 					float badgeX = startX + titleSize.X + spacing;
@@ -883,7 +883,7 @@ namespace Augments
 					spriteBatch.Draw(pixel, new Rectangle(badgeRect.Right - 1, badgeRect.Y, 1, badgeRect.Height), new Color(212, 184, 114) * 0.4f);
 
 					Vector2 costPos = new Vector2(badgeX + badgePadH, badgeY + (badgeH - costSize.Y) * 0.5f);
-					ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, $"[c/D4B872:{costBadge}]", costPos, Color.White, 0f, Vector2.Zero, new Vector2(0.78f));
+					ModText.DrawCoded(spriteBatch, font, $"[c/D4B872:{costBadge}]", costPos, Color.White, 0f, Vector2.Zero, new Vector2(0.78f));
 				}
 			}
 		}
@@ -900,7 +900,7 @@ namespace Augments
 				BackgroundColor = PanelChrome.Tone(new Color(18, 24, 44));
 				BorderColor = PanelChrome.Tone(new Color(42, 64, 102));
 
-				var label = new UIText(text, 0.82f)
+				var label = new ModUIText(text, 0.82f)
 				{
 					HAlign = 0.5f,
 					VAlign = 0.5f,

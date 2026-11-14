@@ -281,7 +281,7 @@ namespace Augments
 
 			float width = 0f;
 			foreach (char ch in word)
-				width += font.MeasureString(ch.ToString()).X * scale + tracking;
+				width += ModText.Measure(font, ch.ToString(), scale).X + tracking;
 			width -= tracking;
 
 			int plateW = (int)Math.Round(width) + 44;
@@ -305,7 +305,7 @@ namespace Augments
 				string s = ch.ToString();
 				RarityLook.DrawCoded(spriteBatch, font, s, new Vector2(x, y), ink, new Vector2(scale), false);
 				RarityLook.DrawCoded(spriteBatch, font, s, new Vector2(x + 1f, y), ink, new Vector2(scale), false);
-				x += font.MeasureString(s).X * scale + tracking;
+				x += ModText.Measure(font, s, scale).X + tracking;
 			}
 		}
 	}

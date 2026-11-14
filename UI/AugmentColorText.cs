@@ -47,7 +47,7 @@ namespace Augments
             var words = SplitIntoWords(text);
             var currentLine = new StringBuilder();
             float currentLineWidth = 0f;
-            float spaceWidth = ChatManager.GetStringSize(font, " ", scale).X;
+            float spaceWidth = ModText.Size(font, " ", scale).X;
 
             foreach (var word in words)
             {
@@ -61,7 +61,7 @@ namespace Augments
 
                 string plainWord = BuildPlainText(word);
                 string taggedWord = BuildTaggedText(word);
-                float wordWidth = ChatManager.GetStringSize(font, plainWord, scale).X;
+                float wordWidth = ModText.Size(font, plainWord, scale).X;
 
                 if (currentLine.Length > 0 && currentLineWidth + spaceWidth + wordWidth > maxWidth)
                 {

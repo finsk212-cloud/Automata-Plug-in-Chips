@@ -85,7 +85,19 @@ namespace Augments
 			Color rarityColor = RarityLook.Of(Augment.Rarity, cardPhase);
 			bool nier = RarityLook.Style == TierStyle.Nier; // the NieR style is flat: no coloured halos, sheen or sparkles; rank shows as marks
 
-			// 0. Soft Concentric Outer Glow Halo for Rare, Epic & Legendary (clean stepped falloff instead of harsh flat box)
+			// A tier design other than the default (Holo glass, Hard shadow, Folder tabs) draws its own card (fill and frame) and skips the NieR frame code below.
+			bool holo = RarityLook.CustomDesign;
+			if (holo)
+			{
+				Color chassis = isHovered ? PanelChrome.Tone(new Color(14, 22, 38)) * 0.96f : PanelChrome.Tone(new Color(10, 16, 28)) * 0.94f;
+				RarityLook.DrawDesignCard(spriteBatch, rect, Augment.Rarity, chassis, isHovered, IsSelected, SelectColor);
+			}
+
+			// Where the icon and name go: the whole card, or the part of it a design leaves (the folder body, the card without its shadow).
+			Rectangle content = holo ? RarityLook.ContentRect(rect, Augment.Rarity) : rect;
+
+			if (!holo)
+			{			// 0. Soft Concentric Outer Glow Halo for Rare, Epic & Legendary (clean stepped falloff instead of harsh flat box)
 			if (nier)
 			{
 			}
@@ -317,6 +329,8 @@ namespace Augments
 				}
 			}
 
+			}
+
 			var font = FontAssets.MouseText.Value;
 
 			// 4. Center Content: Class icon placed in upper portion (40x40 pixel-perfect 1:1)
@@ -335,20 +349,20 @@ namespace Augments
 				// Drawn a little smaller and lower, so it sits clear of the top border, the pips and the corner notches.
 				const float iconScale = 0.9f;
 				Vector2 iconPos = new Vector2(
-					MathF.Round(rect.X + (rect.Width - iconTex.Width * iconScale) * 0.5f),
-					rect.Y + 14f
+					MathF.Round(content.X + (content.Width - iconTex.Width * iconScale) * 0.5f),
+					content.Y + 14f
 				);
 				spriteBatch.Draw(iconTex, iconPos, null, nameColor, 0f, Vector2.Zero, iconScale, SpriteEffects.None, 0f);
 			}
 			else
 			{
 				string initials = GetInitials(Augment.DisplayName);
-				Vector2 textSize = ChatManager.GetStringSize(font, initials, new Vector2(0.85f));
+				Vector2 textSize = ModText.Size(font, initials, new Vector2(0.85f));
 				Vector2 textPos = new Vector2(
-					rect.X + (rect.Width - textSize.X) * 0.5f,
-					rect.Y + 8f
+					content.X + (content.Width - textSize.X) * 0.5f,
+					content.Y + 8f
 				);
-				ChatManager.DrawColorCodedStringWithShadow(
+				ModText.DrawCoded(
 					spriteBatch, font, initials, textPos, nameColor, 0f, Vector2.Zero, new Vector2(0.85f)
 				);
 			}
@@ -356,7 +370,7 @@ namespace Augments
 			// 5. Augment Display Name auto-fitted cleanly below the icon
 			// In the NieR style the name keeps clear of the border and the inner line (4px in), so it is never clipped or touching them.
 			int nameInset = RarityLook.Style == TierStyle.Nier ? 8 : 3;
-			Rectangle textBounds = new Rectangle(rect.X + nameInset, rect.Y + 47, rect.Width - nameInset * 2, rect.Height - 49);
+			Rectangle textBounds = new Rectangle(content.X + nameInset, content.Y + 47, content.Width - nameInset * 2, content.Height - 49);
 			DrawSlotAugmentName(spriteBatch, font, Augment.DisplayName, textBounds, nameColor, !RarityLook.Inverted(Augment.Rarity));
 
 			// 6. Class badge in top-left corner (omit for classes with dedicated custom icons)
@@ -364,8 +378,8 @@ namespace Augments
 			{
 				string classLetter = GetClassLetter(Augment.Class);
 				Color classColor = GetClassColor(Augment.Class);
-				Vector2 classPos = new Vector2(rect.X + 4f, rect.Y + 3f);
-				ChatManager.DrawColorCodedStringWithShadow(
+				Vector2 classPos = new Vector2(content.X + 4f, content.Y + 3f);
+				ModText.DrawCoded(
 					spriteBatch, font, classLetter, classPos, classColor, 0f, Vector2.Zero, new Vector2(0.65f)
 				);
 			}
@@ -373,9 +387,9 @@ namespace Augments
 			// 7. Installed Indicator (Clean green checkmark, unboxed)
 			if (IsOwned)
 			{
-				Vector2 checkSz = ChatManager.GetStringSize(font, "✓", new Vector2(0.55f));
-				Vector2 checkPos = new Vector2(rect.Right - checkSz.X - 9f, rect.Y + 15f); // clear of the corner notch and the pips above it
-				ChatManager.DrawColorCodedStringWithShadow(
+				Vector2 checkSz = ModText.Size(font, "✓", new Vector2(0.55f));
+				Vector2 checkPos = new Vector2(content.Right - checkSz.X - 9f, content.Y + 15f); // clear of the corner notch and the pips above it
+				ModText.DrawCoded(
 					spriteBatch, font, "✓", checkPos, AugmentTextColors.Healing, 0f, Vector2.Zero, new Vector2(0.55f)
 				);
 			}
@@ -392,16 +406,19 @@ namespace Augments
 					// The measured width ends with one trailing letter gap; leave it out so the word is truly centred in its tab.
 					int tabWidth = (int)Math.Ceiling(tabW - tabTracking) + 8;
 					// Centred on the card and drawn just inside the top border (not on it), so a top-row card never clips it at the list edge.
-					var tab = new Rectangle(rect.X + (rect.Width - tabWidth) / 2, rect.Y + 2, tabWidth, 11);
+					var tab = new Rectangle(content.X + (content.Width - tabWidth) / 2, content.Y + 2, tabWidth, 11);
 					HubDraw.Fill(spriteBatch, tab, RarityLook.Plate);
 					Color tabEdge = RarityLook.OnPlate * 0.5f;
 					HubDraw.Fill(spriteBatch, new Rectangle(tab.X, tab.Y, 1, tab.Height), tabEdge);
 					HubDraw.Fill(spriteBatch, new Rectangle(tab.Right - 1, tab.Y, 1, tab.Height), tabEdge);
 					HubDraw.Fill(spriteBatch, new Rectangle(tab.X, tab.Bottom - 1, tab.Width, 1), tabEdge);
-					HubDraw.Text(spriteBatch, "NEW", new Vector2(tab.X + 4, (float)Math.Round(tab.Y + (tab.Height - HubDraw.LineHeight(tabScale)) / 2f + 1f)), RarityLook.OnPlate, tabScale, tabTracking);
+					// With the pixel font the glyphs are 7 squares tall and already centred in the line box, so they need no extra nudge down.
+						float tabLineH = HubDraw.LineHeight(tabScale);
+						float tabTextY = tab.Y + (tab.Height - tabLineH) / 2f + 1f;
+						HubDraw.Text(spriteBatch, "NEW", new Vector2(tab.X + 4, (float)Math.Round(tabTextY)), RarityLook.OnPlate, tabScale, tabTracking);
 				}				else
 				{
-					Vector2 newPos = new Vector2(rect.X + 8f, rect.Y + 6f);
+					Vector2 newPos = new Vector2(content.X + 8f, content.Y + 6f);
 					RarityLook.DrawCoded(spriteBatch, font, "NEW", newPos, new Color(250, 204, 21), new Vector2(0.50f), true);
 				}
 			}		}
@@ -458,7 +475,7 @@ namespace Augments
 			float maxW = textRect.Width;
 
 			// Check single-line fit
-			Vector2 singleSize = ChatManager.GetStringSize(font, name, Vector2.One);
+			Vector2 singleSize = ModText.Size(font, name, Vector2.One);
 			float singleScale = Math.Min(0.52f, maxW / Math.Max(1f, singleSize.X));
 
 			string[] words = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -492,8 +509,8 @@ namespace Augments
 			string topStr = string.Join(" ", words, 0, bestSplit);
 			string botStr = string.Join(" ", words, bestSplit, words.Length - bestSplit);
 
-			Vector2 topSize = ChatManager.GetStringSize(font, topStr, Vector2.One);
-			Vector2 botSize = ChatManager.GetStringSize(font, botStr, Vector2.One);
+			Vector2 topSize = ModText.Size(font, topStr, Vector2.One);
+			Vector2 botSize = ModText.Size(font, botStr, Vector2.One);
 
 			float maxLineWidth = Math.Max(topSize.X, botSize.X);
 			float lineScaleVal = Math.Min(0.46f, maxW / Math.Max(1f, maxLineWidth));

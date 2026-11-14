@@ -661,7 +661,7 @@ namespace Augments
 			DrawCleanText(spriteBatch, font, label, new Vector2(leftX, y), labelColor, progress, scale);
 
 			// Right-aligned Value
-			Vector2 valSz = font.MeasureString(value) * scale;
+			Vector2 valSz = ModText.Measure(font, value, scale);
 			Vector2 valPos = new Vector2(rightX - valSz.X, y);
 			DrawCleanText(spriteBatch, font, value, valPos, valueColor, progress, scale);
 		}
@@ -675,21 +675,21 @@ namespace Augments
 
 			// Calculate maximum line width dynamically so box always encloses text
 			float maxLineWidth = 0f;
-			Vector2 titleSz = font.MeasureString($"[ {tooltipTitle} ]") * 0.76f;
+			Vector2 titleSz = ModText.Measure(font, $"[ {tooltipTitle} ]", 0.76f);
 			maxLineWidth = Math.Max(maxLineWidth, titleSz.X);
 
 			foreach (var (line, _) in tooltipLines)
 			{
 				if (!string.IsNullOrEmpty(line))
 				{
-					Vector2 sz = font.MeasureString(line) * 0.65f;
+					Vector2 sz = ModText.Measure(font, line, 0.65f);
 					maxLineWidth = Math.Max(maxLineWidth, sz.X);
 				}
 			}
 
 			// Measure hint line
 			string hintText = "• Double-click to pin/unpin on screen";
-			Vector2 hintSz = font.MeasureString(hintText) * 0.60f;
+			Vector2 hintSz = ModText.Measure(font, hintText, 0.60f);
 			maxLineWidth = Math.Max(maxLineWidth, hintSz.X);
 
 			// Provide 14px padding left + 18px clearance on right
@@ -763,9 +763,9 @@ namespace Augments
 			{
 				var (label, value, valColor) = GetStatDisplayData(w.StatType, player);
 
-				Vector2 labelSz = font.MeasureString(label) * 0.65f;
-				Vector2 sepSz = font.MeasureString(" • ") * 0.65f;
-				Vector2 valSz = font.MeasureString(value) * 0.65f;
+				Vector2 labelSz = ModText.Measure(font, label, 0.65f);
+				Vector2 sepSz = ModText.Measure(font, " • ", 0.65f);
+				Vector2 valSz = ModText.Measure(font, value, 0.65f);
 
 				w.Width = (float)Math.Ceiling(18f + labelSz.X + sepSz.X + valSz.X + 12f);
 				w.Height = 22f;
@@ -1273,8 +1273,8 @@ namespace Augments
 		{
 			// Clean 1px drop shadow
 			Vector2 shadowPos = pos + new Vector2(1f, 1f);
-			spriteBatch.DrawString(font, text, shadowPos, Color.Black * (0.65f * progress), 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
-			spriteBatch.DrawString(font, text, pos, color * progress, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+			ModText.DrawString(spriteBatch, font, text, shadowPos, Color.Black * (0.65f * progress), 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+			ModText.DrawString(spriteBatch, font, text, pos, color * progress, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
 		}
 
 		// Color determination helper strictly following user specifications:
