@@ -164,6 +164,9 @@ namespace Augments
 
 			// Last child = drawn on top of everything: the boot-up fade and the section-switch glitch.
 			root.Append(new HomeTransitionOverlay(this));
+
+			// Above even that: the first-launch "Share anonymous stats?" question. It only shows until it has been answered.
+			root.Append(new HomeStatsPrompt(this));
 		}
 
 		private void AddButton(string label, Action onClick)
