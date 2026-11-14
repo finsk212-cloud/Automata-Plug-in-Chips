@@ -7,6 +7,9 @@
 - **A Cosmetics page that scrolls**: The page is longer now, so it scrolls with the mouse wheel. The colour scheme cards are taller, so their little previews fit above the name instead of overlapping it.
 - **Easier to read**: The descriptions on the colour scheme and panel frame cards are bigger and brighter, and a long one wraps onto a second line instead of running past the edge of the card.
 - **Small alignment fixes**: The filter buttons on the Archive page and the Data Fragments box on the title screen are lined up properly.
+- **Phase Round works with modded guns**: Phase Round now also works with guns and bows from other mods, such as the Calamity ranger weapons. Their shots fly through blocks, just like the vanilla ones.
+- **Queen's Swarm nerf**: It was doing far too much damage. The base damage of each bug goes from 18 to 15. The same enemy can only release a swarm again after 3 seconds, and you can only release one swarm every 1 second.
+- **Optional anonymous stats**: The first time you open the title screen, a pop-up asks if you want to share anonymous stats to help balance Plug-in Chips and improve the quality of the mod. Nothing is sent unless you press SHARE. If you share, the mod sends the plugin, the weapon, the game stage, how much damage was dealt and how long the fight lasted, and never your name, Steam account, world name or IP address. You can change this any time in Mod Config, under Privacy Settings.
 
 ## Version 1.4.0
 

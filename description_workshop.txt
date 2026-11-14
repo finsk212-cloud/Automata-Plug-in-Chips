@@ -43,6 +43,11 @@ Hold left click near a teammate to lock on with a bending energy tether that hea
 [*][b]???[/b]
 [/list]
 
+[h2]Anonymous Statistics (Optional)[/h2]
+On first launch the mod asks if you want to share anonymous stats to help balance Plug-in Chips. It is off unless you press SHARE.
+If you share, the mod sends the plugin, the weapon, the game stage, how much damage was dealt and how long the fight lasted. It never sends your name, Steam account, world name or IP address.
+You can change your choice any time in Mod Config, under Privacy Settings.
+
 Drop any feedback, bug reports, or chip ideas in the comments or hop into the discord!
 [url=https://discord.gg/cE92pA3fdu]Join the Discord[/url]
 

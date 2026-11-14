@@ -1,5 +1,5 @@
 [h1]AUTOMATA: PLUG-IN CHIPS  //  UPDATE 1.4.1[/h1]
-[i]A small update: a new way to customise your plugin cards, and a tidier Cosmetics page.[/i]
+[i]A small update: new plugin card designs, a Phase Round fix for modded guns, a Queen's Swarm nerf, optional anonymous stats and a tidier Cosmetics page.[/i]
 
 [hr][/hr]
 
@@ -23,6 +23,17 @@ The descriptions on the colour scheme and panel frame cards are bigger and brigh
 
 [b]SMALL ALIGNMENT FIXES[/b]
 The filter buttons on the Archive page and the Data Fragments box on the title screen are lined up properly.
+
+[b]PHASE ROUND WORKS WITH MODDED GUNS[/b]
+Phase Round now also works with guns and bows from other mods, such as the Calamity ranger weapons. Their shots fly through blocks, just like the vanilla ones.
+
+[b]QUEEN'S SWARM NERF[/b]
+Queen's Swarm was doing far too much damage, so it is toned down. The base damage of each bug goes from 18 to 15. The same enemy can only release a swarm again after 3 seconds, and you can only release one swarm every 1 second.
+
+[b]OPTIONAL ANONYMOUS STATS[/b]
+The first time you open the title screen, a pop-up asks if you want to share anonymous stats to help balance Plug-in Chips and improve the quality of the mod. SHARE and NO THANKS look the same, and nothing is sent unless you press SHARE.
+If you share, the mod sends the plugin, the weapon, the game stage, how much damage was dealt and how long the fight lasted. It never sends your name, Steam account, world name or IP address.
+You can change your choice any time in Mod Config, under Privacy Settings.
 
 [hr][/hr]
 
