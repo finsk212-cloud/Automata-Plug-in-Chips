@@ -26,7 +26,34 @@ namespace Augments
 		private const int ButtonH = 46;
 		private const int ButtonGap = 16;
 
+		// The letter spacing the text is drawn with. Lines are wrapped using the SAME spacing, so they never run past the box.
+		private const float BodyTracking = 0.5f;
+		private const float SmallTracking = 1f;
+
 		private int lastHover = -1;
+
+		// Breaks text into lines no wider than maxWidth, measured with the tracking it will really be drawn with.
+		private static List<string> WrapTracked(string text, float maxWidth, float scale, float tracking)
+		{
+			var lines = new List<string>();
+			string line = "";
+			foreach (string word in text.Split(' '))
+			{
+				string trial = line.Length == 0 ? word : line + " " + word;
+				if (line.Length > 0 && HubDraw.Width(trial, scale, tracking) > maxWidth)
+				{
+					lines.Add(line);
+					line = word;
+				}
+				else
+				{
+					line = trial;
+				}
+			}
+			if (line.Length > 0)
+				lines.Add(line);
+			return lines;
+		}
 
 		public HomeStatsPrompt(AutomataHomeUIState state)
 		{
@@ -60,9 +87,9 @@ namespace Augments
 
 			var l = new Layout
 			{
-				Body = new List<string>(HubDraw.Wrap(Body, inner, 0.82f)),
-				Sent = new List<string>(HubDraw.Wrap(Sent, inner, 0.68f)),
-				Never = new List<string>(HubDraw.Wrap(Never, inner, 0.68f)),
+				Body = WrapTracked(Body, inner, 0.82f, BodyTracking),
+				Sent = WrapTracked(Sent, inner, 0.68f, SmallTracking),
+				Never = WrapTracked(Never, inner, 0.68f, SmallTracking),
 				BodyLine = HubDraw.LineHeight(0.82f) + 5f,
 				SmallLine = HubDraw.LineHeight(0.68f) + 4f
 			};
@@ -128,11 +155,11 @@ namespace Augments
 
 			// The question, then exactly what is and is not sent.
 			for (int i = 0; i < l.Body.Count; i++)
-				HubDraw.Text(sb, l.Body[i], new Vector2(box.X + Pad, box.Y + l.BodyY + i * l.BodyLine), AutomataHomeUIState.Ivory, 0.82f, 0.5f);
+				HubDraw.Text(sb, l.Body[i], new Vector2(box.X + Pad, box.Y + l.BodyY + i * l.BodyLine), AutomataHomeUIState.Ivory, 0.82f, BodyTracking);
 			for (int i = 0; i < l.Sent.Count; i++)
-				HubDraw.Text(sb, l.Sent[i], new Vector2(box.X + Pad, box.Y + l.SentY + i * l.SmallLine), AutomataHomeUIState.Idle, 0.68f, 1f);
+				HubDraw.Text(sb, l.Sent[i], new Vector2(box.X + Pad, box.Y + l.SentY + i * l.SmallLine), AutomataHomeUIState.Idle, 0.68f, SmallTracking);
 			for (int i = 0; i < l.Never.Count; i++)
-				HubDraw.Text(sb, l.Never[i], new Vector2(box.X + Pad, box.Y + l.NeverY + i * l.SmallLine), AutomataHomeUIState.Idle, 0.68f, 1f);
+				HubDraw.Text(sb, l.Never[i], new Vector2(box.X + Pad, box.Y + l.NeverY + i * l.SmallLine), AutomataHomeUIState.Idle, 0.68f, SmallTracking);
 
 			// Two identical buttons.
 			int hover = l.Share.Contains(mouse) ? 0 : (l.Decline.Contains(mouse) ? 1 : -1);
