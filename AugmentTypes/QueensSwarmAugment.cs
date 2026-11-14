@@ -10,14 +10,19 @@ namespace Augments
         public override string Id => "queens_swarm";
         public override string DisplayName => "Queen's Swarm";
         public override string Description =>
-            $"Minion hits build swarm stacks on enemies. At {AugmentText.Trigger("5 stacks")}, release {AugmentText.BonusDamage("6 void bugs")} (18 damage each) to swarm nearby enemies.";
+            $"Minion hits build swarm stacks on enemies. At {AugmentText.Trigger("5 stacks")}, release {AugmentText.BonusDamage("6 void bugs")} ({BugDamage} damage each) to swarm nearby enemies. " +
+            $"The same enemy can release again after {AugmentText.Duration("3 seconds")}, and you can release once every {AugmentText.Duration("1 second")}.";
 
         public override AugmentRarity Rarity => AugmentRarity.Rare;
         public override AugmentClass Class => AugmentClass.Summon;
         public override string FamilyId => AugmentFamilyRegistry.HivemindId;
 
         private const int BugCount = 6;
-        private const int BugDamage = 18;
+        private const int BugDamage = 15;
+        private const int PlayerCooldownTicks = 60; // you can release one swarm per second in total
+
+        // This player's own cooldown (the swarm is released on the shooter's own game).
+        private static uint nextPlayerReleaseTick;
 
         public override (string label, int baseValue)[] GetScalingEntries()
         {
@@ -33,9 +38,11 @@ namespace Augments
             if (proj.GetGlobalProjectile<AugmentProjectileTag>().IsAugmentProcDamage)
                 return;
 
-            if (target.GetGlobalNPC<QueensSwarmNPC>().AddStack() < QueensSwarmNPC.StacksRequired)
+            bool canRelease = Main.GameUpdateCount >= nextPlayerReleaseTick;
+            if (target.GetGlobalNPC<QueensSwarmNPC>().AddStack(canRelease) < QueensSwarmNPC.StacksRequired)
                 return;
 
+            nextPlayerReleaseTick = Main.GameUpdateCount + PlayerCooldownTicks;
             SpawnVoidBugs(player, target.Center);
         }
 
