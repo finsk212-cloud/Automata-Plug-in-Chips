@@ -1,0 +1,29 @@
+[h1]AUTOMATA: PLUG-IN CHIPS  //  UPDATE 1.4.1[/h1]
+[i]A small update: a new way to customise your plugin cards, and a tidier Cosmetics page.[/i]
+
+[hr][/hr]
+
+[h2]WHAT'S NEW[/h2]
+
+[b]TIER DESIGNS[/b]
+There is a new Tier Design row on the Cosmetics page. It changes how the borders of your plugin cards are built, and the colours always follow the colour scheme you picked.
+[list]
+[*][b]Nier[/b]: the default look from 1.4.0
+[*][b]Holo glass[/b]: rounded corners and clean flat lines
+[*][b]Hard shadow[/b]: a solid block shadow behind each card that gets deeper with the tier
+[*][b]Folder tabs[/b]: a file folder tab on each card that gets wider with the tier
+[/list]
+All four are free for now.
+
+[b]A COSMETICS PAGE THAT SCROLLS[/b]
+The page is longer, so you can scroll it with the mouse wheel. The colour scheme cards are taller, so their previews fit above the name.
+
+[b]EASIER TO READ[/b]
+The descriptions on the colour scheme and panel frame cards are bigger and brighter. A long one wraps onto a second line instead of running past the edge of the card.
+
+[b]SMALL ALIGNMENT FIXES[/b]
+The filter buttons on the Archive page and the Data Fragments box on the title screen are lined up properly.
+
+[hr][/hr]
+
+[i]Found a bug or have an idea? Post it in the Discussions tab. Thank you for playing![/i]

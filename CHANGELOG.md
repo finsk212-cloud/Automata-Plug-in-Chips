@@ -1,5 +1,12 @@
 # Automata: Plug-in Chips, Upcoming Update Changelog
 
+## Version 1.4.1
+
+### Highlights
+- **Tier designs**: A new Tier Design choice on the Cosmetics page lets you pick how the plugin card borders are built. Nier is the default. Holo glass has rounded corners and clean flat lines. Hard shadow puts a solid block shadow behind each card that gets deeper with the tier. Folder tabs gives each card a file folder tab that gets wider with the tier. The colours always follow the colour scheme you picked, and all of them are free for now.
+- **A Cosmetics page that scrolls**: The page is longer now, so it scrolls with the mouse wheel. The colour scheme cards are taller, so their little previews fit above the name instead of overlapping it.
+- **Easier to read**: The descriptions on the colour scheme and panel frame cards are bigger and brighter, and a long one wraps onto a second line instead of running past the edge of the card.
+- **Small alignment fixes**: The filter buttons on the Archive page and the Data Fragments box on the title screen are lined up properly.
 ## Version 1.4.0
 
 ### Highlights
