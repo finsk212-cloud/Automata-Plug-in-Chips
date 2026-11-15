@@ -172,6 +172,40 @@ namespace Augments
 			File.Delete(temp);
 		}
 
+		// Pins a plugin in one of the three favourite slots of a character (id "" clears the slot) and saves the file. A plugin can only be
+		// pinned once, so pinning it again moves it. Only the title screen calls this.
+		public static void SetFavourite(CharacterRecord rec, int slot, string id)
+		{
+			if (rec == null || slot < 0 || slot > 2)
+				return;
+
+			id = id ?? "";
+			if (rec.Favourites == null)
+				rec.Favourites = new List<string>();
+			while (rec.Favourites.Count < 3)
+				rec.Favourites.Add("");
+
+			if (id.Length > 0)
+			{
+				for (int i = 0; i < 3; i++)
+				{
+					if (rec.Favourites[i] == id)
+						rec.Favourites[i] = "";
+				}
+			}
+
+			rec.Favourites[slot] = id;
+
+			try
+			{
+				WriteFile();
+			}
+			catch (Exception e)
+			{
+				ModContent.GetInstance<Augments>().Logger.Warn("The pinned plugins could not be saved: " + e.Message);
+			}
+		}
+
 		// Updates the summary for this character and writes the file.
 		public static void Record(Player player)
 		{

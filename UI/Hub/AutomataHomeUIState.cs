@@ -757,7 +757,21 @@ namespace Augments
 			HubPages.Fade = 1f;
 				// With more than one saved character, the arrows pick whose record the Profile page shows.
 				if (realData)
+				{
 					CharacterSwitcher.Draw(sb, CharacterSwitcher.RectFor(r), Main.MouseScreen.ToPoint());
+					ProfilePicker.Draw(sb, HubPages.ProfileFavouriteSlots(inner), profile, r, Main.MouseScreen.ToPoint());
+				}
+				else
+				{
+					ProfilePicker.Close();
+				}
+			}
+
+			// The area the page is drawn in (the same rectangle DrawContent hands to HubPages), so clicks land on what was drawn.
+			private Rectangle PageArea()
+			{
+				Rectangle r = GetDimensions().ToRectangle();
+				return new Rectangle(r.X + 24, r.Y + 20, r.Width - 48, r.Height - 20 - 36);
 			}
 
 			public override void LeftClick(UIMouseEvent evt)
@@ -766,7 +780,34 @@ namespace Augments
 				if (state.Section != HomeSection.Profile)
 					return;
 
-				AutomataHubSystem.Guard(() => CharacterSwitcher.Click(CharacterSwitcher.RectFor(GetDimensions().ToRectangle()), evt.MousePosition.ToPoint()));
+				AutomataHubSystem.Guard(() =>
+				{
+					Rectangle r = GetDimensions().ToRectangle();
+					Point p = evt.MousePosition.ToPoint();
+					if (CharacterSwitcher.Click(CharacterSwitcher.RectFor(r), p))
+					{
+						ProfilePicker.Close();
+						return;
+					}
+
+					ProfilePicker.Click(HubPages.ProfileFavouriteSlots(PageArea()), ProfileStore.Selected, r, p);
+				});
+			}
+
+			public override void RightClick(UIMouseEvent evt)
+			{
+				base.RightClick(evt);
+				if (state.Section != HomeSection.Profile)
+					return;
+
+				AutomataHubSystem.Guard(() => ProfilePicker.RightClick(HubPages.ProfileFavouriteSlots(PageArea()), ProfileStore.Selected, evt.MousePosition.ToPoint()));
+			}
+
+			public override void ScrollWheel(UIScrollWheelEvent evt)
+			{
+				base.ScrollWheel(evt);
+				if (state.Section == HomeSection.Profile)
+					ProfilePicker.Wheel(evt.ScrollWheelValue);
 			}
 		}
 

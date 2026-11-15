@@ -323,6 +323,9 @@ namespace Augments
 			return AugmentDatabase.GetById(id);
 		}
 
+		// The three favourite plugin slots, for click testing (the page area is the same rectangle DrawPage received).
+		internal static Rectangle[] ProfileFavouriteSlots(Rectangle a) => MeasureProfile(a).Favourites;
+
 		private static string FitText(string text, float scale, float tracking, float maxWidth)
 		{
 			while (text.Length > 3 && HubDraw.Width(text, scale, tracking) > maxWidth)
