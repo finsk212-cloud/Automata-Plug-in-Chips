@@ -140,81 +140,71 @@ namespace Augments
 
 		// --- Emblems ---
 
-		// Draws an emblem glyph inside `box` (square). `id` is an emblem id from Cosmetic.Emblems.
-		public static void Emblem(SpriteBatch sb, string id, Rectangle box, Color c)
+		// Emblem icons (Profile badges, the Cosmetics page, the title screen): plain one-colour pixel shapes on an 11 by 11 grid, so they stay crisp
+		// at any size. '#' = filled. The box is a square and the id is an emblem id from Cosmetic.Emblems.
+		private static string[] EmblemShape(string id)
 		{
-			Vector2 m = box.Center.ToVector2();
-			float s = Math.Min(box.Width, box.Height) / 2f;
-			Color dark = Shade(c, 0.55f);
-
 			switch (id)
 			{
 				case "cross":
-				{
-					float w = 0.3f * s;
-					float l = 0.9f * s;
-					Span<Vector2> plus = stackalloc Vector2[]
+					return new[]
 					{
-						m + new Vector2(-w, -l), m + new Vector2(w, -l), m + new Vector2(w, -w), m + new Vector2(l, -w),
-						m + new Vector2(l, w), m + new Vector2(w, w), m + new Vector2(w, l), m + new Vector2(-w, l),
-						m + new Vector2(-w, w), m + new Vector2(-l, w), m + new Vector2(-l, -w), m + new Vector2(-w, -w)
+						"...#####...", "...#####...", "...#####...", "###########", "###########", "###########",
+						"###########", "###########", "...#####...", "...#####...", "...#####..."
 					};
-					Poly(sb, plus, c);
-					HubDraw.Fill(sb, new Rectangle((int)(m.X - 1), (int)(m.Y - l * 0.7f), 2, (int)(l * 1.4f)), dark * 0.6f);
-					break;
-				}
-
 				case "hexagon":
-				{
-					Poly(sb, Hexagon(m, 0.95f * s), c);
-					Poly(sb, Hexagon(m, 0.6f * s), dark);
-					Poly(sb, Hexagon(m, 0.3f * s), c);
-					break;
-				}
-
-				case "star":
-				{
-					Span<Vector2> star = stackalloc Vector2[10];
-					for (int i = 0; i < 10; i++)
+					return new[]
 					{
-						float angle = -MathHelper.PiOver2 + i * MathHelper.Pi / 5f;
-						float radius = (i % 2 == 0 ? 1f : 0.42f) * s;
-						star[i] = m + new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * radius;
-					}
-					Poly(sb, star, c);
-					Poly(sb, Hexagon(m, 0.2f * s), dark);
-					break;
-				}
-
-				case "crown":
-				{
-					Span<Vector2> crown = stackalloc Vector2[]
-					{
-						m + new Vector2(-0.92f * s, 0.55f * s), m + new Vector2(-0.92f * s, -0.45f * s), m + new Vector2(-0.46f * s, 0.05f * s),
-						m + new Vector2(0f, -0.75f * s), m + new Vector2(0.46f * s, 0.05f * s), m + new Vector2(0.92f * s, -0.45f * s),
-						m + new Vector2(0.92f * s, 0.55f * s)
+						"...#####...", "..#######..", ".#########.", "###########", "####...####", "####...####",
+						"####...####", "###########", ".#########.", "..#######..", "...#####..."
 					};
-					Poly(sb, crown, c);
-					HubDraw.Fill(sb, new Rectangle((int)(m.X - 0.92f * s), (int)(m.Y + 0.3f * s), (int)(1.84f * s), Math.Max(2, (int)(0.25f * s))), dark);
-					HubDraw.Diamond(sb, m + new Vector2(0f, -0.1f * s), 0.12f * s, Color.White * 0.8f);
-					break;
-				}
-
+				case "star":
+					return new[]
+					{
+						".....#.....", "....###....", "....###....", "###########", ".#########.", "..#######..",
+						"..#######..", ".####.####.", ".###...###.", ".##.....##.", ".#.......#."
+					};
+				case "crown":
+					return new[]
+					{
+						"...........", "#....#....#", "##...#...##", "###.###.###", "###########", "###########",
+						"###########", "...........", "###########", "###########", "..........."
+					};
 				default: // diamond
-					Gem(sb, m, 0.95f * s, c);
-					break;
+					return new[]
+					{
+						".....#.....", "....###....", "...#####...", "..#######..", ".#########.", "###########",
+						".#########.", "..#######..", "...#####...", "....###....", ".....#....."
+					};
 			}
 		}
 
-		private static Vector2[] Hexagon(Vector2 m, float r)
+		public static void Emblem(SpriteBatch sb, string id, Rectangle box, Color c)
 		{
-			var pts = new Vector2[6];
-			for (int i = 0; i < 6; i++)
+			string[] rows = EmblemShape(id);
+			int cell = Math.Max(1, Math.Min(box.Width, box.Height) / rows.Length);
+			int size = cell * rows.Length;
+			int ox = box.X + (box.Width - size) / 2;
+			int oy = box.Y + (box.Height - size) / 2;
+
+			for (int y = 0; y < rows.Length; y++)
 			{
-				float angle = MathHelper.PiOver2 + i * MathHelper.Pi / 3f;
-				pts[i] = m + new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * r;
+				int x = 0;
+				while (x < rows[y].Length)
+				{
+					if (rows[y][x] != '#')
+					{
+						x++;
+						continue;
+					}
+
+					// One rectangle per run of filled cells, so neighbouring cells never leave seams.
+					int start = x;
+					while (x < rows[y].Length && rows[y][x] == '#')
+						x++;
+					HubDraw.Fill(sb, new Rectangle(ox + start * cell, oy + y * cell, (x - start) * cell, cell), c);
+				}
 			}
-			return pts;
 		}
 
 		// A badge behind an emblem: an octagon with a rim, so it looks like something you wear.
