@@ -91,6 +91,9 @@ namespace Augments
 
 				// Centre it in the upper part of the box (the "UNIT ONLINE" text sits under it).
 				Vector2 centre = new Vector2(box.Center.X, box.Y + (box.Height - 34f) * 0.5f + 6f);
+				// The game anchors the figure by its top left corner, so the bigger it is drawn the further up and left it ends up.
+				// This shift (measured on screen) brings it back to the middle of the free space; it is 0 at normal size.
+				centre += new Vector2(5f * (scale - 1f), 17f * (scale - 1f));
 				preview.Left.Set(centre.X - PreviewSize / 2f, 0f);
 				preview.Top.Set(centre.Y - PreviewSize / 2f, 0f);
 				preview.Width.Set(PreviewSize, 0f);
