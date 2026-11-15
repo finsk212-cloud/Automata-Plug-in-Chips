@@ -2,21 +2,29 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
+using Terraria.GameContent.UI.Elements;
 
 namespace Augments
 {
 	// Draws the saved character (the real look: hair, armour, dyes) inside the Profile page's portrait box.
 	//
 	// On the title screen the characters live in Main.PlayerList, the same list the vanilla "Select Player" screen draws from, so the
-	// character is found there by name. If it cannot be found, or drawing it ever fails, this just returns false and the page keeps
-	// its plain diamond. After one failure it stops trying, so a problem here can never break the title screen every frame.
+	// character is found there by name and drawn with the game's own character preview element (UICharacter), the one the Select Player
+	// screen uses. Calling the player renderer directly drew nothing here, probably because the character's textures were not loaded yet.
+	//
+	// If the character cannot be found, or drawing it ever fails, this returns false and the page keeps its plain diamond. After one
+	// failure it stops trying, so a problem here can never break the title screen every frame.
 	internal static class ProfilePortrait
 	{
 		private static bool failed;
 		private static bool triedLoading;
 
-		// A bare character is about 56 pixels tall once its sprite is drawn.
-		private const float SpriteHeight = 56f;
+		private static UICharacter preview;
+		private static Player previewFor;
+		private static float previewScale;
+
+		// The preview element is a square this big (in UI units); the character is drawn in the middle of it.
+		private const int PreviewSize = 100;
 
 		private static Player Find(string name)
 		{
@@ -68,22 +76,29 @@ namespace Augments
 			if (p == null)
 				return false;
 
-			Vector2 oldPosition = p.position;
-			int oldDirection = p.direction;
+			bool oldActive = p.active;
 			try
 			{
-				float scale = MathHelper.Clamp((box.Height - 90f) / SpriteHeight, 1f, 2.8f);
+				// Twice the normal size when the box is tall enough. (A bigger size drew nothing in testing, so this stays at the size that works.)
+				float scale = box.Height >= 200 ? 2f : 1f;
+				if (preview == null || !ReferenceEquals(previewFor, p) || previewScale != scale)
+				{
+					preview = new UICharacter(p, false, false, scale, false);
+					previewFor = p;
+					previewScale = scale;
+				}
 
-				// The renderer scales a character about its top left corner, so place that corner so the scaled figure is centred
-				// in the upper part of the box (the "UNIT ONLINE" text sits under it).
+				// Centre it in the upper part of the box (the "UNIT ONLINE" text sits under it).
 				Vector2 centre = new Vector2(box.Center.X, box.Y + (box.Height - 34f) * 0.5f + 6f);
-				Vector2 topLeft = centre - new Vector2(p.width, p.height) * scale * 0.5f;
+				preview.Left.Set(centre.X - PreviewSize / 2f, 0f);
+				preview.Top.Set(centre.Y - PreviewSize / 2f, 0f);
+				preview.Width.Set(PreviewSize, 0f);
+				preview.Height.Set(PreviewSize, 0f);
+				preview.Recalculate();
 
-				p.direction = 1;
-				p.position = topLeft + Main.screenPosition;
-				p.PlayerFrame();
-
-				Main.PlayerRenderer.DrawPlayer(Main.Camera, p, p.position, 0f, p.fullRotationOrigin, 0f, scale);
+				// Characters in the title-screen list are not "active"; the game's own screen draws them anyway, but this costs nothing.
+				p.active = true;
+				preview.Draw(sb);
 				return true;
 			}
 			catch (Exception e)
@@ -100,8 +115,7 @@ namespace Augments
 			}
 			finally
 			{
-				p.position = oldPosition;
-				p.direction = oldDirection;
+				p.active = oldActive;
 			}
 		}
 	}
