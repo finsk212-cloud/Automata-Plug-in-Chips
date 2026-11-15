@@ -77,6 +77,24 @@ namespace Augments
 			HubDraw.Border(sb, r, F(selected ? HubTheme.Accent : HubTheme.LineSoft), selected ? 2 : 1);
 		}
 
+		// A thin dashed outline, for things that are not unlocked yet.
+		private static void DashedBorder(SpriteBatch sb, Rectangle r, Color c)
+		{
+			for (int x = r.X; x < r.Right; x += 6)
+			{
+				int w = Math.Min(3, r.Right - x);
+				HubDraw.Fill(sb, new Rectangle(x, r.Y, w, 1), c);
+				HubDraw.Fill(sb, new Rectangle(x, r.Bottom - 1, w, 1), c);
+			}
+
+			for (int y = r.Y; y < r.Bottom; y += 6)
+			{
+				int h = Math.Min(3, r.Bottom - y);
+				HubDraw.Fill(sb, new Rectangle(r.X, y, 1, h), c);
+				HubDraw.Fill(sb, new Rectangle(r.Right - 1, y, 1, h), c);
+			}
+		}
+
 		private static void CenteredText(SpriteBatch sb, string text, Rectangle r, Color c, float scale, float tracking = 0f)
 		{
 			float w = HubDraw.Width(text, scale, tracking);
@@ -233,6 +251,8 @@ namespace Augments
 		private const int StatRows = 5;
 		private const int SlotSize = 36;
 		private const int SlotStep = 44;
+		private const int BadgeSize = 46;
+		private const int BadgeStep = 58;
 		private const int FavW = 112;
 		private const int FavH = 38;
 		private const int FavStep = FavW + 8;
@@ -274,7 +294,7 @@ namespace Augments
 			l.RankY = c.Y + 30 + StatRows * l.RowH + 10;
 
 			// Endings, favourite plugins and badges sit side by side, and wrap onto a second line when the screen is narrow.
-			int[] widths = { 5 * SlotStep - 8, 3 * FavStep - 8, 5 * SlotStep - 8 };
+			int[] widths = { 5 * SlotStep - 8, 3 * FavStep - 8, 5 * BadgeStep - (BadgeStep - BadgeSize) };
 			var origins = new Point[3];
 			int x = l.StatsX;
 			int y = l.RankY + 54;
@@ -299,7 +319,7 @@ namespace Augments
 			for (int i = 0; i < 5; i++)
 			{
 				l.Endings[i] = new Rectangle(origins[0].X + i * SlotStep, origins[0].Y + 24, SlotSize, SlotSize);
-				l.Badges[i] = new Rectangle(origins[2].X + i * SlotStep, origins[2].Y + 24, SlotSize, SlotSize);
+				l.Badges[i] = new Rectangle(origins[2].X + i * BadgeStep, origins[2].Y + 24, BadgeSize, BadgeSize);
 			}
 
 			l.Favourites = new Rectangle[3];
@@ -445,7 +465,8 @@ namespace Augments
 				HubDraw.Text(sb, name, new Vector2(slot.X + 12, slot.Y + (slot.Height - HubDraw.LineHeight(0.56f)) / 2f), F(HubTheme.Text), 0.56f, 1f);
 			}
 
-			// Badges: the emblems this account has earned or bought. The one you wear on the title screen has the bright frame.
+			// Badges: the emblems this account has earned or bought, as flat tiles with a name underneath.
+			// Worn = dark filled tile with a light emblem. Owned = plain tile. Locked = dashed outline with a faint emblem.
 			SectionLabel(sb, "BADGES", l.BadgesLabel.X, l.BadgesLabel.Y);
 			string worn = Cosmetic.EquippedEmblem;
 			for (int i = 0; i < Cosmetic.Emblems.Length && i < l.Badges.Length; i++)
@@ -453,16 +474,35 @@ namespace Augments
 				string id = Cosmetic.Emblems[i][0];
 				Rectangle slot = l.Badges[i];
 				bool owned = AccountStore.IsUnlocked("emblem:" + id);
-				Box(sb, slot, owned && id == worn);
-				if (owned)
+				bool isWorn = owned && id == worn;
+				var art = new Rectangle(slot.X + 9, slot.Y + 9, slot.Width - 18, slot.Height - 18);
+				string caption;
+				Color captionColor;
+
+				if (isWorn)
 				{
-					OperationArt.Emblem(sb, id, new Rectangle(slot.X + 5, slot.Y + 5, slot.Width - 10, slot.Height - 10), F(HubTheme.Accent));
+					HubDraw.Fill(sb, slot, F(HubTheme.Accent));
+					OperationArt.Emblem(sb, id, art, F(HubTheme.OnAccent));
+					caption = "WORN";
+					captionColor = HubTheme.Warn;
+				}
+				else if (owned)
+				{
+					HubDraw.Fill(sb, slot, F(HubTheme.PanelAlt));
+					HubDraw.Border(sb, slot, F(HubTheme.LineSoft));
+					OperationArt.Emblem(sb, id, art, F(HubTheme.Accent));
+					caption = Cosmetic.Emblems[i][1];
+					captionColor = HubTheme.Text;
 				}
 				else
 				{
-					HubDraw.Stripes(sb, slot, F(HubTheme.Line) * 0.5f, 5);
-					CenteredText(sb, "?", slot, F(HubTheme.Dim), 0.8f);
+					DashedBorder(sb, slot, F(HubTheme.Line));
+					OperationArt.Emblem(sb, id, art, F(HubTheme.Line) * 0.45f);
+					caption = "LOCKED";
+					captionColor = HubTheme.Dim;
 				}
+
+				CenteredText(sb, caption, new Rectangle(slot.X - 6, slot.Bottom + 3, slot.Width + 12, 14), F(captionColor), 0.5f, 1f);
 			}
 		}
 
