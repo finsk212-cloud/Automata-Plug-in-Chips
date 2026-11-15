@@ -31,6 +31,12 @@ namespace Augments
 		public readonly HashSet<string> SeenAdvisoryTriggers = new HashSet<string>();
 		public float spawnTipDelay = 2.5f;
 
+		// The highest damage per second this character has reached (3 second average, from the Combat Analytics tracker).
+		// Saved with the character and copied to the Profile page. 0 means "not recorded yet".
+		public float BestDps;
+		private int bestDpsWarmupTicks;
+		private int bestDpsSampleTicks;
+
 		public IReadOnlySet<string> OwnedIds => ownedIds;
 		public IReadOnlySet<string> EverOwnedIds => everOwnedIds;
 		// The plugins the Archive shows as collected: everything collected since the Archive reset.
@@ -638,6 +644,19 @@ namespace Augments
 			if (Player.whoAmI == Main.myPlayer)
 			{
 				AugmentDamageTracker.Update(1f / 60f);
+
+					// Twice a second, see if this is the best 3 second damage rate so far.
+					if (bestDpsWarmupTicks > 0)
+					{
+						bestDpsWarmupTicks--;
+					}
+					else if (++bestDpsSampleTicks >= 30)
+					{
+						bestDpsSampleTicks = 0;
+						float dps = AugmentDamageTracker.GetCurrentDPS();
+						if (dps > BestDps)
+							BestDps = dps;
+					}
 
 				if (spawnTipDelay > 0f)
 				{

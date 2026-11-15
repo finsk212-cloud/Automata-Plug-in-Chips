@@ -292,6 +292,9 @@ namespace Augments
 		public override void OnEnterWorld()
 		{
 			DamagedBossesThisFight.Clear();
+			// The damage history is shared by the whole session, so it may still hold the previous character's last hits: do not
+			// count anything towards Best DPS for the first few seconds in a world.
+			bestDpsWarmupTicks = 300;
 			// Chronobreak history from a previous world must never be rewound to.
 			chronobreakCount = 0;
 			chronobreakHead = 0;
@@ -517,6 +520,7 @@ namespace Augments
 				bossKills[kv.Key.ToString()] = kv.Value;
 			tag["bossAugmentKills"] = bossKills;
 			tag["seenAdvisoryTriggers"] = new List<string>(SeenAdvisoryTriggers);
+			tag["bestDps"] = BestDps;
 
 			RefreshPersistentSnapshot();
 		}
@@ -554,6 +558,7 @@ namespace Augments
 			soldAugmentIds.Clear();
 			lockedKeystoneFamilies.Clear();
 			SeenAdvisoryTriggers.Clear();
+			BestDps = tag.ContainsKey("bestDps") ? tag.GetFloat("bestDps") : 0f;
 			if (tag.ContainsKey("seenAdvisoryTriggers"))
 			{
 				foreach (string trigger in tag.GetList<string>("seenAdvisoryTriggers"))

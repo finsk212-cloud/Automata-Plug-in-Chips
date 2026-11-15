@@ -34,6 +34,10 @@ namespace Augments
 			// Loadout slots unlocked (1 to 3). Files saved before this was recorded read as 1, the free slot.
 			public int LoadoutSlots { get; set; } = 1;
 			public List<string> EverOwned { get; set; } = new List<string>();
+			// The highest 3 second damage rate this character has reached. 0 = not recorded (older saves).
+			public int BestDps { get; set; }
+			// Plugin ids pinned on the Profile page (up to 3, "" = empty slot). Chosen on the title screen, so a save must keep them.
+			public List<string> Favourites { get; set; } = new List<string>();
 
 			public int Collected => EverOwned?.Count ?? 0;
 
@@ -44,6 +48,8 @@ namespace Augments
 			public int Points => BossesDefeated * 10 + Collected * 2 + TotalBossKills;
 			public int Rank => 1 + Points / PointsPerRank;
 			public float RankProgress => (Points % PointsPerRank) / (float)PointsPerRank;
+			// How far into the current rank (0 to 49), for the "24 / 50" shown beside the rank bar.
+			public int PointsIntoRank => Points % PointsPerRank;
 		}
 
 		private sealed class ProfileFile
@@ -184,8 +190,14 @@ namespace Augments
 					BossesDefeated = ap.BossAugmentKills.Count,
 					TotalBossKills = ap.BossAugmentKills.Values.Sum(),
 					LoadoutSlots = ap.LoadoutSlotsUnlocked,
-					EverOwned = ap.ArchiveCollectedIds.OrderBy(id => id, StringComparer.Ordinal).ToList()
+					EverOwned = ap.ArchiveCollectedIds.OrderBy(id => id, StringComparer.Ordinal).ToList(),
+						BestDps = (int)Math.Min(int.MaxValue, Math.Round(ap.BestDps))
 				};
+
+				// The pinned plugins are set from the title screen and live only in this file, so carry them over.
+				CharacterRecord previous = file.Characters.Find(c => string.Equals(c.Name, record.Name, StringComparison.Ordinal));
+				if (previous?.Favourites != null)
+					record.Favourites = new List<string>(previous.Favourites);
 
 				file.Characters.RemoveAll(c => string.Equals(c.Name, record.Name, StringComparison.Ordinal));
 				file.Characters.Add(record);

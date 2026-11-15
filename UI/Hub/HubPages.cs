@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
@@ -230,21 +230,129 @@ namespace Augments
 
 		// ------------------------------------------------------------------ 03 unit record
 
+		private const int StatRows = 6;
+		private const int SlotSize = 36;
+		private const int SlotStep = 44;
+		private const int FavW = 112;
+		private const int FavH = 38;
+		private const int FavStep = FavW + 8;
+		private const int SectionGap = 30;
+		private const int SectionRowH = 70;
+
+		// Where everything on the Profile page sits. Drawing and (later) click testing both use this, so they can never disagree.
+		private struct ProfileLayout
+		{
+			public Rectangle Body;
+			public Rectangle Portrait;
+			public Rectangle Plate;
+			public int StatsX;
+			public int StatsW;
+			public int RowH;
+			public int RankY;
+			public Point EndingsLabel;
+			public Point FavouritesLabel;
+			public Point BadgesLabel;
+			public Rectangle[] Endings;
+			public Rectangle[] Favourites;
+			public Rectangle[] Badges;
+		}
+
+		private static ProfileLayout MeasureProfile(Rectangle a)
+		{
+			var l = new ProfileLayout();
+			var c = new Rectangle(a.X, a.Y + 66, a.Width, Math.Max(0, a.Height - 66));
+			l.Body = c;
+
+			int portraitW = Math.Min(210, c.Width / 2 - 10);
+			l.Portrait = new Rectangle(c.X, c.Y, portraitW, Math.Min(260, c.Height - 48));
+			l.Plate = new Rectangle(l.Portrait.X, l.Portrait.Bottom + 10, l.Portrait.Width, 30);
+			l.StatsX = l.Portrait.Right + 26;
+			l.StatsW = c.Right - l.StatsX;
+
+			// The stat rows shrink a little on a short screen so the sections below still fit.
+			l.RowH = Math.Max(24, Math.Min(32, (c.Height - 30 - 10 - 54 - SectionRowH) / StatRows));
+			l.RankY = c.Y + 30 + StatRows * l.RowH + 10;
+
+			// Endings, favourite plugins and badges sit side by side, and wrap onto a second line when the screen is narrow.
+			int[] widths = { 5 * SlotStep - 8, 3 * FavStep - 8, 5 * SlotStep - 8 };
+			var origins = new Point[3];
+			int x = l.StatsX;
+			int y = l.RankY + 54;
+			for (int i = 0; i < 3; i++)
+			{
+				if (i > 0 && x + widths[i] > c.Right)
+				{
+					x = l.StatsX;
+					y += SectionRowH;
+				}
+
+				origins[i] = new Point(x, y);
+				x += widths[i] + SectionGap;
+			}
+
+			l.EndingsLabel = origins[0];
+			l.FavouritesLabel = origins[1];
+			l.BadgesLabel = origins[2];
+
+			l.Endings = new Rectangle[5];
+			l.Badges = new Rectangle[5];
+			for (int i = 0; i < 5; i++)
+			{
+				l.Endings[i] = new Rectangle(origins[0].X + i * SlotStep, origins[0].Y + 24, SlotSize, SlotSize);
+				l.Badges[i] = new Rectangle(origins[2].X + i * SlotStep, origins[2].Y + 24, SlotSize, SlotSize);
+			}
+
+			l.Favourites = new Rectangle[3];
+			for (int i = 0; i < 3; i++)
+				l.Favourites[i] = new Rectangle(origins[1].X + i * FavStep, origins[1].Y + 24, FavW, FavH);
+
+			return l;
+		}
+
+		// The plugin pinned in this slot, or null when the slot is empty, or the plugin is no longer one this character has collected
+		// (for example after the Archive reset), or no longer exists.
+		private static Augment PinnedPlugin(ProfileStore.CharacterRecord rec, int slot)
+		{
+			if (rec?.Favourites == null || slot >= rec.Favourites.Count)
+				return null;
+
+			string id = rec.Favourites[slot];
+			if (string.IsNullOrEmpty(id) || rec.EverOwned == null || !rec.EverOwned.Contains(id))
+				return null;
+
+			return AugmentDatabase.GetById(id);
+		}
+
+		private static string FitText(string text, float scale, float tracking, float maxWidth)
+		{
+			while (text.Length > 3 && HubDraw.Width(text, scale, tracking) > maxWidth)
+				text = text.Substring(0, text.Length - 1);
+			return text;
+		}
+
 		private static void UnitRecord(SpriteBatch sb, Rectangle a)
 		{
 			Rectangle c = PageHeader(sb, a, "03", "PROFILE", "YOUR SERVICE FILE");
-			int portraitW = Math.Min(210, c.Width / 2 - 10);
-			var portrait = new Rectangle(c.X, c.Y, portraitW, Math.Min(260, c.Height - 48));
+			ProfileLayout l = MeasureProfile(a);
+			Rectangle portrait = l.Portrait;
+
 			Box(sb, portrait);
 			HubDraw.Corners(sb, portrait, F(HubTheme.Accent), 12, 2);
 			HubDraw.HLine(sb, portrait.X + 14, portrait.Center.Y - 14, portrait.Width - 28, F(HubTheme.LineSoft));
 			HubDraw.VLine(sb, portrait.Center.X, portrait.Y + 14, portrait.Height - 56, F(HubTheme.LineSoft));
-			HubDraw.Diamond(sb, new Vector2(portrait.Center.X, portrait.Center.Y - 14), 34f, F(HubTheme.Line) * 0.6f);
-			// Real numbers from the saved profile (the last character you played) when there is one.
+
+			// Real numbers from the saved profile (the character picked with the arrows) when there is one.
 			ProfileStore.CharacterRecord rec = ProfileStore.Selected;
+
+			// The real character, drawn on top of the crosshair. Not while the page is flickering in (the renderer ignores the fade),
+			// and the plain diamond stays as the fallback.
+			bool drewCharacter = rec != null && Fade >= 1f && ProfilePortrait.Draw(sb, portrait, rec.Name);
+			if (!drewCharacter)
+				HubDraw.Diamond(sb, new Vector2(portrait.Center.X, portrait.Center.Y - 14), 34f, F(HubTheme.Line) * 0.6f);
+
 			CenteredText(sb, rec != null ? "UNIT ONLINE" : "NO SIGNAL", new Rectangle(portrait.X, portrait.Bottom - 34, portrait.Width, 26), F(HubTheme.Dim), 0.7f, 2f);
 
-			var plate = new Rectangle(portrait.X, portrait.Bottom + 10, portrait.Width, 30);
+			Rectangle plate = l.Plate;
 			HubDraw.Fill(sb, plate, F(HubTheme.Accent));
 			string plateText = rec != null ? rec.Name.ToUpperInvariant() : "UNIT  ----";
 			while (plateText.Length > 3 && HubDraw.Width(plateText, 0.78f, 2f) > plate.Width - 24)
@@ -264,10 +372,10 @@ namespace Augments
 			}
 
 			// Stats.
-			int sx = portrait.Right + 26;
-			int sw = c.Right - sx;
+			int sx = l.StatsX;
+			int sw = l.StatsW;
 			SectionLabel(sb, "SERVICE DATA", sx, c.Y);
-			string[] labels = { "RANK", "MACHINE CORES", "BOSSES DEFEATED", "PLUGINS COLLECTED", "BEST DPS" };
+			string[] labels = { "RANK", "MACHINE CORES", "DATA FRAGMENTS", "BOSSES DEFEATED", "PLUGINS COLLECTED", "BEST DPS" };
 			int totalPlugins = 0;
 			try
 			{
@@ -281,32 +389,77 @@ namespace Augments
 			{
 			}
 
+			// Machine Cores belong to the character, Data Fragments to the account, so the fragments show even before a character exists.
+			string fragments = AccountStore.Balance.ToString("N0");
 			string[] values = rec == null
-				? new[] { "--", "--", "--", "--", "--" }
-				: new[] { rec.Rank.ToString(), rec.MachineCores.ToString(), rec.BossesDefeated.ToString(), rec.Collected + " / " + totalPlugins, "--" };
+				? new[] { "--", "--", fragments, "--", "--", "--" }
+				: new[] { rec.Rank.ToString(), rec.MachineCores.ToString("N0"), fragments, rec.BossesDefeated.ToString(), rec.Collected + " / " + totalPlugins, rec.BestDps > 0 ? rec.BestDps.ToString("N0") : "--" };
 			for (int i = 0; i < labels.Length; i++)
 			{
-				int ry = c.Y + 30 + i * 32;
+				int ry = c.Y + 30 + i * l.RowH;
 				HubDraw.Text(sb, labels[i], new Vector2(sx, ry), F(HubTheme.Text), 0.78f, 1.5f);
 				float lw = HubDraw.Width(labels[i], 0.78f, 1.5f);
-				HubDraw.DottedH(sb, sx + (int)lw + 10, ry + 13, Math.Max(0, sw - (int)lw - 10 - 46), F(HubTheme.Line));
+				float vw = HubDraw.Width(values[i], 0.78f, 1f);
+				HubDraw.DottedH(sb, sx + (int)lw + 10, ry + 13, Math.Max(0, sw - (int)lw - 10 - (int)vw - 16), F(HubTheme.Line));
 				HubDraw.TextRight(sb, values[i], c.Right, ry, F(HubTheme.Text), 0.78f, 1f);
 			}
 
-			int by = c.Y + 30 + labels.Length * 32 + 10;
-			HubDraw.Text(sb, "NEXT RANK", new Vector2(sx, by), F(HubTheme.Dim), 0.66f, 2f);
+			// The rank bar says how far it is: "24 / 50" points into the current rank.
+			int by = l.RankY;
+			HubDraw.Text(sb, rec != null ? "NEXT RANK  " + (rec.Rank + 1).ToString("00") : "NEXT RANK", new Vector2(sx, by), F(HubTheme.Dim), 0.66f, 2f);
+			if (rec != null)
+				HubDraw.TextRight(sb, rec.PointsIntoRank + " / " + ProfileStore.CharacterRecord.PointsPerRank, c.Right, by, F(HubTheme.Dim), 0.66f, 2f);
 			Bar(sb, new Rectangle(sx, by + 20, sw, 14), rec != null ? rec.RankProgress : 0.35f);
 
 			// Endings A to E.
-			int ey = by + 54;
-			SectionLabel(sb, "ENDINGS", sx, ey);
+			SectionLabel(sb, "ENDINGS", l.EndingsLabel.X, l.EndingsLabel.Y);
 			string letters = "ABCDE";
 			for (int i = 0; i < 5; i++)
 			{
-				var box = new Rectangle(sx + i * 44, ey + 24, 36, 36);
-				Box(sb, box);
-				HubDraw.Stripes(sb, box, F(HubTheme.Line) * 0.5f, 5);
-				CenteredText(sb, letters[i].ToString(), box, F(HubTheme.Dim), 0.8f);
+				Box(sb, l.Endings[i]);
+				HubDraw.Stripes(sb, l.Endings[i], F(HubTheme.Line) * 0.5f, 5);
+				CenteredText(sb, letters[i].ToString(), l.Endings[i], F(HubTheme.Dim), 0.8f);
+			}
+
+			// Favourite plugins: up to three the player pinned.
+			SectionLabel(sb, "FAVOURITE PLUGINS", l.FavouritesLabel.X, l.FavouritesLabel.Y);
+			for (int i = 0; i < 3; i++)
+			{
+				Rectangle slot = l.Favourites[i];
+				Box(sb, slot);
+				Augment pinned = PinnedPlugin(rec, i);
+				if (pinned == null)
+				{
+					HubDraw.Stripes(sb, slot, F(HubTheme.Line) * 0.35f, 5);
+					CenteredText(sb, "EMPTY", slot, F(HubTheme.Dim), 0.56f, 1.5f);
+					continue;
+				}
+
+				Color tier = RarityLook.Of(pinned.Rarity);
+				HubDraw.Fill(sb, new Rectangle(slot.X + 1, slot.Y + 1, 4, slot.Height - 2), F(tier));
+				string name = PatchNotesData.Clean(HomeSlide.Clean(pinned.DisplayName)).ToUpperInvariant();
+				name = FitText(name, 0.56f, 1f, slot.Width - 18);
+				HubDraw.Text(sb, name, new Vector2(slot.X + 12, slot.Y + (slot.Height - HubDraw.LineHeight(0.56f)) / 2f), F(HubTheme.Text), 0.56f, 1f);
+			}
+
+			// Badges: the emblems this account has earned or bought. The one you wear on the title screen has the bright frame.
+			SectionLabel(sb, "BADGES", l.BadgesLabel.X, l.BadgesLabel.Y);
+			string worn = Cosmetic.EquippedEmblem;
+			for (int i = 0; i < Cosmetic.Emblems.Length && i < l.Badges.Length; i++)
+			{
+				string id = Cosmetic.Emblems[i][0];
+				Rectangle slot = l.Badges[i];
+				bool owned = AccountStore.IsUnlocked("emblem:" + id);
+				Box(sb, slot, owned && id == worn);
+				if (owned)
+				{
+					OperationArt.Emblem(sb, id, new Rectangle(slot.X + 5, slot.Y + 5, slot.Width - 10, slot.Height - 10), F(HubTheme.Accent));
+				}
+				else
+				{
+					HubDraw.Stripes(sb, slot, F(HubTheme.Line) * 0.5f, 5);
+					CenteredText(sb, "?", slot, F(HubTheme.Dim), 0.8f);
+				}
 			}
 		}
 
