@@ -24,7 +24,7 @@ namespace Augments
 		private static float previewScale;
 
 		// The preview element is a square this big (in UI units); the character is drawn in the middle of it.
-		private const int PreviewSize = 100;
+		private const int PreviewSize = 120;
 
 		private static Player Find(string name)
 		{
@@ -79,8 +79,9 @@ namespace Augments
 			bool oldActive = p.active;
 			try
 			{
-				// Twice the normal size when the box is tall enough. (A bigger size drew nothing in testing, so this stays at the size that works.)
-				float scale = box.Height >= 200 ? 2f : 1f;
+				// Three times the normal size when the box is tall enough, twice on a shorter one. (Calling the renderer directly at 2.8 drew nothing in
+				// testing, so if 3 ever shows nothing, go back to 2, which is known to work.)
+				float scale = box.Height >= 240 ? 3f : (box.Height >= 200 ? 2f : 1f);
 				if (preview == null || !ReferenceEquals(previewFor, p) || previewScale != scale)
 				{
 					preview = new UICharacter(p, false, false, scale, false);
