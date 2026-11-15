@@ -77,6 +77,72 @@ namespace Augments
 			HubDraw.Border(sb, r, F(selected ? HubTheme.Accent : HubTheme.LineSoft), selected ? 2 : 1);
 		}
 
+		// The badge icons: plain one-colour pixel shapes on an 11 by 11 grid, so they stay crisp at any size. ('#' = filled.)
+		private static string[] BadgeShape(string id)
+		{
+			switch (id)
+			{
+				case "cross":
+					return new[]
+					{
+						"...#####...", "...#####...", "...#####...", "###########", "###########", "###########",
+						"###########", "###########", "...#####...", "...#####...", "...#####..."
+					};
+				case "hexagon":
+					return new[]
+					{
+						"...#####...", "..#######..", ".#########.", "###########", "####...####", "####...####",
+						"####...####", "###########", ".#########.", "..#######..", "...#####..."
+					};
+				case "star":
+					return new[]
+					{
+						".....#.....", "....###....", "....###....", "###########", ".#########.", "..#######..",
+						"..#######..", ".####.####.", ".###...###.", ".##.....##.", ".#.......#."
+					};
+				case "crown":
+					return new[]
+					{
+						"...........", "#....#....#", "##...#...##", "###.###.###", "###########", "###########",
+						"###########", "...........", "###########", "###########", "..........."
+					};
+				default: // diamond
+					return new[]
+					{
+						".....#.....", "....###....", "...#####...", "..#######..", ".#########.", "###########",
+						".#########.", "..#######..", "...#####...", "....###....", ".....#....."
+					};
+			}
+		}
+
+		private static void BadgeGlyph(SpriteBatch sb, string id, Rectangle box, Color c)
+		{
+			string[] rows = BadgeShape(id);
+			int cell = Math.Max(1, Math.Min(box.Width, box.Height) / rows.Length);
+			int size = cell * rows.Length;
+			int ox = box.X + (box.Width - size) / 2;
+			int oy = box.Y + (box.Height - size) / 2;
+
+			for (int y = 0; y < rows.Length; y++)
+			{
+				int x = 0;
+				while (x < rows[y].Length)
+				{
+					if (rows[y][x] != '#')
+					{
+						x++;
+						continue;
+					}
+
+					// One rectangle per run of filled cells, so neighbouring cells never leave seams.
+					int start = x;
+					while (x < rows[y].Length && rows[y][x] == '#')
+						x++;
+					HubDraw.Fill(sb, new Rectangle(ox + start * cell, oy + y * cell, (x - start) * cell, cell), c);
+				}
+			}
+		}
+
 		// A thin dashed outline, for things that are not unlocked yet.
 		private static void DashedBorder(SpriteBatch sb, Rectangle r, Color c)
 		{
@@ -475,14 +541,14 @@ namespace Augments
 				Rectangle slot = l.Badges[i];
 				bool owned = AccountStore.IsUnlocked("emblem:" + id);
 				bool isWorn = owned && id == worn;
-				var art = new Rectangle(slot.X + 9, slot.Y + 9, slot.Width - 18, slot.Height - 18);
+				var art = new Rectangle(slot.X + 6, slot.Y + 6, slot.Width - 12, slot.Height - 12);
 				string caption;
 				Color captionColor;
 
 				if (isWorn)
 				{
 					HubDraw.Fill(sb, slot, F(HubTheme.Accent));
-					OperationArt.Emblem(sb, id, art, F(HubTheme.OnAccent));
+					BadgeGlyph(sb, id, art, F(HubTheme.OnAccent));
 					caption = "WORN";
 					captionColor = HubTheme.Warn;
 				}
@@ -490,14 +556,14 @@ namespace Augments
 				{
 					HubDraw.Fill(sb, slot, F(HubTheme.PanelAlt));
 					HubDraw.Border(sb, slot, F(HubTheme.LineSoft));
-					OperationArt.Emblem(sb, id, art, F(HubTheme.Accent));
+					BadgeGlyph(sb, id, art, F(HubTheme.Accent));
 					caption = Cosmetic.Emblems[i][1];
 					captionColor = HubTheme.Text;
 				}
 				else
 				{
 					DashedBorder(sb, slot, F(HubTheme.Line));
-					OperationArt.Emblem(sb, id, art, F(HubTheme.Line) * 0.45f);
+					BadgeGlyph(sb, id, art, F(HubTheme.Line) * 0.6f);
 					caption = "LOCKED";
 					captionColor = HubTheme.Dim;
 				}
