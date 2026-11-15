@@ -230,7 +230,7 @@ namespace Augments
 
 		// ------------------------------------------------------------------ 03 unit record
 
-		private const int StatRows = 6;
+		private const int StatRows = 5;
 		private const int SlotSize = 36;
 		private const int SlotStep = 44;
 		private const int FavW = 112;
@@ -378,7 +378,7 @@ namespace Augments
 			int sx = l.StatsX;
 			int sw = l.StatsW;
 			SectionLabel(sb, "SERVICE DATA", sx, c.Y);
-			string[] labels = { "RANK", "MACHINE CORES", "DATA FRAGMENTS", "BOSSES DEFEATED", "PLUGINS COLLECTED", "BEST DPS" };
+			string[] labels = { "RANK", "DATA FRAGMENTS", "BOSSES DEFEATED", "PLUGINS COLLECTED", "BEST DPS" };
 			int totalPlugins = 0;
 			try
 			{
@@ -392,11 +392,11 @@ namespace Augments
 			{
 			}
 
-			// Machine Cores belong to the character, Data Fragments to the account, so the fragments show even before a character exists.
+			// Data Fragments belong to the account, so they show even before a character exists.
 			string fragments = AccountStore.Balance.ToString("N0");
 			string[] values = rec == null
-				? new[] { "--", "--", fragments, "--", "--", "--" }
-				: new[] { rec.Rank.ToString(), rec.MachineCores.ToString("N0"), fragments, rec.BossesDefeated.ToString(), rec.Collected + " / " + totalPlugins, rec.BestDps > 0 ? rec.BestDps.ToString("N0") : "--" };
+				? new[] { "--", fragments, "--", "--", "--" }
+				: new[] { rec.Rank.ToString(), fragments, rec.BossesDefeated.ToString(), rec.Collected + " / " + totalPlugins, rec.BestDps > 0 ? rec.BestDps.ToString("N0") : "--" };
 			for (int i = 0; i < labels.Length; i++)
 			{
 				int ry = c.Y + 30 + i * l.RowH;
