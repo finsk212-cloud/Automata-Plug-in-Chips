@@ -13,6 +13,7 @@ namespace Augments
 	internal static class ProfilePortrait
 	{
 		private static bool failed;
+		private static bool triedLoading;
 
 		// A bare character is about 56 pixels tall once its sprite is drawn.
 		private const float SpriteHeight = 56f;
@@ -24,6 +25,21 @@ namespace Augments
 
 			if (Main.gameMenu)
 			{
+				// The game fills this list only when the Select Player screen is opened. If nobody has opened it yet, load it once here
+				// (the same call the Select Player screen makes), so the character is there without a visit to that screen.
+				if ((Main.PlayerList == null || Main.PlayerList.Count == 0) && !triedLoading)
+				{
+					triedLoading = true;
+					try
+					{
+						Main.LoadPlayers();
+					}
+					catch (Exception e)
+					{
+						Terraria.ModLoader.ModContent.GetInstance<Augments>().Logger.Warn("The Profile page could not load the character list: " + e.Message);
+					}
+				}
+
 				var list = Main.PlayerList;
 				if (list == null)
 					return null;
