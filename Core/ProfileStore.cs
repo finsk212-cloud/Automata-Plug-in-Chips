@@ -120,6 +120,13 @@ namespace Augments
 			selectedName = All[index].Name;
 		}
 
+		// Shows this character (picked from the list on the Profile page).
+		public static void Select(CharacterRecord rec)
+		{
+			if (rec != null)
+				selectedName = rec.Name;
+		}
+
 		public static void Load()
 		{
 			ordered = null;

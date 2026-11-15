@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
@@ -760,10 +760,11 @@ namespace Augments
 				{
 					CharacterSwitcher.Draw(sb, CharacterSwitcher.RectFor(r), Main.MouseScreen.ToPoint());
 					ProfilePicker.Draw(sb, HubPages.ProfileFavouriteSlots(inner), profile, r, Main.MouseScreen.ToPoint());
+						CharacterSwitcher.DrawList(sb, CharacterSwitcher.RectFor(r), Main.MouseScreen.ToPoint());
 				}
 				else
 				{
-					ProfilePicker.Close();
+					ProfilePicker.Close(); CharacterSwitcher.Close();
 				}
 			}
 
@@ -807,7 +808,7 @@ namespace Augments
 			{
 				base.ScrollWheel(evt);
 				if (state.Section == HomeSection.Profile)
-					ProfilePicker.Wheel(evt.ScrollWheelValue);
+					{ CharacterSwitcher.Wheel(evt.ScrollWheelValue); ProfilePicker.Wheel(evt.ScrollWheelValue); }
 			}
 		}
 
