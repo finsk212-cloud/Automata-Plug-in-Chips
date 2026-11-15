@@ -139,18 +139,23 @@ namespace Augments
 				HubDraw.Text(sb, m.Description, new Vector2(card.X + 20, card.Y + 30), HubTheme.Dim, descScale);
 			}
 
-			// Progress bar and its numbers along the bottom.
-			var bar = new Rectangle(card.X + 20, card.Bottom - 20, card.Width - 40 - 96, 10);
+			// Progress bar and its numbers along the bottom. The numbers get the room they need so they stay readable; the bar takes the rest.
+			string numbers = Missions.Format(m, progress) + " / " + Missions.Format(m, m.Target);
+			float ns = 0.62f;
+			float nw = HubDraw.Width(numbers, ns, 1f);
+			float maxNumbers = card.Width - 40 - 90 - 14; // the bar is always at least 90 wide
+			if (nw > maxNumbers)
+			{
+				ns = Math.Max(0.5f, ns * maxNumbers / nw);
+				nw = HubDraw.Width(numbers, ns, 1f);
+			}
+
+			var bar = new Rectangle(card.X + 20, card.Bottom - 20, Math.Max(60, card.Width - 40 - (int)Math.Ceiling(nw) - 14), 10);
 			HubDraw.Border(sb, bar, HubTheme.Line);
 			int fill = (int)((bar.Width - 4) * MathHelper.Clamp(fraction, 0f, 1f));
 			HubDraw.Fill(sb, new Rectangle(bar.X + 2, bar.Y + 2, fill, bar.Height - 4), done ? HubTheme.Dim : HubTheme.Accent);
 
-			string numbers = Missions.Format(m, progress) + " / " + Missions.Format(m, m.Target);
-			float ns = 0.54f;
-			float nw = HubDraw.Width(numbers, ns, 1f);
-			if (nw > 90f)
-				ns *= 90f / nw;
-			HubDraw.TextRight(sb, numbers, card.Right - 14, card.Bottom - 22, HubTheme.Dim, ns, 1f);
+			HubDraw.TextRight(sb, numbers, card.Right - 14, bar.Y + (bar.Height - HubDraw.LineHeight(ns)) / 2f, HubTheme.Dim, ns, 1f);
 		}
 	}
 }
