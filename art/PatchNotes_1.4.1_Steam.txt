@@ -1,5 +1,5 @@
 [h1]AUTOMATA: PLUG-IN CHIPS  //  UPDATE 1.4.1[/h1]
-[i]A small update: new plugin card designs, a Phase Round fix for modded guns, a Queen's Swarm nerf, optional anonymous stats and a tidier Cosmetics page.[/i]
+[i]A small update: new plugin card designs, a Phase Round fix for modded guns, a Queen's Swarm nerf, optional anonymous stats, a tidier Cosmetics page and a better Profile page.[/i]
 
 [hr][/hr]
 
@@ -34,6 +34,22 @@ Queen's Swarm was doing far too much damage, so it is toned down. The base damag
 The first time you open the title screen, a pop-up asks if you want to share anonymous stats to help balance Plug-in Chips and improve the quality of the mod. SHARE and NO THANKS look the same, and nothing is sent unless you press SHARE.
 If you share, the mod sends the plugin, the weapon, the game stage, how much damage was dealt and how long the fight lasted. It never sends your name, Steam account, world name or IP address.
 You can change your choice any time in Mod Config, under Privacy Settings.
+
+[b]A BETTER PROFILE PAGE[/b]
+The Profile page on the title screen now shows more about your character.
+[list]
+[*]Your real character is drawn in the portrait box.
+[*][b]Best DPS[/b] is the highest damage per second you have reached, measured over 3 seconds. It is saved for each character and shows -- until you have one.
+[*]Your Data Fragments and your rank points, like 25 / 50 toward the next rank, are shown. The Machine Cores row is gone from this page.
+[*]You can pin up to [b]3 favourite plugins[/b]. Click a slot and pick one of the plugins that character has collected. Right click a slot to clear it.
+[*]With more than one character, click the name box at the top right to pick one from a list, or use the arrows.
+[/list]
+
+[b]CLEANER BADGES AND EMBLEMS[/b]
+The Badges row shows each emblem as a clean tile with its name, marked WORN, owned or LOCKED. The emblem icons are redrawn as simple solid shapes everywhere, including the Cosmetics page.
+
+[b]EASIER TO READ ORDERS[/b]
+The progress numbers on the Orders cards, like 3 h 01 min / 10 h 00 min, are bigger and easier to read.
 
 [hr][/hr]
 

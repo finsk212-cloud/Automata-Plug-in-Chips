@@ -1,6 +1,6 @@
 # Automata: Plug-in Chips 1.4.1
 
-A small update: a new way to customise your plugin cards, a fix for Phase Round with modded guns, a Queen's Swarm nerf, an optional way to share anonymous stats, and a tidier Cosmetics page.
+A small update: a new way to customise your plugin cards, a fix for Phase Round with modded guns, a Queen's Swarm nerf, an optional way to share anonymous stats, a tidier Cosmetics page, and a better Profile page.
 
 ## What's new
 
@@ -32,3 +32,17 @@ Queen's Swarm was doing far too much damage, so it is toned down. The base damag
 The first time you open the title screen, a pop-up asks if you want to share anonymous stats to help balance Plug-in Chips and improve the quality of the mod. SHARE and NO THANKS look the same, and nothing is sent unless you press SHARE.
 If you share, the mod sends the plugin, the weapon, the game stage, how much damage was dealt and how long the fight lasted. It never sends your name, Steam account, world name or IP address.
 You can change your choice any time in Mod Config, under Privacy Settings.
+
+**A better Profile page**
+The Profile page on the title screen now shows more about your character.
+- Your real character is drawn in the portrait box.
+- Best DPS is the highest damage per second you have reached, measured over 3 seconds. It is saved for each character and shows -- until you have one.
+- Your Data Fragments and your rank points, like 25 / 50 toward the next rank, are shown. The Machine Cores row is gone from this page.
+- You can pin up to 3 favourite plugins. Click a slot and pick one of the plugins that character has collected. Right click a slot to clear it.
+- With more than one character, click the name box at the top right to pick one from a list, or use the arrows.
+
+**Cleaner badges and emblems**
+The Badges row shows each emblem as a clean tile with its name, marked WORN, owned or LOCKED. The emblem icons are redrawn as simple solid shapes everywhere, including the Cosmetics page.
+
+**Easier to read Orders**
+The progress numbers on the Orders cards, like 3 h 01 min / 10 h 00 min, are bigger and easier to read.

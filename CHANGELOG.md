@@ -10,6 +10,9 @@
 - **Phase Round works with modded guns**: Phase Round now also works with guns and bows from other mods, such as the Calamity ranger weapons. Their shots fly through blocks, just like the vanilla ones.
 - **Queen's Swarm nerf**: It was doing far too much damage. The base damage of each bug goes from 18 to 15. The same enemy can only release a swarm again after 3 seconds, and you can only release one swarm every 1 second.
 - **Optional anonymous stats**: The first time you open the title screen, a pop-up asks if you want to share anonymous stats to help balance Plug-in Chips and improve the quality of the mod. Nothing is sent unless you press SHARE. If you share, the mod sends the plugin, the weapon, the game stage, how much damage was dealt and how long the fight lasted, and never your name, Steam account, world name or IP address. You can change this any time in Mod Config, under Privacy Settings.
+- **A better Profile page**: The Profile page on the title screen now draws your real character. It also shows your Best DPS (the highest damage per second you have reached over 3 seconds, saved for each character and shown as -- until you have one), your Data Fragments and how many points you have toward the next rank, like 25 / 50. The Machine Cores row is gone from this page. You can pin up to 3 favourite plugins: click a slot and pick one of the plugins that character has collected, and right click a slot to clear it. With more than one character, click the name box at the top right to pick one from a list, or use the arrows.
+- **Cleaner badges and emblems**: The Badges row shows each emblem as a clean tile with its name, marked WORN, owned or LOCKED. The emblem icons are redrawn as simple solid shapes everywhere, including the Cosmetics page.
+- **Easier to read Orders**: The progress numbers on the Orders cards, like 3 h 01 min / 10 h 00 min, are bigger and easier to read.
 
 ## Version 1.4.0
 
