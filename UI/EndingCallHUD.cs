@@ -1,0 +1,369 @@
+using System;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Terraria;
+using Terraria.Audio;
+using Terraria.ID;
+
+namespace Augments
+{
+	// The "Commander is calling" screen shown when an ending is earned: a small incoming call bar, then a panel that glitches open at the
+	// bottom middle of the screen, types out the Commander's words, and glitches away again.
+	//
+	// There is no render target here. The glitch is made from plain rectangles: the panel's background is drawn in horizontal bands that
+	// slide sideways, the title is drawn again in two off-colour copies (the colour split), a few bars of colour flash across it, and
+	// thin scanlines lie on top. All of it is re-rolled every other game tick, so it flickers instead of smearing.
+	public static class EndingCallHUD
+	{
+		private const float CallTime = 1.5f;      // the small "incoming" bar
+		private const float OpenTime = 0.6f;      // the panel glitching open
+		private const float HoldTail = 4.5f;      // how long the panel stays after the last letter has appeared
+		private const float CloseTime = 0.55f;    // the panel glitching away
+		private const float LettersPerSecond = 42f;
+		private const float TypeDelay = 0.2f;     // a short pause after the panel opens before the first letter
+
+		private struct Entry
+		{
+			public int Index;
+			public int Mask;
+		}
+
+		private static readonly Queue<Entry> waiting = new Queue<Entry>();
+		private static bool active;
+		private static Entry current;
+		private static float t;
+		private static int beeps;
+		private static bool openedSound;
+		private static bool closedSound;
+		private static int lastTickedAt;
+
+		// Called when an ending is earned. Several at once (the /end all command) are shown one after another.
+		public static void Show(int index, int earnedMaskAfter)
+		{
+			if (Main.dedServ || index < 0 || index >= Endings.All.Length)
+				return;
+
+			waiting.Enqueue(new Entry { Index = index, Mask = earnedMaskAfter });
+		}
+
+		private static float TypeTime(Endings.Def def) => def.Call.Length / LettersPerSecond;
+
+		private static float Total(Endings.Def def) => CallTime + OpenTime + TypeDelay + TypeTime(def) + HoldTail + CloseTime;
+
+		public static void Update(GameTime gameTime)
+		{
+			if (Main.dedServ || Main.gameMenu)
+				return;
+
+			float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+			if (!active)
+			{
+				if (waiting.Count == 0)
+					return;
+
+				current = waiting.Dequeue();
+				active = true;
+				t = 0f;
+				beeps = 0;
+				openedSound = false;
+				closedSound = false;
+				lastTickedAt = 0;
+			}
+
+			t += dt;
+			Endings.Def def = Endings.All[current.Index];
+
+			// Two soft call beeps while the incoming bar is up.
+			float[] beepAt = { 0.05f, 0.55f, 1.05f };
+			while (beeps < beepAt.Length && t >= beepAt[beeps])
+			{
+				SoundEngine.PlaySound(SoundID.MenuTick with { Pitch = 0.55f, Volume = 0.7f });
+				beeps++;
+			}
+
+			if (!openedSound && t >= CallTime)
+			{
+				openedSound = true;
+				SoundEngine.PlaySound(SoundID.MenuOpen with { Pitch = -0.35f, Volume = 0.8f });
+				SoundEngine.PlaySound(SoundID.Item35 with { Volume = 0.7f });
+			}
+
+			// A quiet tick while the letters appear.
+			int shown = RevealedLetters(def);
+			if (shown >= lastTickedAt + 3)
+			{
+				lastTickedAt = shown;
+				SoundEngine.PlaySound(SoundID.MenuTick with { Pitch = 0.7f, Volume = 0.18f });
+			}
+
+			float end = Total(def);
+			if (!closedSound && t >= end - CloseTime)
+			{
+				closedSound = true;
+				SoundEngine.PlaySound(SoundID.MenuClose with { Pitch = -0.3f, Volume = 0.7f });
+			}
+
+			if (t >= end)
+				active = false;
+		}
+
+		private static int RevealedLetters(Endings.Def def)
+		{
+			float since = t - (CallTime + OpenTime + TypeDelay);
+			return (int)MathHelper.Clamp(since * LettersPerSecond, 0f, def.Call.Length);
+		}
+
+		// A repeatable random number from 0 to 1, so the same frame always glitches the same way.
+		private static float Rnd(int a, int b = 0, int c = 0)
+		{
+			unchecked
+			{
+				uint x = (uint)(a * 73856093) ^ (uint)(b * 19349663) ^ (uint)(c * 83492791);
+				x ^= x >> 13;
+				x *= 0x5bd1e995;
+				x ^= x >> 15;
+				return (x & 0xFFFF) / 65535f;
+			}
+		}
+
+		public static void Draw(SpriteBatch sb)
+		{
+			if (!active || Main.dedServ || Main.gameMenu)
+				return;
+
+			Endings.Def def = Endings.All[current.Index];
+			float uiW = Main.screenWidth / Main.UIScale;
+			float uiH = Main.screenHeight / Main.UIScale;
+			int frame = (int)(Main.GameUpdateCount / 2);
+
+			int w = (int)Math.Min(580f, uiW - 40f);
+			const int h = 152;
+			var full = new Rectangle((int)((uiW - w) / 2f), (int)(uiH - h - 46f), w, h);
+
+			if (t < CallTime)
+			{
+				DrawCall(sb, full, frame);
+				return;
+			}
+
+			float end = Total(def);
+			float open = MathHelper.Clamp((t - CallTime) / OpenTime, 0f, 1f);
+			float close = MathHelper.Clamp((t - (end - CloseTime)) / CloseTime, 0f, 1f);
+
+			float glitch = 1f - open * 0.85f;
+			if (open >= 1f && close <= 0f)
+			{
+				// Now and then a short burst while the panel is just sitting there.
+				float scaled = t * 2.2f;
+				int bucket = (int)scaled;
+				glitch = (Rnd(bucket, current.Index, 7) < 0.2f && scaled - bucket < 0.3f) ? 0.5f : 0f;
+			}
+			if (close > 0f)
+				glitch = 0.3f + 0.7f * close;
+
+			float alpha = 1f;
+			if (glitch > 0f && Rnd(frame, 11) < glitch * 0.45f)
+				alpha = 0.35f;
+			if (close > 0f)
+				alpha *= 1f - close * close;
+
+			// The panel turns on like a screen: a thin line that grows into the full panel, and shrinks back when it leaves.
+			float grow = open < 1f ? MathHelper.Clamp(open * 1.35f + (Rnd(frame, 3) - 0.5f) * 0.4f * (1f - open), 0.04f, 1f) : 1f;
+			if (close > 0f)
+				grow = MathHelper.Lerp(1f, 0.06f, close * close);
+
+			int panelH = Math.Max(4, (int)(h * grow));
+			var rect = new Rectangle(full.X, full.Bottom - panelH, full.Width, panelH);
+
+			DrawGlitchBackground(sb, rect, HubTheme.Panel, HubTheme.Line, glitch, frame, alpha);
+
+			if (grow >= 0.92f)
+			{
+				// Colour split: the title and letter are drawn twice more in off colours, pushed apart.
+				if (glitch > 0.25f)
+				{
+					int split = (int)Math.Round(2f + glitch * 5f);
+					DrawHeadline(sb, rect, def, new Color(172, 78, 48), alpha * 0.55f, new Point(-split, 0));
+					DrawHeadline(sb, rect, def, new Color(70, 150, 150), alpha * 0.55f, new Point(split, 0));
+				}
+
+				int jitter = (glitch > 0.3f && Rnd(frame, 5) < glitch) ? (int)((Rnd(frame, 6) - 0.5f) * 14f * glitch) : 0;
+				DrawHeader(sb, rect, def, alpha, jitter);
+				DrawHeadline(sb, rect, def, null, alpha, new Point(jitter, 0));
+				DrawBody(sb, rect, def, alpha, jitter);
+			}
+
+			DrawGlitchOverlay(sb, rect, glitch, frame, alpha);
+		}
+
+		// The small "incoming" bar before the panel.
+		private static void DrawCall(SpriteBatch sb, Rectangle full, int frame)
+		{
+			float slide = MathHelper.Clamp(t / 0.25f, 0f, 1f);
+			int w = (int)(300f * slide);
+			const int h = 30;
+			var bar = new Rectangle(full.Center.X - w / 2, full.Bottom - h, w, h);
+			float glitch = t < 0.3f ? 0.9f - t * 2f : (Rnd((int)(t * 6f), 21) < 0.12f ? 0.5f : 0f);
+			float alpha = (glitch > 0f && Rnd(frame, 12) < glitch * 0.4f) ? 0.4f : 1f;
+
+			DrawGlitchBackground(sb, bar, HubTheme.Panel, HubTheme.Line, glitch, frame, alpha);
+
+			if (slide >= 1f)
+			{
+				// Signal bars that rise and fall, then the text, blinking.
+				for (int i = 0; i < 4; i++)
+				{
+					float level = 0.3f + 0.7f * (0.5f + 0.5f * (float)Math.Sin(t * 9f + i * 1.3f));
+					int bh = (int)((4 + i * 3) * level) + 2;
+					HubDraw.Fill(sb, new Rectangle(bar.X + 10 + i * 6, bar.Bottom - 7 - bh, 4, bh), HubTheme.Accent * alpha);
+				}
+
+				bool lit = ((int)(t * 4f)) % 2 == 0;
+				HubDraw.Text(sb, "INCOMING TRANSMISSION", new Vector2(bar.X + 42, bar.Y + 8), HubTheme.Text * alpha, 0.62f, 2f);
+				HubDraw.TextRight(sb, "CMDR", bar.Right - 12, bar.Y + 8, (lit ? HubTheme.Warn : HubTheme.Dim) * alpha, 0.62f, 2f);
+			}
+
+			DrawGlitchOverlay(sb, bar, glitch, frame, alpha);
+		}
+
+		// The panel background drawn in bands that slide sideways while it glitches.
+		private static void DrawGlitchBackground(SpriteBatch sb, Rectangle r, Color fill, Color line, float glitch, int frame, float alpha)
+		{
+			const int band = 6;
+			int bands = (r.Height + band - 1) / band;
+			int firstDx = 0;
+			int lastDx = 0;
+
+			for (int b = 0; b < bands; b++)
+			{
+				int y = r.Y + b * band;
+				int bh = Math.Min(band, r.Bottom - y);
+				int dx = 0;
+				if (glitch > 0f && Rnd(frame, b, 1) < glitch * 0.5f)
+					dx = (int)((Rnd(frame, b, 2) - 0.5f) * 70f * glitch);
+
+				if (b == 0)
+					firstDx = dx;
+				if (b == bands - 1)
+					lastDx = dx;
+
+				HubDraw.Fill(sb, new Rectangle(r.X + dx, y, r.Width, bh), fill * alpha);
+				HubDraw.Fill(sb, new Rectangle(r.X + dx, y, 2, bh), line * alpha);
+				HubDraw.Fill(sb, new Rectangle(r.Right - 2 + dx, y, 2, bh), line * alpha);
+			}
+
+			HubDraw.Fill(sb, new Rectangle(r.X + firstDx, r.Y, r.Width, 2), line * alpha);
+			HubDraw.Fill(sb, new Rectangle(r.X + lastDx, r.Bottom - 2, r.Width, 2), line * alpha);
+
+			if (r.Height > 40)
+				HubDraw.Corners(sb, new Rectangle(r.X - 3, r.Y - 3, r.Width + 6, r.Height + 6), HubTheme.Accent * alpha, 12, 2);
+		}
+
+		// Flashing colour bars across the panel, then fine scanlines on top.
+		private static void DrawGlitchOverlay(SpriteBatch sb, Rectangle r, float glitch, int frame, float alpha)
+		{
+			if (glitch > 0.2f)
+			{
+				for (int i = 0; i < 4; i++)
+				{
+					if (Rnd(frame, i, 9) >= glitch)
+						continue;
+
+					int bw = 30 + (int)(Rnd(frame, i, 10) * 170f);
+					int bh = 2 + (int)(Rnd(frame, i, 13) * 7f);
+					int bx = r.X + (int)(Rnd(frame, i, 14) * Math.Max(1, r.Width - bw));
+					int by = r.Y + (int)(Rnd(frame, i, 15) * Math.Max(1, r.Height - bh));
+					Color c = Rnd(frame, i, 16) > 0.5f ? HubTheme.Warn : HubTheme.Accent;
+					HubDraw.Fill(sb, new Rectangle(bx, by, bw, bh), c * (0.6f * alpha));
+				}
+			}
+
+			for (int y = r.Y + 1; y < r.Bottom; y += 3)
+				HubDraw.Fill(sb, new Rectangle(r.X + 2, y, Math.Max(0, r.Width - 4), 1), Color.Black * (0.07f * alpha));
+		}
+
+		private static void DrawHeader(SpriteBatch sb, Rectangle r, Endings.Def def, float alpha, int dx)
+		{
+			var bar = new Rectangle(r.X + 2 + dx, r.Y + 2, r.Width - 4, 18);
+			HubDraw.Fill(sb, bar, HubTheme.Accent * alpha);
+			HubDraw.Text(sb, "INCOMING TRANSMISSION", new Vector2(bar.X + 10, bar.Y + 3), HubTheme.OnAccent * alpha, 0.56f, 3f);
+
+			int count = 0;
+			for (int i = 0; i < Endings.All.Length; i++)
+			{
+				if (Endings.Has(current.Mask, i))
+					count++;
+			}
+
+			HubDraw.TextRight(sb, "FROM COMMANDER  /  ENDING " + count + " OF " + Endings.All.Length, bar.Right - 10, bar.Y + 3, HubTheme.OnAccent * alpha, 0.56f, 2f);
+		}
+
+		// The big letter tile, the CHALLENGE COMPLETE line and the name. Drawn on its own so the colour split can repeat it.
+		private static void DrawHeadline(SpriteBatch sb, Rectangle r, Endings.Def def, Color? tint, float alpha, Point off)
+		{
+			int x = r.X + 16 + off.X;
+			int y = r.Y + 30 + off.Y;
+
+			var tile = new Rectangle(x, y, 66, 66);
+			HubDraw.Fill(sb, tile, (tint ?? HubTheme.Accent) * alpha);
+
+			string letter = def.Letter.ToString();
+			float letterScale = HubDraw.BigScale(38f);
+			float lw = HubDraw.BigWidth(letter, letterScale);
+			HubDraw.BigText(sb, letter, new Vector2(tile.Center.X - lw / 2f, tile.Y + 12), (tint.HasValue ? Color.White : HubTheme.OnAccent) * alpha, letterScale);
+
+			int tx = tile.Right + 16;
+			HubDraw.Text(sb, "CHALLENGE COMPLETE", new Vector2(tx, y - 1), (tint ?? HubTheme.Warn) * alpha, 0.56f, 3f);
+			HubDraw.BigText(sb, def.Name, new Vector2(tx, y + 14), (tint ?? HubTheme.Text) * alpha, HubDraw.BigScale(26f), 2f);
+		}
+
+		// The Commander's words (typed out) and the row of five ending squares.
+		private static void DrawBody(SpriteBatch sb, Rectangle r, Endings.Def def, float alpha, int dx)
+		{
+			int tx = r.X + 16 + 66 + 16 + dx;
+			int maxW = r.Right - 16 - tx;
+			float scale = 0.6f;
+			float lineStep = HubDraw.LineHeight(scale) + 3f;
+
+			HubDraw.HLine(sb, tx, r.Y + 78, maxW, HubTheme.LineSoft * alpha);
+
+			List<string> lines = HubDraw.Wrap(def.Call, maxW, scale);
+			int remaining = RevealedLetters(def);
+			float ly = r.Y + 85;
+			foreach (string line in lines)
+			{
+				if (remaining <= 0)
+					break;
+
+				string shown = remaining >= line.Length ? line : line.Substring(0, remaining);
+				remaining -= line.Length + 1;
+				HubDraw.Text(sb, shown, new Vector2(tx, ly), HubTheme.Text * alpha, scale);
+				ly += lineStep;
+			}
+
+			// A blinking cursor while the line is still being typed.
+			if (RevealedLetters(def) < def.Call.Length && ((int)(t * 6f)) % 2 == 0)
+				HubDraw.Fill(sb, new Rectangle(tx + maxW - 6, r.Y + 85, 6, 9), HubTheme.Accent * alpha);
+
+			// The five endings: earned ones are filled, this one is rust coloured.
+			int px = r.X + 16 + dx;
+			int py = r.Bottom - 22;
+			HubDraw.Text(sb, "ENDINGS", new Vector2(px, py + 1), HubTheme.Dim * alpha, 0.5f, 2f);
+			int sx = px + 58;
+			for (int i = 0; i < Endings.All.Length; i++)
+			{
+				var sq = new Rectangle(sx + i * 16, py + 1, 10, 10);
+				if (i == current.Index)
+					HubDraw.Fill(sb, sq, HubTheme.Warn * alpha);
+				else if (Endings.Has(current.Mask, i))
+					HubDraw.Fill(sb, sq, HubTheme.Accent * alpha);
+				else
+					HubDraw.Border(sb, sq, HubTheme.Line * alpha);
+			}
+
+			HubDraw.TextRight(sb, "- COMMANDER", r.Right - 16, py + 1, HubTheme.Dim * alpha, 0.5f, 2f);
+		}
+	}
+}

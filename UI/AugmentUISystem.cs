@@ -110,6 +110,7 @@ namespace Augments
 			AugmentFamilyHUD.Update(gameTime);
 			AugmentPinnedHUD.Update(gameTime);
 			AugmentAdvisoryHUD.Update(gameTime);
+			EndingCallHUD.Update(gameTime);
 			AugmentHiddenStatsDrawer.Update(gameTime);
 
 			if (IsPlayerInputBlocked())
@@ -288,6 +289,17 @@ namespace Augments
 				{
 					if (lastUpdateUiGameTime != null && listInterface?.CurrentState != null)
 						listInterface.Draw(Main.spriteBatch, lastUpdateUiGameTime);
+					return true;
+				},
+				InterfaceScaleType.UI)
+			);
+
+			// The Commander's call for an earned ending. Inserted before the tips, so it is drawn on top of them.
+			layers.Insert(mouseTextIndex, new LegacyGameInterfaceLayer(
+				"Augments: Ending Call",
+				delegate
+				{
+					EndingCallHUD.Draw(Main.spriteBatch);
 					return true;
 				},
 				InterfaceScaleType.UI)

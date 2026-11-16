@@ -22,17 +22,19 @@ namespace Augments
 			public string Name;
 			public string Riddle;
 			public string Transmission;
+			// What the Commander says on the call screen when the ending is earned (see EndingCallHUD).
+			public string Call;
 			// The weakest boss that counts (see BossCounts). Keeps an early boss from giving a hard ending by accident.
 			public RarityBracket MinBracket;
 		}
 
 		public static readonly Def[] All =
 		{
-			new Def { Letter = 'A', Name = "UNTOUCHED", Riddle = "Not a scratch.", Transmission = "Unit 042 faced it alone and came back whole. Not one hit landed.", MinBracket = RarityBracket.PreHardmode },
-			new Def { Letter = 'B', Name = "PLAINEST", Riddle = "The plainest plugins win the proudest.", Transmission = "No rare parts and no shine. Command had never seen a win this plain.", MinBracket = RarityBracket.EarlyHardmode },
-			new Def { Letter = 'C', Name = "EMPTY CHASSIS", Riddle = "Win with nothing installed.", Transmission = "No plugins at all. Just the frame, and it was enough.", MinBracket = RarityBracket.EarlyHardmode },
-			new Def { Letter = 'D', Name = "NO SAFETY NET", Riddle = "Pain is the only medicine.", Transmission = "No repairs and no remedy. The unit endured to the end.", MinBracket = RarityBracket.EarlyHardmode },
-			new Def { Letter = 'E', Name = "TRUE ENDING", Riddle = "Every rule at once, in a single fight.", Transmission = "Untouched, plain and unhealed. This is the one Command will remember.", MinBracket = RarityBracket.PostMechs },
+			new Def { Letter = 'A', Call = "Unit 042, I watched the whole fight. Not one hit landed. Whatever you are doing out there, keep doing it.", Name = "UNTOUCHED", Riddle = "Not a scratch.", Transmission = "Unit 042 faced it alone and came back whole. Not one hit landed.", MinBracket = RarityBracket.PreHardmode },
+			new Def { Letter = 'B', Call = "No rare plugins. No shine. And you still won. Command has no record of a victory this plain.", Name = "PLAINEST", Riddle = "The plainest plugins win the proudest.", Transmission = "No rare parts and no shine. Command had never seen a win this plain.", MinBracket = RarityBracket.EarlyHardmode },
+			new Def { Letter = 'C', Call = "Your frame was empty. No plugins, nothing to lean on. And you won anyway. I will not forget it.", Name = "EMPTY CHASSIS", Riddle = "Win with nothing installed.", Transmission = "No plugins at all. Just the frame, and it was enough.", MinBracket = RarityBracket.EarlyHardmode },
+			new Def { Letter = 'D', Call = "No repairs. No remedy. You took all of it and you are still standing. That kind of resolve is rare.", Name = "NO SAFETY NET", Riddle = "Pain is the only medicine.", Transmission = "No repairs and no remedy. The unit endured to the end.", MinBracket = RarityBracket.EarlyHardmode },
+			new Def { Letter = 'E', Call = "Untouched, plain and unhealed, all in one fight. Unit 042, this is what Command hoped for. Glory to mankind.", Name = "TRUE ENDING", Riddle = "Every rule at once, in a single fight.", Transmission = "Untouched, plain and unhealed. This is the one Command will remember.", MinBracket = RarityBracket.PostMechs },
 		};
 
 		public static bool Has(int mask, int index) => index >= 0 && index < All.Length && (mask & (1 << index)) != 0;
@@ -197,9 +199,8 @@ namespace Augments
 
 			EarnedMask |= 1 << index;
 			Endings.Def def = Endings.All[index];
-			Main.NewText("ENDING " + def.Letter + ": " + def.Name, 232, 224, 190);
-			Main.NewText(def.Transmission, 200, 192, 160);
-			SoundEngine.PlaySound(SoundID.Item35);
+			// The call screen shows the ending and plays its own sounds.
+			EndingCallHUD.Show(index, EarnedMask);
 		}
 
 		// Debug only (see EndingsDebugCommand): forgets every earned ending.
