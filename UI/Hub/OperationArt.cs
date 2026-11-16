@@ -140,73 +140,17 @@ namespace Augments
 
 		// --- Emblems ---
 
-		// Emblem icons (Profile badges, the Cosmetics page, the title screen): plain one-colour pixel shapes on an 11 by 11 grid, so they stay crisp
-		// at any size. '#' = filled. The box is a square and the id is an emblem id from Cosmetic.Emblems.
-		private static string[] EmblemShape(string id)
-		{
-			switch (id)
-			{
-				case "cross":
-					return new[]
-					{
-						"...#####...", "...#####...", "...#####...", "###########", "###########", "###########",
-						"###########", "###########", "...#####...", "...#####...", "...#####..."
-					};
-				case "hexagon":
-					return new[]
-					{
-						"...#####...", "..#######..", ".#########.", "###########", "####...####", "####...####",
-						"####...####", "###########", ".#########.", "..#######..", "...#####..."
-					};
-				case "star":
-					return new[]
-					{
-						".....#.....", "....###....", "....###....", "###########", ".#########.", "..#######..",
-						"..#######..", ".####.####.", ".###...###.", ".##.....##.", ".#.......#."
-					};
-				case "crown":
-					return new[]
-					{
-						"...........", "#....#....#", "##...#...##", "###.###.###", "###########", "###########",
-						"###########", "...........", "###########", "###########", "..........."
-					};
-				default: // diamond
-					return new[]
-					{
-						".....#.....", "....###....", "...#####...", "..#######..", ".#########.", "###########",
-						".#########.", "..#######..", "...#####...", "....###....", ".....#....."
-					};
-			}
-		}
-
+		// Emblem icons (Profile badges, the Cosmetics page, the title screen). They are drawn in the same stencil style as the plugin class
+		// icons (see ClassIcons) so the two match. The box is a square and the id is an emblem id from Cosmetic.Emblems.
 		public static void Emblem(SpriteBatch sb, string id, Rectangle box, Color c)
 		{
-			string[] rows = EmblemShape(id);
-			int cell = Math.Max(1, Math.Min(box.Width, box.Height) / rows.Length);
-			int size = cell * rows.Length;
-			int ox = box.X + (box.Width - size) / 2;
-			int oy = box.Y + (box.Height - size) / 2;
+			Texture2D tex = ClassIcons.GetEmblem(id);
+			if (tex == null)
+				return;
 
-			for (int y = 0; y < rows.Length; y++)
-			{
-				int x = 0;
-				while (x < rows[y].Length)
-				{
-					if (rows[y][x] != '#')
-					{
-						x++;
-						continue;
-					}
-
-					// One rectangle per run of filled cells, so neighbouring cells never leave seams.
-					int start = x;
-					while (x < rows[y].Length && rows[y][x] == '#')
-						x++;
-					HubDraw.Fill(sb, new Rectangle(ox + start * cell, oy + y * cell, (x - start) * cell, cell), c);
-				}
-			}
+			int size = Math.Min(box.Width, box.Height);
+			sb.Draw(tex, new Rectangle(box.Center.X - size / 2, box.Center.Y - size / 2, size, size), c);
 		}
-
 		// A badge behind an emblem: an octagon with a rim, so it looks like something you wear.
 		private static void Badge(SpriteBatch sb, Rectangle box, Color rim, Color fill)
 		{

@@ -33,6 +33,25 @@ namespace Augments
 		}
 
 		private static readonly Dictionary<AugmentClass, Texture2D> textures = new Dictionary<AugmentClass, Texture2D>();
+		private static readonly Dictionary<string, Texture2D> emblemTextures = new Dictionary<string, Texture2D>();
+
+		// The icon texture for a profile emblem (diamond, cross, hexagon, star, crown): white, to be tinted, in the same style as the class icons.
+		internal static Texture2D GetEmblem(string id)
+		{
+			if (Main.dedServ || Main.graphics?.GraphicsDevice == null || string.IsNullOrEmpty(id))
+				return null;
+
+			if (emblemTextures.TryGetValue(id, out Texture2D cached) && cached != null && !cached.IsDisposed)
+				return cached;
+
+			List<Op> ops = DescribeEmblem(id);
+			if (ops == null)
+				return null;
+
+			Texture2D tex = Render(ops);
+			emblemTextures[id] = tex;
+			return tex;
+		}
 
 		// The icon texture for a class (white, to be tinted), or null for a class without one.
 		internal static Texture2D Get(AugmentClass augmentClass)
@@ -55,6 +74,8 @@ namespace Augments
 		internal static void Unload()
 		{
 			var old = new List<Texture2D>(textures.Values);
+			old.AddRange(emblemTextures.Values);
+			emblemTextures.Clear();
 			textures.Clear();
 			if (old.Count == 0)
 				return;
@@ -67,6 +88,111 @@ namespace Augments
 						t.Dispose();
 				}
 			});
+		}
+
+		// --- The profile emblems ---
+		//
+		// Same 32 by 32 space and the same fill and cut shapes as the class icons below. Each is told apart from the class icons by its
+		// own detail: a faceted gem, an outlined cross, stacked hexagon rings, a star with a ring cut into it, and a crown with jewels.
+
+		private static List<Op> DescribeEmblem(string id)
+		{
+			switch (id)
+			{
+				case "cross":
+					return new List<Op>
+					{
+						Fill(Poly(PlusPoints(14f, 6f))),
+						Cut(Poly(PlusPoints(11f, 3.2f))),
+						Fill(Rect(14, 14, 4, 4))
+					};
+
+				case "hexagon":
+					return new List<Op>
+					{
+						Fill(Poly(Hex(16, 16, 15f))),
+						Cut(Poly(Hex(16, 16, 11f))),
+						Fill(Poly(Hex(16, 16, 7.5f))),
+						Cut(Circle(16, 16, 3f))
+					};
+
+				case "star":
+					return new List<Op>
+					{
+						Fill(Poly(StarPoints(16, 17, 15f, 6.4f))),
+						Cut(Poly(StarPoints(16, 17, 9.6f, 3.9f))),
+						Fill(Circle(16, 17, 2.2f))
+					};
+
+				case "crown":
+					return new List<Op>
+					{
+						Fill(Poly(P(3, 22, 3, 9, 10, 16, 16, 5, 22, 16, 29, 9, 29, 22))),
+						Fill(Rect(3, 24.5f, 26, 4)),
+						Fill(Circle(3, 8, 2.2f)),
+						Fill(Circle(16, 4, 2.2f)),
+						Fill(Circle(29, 8, 2.2f)),
+						Cut(Circle(9.5f, 19, 1.8f)),
+						Cut(Circle(16, 18, 1.8f)),
+						Cut(Circle(22.5f, 19, 1.8f))
+					};
+
+				case "diamond":
+					return new List<Op>
+					{
+						Fill(Poly(P(9, 3, 23, 3, 30, 12, 16, 30, 2, 12))),
+						Cut(Line(2, 12, 30, 12, 0.75f)),
+						Cut(Line(9, 3, 13, 12, 0.75f)),
+						Cut(Line(23, 3, 19, 12, 0.75f)),
+						Cut(Line(13, 12, 16, 30, 0.75f)),
+						Cut(Line(19, 12, 16, 30, 0.75f))
+					};
+
+				default:
+					return null;
+			}
+		}
+
+		// A plus sign centred in the icon: `half` is the length of each arm from the middle, `arm` is half the arm's thickness.
+		private static Vector2[] PlusPoints(float half, float arm)
+		{
+			return P(
+				16 - arm, 16 - half, 16 + arm, 16 - half, 16 + arm, 16 - arm, 16 + half, 16 - arm,
+				16 + half, 16 + arm, 16 + arm, 16 + arm, 16 + arm, 16 + half, 16 - arm, 16 + half,
+				16 - arm, 16 + arm, 16 - half, 16 + arm, 16 - half, 16 - arm, 16 - arm, 16 - arm);
+		}
+
+		// A regular hexagon with flat top and bottom.
+		private static Vector2[] Hex(float cx, float cy, float r)
+		{
+			var pts = new Vector2[6];
+			for (int i = 0; i < 6; i++)
+			{
+				float angle = MathHelper.Pi / 3f * i;
+				pts[i] = new Vector2(cx + (float)Math.Cos(angle) * r, cy + (float)Math.Sin(angle) * r);
+			}
+			return pts;
+		}
+
+		// A five point star pointing up: `outer` is the tip distance, `inner` the distance of the notches.
+		private static Vector2[] StarPoints(float cx, float cy, float outer, float inner)
+		{
+			var pts = new Vector2[10];
+			for (int i = 0; i < 10; i++)
+			{
+				float angle = -MathHelper.PiOver2 + i * MathHelper.Pi / 5f;
+				float r = i % 2 == 0 ? outer : inner;
+				pts[i] = new Vector2(cx + (float)Math.Cos(angle) * r, cy + (float)Math.Sin(angle) * r);
+			}
+			return pts;
+		}
+
+		// A straight line of the given half-width between two points (used for the thin facet cuts of the gem).
+		private static Shape Line(float x1, float y1, float x2, float y2, float half)
+		{
+			var a = new Vector2(x1, y1);
+			var b = new Vector2(x2, y2);
+			return (px, py) => DistanceToSegment(px, py, a, b) <= half;
 		}
 
 		// --- The icons ---
