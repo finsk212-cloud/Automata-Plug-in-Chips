@@ -224,14 +224,13 @@ namespace Augments
 			}
 		}
 
-		// Gives one ending (0 = A ... 4 = E) and shows the announcement in chat. Used by real boss kills and by the debug command.
+		// Gives one ending (0 = A ... 4 = E) and queues its call screen. Used by real boss kills (30 second wait) and by the debug command (none).
 		public void Grant(int index, float delaySeconds = EndingCallHUD.DefaultDelay)
 		{
 			if (index < 0 || index >= Endings.All.Length)
 				return;
 
 			EarnedMask |= 1 << index;
-			Endings.Def def = Endings.All[index];
 			// The call screen shows the ending and plays its own sounds.
 			EndingCallHUD.Show(index, EarnedMask, delaySeconds);
 		}
@@ -241,6 +240,7 @@ namespace Augments
 		{
 			EarnedMask = 0;
 		}
+
 		// Any healing item used (see EndingsHealWatcher) counts as using a potion, even one that gives no Potion Sickness.
 		public void NoteHealing()
 		{
@@ -293,7 +293,6 @@ namespace Augments
 					continue;
 
 				Grant(i);
-
 			}
 		}
 	}
