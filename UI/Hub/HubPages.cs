@@ -258,6 +258,8 @@ namespace Augments
 		private const int FavStep = FavW + 8;
 		private const int SectionGap = 30;
 		private const int SectionRowH = 70;
+		private const int EndingsRowH = 112;  // label, a tile, and up to 3 lines of text under it
+		private const int BottomRowH = 96;    // favourite plugins and badges
 
 		// Where everything on the Profile page sits. Drawing and (later) click testing both use this, so they can never disagree.
 		private struct ProfileLayout
@@ -272,7 +274,8 @@ namespace Augments
 			public Point EndingsLabel;
 			public Point FavouritesLabel;
 			public Point BadgesLabel;
-			public Rectangle[] Endings;
+			public Rectangle[] Endings;      // the five letter tiles
+			public Rectangle[] EndingCells;  // the whole area of each ending: tile, name and text
 			public Rectangle[] Favourites;
 			public Rectangle[] Badges;
 		}
@@ -290,15 +293,29 @@ namespace Augments
 			l.StatsW = c.Right - l.StatsX;
 
 			// The stat rows shrink a little on a short screen so the sections below still fit.
-			l.RowH = Math.Max(24, Math.Min(32, (c.Height - 30 - 10 - 54 - SectionRowH) / StatRows));
+			l.RowH = Math.Max(24, Math.Min(32, (c.Height - 30 - 10 - 54 - EndingsRowH - BottomRowH) / StatRows));
 			l.RankY = c.Y + 30 + StatRows * l.RowH + 10;
 
-			// Endings, favourite plugins and badges sit side by side, and wrap onto a second line when the screen is narrow.
-			int[] widths = { 5 * SlotStep - 8, 3 * FavStep - 8, 5 * BadgeStep - (BadgeStep - BadgeSize) };
-			var origins = new Point[3];
+			// Endings: a full width row of five cells, each a letter tile with its name beside it and its text underneath.
+			int endY = l.RankY + 54;
+			l.EndingsLabel = new Point(l.StatsX, endY);
+			const int EndingGap = 14;
+			int cellW = Math.Max(110, (l.StatsW - 4 * EndingGap) / 5);
+			l.Endings = new Rectangle[5];
+			l.EndingCells = new Rectangle[5];
+			for (int i = 0; i < 5; i++)
+			{
+				int cx = l.StatsX + i * (cellW + EndingGap);
+				l.Endings[i] = new Rectangle(cx, endY + 24, SlotSize, SlotSize);
+				l.EndingCells[i] = new Rectangle(cx, endY + 24, cellW, EndingsRowH - 24);
+			}
+
+			// Favourite plugins and badges sit side by side under it, and wrap onto a second line when the screen is narrow.
+			int[] widths = { 3 * FavStep - 8, 5 * BadgeStep - (BadgeStep - BadgeSize) };
+			var origins = new Point[2];
 			int x = l.StatsX;
-			int y = l.RankY + 54;
-			for (int i = 0; i < 3; i++)
+			int y = endY + EndingsRowH;
+			for (int i = 0; i < 2; i++)
 			{
 				if (i > 0 && x + widths[i] > c.Right)
 				{
@@ -310,25 +327,19 @@ namespace Augments
 				x += widths[i] + SectionGap;
 			}
 
-			l.EndingsLabel = origins[0];
-			l.FavouritesLabel = origins[1];
-			l.BadgesLabel = origins[2];
+			l.FavouritesLabel = origins[0];
+			l.BadgesLabel = origins[1];
 
-			l.Endings = new Rectangle[5];
 			l.Badges = new Rectangle[5];
 			for (int i = 0; i < 5; i++)
-			{
-				l.Endings[i] = new Rectangle(origins[0].X + i * SlotStep, origins[0].Y + 24, SlotSize, SlotSize);
-				l.Badges[i] = new Rectangle(origins[2].X + i * BadgeStep, origins[2].Y + 24, BadgeSize, BadgeSize);
-			}
+				l.Badges[i] = new Rectangle(origins[1].X + i * BadgeStep, origins[1].Y + 24, BadgeSize, BadgeSize);
 
 			l.Favourites = new Rectangle[3];
 			for (int i = 0; i < 3; i++)
-				l.Favourites[i] = new Rectangle(origins[1].X + i * FavStep, origins[1].Y + 24, FavW, FavH);
+				l.Favourites[i] = new Rectangle(origins[0].X + i * FavStep, origins[0].Y + 24, FavW, FavH);
 
 			return l;
 		}
-
 		// The plugin pinned in this slot, or null when the slot is empty, or the plugin is no longer one this character has collected
 		// (for example after the Archive reset), or no longer exists.
 		private static Augment PinnedPlugin(ProfileStore.CharacterRecord rec, int slot)
@@ -434,14 +445,39 @@ namespace Augments
 				HubDraw.TextRight(sb, rec.PointsIntoRank + " / " + ProfileStore.CharacterRecord.PointsPerRank, c.Right, by, F(HubTheme.Dim), 0.66f, 2f);
 			Bar(sb, new Rectangle(sx, by + 20, sw, 14), rec != null ? rec.RankProgress : 0.35f);
 
-			// Endings A to E.
+			// Endings A to E: hidden challenges. A locked one shows only its riddle; an earned one shows its name and its message.
 			SectionLabel(sb, "ENDINGS", l.EndingsLabel.X, l.EndingsLabel.Y);
-			string letters = "ABCDE";
-			for (int i = 0; i < 5; i++)
+			for (int i = 0; i < Endings.All.Length && i < l.Endings.Length; i++)
 			{
-				Box(sb, l.Endings[i]);
-				HubDraw.Stripes(sb, l.Endings[i], F(HubTheme.Line) * 0.5f, 5);
-				CenteredText(sb, letters[i].ToString(), l.Endings[i], F(HubTheme.Dim), 0.8f);
+				Endings.Def def = Endings.All[i];
+				bool earned = rec != null && Endings.Has(rec.Endings, i);
+				Rectangle tile = l.Endings[i];
+				Rectangle cell = l.EndingCells[i];
+
+				if (earned)
+				{
+					HubDraw.Fill(sb, tile, F(HubTheme.Accent));
+					CenteredText(sb, def.Letter.ToString(), tile, F(HubTheme.OnAccent), 0.9f);
+				}
+				else
+				{
+					DashedBorder(sb, tile, F(HubTheme.Line));
+					CenteredText(sb, def.Letter.ToString(), tile, F(HubTheme.Dim), 0.9f);
+				}
+
+				string title = FitText(earned ? def.Name : "???", 0.62f, 1.5f, cell.Width - tile.Width - 10);
+				HubDraw.Text(sb, title, new Vector2(tile.Right + 10, tile.Y + (tile.Height - HubDraw.LineHeight(0.62f)) / 2f), F(earned ? HubTheme.Text : HubTheme.Dim), 0.62f, 1.5f);
+
+				string body = earned ? def.Transmission : "\"" + def.Riddle + "\"";
+				int ly = tile.Bottom + 6;
+				int shown = 0;
+				foreach (string line in HubDraw.Wrap(body, cell.Width - 2, 0.52f))
+				{
+					if (shown++ >= 3)
+						break;
+					HubDraw.Text(sb, line, new Vector2(cell.X, ly), F(earned ? HubTheme.Text : HubTheme.Dim), 0.52f);
+					ly += (int)HubDraw.LineHeight(0.52f) + 1;
+				}
 			}
 
 			// Favourite plugins: up to three the player pinned.

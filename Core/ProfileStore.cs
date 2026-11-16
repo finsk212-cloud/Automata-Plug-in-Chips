@@ -38,6 +38,8 @@ namespace Augments
 			public int BestDps { get; set; }
 			// Plugin ids pinned on the Profile page (up to 3, "" = empty slot). Chosen on the title screen, so a save must keep them.
 			public List<string> Favourites { get; set; } = new List<string>();
+			// Endings earned (bit 0 = A ... bit 4 = E). See Endings.
+			public int Endings { get; set; }
 
 			public int Collected => EverOwned?.Count ?? 0;
 
@@ -232,7 +234,8 @@ namespace Augments
 					TotalBossKills = ap.BossAugmentKills.Values.Sum(),
 					LoadoutSlots = ap.LoadoutSlotsUnlocked,
 					EverOwned = ap.ArchiveCollectedIds.OrderBy(id => id, StringComparer.Ordinal).ToList(),
-						BestDps = (int)Math.Min(int.MaxValue, Math.Round(ap.BestDps))
+						BestDps = (int)Math.Min(int.MaxValue, Math.Round(ap.BestDps)),
+						Endings = player.GetModPlayer<EndingsPlayer>().EarnedMask
 				};
 
 				// The pinned plugins are set from the title screen and live only in this file, so carry them over.

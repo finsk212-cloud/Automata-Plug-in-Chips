@@ -49,6 +49,8 @@ namespace Augments
 				// Increment BEFORE rolling — farming to win the random roll still
 				// advances the counter, preventing indefinite retry loops.
 				ap.BossAugmentKills[bossKey] = killCount + 1;
+					// Endings A to E look at how this fight went (singleplayer only; see Endings).
+					player.GetModPlayer<EndingsPlayer>().OnBossDefeated(bossKey);
 				// The client owns the save file, so it needs to hear the new count.
 				if (Main.netMode == NetmodeID.Server)
 					AugmentNet.SendSyncPlayer(player, player.whoAmI);
@@ -115,7 +117,7 @@ namespace Augments
 			{ "Artemis", RarityBracket.FinalCalamity },
 		};
 
-		private static RarityBracket GetModdedBossBracket(NPC npc)
+		internal static RarityBracket GetModdedBossBracket(NPC npc)
 		{
 			if (npc.ModNPC?.Mod?.Name == "CalamityMod")
 			{
