@@ -109,6 +109,7 @@ namespace Augments
 		public override void OnEnterWorld()
 		{
 			fights.Clear();
+			EndingCallHUD.Clear();
 			lastSicknessTime = 0;
 			lastLife = -1;
 			lastLifeMax = -1;
@@ -224,7 +225,7 @@ namespace Augments
 		}
 
 		// Gives one ending (0 = A ... 4 = E) and shows the announcement in chat. Used by real boss kills and by the debug command.
-		public void Grant(int index)
+		public void Grant(int index, float delaySeconds = EndingCallHUD.DefaultDelay)
 		{
 			if (index < 0 || index >= Endings.All.Length)
 				return;
@@ -232,7 +233,7 @@ namespace Augments
 			EarnedMask |= 1 << index;
 			Endings.Def def = Endings.All[index];
 			// The call screen shows the ending and plays its own sounds.
-			EndingCallHUD.Show(index, EarnedMask);
+			EndingCallHUD.Show(index, EarnedMask, delaySeconds);
 		}
 
 		// Debug only (see EndingsDebugCommand): forgets every earned ending.

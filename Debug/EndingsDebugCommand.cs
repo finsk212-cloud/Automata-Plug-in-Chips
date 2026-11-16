@@ -56,11 +56,11 @@ namespace Augments
 					else if (arg.Equals("all", StringComparison.OrdinalIgnoreCase))
 					{
 						for (int i = 0; i < Endings.All.Length; i++)
-							endings.Grant(i);
+							endings.Grant(i, 0f);
 					}
 					else if (arg.Length == 1 && char.ToUpperInvariant(arg[0]) >= 'A' && char.ToUpperInvariant(arg[0]) < 'A' + Endings.All.Length)
 					{
-						endings.Grant(char.ToUpperInvariant(arg[0]) - 'A');
+						endings.Grant(char.ToUpperInvariant(arg[0]) - 'A', 0f);
 					}
 					else
 					{

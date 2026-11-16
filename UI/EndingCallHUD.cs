@@ -17,6 +17,9 @@ namespace Augments
 	// thin scanlines lie on top. All of it is re-rolled every other game tick, so it flickers instead of smearing.
 	public static class EndingCallHUD
 	{
+		// A real win waits this long before the call comes in, so it does not land on top of the boss reward cards and the fight's loot.
+		public const float DefaultDelay = 30f;
+
 		private const float CallTime = 1.5f;      // the small "incoming" bar
 		private const float OpenTime = 0.6f;      // the panel glitching open
 		private const float HoldTail = 4.5f;      // how long the panel stays after the last letter has appeared
@@ -39,14 +42,27 @@ namespace Augments
 		private static bool closedSound;
 		private static int lastTickedAt;
 		private static bool loggedSize;
+		private static float pendingDelay;
 
 		// Called when an ending is earned. Several at once (the /end all command) are shown one after another.
-		public static void Show(int index, int earnedMaskAfter)
+		public static void Show(int index, int earnedMaskAfter, float delaySeconds)
 		{
 			if (Main.dedServ || index < 0 || index >= Endings.All.Length)
 				return;
 
+			// The wait counts down once for the whole group: endings earned together follow each other without another wait.
+			if (!active && waiting.Count == 0)
+				pendingDelay = delaySeconds;
+
 			waiting.Enqueue(new Entry { Index = index, Mask = earnedMaskAfter });
+		}
+
+		// Forgets any call that is waiting or playing (a new world was entered).
+		public static void Clear()
+		{
+			waiting.Clear();
+			active = false;
+			pendingDelay = 0f;
 		}
 
 		private static float TypeTime(Endings.Def def) => def.Call.Length / LettersPerSecond;
@@ -64,6 +80,13 @@ namespace Augments
 			{
 				if (waiting.Count == 0)
 					return;
+
+				// A real win waits before its call comes in (see DefaultDelay); /end previews have no wait.
+				if (pendingDelay > 0f)
+				{
+					pendingDelay -= dt;
+					return;
+				}
 
 				current = waiting.Dequeue();
 				active = true;
