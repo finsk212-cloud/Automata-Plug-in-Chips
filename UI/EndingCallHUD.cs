@@ -37,6 +37,7 @@ namespace Augments
 		private static bool openedSound;
 		private static bool closedSound;
 		private static int lastTickedAt;
+		private static bool loggedSize;
 
 		// Called when an ending is earned. Several at once (the /end all command) are shown one after another.
 		public static void Show(int index, int earnedMaskAfter)
@@ -134,13 +135,25 @@ namespace Augments
 				return;
 
 			Endings.Def def = Endings.All[current.Index];
-			float uiW = Main.screenWidth / Main.UIScale;
-			float uiH = Main.screenHeight / Main.UIScale;
+			// The layer is drawn through the UI scale matrix, so the screen is Main.screenWidth / scale units wide. The scale actually
+			// applied is read from the matrix itself, in case it ever differs from Main.UIScale.
+			float m = Main.UIScaleMatrix.M11;
+			if (m < 0.1f)
+				m = 1f;
+			float uiW = Main.screenWidth / m;
+			float uiH = Main.screenHeight / m;
 			int frame = (int)(Main.GameUpdateCount / 2);
 
-			int w = (int)Math.Min(580f, uiW - 40f);
-			const int h = 152;
-			var full = new Rectangle((int)((uiW - w) / 2f), (int)(uiH - h - 46f), w, h);
+			if (!loggedSize)
+			{
+				loggedSize = true;
+				ModContent.GetInstance<Augments>().Logger.Info("ENDING CALL screen=" + Main.screenWidth + "x" + Main.screenHeight + " UIScale=" + Main.UIScale
+					+ " matrix=" + m + " viewport=" + Main.instance.GraphicsDevice.Viewport.Width + "x" + Main.instance.GraphicsDevice.Viewport.Height);
+			}
+
+			int w = (int)Math.Min(440f, uiW - 40f);
+			const int h = 108;
+			var full = new Rectangle((int)((uiW - w) / 2f), (int)(uiH - h - 30f), w, h);
 
 			if (t < CallTime)
 			{
@@ -202,8 +215,8 @@ namespace Augments
 		private static void DrawCall(SpriteBatch sb, Rectangle full, int frame)
 		{
 			float slide = MathHelper.Clamp(t / 0.25f, 0f, 1f);
-			int w = (int)(300f * slide);
-			const int h = 30;
+			int w = (int)(240f * slide);
+			const int h = 26;
 			var bar = new Rectangle(full.Center.X - w / 2, full.Bottom - h, w, h);
 			float glitch = t < 0.3f ? 0.9f - t * 2f : (Rnd((int)(t * 6f), 21) < 0.12f ? 0.5f : 0f);
 			float alpha = (glitch > 0f && Rnd(frame, 12) < glitch * 0.4f) ? 0.4f : 1f;
@@ -217,12 +230,12 @@ namespace Augments
 				{
 					float level = 0.3f + 0.7f * (0.5f + 0.5f * (float)Math.Sin(t * 9f + i * 1.3f));
 					int bh = (int)((4 + i * 3) * level) + 2;
-					HubDraw.Fill(sb, new Rectangle(bar.X + 10 + i * 6, bar.Bottom - 7 - bh, 4, bh), HubTheme.Accent * alpha);
+					HubDraw.Fill(sb, new Rectangle(bar.X + 10 + i * 6, bar.Bottom - 6 - bh, 4, bh), HubTheme.Accent * alpha);
 				}
 
 				bool lit = ((int)(t * 4f)) % 2 == 0;
-				HubDraw.Text(sb, "INCOMING TRANSMISSION", new Vector2(bar.X + 42, bar.Y + 8), HubTheme.Text * alpha, 0.62f, 2f);
-				HubDraw.TextRight(sb, "CMDR", bar.Right - 12, bar.Y + 8, (lit ? HubTheme.Warn : HubTheme.Dim) * alpha, 0.62f, 2f);
+				HubDraw.Text(sb, "INCOMING TRANSMISSION", new Vector2(bar.X + 40, bar.Y + 6), HubTheme.Text * alpha, 0.54f, 2f);
+				HubDraw.TextRight(sb, "CMDR", bar.Right - 10, bar.Y + 6, (lit ? HubTheme.Warn : HubTheme.Dim) * alpha, 0.54f, 2f);
 			}
 
 			DrawGlitchOverlay(sb, bar, glitch, frame, alpha);
@@ -286,9 +299,9 @@ namespace Augments
 
 		private static void DrawHeader(SpriteBatch sb, Rectangle r, Endings.Def def, float alpha, int dx)
 		{
-			var bar = new Rectangle(r.X + 2 + dx, r.Y + 2, r.Width - 4, 18);
+			var bar = new Rectangle(r.X + 2 + dx, r.Y + 2, r.Width - 4, 16);
 			HubDraw.Fill(sb, bar, HubTheme.Accent * alpha);
-			HubDraw.Text(sb, "INCOMING TRANSMISSION", new Vector2(bar.X + 10, bar.Y + 3), HubTheme.OnAccent * alpha, 0.56f, 3f);
+			HubDraw.Text(sb, "INCOMING TRANSMISSION", new Vector2(bar.X + 8, bar.Y + 2), HubTheme.OnAccent * alpha, 0.5f, 2f);
 
 			int count = 0;
 			for (int i = 0; i < Endings.All.Length; i++)
@@ -297,41 +310,41 @@ namespace Augments
 					count++;
 			}
 
-			HubDraw.TextRight(sb, "FROM COMMANDER  /  ENDING " + count + " OF " + Endings.All.Length, bar.Right - 10, bar.Y + 3, HubTheme.OnAccent * alpha, 0.56f, 2f);
+			HubDraw.TextRight(sb, "ENDING " + count + " OF " + Endings.All.Length, bar.Right - 8, bar.Y + 2, HubTheme.OnAccent * alpha, 0.5f, 2f);
 		}
 
 		// The big letter tile, the CHALLENGE COMPLETE line and the name. Drawn on its own so the colour split can repeat it.
 		private static void DrawHeadline(SpriteBatch sb, Rectangle r, Endings.Def def, Color? tint, float alpha, Point off)
 		{
-			int x = r.X + 16 + off.X;
-			int y = r.Y + 30 + off.Y;
+			int x = r.X + 14 + off.X;
+			int y = r.Y + 25 + off.Y;
 
-			var tile = new Rectangle(x, y, 66, 66);
+			var tile = new Rectangle(x, y, 48, 48);
 			HubDraw.Fill(sb, tile, (tint ?? HubTheme.Accent) * alpha);
 
 			string letter = def.Letter.ToString();
-			float letterScale = HubDraw.BigScale(38f);
+			float letterScale = HubDraw.BigScale(28f);
 			float lw = HubDraw.BigWidth(letter, letterScale);
-			HubDraw.BigText(sb, letter, new Vector2(tile.Center.X - lw / 2f, tile.Y + 12), (tint.HasValue ? Color.White : HubTheme.OnAccent) * alpha, letterScale);
+			HubDraw.BigText(sb, letter, new Vector2(tile.Center.X - lw / 2f, tile.Y + 9), (tint.HasValue ? Color.White : HubTheme.OnAccent) * alpha, letterScale);
 
-			int tx = tile.Right + 16;
-			HubDraw.Text(sb, "CHALLENGE COMPLETE", new Vector2(tx, y - 1), (tint ?? HubTheme.Warn) * alpha, 0.56f, 3f);
-			HubDraw.BigText(sb, def.Name, new Vector2(tx, y + 14), (tint ?? HubTheme.Text) * alpha, HubDraw.BigScale(26f), 2f);
+			int tx = tile.Right + 12;
+			HubDraw.Text(sb, "CHALLENGE COMPLETE", new Vector2(tx, y - 1), (tint ?? HubTheme.Warn) * alpha, 0.46f, 2f);
+			HubDraw.BigText(sb, def.Name, new Vector2(tx, y + 11), (tint ?? HubTheme.Text) * alpha, HubDraw.BigScale(20f), 2f);
 		}
 
 		// The Commander's words (typed out) and the row of five ending squares.
 		private static void DrawBody(SpriteBatch sb, Rectangle r, Endings.Def def, float alpha, int dx)
 		{
-			int tx = r.X + 16 + 66 + 16 + dx;
-			int maxW = r.Right - 16 - tx;
-			float scale = 0.6f;
-			float lineStep = HubDraw.LineHeight(scale) + 3f;
+			int tx = r.X + 14 + 48 + 12 + dx;
+			int maxW = r.Right - 14 - tx;
+			float scale = 0.5f;
+			float lineStep = HubDraw.LineHeight(scale) + 2f;
 
-			HubDraw.HLine(sb, tx, r.Y + 78, maxW, HubTheme.LineSoft * alpha);
+			HubDraw.HLine(sb, tx, r.Y + 52, maxW, HubTheme.LineSoft * alpha);
 
 			List<string> lines = HubDraw.Wrap(def.Call, maxW, scale);
 			int remaining = RevealedLetters(def);
-			float ly = r.Y + 85;
+			float ly = r.Y + 57;
 			foreach (string line in lines)
 			{
 				if (remaining <= 0)
@@ -345,16 +358,16 @@ namespace Augments
 
 			// A blinking cursor while the line is still being typed.
 			if (RevealedLetters(def) < def.Call.Length && ((int)(t * 6f)) % 2 == 0)
-				HubDraw.Fill(sb, new Rectangle(tx + maxW - 6, r.Y + 85, 6, 9), HubTheme.Accent * alpha);
+				HubDraw.Fill(sb, new Rectangle(tx + maxW - 5, r.Y + 57, 5, 7), HubTheme.Accent * alpha);
 
 			// The five endings: earned ones are filled, this one is rust coloured.
-			int px = r.X + 16 + dx;
-			int py = r.Bottom - 22;
-			HubDraw.Text(sb, "ENDINGS", new Vector2(px, py + 1), HubTheme.Dim * alpha, 0.5f, 2f);
-			int sx = px + 58;
+			int px = r.X + 14 + dx;
+			int py = r.Bottom - 17;
+			HubDraw.Text(sb, "ENDINGS", new Vector2(px, py), HubTheme.Dim * alpha, 0.44f, 2f);
+			int sx = px + 52;
 			for (int i = 0; i < Endings.All.Length; i++)
 			{
-				var sq = new Rectangle(sx + i * 16, py + 1, 10, 10);
+				var sq = new Rectangle(sx + i * 13, py + 1, 8, 8);
 				if (i == current.Index)
 					HubDraw.Fill(sb, sq, HubTheme.Warn * alpha);
 				else if (Endings.Has(current.Mask, i))
@@ -363,7 +376,7 @@ namespace Augments
 					HubDraw.Border(sb, sq, HubTheme.Line * alpha);
 			}
 
-			HubDraw.TextRight(sb, "- COMMANDER", r.Right - 16, py + 1, HubTheme.Dim * alpha, 0.5f, 2f);
+			HubDraw.TextRight(sb, "- COMMANDER", r.Right - 14, py, HubTheme.Dim * alpha, 0.44f, 2f);
 		}
 	}
 }
