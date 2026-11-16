@@ -189,6 +189,24 @@ namespace Augments
 			}
 		}
 
+		// Gives one ending (0 = A ... 4 = E) and shows the announcement in chat. Used by real boss kills and by the debug command.
+		public void Grant(int index)
+		{
+			if (index < 0 || index >= Endings.All.Length)
+				return;
+
+			EarnedMask |= 1 << index;
+			Endings.Def def = Endings.All[index];
+			Main.NewText("ENDING " + def.Letter + ": " + def.Name, 232, 224, 190);
+			Main.NewText(def.Transmission, 200, 192, 160);
+			SoundEngine.PlaySound(SoundID.Item35);
+		}
+
+		// Debug only (see EndingsDebugCommand): forgets every earned ending.
+		public void DebugClear()
+		{
+			EarnedMask = 0;
+		}
 		// Called by BossAugmentDrop when the boss this player fought dies (singleplayer only).
 		public void OnBossDefeated(int bossKey)
 		{
@@ -227,11 +245,8 @@ namespace Augments
 				if ((gained & (1 << i)) == 0)
 					continue;
 
-				EarnedMask |= 1 << i;
-				Endings.Def def = Endings.All[i];
-				Main.NewText("ENDING " + def.Letter + ": " + def.Name, 232, 224, 190);
-				Main.NewText(def.Transmission, 200, 192, 160);
-				SoundEngine.PlaySound(SoundID.Item35);
+				Grant(i);
+
 			}
 		}
 	}
