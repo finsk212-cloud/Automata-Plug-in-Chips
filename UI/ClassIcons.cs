@@ -92,19 +92,18 @@ namespace Augments
 
 		// --- The profile emblems ---
 		//
-		// Same 32 by 32 space and the same fill and cut shapes as the class icons below. Each is told apart from the class icons by its
-		// own detail: a faceted gem, an outlined cross, stacked hexagon rings, a star with a ring cut into it, and a crown with jewels.
+		// Same 32 by 32 space and the same shapes as the class icons below. The cross is the Support plus and the crown is the Summon crown,
+		// so they match exactly; the diamond is a plain solid gem, the star a solid star, and the hexagon has rings cut into it.
 
 		private static List<Op> DescribeEmblem(string id)
 		{
 			switch (id)
 			{
 				case "cross":
+					// The Support class icon.
 					return new List<Op>
 					{
-						Fill(Poly(PlusPoints(14f, 6f))),
-						Cut(Poly(PlusPoints(11f, 3.2f))),
-						Fill(Rect(14, 14, 4, 4))
+						Fill(Poly(P(12, 3, 20, 3, 20, 12, 29, 12, 29, 20, 20, 20, 20, 29, 12, 29, 12, 20, 3, 20, 3, 12, 12, 12)))
 					};
 
 				case "hexagon":
@@ -119,47 +118,26 @@ namespace Augments
 				case "star":
 					return new List<Op>
 					{
-						Fill(Poly(StarPoints(16, 17, 15f, 6.4f))),
-						Cut(Poly(StarPoints(16, 17, 9.6f, 3.9f))),
-						Fill(Circle(16, 17, 2.2f))
+						Fill(Poly(StarPoints(16, 17, 15f, 6.4f)))
 					};
 
 				case "crown":
+					// The Summon class icon.
 					return new List<Op>
 					{
-						Fill(Poly(P(3, 22, 3, 9, 10, 16, 16, 5, 22, 16, 29, 9, 29, 22))),
-						Fill(Rect(3, 24.5f, 26, 4)),
-						Fill(Circle(3, 8, 2.2f)),
-						Fill(Circle(16, 4, 2.2f)),
-						Fill(Circle(29, 8, 2.2f)),
-						Cut(Circle(9.5f, 19, 1.8f)),
-						Cut(Circle(16, 18, 1.8f)),
-						Cut(Circle(22.5f, 19, 1.8f))
+						Fill(Poly(P(3, 23, 3, 8, 10.5f, 15, 16, 5, 21.5f, 15, 29, 8, 29, 23))),
+						Fill(Rect(3, 25.5f, 26, 3.5f))
 					};
 
 				case "diamond":
 					return new List<Op>
 					{
-						Fill(Poly(P(9, 3, 23, 3, 30, 12, 16, 30, 2, 12))),
-						Cut(Line(2, 12, 30, 12, 0.75f)),
-						Cut(Line(9, 3, 13, 12, 0.75f)),
-						Cut(Line(23, 3, 19, 12, 0.75f)),
-						Cut(Line(13, 12, 16, 30, 0.75f)),
-						Cut(Line(19, 12, 16, 30, 0.75f))
+						Fill(Poly(P(9, 3, 23, 3, 30, 12, 16, 30, 2, 12)))
 					};
 
 				default:
 					return null;
 			}
-		}
-
-		// A plus sign centred in the icon: `half` is the length of each arm from the middle, `arm` is half the arm's thickness.
-		private static Vector2[] PlusPoints(float half, float arm)
-		{
-			return P(
-				16 - arm, 16 - half, 16 + arm, 16 - half, 16 + arm, 16 - arm, 16 + half, 16 - arm,
-				16 + half, 16 + arm, 16 + arm, 16 + arm, 16 + arm, 16 + half, 16 - arm, 16 + half,
-				16 - arm, 16 + arm, 16 - half, 16 + arm, 16 - half, 16 - arm, 16 - arm, 16 - arm);
 		}
 
 		// A regular hexagon with flat top and bottom.
@@ -186,15 +164,6 @@ namespace Augments
 			}
 			return pts;
 		}
-
-		// A straight line of the given half-width between two points (used for the thin facet cuts of the gem).
-		private static Shape Line(float x1, float y1, float x2, float y2, float half)
-		{
-			var a = new Vector2(x1, y1);
-			var b = new Vector2(x2, y2);
-			return (px, py) => DistanceToSegment(px, py, a, b) <= half;
-		}
-
 		// --- The icons ---
 
 		private static List<Op> Describe(AugmentClass c)
