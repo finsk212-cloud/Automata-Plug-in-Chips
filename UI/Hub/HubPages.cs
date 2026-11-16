@@ -519,7 +519,7 @@ namespace Augments
 				{
 					HubDraw.Fill(sb, slot, F(HubTheme.Accent));
 					OperationArt.Emblem(sb, id, art, F(HubTheme.OnAccent));
-					caption = "WORN";
+					caption = Cosmetic.Emblems[i][1];
 					captionColor = HubTheme.Warn;
 				}
 				else if (owned)
