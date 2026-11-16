@@ -37,6 +37,27 @@ namespace Augments
 			new Def { Letter = 'E', Call = "Untouched, plain and unhealed, all in one fight. Unit 042, this is what Command hoped for. Glory to mankind.", Name = "TRUE ENDING", Riddle = "Every rule at once, in a single fight.", Transmission = "Untouched, plain and unhealed. This is the one Command will remember.", MinBracket = RarityBracket.PostMechs },
 		};
 
+		// The rules in one place. met says which endings the fight's conditions satisfy (A to E); the return value is the new bits to award:
+		// only endings not already earned, and only when the boss is old enough to count. The test project in the scratchpad checks this.
+		public static int Evaluate(bool tookHit, bool usedPotion, bool anyPlugin, bool nonCommonPlugin, RarityBracket boss, RarityBracket worldAtStart, int alreadyEarned, out bool[] met)
+		{
+			bool a = !tookHit;
+			bool b = anyPlugin && !nonCommonPlugin;
+			bool c = !anyPlugin;
+			bool d = !usedPotion;
+			bool e = a && b && d;
+			met = new[] { a, b, c, d, e };
+
+			int gained = 0;
+			for (int i = 0; i < All.Length; i++)
+			{
+				if (met[i] && !Has(alreadyEarned, i) && BossCounts(boss, worldAtStart, All[i].MinBracket))
+					gained |= 1 << i;
+			}
+
+			return gained;
+		}
+
 		public static bool Has(int mask, int index) => index >= 0 && index < All.Length && (mask & (1 << index)) != 0;
 
 		// The one place that decides which bosses count. The boss must be at least the ending's own minimum, and at least as new as
@@ -70,6 +91,8 @@ namespace Augments
 		private readonly Dictionary<int, Fight> fights = new Dictionary<int, Fight>();
 		private uint tick;
 		private int lastSicknessTime;
+		private int lastLife = -1;
+		private int lastLifeMax = -1;
 
 		private bool Active => Main.netMode == NetmodeID.SinglePlayer && Player.whoAmI == Main.myPlayer;
 
@@ -87,6 +110,8 @@ namespace Augments
 		{
 			fights.Clear();
 			lastSicknessTime = 0;
+			lastLife = -1;
+			lastLifeMax = -1;
 		}
 
 		public override void OnHurt(Player.HurtInfo info)
@@ -111,6 +136,12 @@ namespace Augments
 			bool drank = sickness > lastSicknessTime;
 			lastSicknessTime = sickness;
 
+			// Life that went down without a hit (poison, fire, a plugin that costs life) still counts as a scratch. A change in maximum life
+			// (a plugin swap, a potion wearing off) is not a loss, so those ticks are skipped.
+			bool lostLife = !Player.dead && Player.statLifeMax2 == lastLifeMax && Player.statLife < lastLife;
+			lastLife = Player.statLife;
+			lastLifeMax = Player.statLifeMax2;
+
 			if (fights.Count > 0)
 			{
 				bool anyPlugin = false;
@@ -128,10 +159,11 @@ namespace Augments
 					f.AnyPlugin |= anyPlugin;
 					f.NonCommonPlugin |= nonCommon;
 					f.UsedPotion |= drank;
+					f.TookHit |= lostLife;
 				}
 			}
 
-			if (tick % 6 == 0)
+			if (tick % 2 == 0)
 				ScanForBosses();
 		}
 
@@ -208,6 +240,30 @@ namespace Augments
 		{
 			EarnedMask = 0;
 		}
+		// Any healing item used (see EndingsHealWatcher) counts as using a potion, even one that gives no Potion Sickness.
+		public void NoteHealing()
+		{
+			if (!Active)
+				return;
+
+			foreach (Fight f in fights.Values)
+				f.UsedPotion = true;
+		}
+
+		// Debug only (see EndingsDebugCommand): one line per boss fight being followed, so you can watch the flags change.
+		public List<string> DebugStatus()
+		{
+			var lines = new List<string>();
+			foreach (KeyValuePair<int, Fight> kv in fights)
+			{
+				Fight f = kv.Value;
+				lines.Add("fight key " + kv.Key + " (" + f.Bracket + ", world was " + f.WorldAtStart + "): hit=" + f.TookHit + " potion=" + f.UsedPotion
+					+ " plugins=" + f.AnyPlugin + " nonCommon=" + f.NonCommonPlugin);
+			}
+
+			return lines;
+		}
+
 		// Called by BossAugmentDrop when the boss this player fought dies (singleplayer only).
 		public void OnBossDefeated(int bossKey)
 		{
@@ -222,19 +278,8 @@ namespace Augments
 
 			fights.Remove(bossKey);
 
-			bool a = !f.TookHit;
-			bool b = f.AnyPlugin && !f.NonCommonPlugin;
-			bool c = !f.AnyPlugin;
-			bool d = !f.UsedPotion;
-			bool e = a && b && d;
-			bool[] met = { a, b, c, d, e };
-
-			int gained = 0;
-			for (int i = 0; i < Endings.All.Length; i++)
-			{
-				if (met[i] && !Endings.Has(EarnedMask, i) && Endings.BossCounts(f.Bracket, f.WorldAtStart, Endings.All[i].MinBracket))
-					gained |= 1 << i;
-			}
+			int gained = Endings.Evaluate(f.TookHit, f.UsedPotion, f.AnyPlugin, f.NonCommonPlugin, f.Bracket, f.WorldAtStart, EarnedMask, out bool[] met);
+			bool a = met[0], b = met[1], c = met[2], d = met[3], e = met[4];
 
 			// One line per boss kill, so a single easy kill shows whether every condition was read correctly.
 			ModContent.GetInstance<Augments>().Logger.Info("ENDINGS kill key=" + bossKey + " bracket=" + f.Bracket + " worldAtStart=" + f.WorldAtStart
@@ -249,6 +294,16 @@ namespace Augments
 				Grant(i);
 
 			}
+		}
+	}
+
+	// Tells the endings when a healing item is used, so ending D cannot be earned by a potion that gives no Potion Sickness.
+	public class EndingsHealWatcher : GlobalItem
+	{
+		public override void OnConsumeItem(Item item, Player player)
+		{
+			if (item.healLife > 0 || item.potion)
+				player.GetModPlayer<EndingsPlayer>().NoteHealing();
 		}
 	}
 }

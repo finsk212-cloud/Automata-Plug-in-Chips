@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ID;
@@ -12,7 +13,7 @@ namespace Augments
 	{
 		public override string Command => "end";
 		public override CommandType Type => CommandType.Chat;
-		public override string Usage => "/end <A B C D E | all | reset>";
+		public override string Usage => "/end <A B C D E | all | reset | status>";
 		public override string Description => "Debug: complete endings to preview them (singleplayer only).";
 
 		public override void Action(CommandCaller caller, string input, string[] args)
@@ -42,6 +43,15 @@ namespace Augments
 					{
 						endings.DebugClear();
 						caller.Reply("All endings cleared.", Color.LightGreen);
+					}
+					else if (arg.Equals("status", StringComparison.OrdinalIgnoreCase))
+					{
+						List<string> lines = endings.DebugStatus();
+						if (lines.Count == 0)
+							caller.Reply("No boss fight is being followed right now (a boss must be alive within range).", Color.Yellow);
+						foreach (string line in lines)
+							caller.Reply(line, Color.LightGreen);
+						caller.Reply("earned mask = " + endings.EarnedMask, Color.LightGreen);
 					}
 					else if (arg.Equals("all", StringComparison.OrdinalIgnoreCase))
 					{
