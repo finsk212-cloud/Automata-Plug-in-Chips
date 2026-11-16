@@ -136,13 +136,11 @@ namespace Augments
 				return;
 
 			Endings.Def def = Endings.All[current.Index];
-			// The layer is drawn through the UI scale matrix, so the screen is Main.screenWidth / scale units wide. The scale actually
-			// applied is read from the matrix itself, in case it ever differs from Main.UIScale.
+			// The screen is Main.screenWidth by Main.screenHeight units, the same as the mod's other HUDs (the docked icons, the pinned cards).
+			// Dividing by Main.UIScale put the panel left of centre and too high on a screen whose UI scale is above 1.
 			float m = Main.UIScaleMatrix.M11;
-			if (m < 0.1f)
-				m = 1f;
-			float uiW = Main.screenWidth / m;
-			float uiH = Main.screenHeight / m;
+			float uiW = Main.screenWidth;
+			float uiH = Main.screenHeight;
 			int frame = (int)(Main.GameUpdateCount / 2);
 
 			if (!loggedSize)
