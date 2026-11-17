@@ -828,7 +828,51 @@ namespace Augments
 			public float Scale;
 			public float Tracking;
 			public int Style; // 0 text, 1 dim, 2 heading, 3 version, 4 soft text
-			public int Marker; // 0 none, 1 diamond, 2 section square, 3 dash
+			public int Marker; // 0 none, 1 diamond, 2 section square, 3 dash, 4 rule, 7 direction icon
+			public int Kind;   // 0 plain text, 10 plugin change card header, 11 "label: old => new" line
+			public int Dir;    // -1 nerf, +1 buff, 0 adjusted
+			public string Name, Rarity, Tag, Label, Old, New;
+		}
+
+		// Colours of the plugin change cards. A nerf is red, a buff is green, an adjustment is amber.
+		private static readonly Color NerfColor = new Color(196, 70, 62);
+		private static readonly Color BuffColor = new Color(84, 140, 70);
+		private static readonly Color AdjustColor = new Color(176, 132, 40);
+
+		private static Color DirColor(int dir) => dir < 0 ? NerfColor : dir > 0 ? BuffColor : AdjustColor;
+
+		private static Color RarityColorOf(string rarity)
+			=> Enum.TryParse(rarity, true, out AugmentRarity r) ? RarityLook.Of(r) : HubTheme.Dim;
+
+		// The game font has no triangle or arrow symbols, so these are drawn from rectangles: up for a buff, down for a nerf, a diamond
+		// for an adjustment.
+		private static void DrawDirIcon(SpriteBatch sb, int x, float cy, int dir)
+		{
+			Color c = DirColor(dir);
+			if (dir == 0)
+			{
+				HubDraw.Diamond(sb, new Vector2(x + 4, cy), 3f, c);
+				return;
+			}
+
+			for (int i = 0; i < 5; i++)
+			{
+				int w = dir > 0 ? i : 4 - i;
+				HubDraw.Fill(sb, new Rectangle(x + 4 - w, (int)cy - 2 + i, w * 2 + 1, 1), c);
+			}
+		}
+
+		private const int ArrowW = 14;
+
+		// A right-pointing arrow between the old and the new value.
+		private static void DrawArrow(SpriteBatch sb, int x, float cy, Color c)
+		{
+			HubDraw.Fill(sb, new Rectangle(x, (int)cy - 1, 9, 2), c);
+			for (int j = 0; j < 5; j++)
+			{
+				int h = (5 - j) * 2 - 1;
+				HubDraw.Fill(sb, new Rectangle(x + 8 + j, (int)cy - h / 2, 1, h), c);
+			}
 		}
 
 		private readonly AutomataHomeUIState state;
@@ -933,10 +977,39 @@ namespace Augments
 				lines.Add(new PLine { Text = text, X = x, Y = y, Scale = scale, Tracking = tracking, Style = style, Marker = marker, H = height });
 			}
 
+			// A plugin change card is a header line, a quote and stat lines. Its coloured bar is as tall as all of them together.
+			PLine openCard = null;
+			void CloseCard()
+			{
+				if (openCard == null)
+					return;
+				openCard.H = Math.Max(24f, y - openCard.Y - 2f);
+				y += 14f;
+				openCard = null;
+			}
+
 			foreach (PatchBlock b in PatchNotesData.Blocks)
 			{
+				if (b.Kind != PatchKind.Quote && b.Kind != PatchKind.Stat)
+					CloseCard();
+
 				switch (b.Kind)
 				{
+					case PatchKind.Card:
+						openCard = new PLine { Kind = 10, Y = y, H = 24f, Name = b.Title, Rarity = b.Rarity, Tag = b.Tag, Dir = b.Dir };
+						lines.Add(openCard);
+						y += 28f;
+						break;
+
+					case PatchKind.Quote:
+						WrapInto(b.Body, 18, width, 0.7f, 1, ref y);
+						y += 4f;
+						break;
+
+					case PatchKind.Stat:
+						AddStat(b, width, ref y);
+						break;
+
 					case PatchKind.Version:
 						Add(b.Body.ToUpperInvariant(), 0, 1.1f, 3f, 3, 0, 28f);
 						y += 44f;
@@ -981,10 +1054,49 @@ namespace Augments
 				}
 			}
 
+			CloseCard();
 			totalHeight = y + 24f;
 		}
 
-		private void WrapInto(string text, int indent, float width, float scale, int style, ref float y, int marker = 0)
+		// One line of a card. "Label: old => new" is drawn with the old value dimmed and crossed out, then an arrow, then the new
+		// value. A line without an arrow (or one too wide for the page) is plain wrapped text with the same direction icon.
+		private void AddStat(PatchBlock b, float width, ref float y)
+		{
+			const float scale = 0.72f;
+			const int textX = 36;
+			string text = b.Body;
+
+			int arrowAt = text.IndexOf(" => ", StringComparison.Ordinal);
+			if (arrowAt > 0)
+			{
+				string left = text.Substring(0, arrowAt).Trim();
+				string right = text.Substring(arrowAt + 4).Trim();
+				string label = "";
+				string old = left;
+				int colon = left.LastIndexOf(": ", StringComparison.Ordinal);
+				if (colon >= 0)
+				{
+					label = left.Substring(0, colon + 2);
+					old = left.Substring(colon + 2);
+				}
+
+				float total = HubDraw.Width(label, scale) + HubDraw.Width(old, scale) + 8f + ArrowW + 8f + HubDraw.Width(right, scale) + 1f;
+				if (total <= width - textX - 8f)
+				{
+					float lh = HubDraw.LineHeight(scale) + 3f;
+					lines.Add(new PLine { Kind = 11, Marker = 7, Dir = b.Dir, X = textX, Y = y, H = lh, Scale = scale, Label = label, Old = old, New = right });
+					y += lh + 3f;
+					return;
+				}
+
+				text = left + " -> " + right;
+			}
+
+			WrapInto(text, textX, width, scale, 0, ref y, marker: 7, dir: b.Dir);
+			y += 3f;
+		}
+
+		private void WrapInto(string text, int indent, float width, float scale, int style, ref float y, int marker = 0, int dir = 0)
 		{
 			if (string.IsNullOrEmpty(text))
 				return;
@@ -993,7 +1105,7 @@ namespace Augments
 			bool first = true;
 			foreach (string line in HubDraw.Wrap(text, width - indent - 8f, scale))
 			{
-				lines.Add(new PLine { Text = line, X = indent, Y = y, Scale = scale, Tracking = 0f, Style = style, Marker = first ? marker : 0, H = lh });
+				lines.Add(new PLine { Text = line, X = indent, Y = y, Scale = scale, Tracking = 0f,	Style = style, Marker = first ? marker : 0, Dir = dir, H = lh });
 				y += lh;
 				first = false;
 			}
@@ -1099,7 +1211,22 @@ namespace Augments
 					continue;
 				}
 
+				if (l.Kind == 10)
+				{
+					DrawCardHeader(sb, body, l, sy);
+					continue;
+				}
+
 				Color c = StyleColor(l.Style);
+				if (l.Kind == 11)
+				{
+					DrawStatLine(sb, body, l, sy);
+					continue;
+				}
+
+				if (l.Marker == 7)
+					DrawDirIcon(sb, body.X + l.X - 18, sy + HubDraw.LineHeight(l.Scale) / 2f + 1f, l.Dir);
+
 				if (l.Marker == 2)
 				{
 					HubDraw.Fill(sb, new Rectangle(body.X, (int)sy + 4, 10, 10), HubTheme.Accent);
@@ -1115,6 +1242,62 @@ namespace Augments
 
 				HubDraw.Text(sb, l.Text, new Vector2(body.X + l.X, sy), c, l.Scale, l.Tracking);
 			}
+		}
+
+		// The first line of a plugin change card: its name, a rarity chip and a NERF / BUFF / ADJUSTED tag, with a bar in the rarity colour
+		// running down the left side of the whole card.
+		private static void DrawCardHeader(SpriteBatch sb, Rectangle body, PLine l, float sy)
+		{
+			Color rc = RarityColorOf(l.Rarity);
+			HubDraw.Fill(sb, new Rectangle(body.X + 2, (int)sy, 4, (int)l.H), rc);
+
+			const float nameScale = 0.86f;
+			HubDraw.Text(sb, l.Name, new Vector2(body.X + 18, sy), HubTheme.Text, nameScale, 0.5f);
+			float x = body.X + 18 + HubDraw.Width(l.Name, nameScale, 0.5f) + 12f;
+			int chipH = (int)HubDraw.LineHeight(0.56f) + 4;
+			int chipY = (int)(sy + (HubDraw.LineHeight(nameScale) - chipH) / 2f) + 1;
+
+			if (!string.IsNullOrEmpty(l.Rarity))
+			{
+				string rt = l.Rarity.ToUpperInvariant();
+				var chip = new Rectangle((int)x, chipY, (int)HubDraw.Width(rt, 0.56f, 1f) + 12, chipH);
+				HubDraw.Border(sb, chip, rc);
+				HubDraw.Text(sb, rt, new Vector2(chip.X + 6, chip.Y + 2), rc, 0.56f, 1f);
+				x = chip.Right + 8f;
+			}
+
+			if (!string.IsNullOrEmpty(l.Tag))
+			{
+				var tag = new Rectangle((int)x, chipY, (int)HubDraw.Width(l.Tag, 0.56f, 1f) + 12, chipH);
+				HubDraw.Fill(sb, tag, DirColor(l.Dir));
+				HubDraw.Text(sb, l.Tag, new Vector2(tag.X + 6, tag.Y + 2), Color.White * 0.95f, 0.56f, 1f);
+			}
+		}
+
+		// "Label: old => new": the old value dimmed with a line through it, an arrow, then the new value in the normal colour (drawn twice,
+		// one pixel apart, so it stands out as the number that matters).
+		private static void DrawStatLine(SpriteBatch sb, Rectangle body, PLine l, float sy)
+		{
+			float cy = sy + HubDraw.LineHeight(l.Scale) / 2f + 1f;
+			DrawDirIcon(sb, body.X + l.X - 18, cy, l.Dir);
+
+			float x = body.X + l.X;
+			if (l.Label.Length > 0)
+			{
+				HubDraw.Text(sb, l.Label, new Vector2(x, sy), HubTheme.Text, l.Scale);
+				x += HubDraw.Width(l.Label, l.Scale);
+			}
+
+			float ow = HubDraw.Width(l.Old, l.Scale);
+			HubDraw.Text(sb, l.Old, new Vector2(x, sy), HubTheme.Dim, l.Scale);
+			HubDraw.Fill(sb, new Rectangle((int)x, (int)cy, (int)ow, 1), HubTheme.Dim);
+			x += ow + 8f;
+
+			DrawArrow(sb, (int)x, cy, HubTheme.Dim);
+			x += ArrowW + 8f;
+
+			HubDraw.Text(sb, l.New, new Vector2(x, sy), HubTheme.Text, l.Scale);
+			HubDraw.Text(sb, l.New, new Vector2(x + 1f, sy), HubTheme.Text, l.Scale);
 		}
 
 		// Shortens a label with "..." until it fits the given width.

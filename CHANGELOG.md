@@ -8,14 +8,31 @@
 - **Easier to read**: The descriptions on the colour scheme and panel frame cards are bigger and brighter, and a long one wraps onto a second line instead of running past the edge of the card.
 - **Small alignment fixes**: The filter buttons on the Archive page and the Data Fragments box on the title screen are lined up properly.
 - **Phase Round works with modded guns**: Phase Round now also works with guns and bows from other mods, such as the Calamity ranger weapons. Their shots fly through blocks, just like the vanilla ones.
-- **Queen's Swarm nerf**: It was doing far too much damage. The base damage of each bug goes from 18 to 15. The same enemy can only release a swarm again after 3 seconds, and you can only release one swarm every 1 second.
 - **Optional anonymous stats**: The first time you open the title screen, a pop-up asks if you want to share anonymous stats to help balance Plug-in Chips and improve the quality of the mod. Nothing is sent unless you press SHARE. If you share, the mod sends the plugin, the weapon, the game stage, how much damage was dealt and how long the fight lasted, and never your name, Steam account, world name or IP address. You can change this any time in Mod Config, under Privacy Settings.
 - **A better Profile page**: The Profile page on the title screen now draws your real character. It also shows your Best DPS (the highest damage per second you have reached over 3 seconds, saved for each character and shown as -- until you have one), your Data Fragments and how many points you have toward the next rank, like 25 / 50. The Machine Cores row is gone from this page. You can pin up to 3 favourite plugins: click a slot and pick one of the plugins that character has collected, and right click a slot to clear it. With more than one character, click the name box at the top right to pick one from a list, or use the arrows.
 - **Cleaner badges and emblems**: The Badges row shows each emblem as a clean tile with its name, marked WORN, owned or LOCKED. The emblem icons are redrawn as simple solid shapes everywhere, including the Cosmetics page.
 - **Easier to read Orders**: The progress numbers on the Orders cards, like 3 h 01 min / 10 h 00 min, are bigger and easier to read.
 - **Hidden endings**: Five secret challenge endings, A to E, are now tracked for each character and shown on the Profile page as a riddle until you earn them. They are about how you beat a boss, not just that you beat it. Every ending only counts from the Wall of Flesh onward, because beating an early boss without a hit was too easy, and the last one needs a Mechanical Boss or later. A boss older than your world's current stage never counts. Endings only work in singleplayer for now.
 - **Old screen effect on more panels**: The Plugins menu, the Shop and Combat Analytics now turn off like an old computer screen, collapsing to a bright line and then a dot, and turn on the same way backwards.
-- **Apex Hunter fixed and rebalanced**: Apex Hunter now counts hits on every part of a boss, such as Golem's head and fists and the body segments of Calamity worm bosses, so the mark builds in those fights too. The burst now deals 100% of the damage you dealt while marking, up to 5% of the boss's max HP, so it grows with your weapon instead of depending only on the boss's health. Meteor Strike has the same fix: crits on any part of a boss fight can trigger it, and its strike uses the whole boss's max HP.
+
+### Plugin changes
+
+#### Queen's Swarm | Rare | NERF
+> It was doing far too much damage.
+- Bug damage: 18 => 15
+- The same enemy can only release a swarm again after 3 seconds
+- You can only release one swarm every 1 second
+
+#### Apex Hunter | Legendary | ADJUSTED
+> It missed boss parts like Golem's head, and a flat percent ignored your gear.
+- [+] Now counts hits on every part of a boss, including the segments of Calamity worm bosses
+- Burst damage: 5% of boss max HP => 100% of the damage you dealt while marking
+- [~] The burst is still capped at 5% of the boss's max HP
+
+#### Meteor Strike | Epic | BUFF
+> It ignored most multi-part bosses.
+- Now triggers on crits against every part of a boss fight, such as Golem's head and fists
+- Strike size: 2.5% of the hit part's max HP => 2.5% of the whole boss's max HP
 
 ## Version 1.4.0
 

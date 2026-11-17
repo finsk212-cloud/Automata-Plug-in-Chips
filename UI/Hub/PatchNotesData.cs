@@ -18,7 +18,10 @@ namespace Augments
 		Section,  // "### 1. New Feature: ..."
 		Item,     // top-level bullet
 		Sub,      // indented bullet
-		Paragraph
+		Paragraph,
+		Card,     // "#### Name | Rarity | TAG": one plugin change (see below)
+		Quote,    // "> reason", the one-line why under a card
+		Stat      // a bullet inside a card, such as "- Bug damage: 18 => 15"
 	}
 
 	public class PatchBlock
@@ -27,6 +30,15 @@ namespace Augments
 		public string Title; // bold part of a bullet, may be empty
 		public string Body;
 		public int Level;    // indent depth of a Sub bullet
+
+		// Plugin change cards, in the style of League of Legends item changes:
+		//   #### Queen's Swarm | Rare | NERF
+		//   > It was doing far too much damage.
+		//   - Bug damage: 18 => 15          (the old value is dimmed and crossed out, then an arrow, then the new value)
+		//   - [+] Now counts every boss part  ([-] nerf, [+] buff, [~] adjusted; without one, the card's tag decides)
+		public string Rarity; // Card: Common, Rare, Epic or Legendary
+		public string Tag;    // Card: NERF, BUFF, ADJUSTED...
+		public int Dir;       // Card and Stat: -1 nerf, +1 buff, 0 adjusted
 	}
 
 	// The in-game patch notes, read from the mod's CHANGELOG.md once while the mod loads and kept in memory.
@@ -67,8 +79,21 @@ namespace Augments
 			}
 		}
 
+		private static int TagDirection(string tag)
+		{
+			switch (tag)
+			{
+				case "NERF": return -1;
+				case "BUFF": return 1;
+				default: return 0;
+			}
+		}
+
 		private static void Parse(string text)
 		{
+			bool inCard = false;
+			int cardDir = 0;
+
 			foreach (string raw in text.Split('\n'))
 			{
 				string line = raw.TrimEnd('\r');
@@ -76,12 +101,42 @@ namespace Augments
 				if (trimmed.Length == 0)
 					continue;
 
-				if (trimmed.StartsWith("### "))
+				if (trimmed.StartsWith("#### "))
 				{
+					string[] parts = trimmed.Substring(5).Split('|');
+					string tag = parts.Length > 2 ? Clean(parts[2]).ToUpperInvariant() : "";
+					cardDir = TagDirection(tag);
+					inCard = true;
+					Blocks.Add(new PatchBlock
+					{
+						Kind = PatchKind.Card,
+						Title = Clean(parts[0]),
+						Rarity = parts.Length > 1 ? Clean(parts[1]) : "",
+						Tag = tag,
+						Dir = cardDir
+					});
+				}
+				else if (inCard && trimmed.StartsWith("> "))
+				{
+					Blocks.Add(new PatchBlock { Kind = PatchKind.Quote, Body = Clean(trimmed.Substring(2)) });
+				}
+				else if (inCard && (trimmed.StartsWith("- ") || trimmed.StartsWith("* ")))
+				{
+					string content = trimmed.Substring(2).Trim();
+					int dir = cardDir;
+					if (content.StartsWith("[+]")) { dir = 1; content = content.Substring(3); }
+					else if (content.StartsWith("[-]")) { dir = -1; content = content.Substring(3); }
+					else if (content.StartsWith("[~]")) { dir = 0; content = content.Substring(3); }
+					Blocks.Add(new PatchBlock { Kind = PatchKind.Stat, Body = Clean(content), Dir = dir });
+				}
+				else if (trimmed.StartsWith("### "))
+				{
+					inCard = false;
 					Blocks.Add(new PatchBlock { Kind = PatchKind.Section, Body = Clean(trimmed.Substring(4)) });
 				}
 				else if (trimmed.StartsWith("## "))
 				{
+					inCard = false;
 					string v = Clean(trimmed.Substring(3));
 					if (VersionLabel.Length == 0)
 						VersionLabel = v.ToUpperInvariant();
