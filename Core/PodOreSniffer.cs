@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
-using Terraria.Map;
 using Terraria.ModLoader;
 
 namespace Augments
@@ -13,22 +12,27 @@ namespace Augments
 	// The Ore Sniffer plugin's Pod upgrade ("Pod 311"). It is not a separate drone: it is a behaviour of the Pod on the owner's shoulder.
 	// Everything here is local to the owner: the world's tiles are already on their machine, and the hint is only drawn on their own screen,
 	// so nothing is sent over the network.
+	//
+	// It works in a repeating cycle: the Pod sniffs around for 5 seconds (a pulsing ring), then says a riddle about the nearest ore and
+	// points an arrow at it, then it cools down for 6 seconds before it sniffs again. The riddle and arrow stay up for the first 4 seconds
+	// of the cooldown.
 	internal sealed class PodOreSniffer
 	{
 		private const int RangeTiles = 60;
-		private const int ScanIntervalTicks = 30;
-		private const int NearTiles = 12;      // inside this the Pod gives a little ping once
+		private const int ScanTicks = 300;      // 5 seconds of sniffing
+		private const int CooldownTicks = 360;  // 6 seconds before it sniffs again
+		private const int ShowTicks = 240;      // the riddle stays up for the first 4 seconds of the cooldown
 
-		private int clock;
+		private bool scanning = true;
+		private int phaseTicks;
 		private bool found;
+		private bool revealed;                 // the riddle (or "nothing here") is being shown this cycle
 		private Point tile;
-		private string oreName = "";
+		private string riddle = "";
 		private float distanceTiles;
 		private Vector2 delta;                 // in tiles, from the player to the ore
-		private float fade;                    // 0..1, how visible the hint is
-		private bool wasNear;
-		private int lastPingClock = -100000;
-		private const int PingCooldownTicks = 600; // at least 10 seconds apart
+		private float fade;                    // 0..1, how visible the riddle and arrow are
+		private float scanFade;                // 0..1, how visible the sniffing ring is
 
 		private static PodOreSniffer Local
 		{
@@ -41,18 +45,56 @@ namespace Augments
 
 		internal void Reset()
 		{
+			scanning = true;
+			phaseTicks = 0;
 			found = false;
+			revealed = false;
 			fade = 0f;
-			clock = 0;
+			scanFade = 0f;
 		}
 
 		// Once per game tick, on the owner's own machine, while they have the Ore Sniffer plugin.
 		internal void Update(Player owner)
 		{
-			if (clock++ % ScanIntervalTicks == 0)
-				Scan(owner);
+			phaseTicks++;
+			if (scanning)
+			{
+				if (phaseTicks >= ScanTicks)
+				{
+					Reveal(owner);
+					scanning = false;
+					phaseTicks = 0;
+				}
+			}
+			else if (phaseTicks >= CooldownTicks)
+			{
+				scanning = true;
+				phaseTicks = 0;
+				found = false;
+				revealed = false;
+			}
+			else if (found)
+			{
+				Track(owner); // the arrow keeps pointing at the ore while you move
+			}
 
-			fade = found ? Math.Min(1f, fade + 0.08f) : Math.Max(0f, fade - 0.08f);
+			float wantFade = !scanning && revealed && phaseTicks < ShowTicks ? 1f : 0f;
+			fade = MoveToward(fade, wantFade, 0.08f);
+			scanFade = MoveToward(scanFade, scanning ? 1f : 0f, 0.1f);
+		}
+
+		private static float MoveToward(float value, float target, float step)
+		{
+			return value < target ? Math.Min(target, value + step) : Math.Max(target, value - step);
+		}
+
+		// The end of the sniffing: find the nearest ore now, and say something about it.
+		private void Reveal(Player owner)
+		{
+			Scan(owner);
+			revealed = true;
+			if (found)
+				SoundEngine.PlaySound(SoundID.Item35 with { Volume = 0.4f, Pitch = 0.5f, MaxInstances = 2 }, owner.Center);
 		}
 
 		// Ore, but not chests, life crystals and the like. Mod ores usually set the same flags as the vanilla ones.
@@ -103,29 +145,27 @@ namespace Augments
 			if (bestType < 0)
 			{
 				found = false;
-				wasNear = false;
+				riddle = NothingRiddle;
 				return;
 			}
 
 			found = true;
 			tile = bestTile;
-			oreName = RiddleFor(bestType);
-			delta = new Vector2(bestTile.X - centre.X, bestTile.Y - centre.Y);
-			distanceTiles = (float)Math.Sqrt(best);
+			riddle = RiddleFor(bestType);
+			Track(owner);
+		}
 
-			// One soft ping when you come close to ore, not one for every block of a vein you walk along or mine.
-			bool near = distanceTiles <= NearTiles;
-			if (near && !wasNear && clock - lastPingClock >= PingCooldownTicks)
-			{
-				lastPingClock = clock;
-				SoundEngine.PlaySound(SoundID.Item35 with { Volume = 0.35f, Pitch = 0.5f, MaxInstances = 2 }, owner.Center);
-			}
-			wasNear = near;
+		private void Track(Player owner)
+		{
+			Point centre = owner.Center.ToTileCoordinates();
+			delta = new Vector2(tile.X - centre.X, tile.Y - centre.Y);
+			distanceTiles = delta.Length();
 		}
 
 		// The Pod never says the ore's name: it gives a riddle instead. Every vanilla ore and gem has its own; anything else (a modded ore)
 		// gets the fallback. These tile types are always counted as ore, so a gem is found even if the game does not flag it as one.
 		private const string FallbackRiddle = "Something unknown is hiding. Even I'm curious.";
+		private const string NothingRiddle = "Nothing but dirt and doubt around here.";
 
 		private static readonly Dictionary<int, string> Riddles = new Dictionary<int, string>
 		{
@@ -159,7 +199,7 @@ namespace Augments
 
 		private static string RiddleFor(int type)
 		{
-			return Riddles.TryGetValue(type, out string riddle) ? riddle : FallbackRiddle;
+			return Riddles.TryGetValue(type, out string r) ? r : FallbackRiddle;
 		}
 
 		// How close, in plain words, so the riddle does not need a number.
@@ -184,10 +224,13 @@ namespace Augments
 
 		// --- Drawing (client only), in the units the HUD draws in ---
 
+		private static readonly Color Orange = new Color(255, 160, 70);
+		private static readonly Color Dark = new Color(60, 28, 6);
+
 		internal static void Draw(SpriteBatch sb)
 		{
 			PodOreSniffer s = Local;
-			if (s == null || s.fade <= 0.01f || Main.gameMenu || Main.mapFullscreen)
+			if (s == null || (s.fade <= 0.01f && s.scanFade <= 0.01f) || Main.gameMenu || Main.mapFullscreen)
 				return;
 
 			Player p = Main.LocalPlayer;
@@ -200,36 +243,87 @@ namespace Augments
 			if (!PodPetPlayer.TryGetLocalPodScreenPos(out anchor))
 				anchor = Vector2.Transform(p.Center - Main.screenPosition + new Vector2(0f, -56f), Main.GameViewMatrix.ZoomMatrix) / Main.UIScale;
 
-			float a = s.fade;
-			var orange = new Color(255, 160, 70);
-			var dark = new Color(60, 28, 6);
+			if (s.scanFade > 0.01f)
+				s.DrawSniffing(sb, anchor);
+			if (s.fade > 0.01f)
+				s.DrawResult(sb, anchor);
+		}
 
-			// The arrow circles the Pod and points at the ore.
-			Vector2 dir = s.delta.LengthSquared() > 0.01f ? Vector2.Normalize(s.delta) : new Vector2(0f, 1f);
-			Vector2 perp = new Vector2(-dir.Y, dir.X);
+		// While it sniffs: rings spreading out from the Pod, and "Sniffing..." with dots that count up.
+		private void DrawSniffing(SpriteBatch sb, Vector2 anchor)
+		{
+			float a = scanFade;
+			for (int i = 0; i < 2; i++)
+			{
+				float t = ((phaseTicks / 60f) + i * 0.5f) % 1f;      // each ring takes a second to spread out
+				float radius = 10f + 52f * t;
+				DrawRing(sb, anchor, radius, 1.6f, Orange * (a * (1f - t) * 0.8f));
+			}
+
+			if (AugmentAdvisoryHUD.IsTalking)
+				return;
+
+			string full = "Sniffing...";
+			int dots = 1 + (phaseTicks / 20) % 3;
+			string shown = "Sniffing" + new string('.', dots);
+			float scale = 0.62f;
+			float w = HubDraw.Width(full, scale);
+			DrawShadowed(sb, shown, new Vector2(anchor.X - w / 2f, anchor.Y + 40f), Orange * (a * 0.9f), scale);
+		}
+
+		// A thin circle, drawn as short straight pieces.
+		private static void DrawRing(SpriteBatch sb, Vector2 centre, float radius, float thickness, Color c)
+		{
+			const int Segments = 28;
+			float outer = radius + thickness * 0.5f;
+			float inner = radius - thickness * 0.5f;
+			for (int i = 0; i < Segments; i++)
+			{
+				float a0 = MathHelper.TwoPi * i / Segments;
+				float a1 = MathHelper.TwoPi * (i + 1) / Segments;
+				Vector2 d0 = new Vector2((float)Math.Cos(a0), (float)Math.Sin(a0));
+				Vector2 d1 = new Vector2((float)Math.Cos(a1), (float)Math.Sin(a1));
+				Span<Vector2> quad = stackalloc Vector2[] { centre + d0 * outer, centre + d1 * outer, centre + d1 * inner, centre + d0 * inner };
+				HubDraw.FillPolygon(sb, quad, c);
+			}
+		}
+
+		// After it sniffs: an arrow circling the Pod toward the ore, the riddle, and how close and which way.
+		private void DrawResult(SpriteBatch sb, Vector2 anchor)
+		{
+			float a = fade;
 			float ring = 30f;
-			Vector2 tip = anchor + dir * (ring + 10f);
-			Vector2 baseMid = anchor + dir * ring;
-			Span<Vector2> outer = stackalloc Vector2[] { tip + dir * 1.5f, baseMid + perp * 6.5f - dir * 1.5f, baseMid - perp * 6.5f - dir * 1.5f };
-			Span<Vector2> inner = stackalloc Vector2[] { tip, baseMid + perp * 5f, baseMid - perp * 5f };
-			HubDraw.FillPolygon(sb, outer, dark * (0.85f * a));
-			HubDraw.FillPolygon(sb, inner, orange * a);
+
+			if (found)
+			{
+				Vector2 dir = delta.LengthSquared() > 0.01f ? Vector2.Normalize(delta) : new Vector2(0f, 1f);
+				Vector2 perp = new Vector2(-dir.Y, dir.X);
+				Vector2 tip = anchor + dir * (ring + 10f);
+				Vector2 baseMid = anchor + dir * ring;
+				Span<Vector2> outer = stackalloc Vector2[] { tip + dir * 1.5f, baseMid + perp * 6.5f - dir * 1.5f, baseMid - perp * 6.5f - dir * 1.5f };
+				Span<Vector2> inner = stackalloc Vector2[] { tip, baseMid + perp * 5f, baseMid - perp * 5f };
+				HubDraw.FillPolygon(sb, outer, Dark * (0.85f * a));
+				HubDraw.FillPolygon(sb, inner, Orange * a);
+			}
 
 			// The words wait while Pod 042 is speaking a tip next to it, so the two never overlap. The arrow stays.
 			if (AugmentAdvisoryHUD.IsTalking)
 				return;
 
-			// The riddle, then how close and which way.
-			string where = Where(s.delta);
-			string line1 = "\"" + s.oreName + "\"";
-			string close = Closeness(s.distanceTiles);
-			string line2 = s.distanceTiles <= 4f || where.Length == 0 ? close : close + ", " + where;
+			string line1 = "\"" + riddle + "\"";
+			string line2 = null;
+			if (found)
+			{
+				string where = Where(delta);
+				string close = Closeness(distanceTiles);
+				line2 = distanceTiles <= 4f || where.Length == 0 ? close : close + ", " + where;
+			}
+
 			float scale = 0.62f;
-			float w1 = HubDraw.Width(line1, scale);
-			float w2 = HubDraw.Width(line2, scale);
 			float y = anchor.Y + ring + 22f;
-			DrawShadowed(sb, line1, new Vector2(anchor.X - w1 / 2f, y), orange * a, scale);
-			DrawShadowed(sb, line2, new Vector2(anchor.X - w2 / 2f, y + HubDraw.LineHeight(scale) + 1f), Color.White * (0.9f * a), scale);
+			DrawShadowed(sb, line1, new Vector2(anchor.X - HubDraw.Width(line1, scale) / 2f, y), Orange * a, scale);
+			if (line2 != null)
+				DrawShadowed(sb, line2, new Vector2(anchor.X - HubDraw.Width(line2, scale) / 2f, y + HubDraw.LineHeight(scale) + 1f), Color.White * (0.9f * a), scale);
 		}
 
 		private static void DrawShadowed(SpriteBatch sb, string text, Vector2 pos, Color c, float scale)

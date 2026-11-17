@@ -16,7 +16,7 @@ namespace Augments
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +
-            "[c/94A3B8:(Looks about 60 tiles around you, through walls and dirt, and ignores plain stone. An arrow by the Pod points toward the ore. The Pod never names it, it hints with a riddle, plus how close you are and a direction like \"below and left\". Upgrades the Pod you already have instead of adding another, and works alongside other Pod upgrades. It still works while the Pod is hidden.)]";
+            "[c/94A3B8:(Sniffs for 5 seconds, says its riddle, then rests for 6 seconds before it sniffs again. Looks about 60 tiles around you, through walls and dirt, and ignores plain stone. An arrow by the Pod points toward the ore. The Pod never names it, it hints with a riddle, plus how close you are and a direction like \"below and left\". Upgrades the Pod you already have instead of adding another, and works alongside other Pod upgrades. It still works while the Pod is hidden.)]";
 
         public override AugmentRarity Rarity => AugmentRarity.Common;
         public override AugmentClass Class => AugmentClass.Universal;
