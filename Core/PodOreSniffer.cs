@@ -13,17 +13,19 @@ namespace Augments
 	// Everything here is local to the owner: the world's tiles are already on their machine, and the hint is only drawn on their own screen,
 	// so nothing is sent over the network.
 	//
-	// It works in a repeating cycle: the Pod sniffs around for 5 seconds (a pulsing ring), then says a riddle about the nearest ore and
-	// points an arrow at it, then it cools down for 6 seconds before it sniffs again. The riddle and arrow stay up for the first 4 seconds
-	// of the cooldown.
+	// It is an active plugin: it does nothing until the owner presses its button (see Augments.SniffOreKeybind). Then the Pod sniffs for
+	// 2 seconds (a pulsing ring), says a riddle about the nearest ore and points an arrow at it, and cools down for 6 seconds before the
+	// button works again. The riddle and arrow stay up for the first 5 seconds of the cooldown.
 	internal sealed class PodOreSniffer
 	{
 		private const int RangeTiles = 60;
-		private const int ScanTicks = 300;      // 5 seconds of sniffing
-		private const int CooldownTicks = 360;  // 6 seconds before it sniffs again
-		private const int ShowTicks = 240;      // the riddle stays up for the first 4 seconds of the cooldown
+		private const int ScanTicks = 120;      // 2 seconds of sniffing
+		private const int CooldownTicks = 360;  // 6 seconds before the button works again
+		private const int ShowTicks = 300;      // the riddle stays up for the first 5 seconds of the cooldown
 
-		private bool scanning = true;
+		private enum Phase { Ready, Sniffing, Cooldown }
+
+		private Phase phase = Phase.Ready;
 		private int phaseTicks;
 		private bool found;
 		private bool revealed;                 // the riddle (or "nothing here") is being shown this cycle
@@ -45,7 +47,7 @@ namespace Augments
 
 		internal void Reset()
 		{
-			scanning = true;
+			phase = Phase.Ready;
 			phaseTicks = 0;
 			found = false;
 			revealed = false;
@@ -53,34 +55,63 @@ namespace Augments
 			scanFade = 0f;
 		}
 
+		// Ticks until the button works again (0 when it is ready); the plugin list shows this as its cooldown.
+		internal int CooldownRemaining
+		{
+			get
+			{
+				if (phase == Phase.Sniffing)
+					return ScanTicks - phaseTicks + CooldownTicks;
+				return phase == Phase.Cooldown ? CooldownTicks - phaseTicks : 0;
+			}
+		}
+
+		// The owner pressed the button. Does nothing while it is already sniffing or cooling down.
+		internal void Request()
+		{
+			if (phase != Phase.Ready)
+				return;
+
+			phase = Phase.Sniffing;
+			phaseTicks = 0;
+			found = false;
+			revealed = false;
+			SoundEngine.PlaySound(SoundID.Item35 with { Volume = 0.25f, Pitch = -0.2f, MaxInstances = 2 }, Main.LocalPlayer.Center);
+		}
+
 		// Once per game tick, on the owner's own machine, while they have the Ore Sniffer plugin.
 		internal void Update(Player owner)
 		{
-			phaseTicks++;
-			if (scanning)
+			if (phase != Phase.Ready)
+				phaseTicks++;
+
+			if (phase == Phase.Sniffing)
 			{
 				if (phaseTicks >= ScanTicks)
 				{
 					Reveal(owner);
-					scanning = false;
+					phase = Phase.Cooldown;
 					phaseTicks = 0;
 				}
 			}
-			else if (phaseTicks >= CooldownTicks)
+			else if (phase == Phase.Cooldown)
 			{
-				scanning = true;
-				phaseTicks = 0;
-				found = false;
-				revealed = false;
-			}
-			else if (found)
-			{
-				Track(owner); // the arrow keeps pointing at the ore while you move
+				if (phaseTicks >= CooldownTicks)
+				{
+					phase = Phase.Ready;
+					phaseTicks = 0;
+					found = false;
+					revealed = false;
+				}
+				else if (found)
+				{
+					Track(owner); // the arrow keeps pointing at the ore while you move
+				}
 			}
 
-			float wantFade = !scanning && revealed && phaseTicks < ShowTicks ? 1f : 0f;
+			float wantFade = phase == Phase.Cooldown && revealed && phaseTicks < ShowTicks ? 1f : 0f;
 			fade = MoveToward(fade, wantFade, 0.08f);
-			scanFade = MoveToward(scanFade, scanning ? 1f : 0f, 0.1f);
+			scanFade = MoveToward(scanFade, phase == Phase.Sniffing ? 1f : 0f, 0.1f);
 		}
 
 		private static float MoveToward(float value, float target, float step)

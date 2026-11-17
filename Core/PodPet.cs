@@ -163,6 +163,10 @@ namespace Augments
 
 			if (Augments.TogglePodKeybind?.JustPressed == true)
 				Toggle();
+
+			// The Ore Sniffer upgrade's button.
+			if (SnifferOn && !Main.drawingPlayerChat && Augments.SniffOreKeybind?.JustPressed == true && Player.active && !Player.dead)
+				Sniffer.Request();
 		}
 
 		internal static void Toggle()

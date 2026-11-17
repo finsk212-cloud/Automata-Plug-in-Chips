@@ -19,6 +19,7 @@
 	ToggleCombatAnalytics.DisplayName: Toggle Combat Analytics
 	TriggerTacticalTip.DisplayName: Trigger Tactical Tip
 	TogglePod.DisplayName: Show or Hide Your Pod
+	SniffOre.DisplayName: Ore Sniffer: Sniff
 }
 
 NPCs: {

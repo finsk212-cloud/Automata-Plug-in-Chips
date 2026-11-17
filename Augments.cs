@@ -93,6 +93,7 @@ namespace Augments
 		public static ModKeybind ToggleCombatAnalyticsKeybind;
 		public static ModKeybind TriggerTipKeybind;
 		public static ModKeybind TogglePodKeybind;
+		public static ModKeybind SniffOreKeybind;
 
 		public override void Load()
 		{
@@ -123,6 +124,7 @@ namespace Augments
 			ToggleCombatAnalyticsKeybind = KeybindLoader.RegisterKeybind(this, "ToggleCombatAnalytics", "L");
 			TriggerTipKeybind = KeybindLoader.RegisterKeybind(this, "TriggerTacticalTip", "None");
 			TogglePodKeybind = KeybindLoader.RegisterKeybind(this, "TogglePod", "None");
+			SniffOreKeybind = KeybindLoader.RegisterKeybind(this, "SniffOre", "None");
 
 			// Registered manually, in this exact order, instead of relying on
 			// autoload - AugmentFesteringWoundsNPC's UpdateLifeRegen must run
@@ -164,6 +166,7 @@ namespace Augments
 			ToggleCombatAnalyticsKeybind = null;
 			TriggerTipKeybind = null;
 			TogglePodKeybind = null;
+			SniffOreKeybind = null;
 			PodSprites.Unload();
 			ClassIcons.Unload();
 		}
