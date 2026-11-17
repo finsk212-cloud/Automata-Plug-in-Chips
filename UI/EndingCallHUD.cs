@@ -174,7 +174,7 @@ namespace Augments
 			}
 
 			int w = (int)Math.Min(440f, uiW - 40f);
-			const int h = 108;
+			const int h = 122; // grew by 14 so two lines of the larger text still clear the footer
 			var full = new Rectangle((int)((uiW - w) / 2f), (int)(uiH - h - 30f), w, h);
 
 			if (t < CallTime)
@@ -359,7 +359,7 @@ namespace Augments
 		{
 			int tx = r.X + 14 + 48 + 12 + dx;
 			int maxW = r.Right - 14 - tx;
-			float scale = 0.5f;
+			float scale = 0.62f; // the Commander's words: about 3 pixels taller than the first version (0.5)
 			float lineStep = HubDraw.LineHeight(scale) + 2f;
 
 			HubDraw.HLine(sb, tx, r.Y + 52, maxW, HubTheme.LineSoft * alpha);
