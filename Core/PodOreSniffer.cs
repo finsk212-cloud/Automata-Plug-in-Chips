@@ -244,7 +244,7 @@ namespace Augments
 		}
 
 		// "below and left", for a hint a person can follow without reading the arrow.
-		private static string Where(Vector2 d)
+		internal static string Where(Vector2 d)
 		{
 			string vertical = Math.Abs(d.Y) >= 6f ? (d.Y < 0f ? "above" : "below") : "";
 			string horizontal = Math.Abs(d.X) >= 6f ? (d.X < 0f ? "left" : "right") : "";
@@ -359,21 +359,7 @@ namespace Augments
 				return;
 
 			// Under it, an orange chip with a small arrow pointing toward the ore and how close and which way.
-			const float chipScale = 0.56f;
-			const float arrowSize = 9f;
-			float textW = HubDraw.Width(line2, chipScale, 0.5f);
-			int boxH = (int)Math.Round(HubDraw.LineHeight(chipScale) * 0.5f) + 10;
-			int boxW = (int)Math.Round(textW) + (int)arrowSize + 5 + 16;
-			var chip = new Rectangle((int)Math.Round(anchor.X - boxW / 2f), (int)Math.Round(y + HubDraw.LineHeight(scale) + 5f), boxW, boxH);
-			HubDraw.Fill(sb, new Rectangle(chip.X - 1, chip.Y - 1, chip.Width + 2, chip.Height + 2), Color.Black * (0.75f * a));
-			HubDraw.Fill(sb, chip, Orange * a);
-
-			Vector2 d = delta.LengthSquared() > 0.01f ? Vector2.Normalize(delta) : new Vector2(0f, 1f);
-			Vector2 p = new Vector2(-d.Y, d.X);
-			Vector2 c = new Vector2(chip.X + 8f + arrowSize / 2f, chip.Y + boxH / 2f);
-			Span<Vector2> arrow = stackalloc Vector2[] { c + d * (arrowSize / 2f), c - d * (arrowSize / 2f) + p * (arrowSize / 2.4f), c - d * (arrowSize / 2f) - p * (arrowSize / 2.4f) };
-			HubDraw.FillPolygon(sb, arrow, Dark * a);
-			HubDraw.Text(sb, line2, new Vector2(chip.X + 8f + arrowSize + 5f, chip.Y + boxH / 2f - HubDraw.CapMid(chipScale)), Dark * a, chipScale, 0.5f);
+			PodHintChip.Draw(sb, anchor.X, y + HubDraw.LineHeight(scale) + 5f, line2, delta, Orange, Dark, a);
 		}
 
 		private static readonly Color Cream = new Color(255, 243, 220);

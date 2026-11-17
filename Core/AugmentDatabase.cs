@@ -194,6 +194,7 @@ namespace Augments
             Register(new TinyLighthouseAugment());
             Register(new OreSnifferAugment());
             Register(new PeaShooterAugment());
+            Register(new WatchYourStepAugment());
         }
 
         public const int FirstRecentIndex = 118;

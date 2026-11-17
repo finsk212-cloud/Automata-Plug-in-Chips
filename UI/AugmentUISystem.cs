@@ -343,6 +343,17 @@ namespace Augments
 				InterfaceScaleType.UI)
 			);
 
+			// The Watch Your Step upgrade's red warning chip above the Pod.
+			layers.Insert(mouseTextIndex, new LegacyGameInterfaceLayer(
+				"Augments: Trap Warning HUD",
+				delegate
+				{
+					PodTrapSense.Draw(Main.spriteBatch);
+					return true;
+				},
+				InterfaceScaleType.UI)
+			);
+
 			// Inserted last = drawn first = beneath all UI panels but above the game world.
 			layers.Insert(mouseTextIndex, new LegacyGameInterfaceLayer(
 				"Augments: Auras",

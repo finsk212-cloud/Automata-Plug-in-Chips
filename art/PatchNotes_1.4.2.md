@@ -23,6 +23,11 @@ Balance changes now show as cards, with a NERF, BUFF, ADJUSTED or NEW tag and th
 
 ## New plugins
 
+**Upgrade Pod: Watch Your Step** (Common, new)
+- Your Pod gets a funny feeling about that floor tile.
+- Your Pod becomes Pod 077, and it works even while the Pod is hidden.
+- Senses traps within about 15 tiles: dart, spear, flame and spiky ball traps, pressure plates, landmines and explosives, spikes and geyser traps.
+- The Pod flashes red and a small chip points toward the closest one, like "Trap nearby, below and left".
 **Upgrade Pod: Pea Shooter** (Common, new)
 - Tiny bolts, big attitude. It really tries.
 - Your Pod becomes Pod 218, and it works even while the Pod is hidden.

@@ -58,6 +58,8 @@ namespace Augments
 		internal bool LightOn;
 		internal bool SnifferOn;
 		internal bool ShooterOn;
+		internal bool TrapOn;
+		internal readonly PodTrapSense TrapSense = new PodTrapSense();
 		internal readonly PodShooter Shooter = new PodShooter();
 		internal readonly PodOreSniffer Sniffer = new PodOreSniffer();
 		internal IReadOnlyList<Color> ModuleColors => moduleColors;
@@ -76,6 +78,7 @@ namespace Augments
 			LightOn = false;
 			SnifferOn = false;
 			ShooterOn = false;
+			TrapOn = false;
 			foreach (PodUpgrade upgrade in activeUpgrades)
 			{
 				moduleColors.Add(upgrade.Color);
@@ -83,6 +86,8 @@ namespace Augments
 					SnifferOn = true;
 				if (upgrade.ChipId == PeaShooterAugment.ChipId)
 					ShooterOn = true;
+				if (upgrade.ChipId == WatchYourStepAugment.ChipId)
+					TrapOn = true;
 				if (upgrade.ChipId == TinyLighthouseAugment.ChipId)
 					LightOn = true;
 				if (upgrade.ChipId == AutopilotAugment.ChipId)
@@ -152,6 +157,22 @@ namespace Augments
 					Sniffer.Update(Player);
 				else
 					Sniffer.Reset();
+
+				// The Watch Your Step upgrade senses traps near the owner, and the Pod's light flashes red while one is in range.
+				if (TrapOn && Player.active && !Player.dead && !Player.ghost)
+				{
+					TrapSense.Update(Player);
+					if (TrapSense.Strength > 0.02f)
+					{
+						float flash = 0.5f + 0.5f * (float)Math.Sin(AnimClock * 0.25f);
+						float s = TrapSense.Strength * (0.35f + 0.65f * flash);
+						Lighting.AddLight(Visible ? podPos : Player.Center, 0.95f * s, 0.2f * s, 0.16f * s);
+					}
+				}
+				else
+				{
+					TrapSense.Reset();
+				}
 
 				// The Pea Shooter upgrade fires from the Pod, wherever it is, and only from the owner's machine.
 				if (ShooterOn && Player.active && !Player.dead && !Player.ghost)
@@ -327,6 +348,17 @@ namespace Augments
 				{
 					float glowPulse = 0.5f + 0.5f * (float)Math.Sin(t * 0.05f);
 					cache.Add(new DrawData(lamp, At(PodSprites.Origin), null, new Color(255, 214, 110) * (0.20f + 0.08f * glowPulse), 0f, new Vector2(lamp.Width / 2f, lamp.Height / 2f), 0.55f, SpriteEffects.None, 0));
+				}
+			}
+
+			// Watch Your Step pod: a red halo that flashes while a trap is near.
+			if (pet.TrapOn && pet.TrapSense.Strength > 0.02f)
+			{
+				Texture2D alarm = PodSprites.Halo();
+				if (alarm != null)
+				{
+					float flash = 0.5f + 0.5f * (float)Math.Sin(t * 0.25f);
+					cache.Add(new DrawData(alarm, At(PodSprites.Origin), null, new Color(255, 70, 60) * (pet.TrapSense.Strength * (0.12f + 0.38f * flash)), 0f, new Vector2(alarm.Width / 2f, alarm.Height / 2f), 0.65f, SpriteEffects.None, 0));
 				}
 			}
 
