@@ -23,6 +23,11 @@ Balance changes now show as cards, with a NERF, BUFF, ADJUSTED or NEW tag and th
 
 ## New plugins
 
+**Upgrade Pod: Pea Shooter** (Common, new)
+- Tiny bolts, big attitude. It really tries.
+- Your Pod becomes Pod 218, and it works even while the Pod is hidden.
+- Shoots a small bolt at the nearest enemy every 1 second.
+- Each bolt deals 5 damage, plus a small part of your damage bonuses, so it is a helper and never a weapon.
 **Upgrade Pod: Ore Sniffer** (Common, new)
 - Your Pod learned to smell treasure. It won't tell you what, only hints.
 - Your Pod becomes Pod 311, and it works even while the Pod is hidden.

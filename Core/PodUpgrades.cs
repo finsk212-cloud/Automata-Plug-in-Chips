@@ -26,7 +26,8 @@ namespace Augments
 		{
 			new PodUpgrade { ChipId = AutopilotAugment.ChipId, PodName = "POD 153", Color = new Color(80, 255, 140) },
 			new PodUpgrade { ChipId = TinyLighthouseAugment.ChipId, PodName = "POD 096", Color = new Color(255, 214, 90) },
-			new PodUpgrade { ChipId = OreSnifferAugment.ChipId, PodName = "POD 311", Color = new Color(255, 150, 60) }
+			new PodUpgrade { ChipId = OreSnifferAugment.ChipId, PodName = "POD 311", Color = new Color(255, 150, 60) },
+			new PodUpgrade { ChipId = PeaShooterAugment.ChipId, PodName = "POD 218", Color = new Color(90, 220, 255) }
 		};
 
 		public static bool Has(Player player, PodUpgrade upgrade)

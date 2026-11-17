@@ -57,6 +57,8 @@ namespace Augments
 		internal bool AutopilotOn;
 		internal bool LightOn;
 		internal bool SnifferOn;
+		internal bool ShooterOn;
+		internal readonly PodShooter Shooter = new PodShooter();
 		internal readonly PodOreSniffer Sniffer = new PodOreSniffer();
 		internal IReadOnlyList<Color> ModuleColors => moduleColors;
 		internal float AnimClock;
@@ -73,11 +75,14 @@ namespace Augments
 			AutopilotOn = false;
 			LightOn = false;
 			SnifferOn = false;
+			ShooterOn = false;
 			foreach (PodUpgrade upgrade in activeUpgrades)
 			{
 				moduleColors.Add(upgrade.Color);
 				if (upgrade.ChipId == OreSnifferAugment.ChipId)
 					SnifferOn = true;
+				if (upgrade.ChipId == PeaShooterAugment.ChipId)
+					ShooterOn = true;
 				if (upgrade.ChipId == TinyLighthouseAugment.ChipId)
 					LightOn = true;
 				if (upgrade.ChipId == AutopilotAugment.ChipId)
@@ -147,6 +152,12 @@ namespace Augments
 					Sniffer.Update(Player);
 				else
 					Sniffer.Reset();
+
+				// The Pea Shooter upgrade fires from the Pod, wherever it is, and only from the owner's machine.
+				if (ShooterOn && Player.active && !Player.dead && !Player.ghost)
+					Shooter.Update(Player, podPos);
+				else
+					Shooter.Reset();
 			}
 
 			if (AutopilotOn && Visible)
