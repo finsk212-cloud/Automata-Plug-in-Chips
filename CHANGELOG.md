@@ -7,6 +7,7 @@
 - **Ending rewards**: Each hidden ending now gives a Profile title and a Pod skin, yours for the whole account. They stay secret on the Shop's Pods and Titles tabs, with only the ending's riddle as a hint, until you earn them.
 - **A better Profile page**: The Profile page on the title screen now draws your real character. It also shows your Best DPS (the highest damage per second you have reached over 3 seconds, saved for each character and shown as -- until you have one), your Data Fragments and how many points you have toward the next rank, like 25 / 50. The Machine Cores row is gone from this page. You can pin up to 3 favourite plugins: click a slot and pick one of the plugins that character has collected, and right click a slot to clear it. With more than one character, click the name box at the top right to pick one from a list, or use the arrows.
 - **A new Patch Notes page**: Balance changes now show as cards with a NERF, BUFF or ADJUSTED tag and the old and new numbers side by side. The notes are split into categories (New features, Plugin changes, Visuals, Bugs and fixes), the index on the left is grouped by version, and a glowing marker shows until you have opened the newest notes.
+- **New plugin: Tiny Lighthouse**: Tiny Lighthouse is a new Common Support plugin that upgrades your Pod. With it, your Pod becomes Pod 096 and lights up the area around you with a warm glow. Everyone near you sees by it too, and it works even while the Pod is hidden.
 
 ### Plugin changes
 

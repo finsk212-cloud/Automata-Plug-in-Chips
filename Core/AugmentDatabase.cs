@@ -191,6 +191,7 @@ namespace Augments
             Register(new GrandEntranceAugment());
             Register(new GunGoBrrrAugment());
             Register(new GroupHugAugment());
+            Register(new TinyLighthouseAugment());
         }
 
         public const int FirstRecentIndex = 118;

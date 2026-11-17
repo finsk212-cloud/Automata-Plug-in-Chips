@@ -21,6 +21,9 @@ The Profile page on the title screen now shows more about your character.
 **A new Patch Notes page**
 Balance changes now show as cards, with a NERF, BUFF or ADJUSTED tag and the old and new numbers side by side. The notes are split into categories, the index on the left is grouped by version, and a glowing marker shows until you have opened the newest notes.
 
+**New plugin: Tiny Lighthouse**
+Tiny Lighthouse is a new Common Support plugin that upgrades your Pod. With it, your Pod becomes Pod 096 and lights up the area around you with a warm glow. Everyone near you sees by it too, and it works even while the Pod is hidden.
+
 ## Plugin changes
 
 **Apex Hunter** (Legendary, adjusted)

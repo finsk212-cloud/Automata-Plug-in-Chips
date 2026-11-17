@@ -55,6 +55,7 @@ namespace Augments
 		private readonly List<PodUpgrade> activeUpgrades = new List<PodUpgrade>();
 		private readonly List<Color> moduleColors = new List<Color>();
 		internal bool AutopilotOn;
+		internal bool LightOn;
 		internal IReadOnlyList<Color> ModuleColors => moduleColors;
 		internal float AnimClock;
 		internal int BlinkTicks;
@@ -68,9 +69,12 @@ namespace Augments
 
 			moduleColors.Clear();
 			AutopilotOn = false;
+			LightOn = false;
 			foreach (PodUpgrade upgrade in activeUpgrades)
 			{
 				moduleColors.Add(upgrade.Color);
+				if (upgrade.ChipId == TinyLighthouseAugment.ChipId)
+					LightOn = true;
 				if (upgrade.ChipId == AutopilotAugment.ChipId)
 					AutopilotOn = true;
 			}
@@ -121,6 +125,14 @@ namespace Augments
 			else
 			{
 				podPos = Vector2.Lerp(podPos, target, 0.14f);
+			}
+
+			// The Tiny Lighthouse upgrade: a warm light that breathes a little. It follows the Pod, or you while the Pod is hidden.
+			if (LightOn && Player.active && !Player.dead && !Player.ghost)
+			{
+				float breath = 0.94f + 0.06f * (float)Math.Sin(AnimClock * 0.05f);
+				Vector2 at = Visible ? podPos : Player.Center;
+				Lighting.AddLight(at, 1.0f * breath, 0.9f * breath, 0.58f * breath);
 			}
 
 			if (AutopilotOn && Visible)
@@ -278,6 +290,17 @@ namespace Augments
 				if (glow != null)
 					cache.Add(new DrawData(glow, mid, null, new Color(255, 214, 90) * (0.42f + 0.18f * breath), 0f, new Vector2(glow.Width / 2f, glow.Height / 2f), 0.75f, SpriteEffects.None, 0));
 			}
+			// Tiny Lighthouse pod: a soft warm halo behind it.
+			if (pet.LightOn)
+			{
+				Texture2D lamp = PodSprites.Halo();
+				if (lamp != null)
+				{
+					float glowPulse = 0.5f + 0.5f * (float)Math.Sin(t * 0.05f);
+					cache.Add(new DrawData(lamp, At(PodSprites.Origin), null, new Color(255, 214, 110) * (0.20f + 0.08f * glowPulse), 0f, new Vector2(lamp.Width / 2f, lamp.Height / 2f), 0.55f, SpriteEffects.None, 0));
+				}
+			}
+
 			// 2. Thruster flame, flickering, behind the body.
 			float flicker = 0.5f + 0.5f * (float)Math.Sin(t * 0.9f) * (float)Math.Cos(t * 0.37f);
 			int flameLen = 2 + (int)Math.Round(flicker * 3f + Math.Min(1.5f, Math.Abs(player.velocity.X) * 0.15f));
