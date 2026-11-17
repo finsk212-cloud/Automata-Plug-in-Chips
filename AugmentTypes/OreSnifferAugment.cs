@@ -12,11 +12,11 @@ namespace Augments
         public override string Id => ChipId;
         public override string DisplayName => "Upgrade Pod: Ore Sniffer";
         public override string Description =>
-            "Your Pod becomes Pod 311 and sniffs out the nearest ore, telling you what it is, how far it is and which way to dig.";
+            "Your Pod becomes Pod 311 and sniffs out the nearest ore, giving you a riddle about it and an arrow to follow.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +
-            "[c/94A3B8:(Looks about 60 tiles around you, through walls and dirt, and ignores plain stone. An arrow by the Pod points toward the ore, with its name, distance and a hint like \"below and left\". Upgrades the Pod you already have instead of adding another, and works alongside other Pod upgrades. It still works while the Pod is hidden.)]";
+            "[c/94A3B8:(Looks about 60 tiles around you, through walls and dirt, and ignores plain stone. An arrow by the Pod points toward the ore. The Pod never names it, it hints with a riddle, plus how close you are and a direction like \"below and left\". Upgrades the Pod you already have instead of adding another, and works alongside other Pod upgrades. It still works while the Pod is hidden.)]";
 
         public override AugmentRarity Rarity => AugmentRarity.Common;
         public override AugmentClass Class => AugmentClass.Universal;

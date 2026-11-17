@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
@@ -63,7 +64,7 @@ namespace Augments
 				return false;
 			if (type == TileID.LifeFruit)
 				return false;
-			if (TileID.Sets.Ore[type])
+			if (Riddles.ContainsKey(type) || TileID.Sets.Ore[type])
 				return true;
 			// The metal detector's list is broader than ore (it can hold pots and fruit), so only solid blocks from it count.
 			return Main.tileOreFinderPriority[type] > 0 && Main.tileSolid[type];
@@ -108,7 +109,7 @@ namespace Augments
 
 			found = true;
 			tile = bestTile;
-			oreName = NameOf(bestType);
+			oreName = RiddleFor(bestType);
 			delta = new Vector2(bestTile.X - centre.X, bestTile.Y - centre.Y);
 			distanceTiles = (float)Math.Sqrt(best);
 
@@ -122,10 +123,53 @@ namespace Augments
 			wasNear = near;
 		}
 
-		private static string NameOf(int type)
+		// The Pod never says the ore's name: it gives a riddle instead. Every vanilla ore and gem has its own; anything else (a modded ore)
+		// gets the fallback. These tile types are always counted as ore, so a gem is found even if the game does not flag it as one.
+		private const string FallbackRiddle = "Something unknown is hiding. Even I'm curious.";
+
+		private static readonly Dictionary<int, string> Riddles = new Dictionary<int, string>
 		{
-			string name = Lang.GetMapObjectName(MapHelper.TileToLookup(type, 0));
-			return string.IsNullOrWhiteSpace(name) ? "Ore" : name;
+			{ TileID.Copper, "Something reddish is humming nearby." },
+			{ TileID.Tin, "I smell a tin can that isn't a can." },
+			{ TileID.Iron, "Something sturdy and rusty is hiding." },
+			{ TileID.Lead, "Something heavy is sulking in the dark." },
+			{ TileID.Silver, "Something is whispering with a silver tongue." },
+			{ TileID.Tungsten, "Something tough is hiding down there. Bring a good pickaxe." },
+			{ TileID.Gold, "I sense something shiny nearby." },
+			{ TileID.Platinum, "Something fancy is hiding. Very fancy." },
+			{ TileID.Demonite, "Something purple and grumpy is lurking." },
+			{ TileID.Crimtane, "Something red and a bit meaty is nearby." },
+			{ TileID.Meteorite, "Something fell from the sky and it's still warm." },
+			{ TileID.Hellstone, "Something is glowing hot. Watch your toes." },
+			{ TileID.Cobalt, "Something blue is humming a tune." },
+			{ TileID.Palladium, "Something orange is humming a tune." },
+			{ TileID.Mythril, "Something green and legendary is glowing nearby." },
+			{ TileID.Orichalcum, "Something pink is blooming underground." },
+			{ TileID.Adamantite, "Something red and unbreakable is stirring." },
+			{ TileID.Titanium, "Something silver and stubborn is waiting." },
+			{ TileID.Chlorophyte, "The jungle is hiding something that grows." },
+			{ TileID.LunarOre, "Something not from this world is glowing." },
+			{ TileID.Amethyst, "A purple sparkle winked at me." },
+			{ TileID.Topaz, "A yellow sparkle winked at me." },
+			{ TileID.Sapphire, "A blue sparkle winked at me." },
+			{ TileID.Emerald, "A green sparkle winked at me." },
+			{ TileID.Ruby, "A red sparkle winked at me." },
+			{ TileID.Diamond, "Something is sparkling like it paid for it." }
+		};
+
+		private static string RiddleFor(int type)
+		{
+			return Riddles.TryGetValue(type, out string riddle) ? riddle : FallbackRiddle;
+		}
+
+		// How close, in plain words, so the riddle does not need a number.
+		private static string Closeness(float tiles)
+		{
+			if (tiles <= 4f)
+				return "right here!";
+			if (tiles <= 12f)
+				return "very close";
+			return tiles <= 30f ? "closer" : "far";
 		}
 
 		// "below and left", for a hint a person can follow without reading the arrow.
@@ -175,10 +219,11 @@ namespace Augments
 			if (AugmentAdvisoryHUD.IsTalking)
 				return;
 
-			// What it is, how far, and which way.
+			// The riddle, then how close and which way.
 			string where = Where(s.delta);
-			string line1 = s.oreName;
-			string line2 = s.distanceTiles <= 4f ? "right here!" : (int)Math.Round(s.distanceTiles) + " tiles" + (where.Length > 0 ? ", " + where : "");
+			string line1 = "\"" + s.oreName + "\"";
+			string close = Closeness(s.distanceTiles);
+			string line2 = s.distanceTiles <= 4f || where.Length == 0 ? close : close + ", " + where;
 			float scale = 0.62f;
 			float w1 = HubDraw.Width(line1, scale);
 			float w2 = HubDraw.Width(line2, scale);

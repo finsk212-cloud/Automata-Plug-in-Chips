@@ -25,7 +25,7 @@ Balance changes now show as cards, with a NERF, BUFF or ADJUSTED tag and the old
 Upgrade Pod: Lighthouse is a new Common Support plugin that upgrades your Pod. With it, your Pod becomes Pod 096 and lights up the area around you with a warm glow. Everyone near you sees by it too, and it works even while the Pod is hidden. Autopilot is now called Upgrade Pod: Autopilot, so every Pod upgrade is easy to spot.
 
 **New plugin: Upgrade Pod: Ore Sniffer**
-Upgrade Pod: Ore Sniffer is a new Common plugin that upgrades your Pod. With it, your Pod becomes Pod 311 and sniffs out the nearest ore within about 60 tiles, even through the ground. An arrow by the Pod points the way, and a hint tells you what the ore is, how many tiles away it is and which way to dig, like "Gold Ore, 34 tiles, below and left". It works even while the Pod is hidden.
+Upgrade Pod: Ore Sniffer is a new Common plugin that upgrades your Pod. With it, your Pod becomes Pod 311 and sniffs out the nearest ore within about 60 tiles, even through the ground. It never says the ore's name, it gives you a riddle instead, like "I sense something shiny nearby", along with how close you are and which way to dig. An arrow by the Pod points the way. It works even while the Pod is hidden.
 
 ## Plugin changes
 
