@@ -12,13 +12,13 @@
 ### Plugin changes
 
 #### Apex Hunter | Legendary | ADJUSTED
-> Mark it, hit it, then collect the bill. Every part of the boss is on the tab.
+> Turns out bosses have more than one body part. Apex Hunter noticed.
 - [+] Now counts hits on every part of a boss, including the segments of Calamity worm bosses
 - Burst damage: 5% of boss max HP => 100% of the damage you dealt while marking
 - [~] The burst is still capped at 5% of the boss's max HP
 
 #### Meteor Strike | Epic | BUFF
-> Every part of a boss is in the strike zone now. Rock and roll.
+> It used to be picky about what counted as a boss. Not anymore.
 - Now triggers on crits against every part of a boss fight, such as Golem's head and fists
 - Strike size: 2.5% of the hit part's max HP => 2.5% of the whole boss's max HP
 
