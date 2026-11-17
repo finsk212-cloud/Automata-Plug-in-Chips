@@ -13,7 +13,7 @@ namespace Augments
         public override string Description =>
             "Ranged hits against a boss build a mark; once it reaches " +
             $"{AugmentText.Trigger("15 hits")}, the next hit triggers a bonus burst dealing " +
-            $"{AugmentText.BonusDamage("50% of the damage you dealt while marking")}, up to " +
+            $"{AugmentText.BonusDamage("100% of the damage you dealt while marking")}, up to " +
             $"{AugmentText.BonusDamage("5% of the boss's max HP")}, then the mark resets. " +
             $"{AugmentText.Cooldown("8 seconds cooldown")}.";
 
@@ -23,9 +23,9 @@ namespace Augments
 
         private const int MaxMarkStacks = 15;
         private const float BurstPercentOfMaxHP = 0.05f;
-        // The burst pays out half of the damage dealt while the mark was building, so it grows with your weapon and never ignores your
+        // The burst pays out all of the damage dealt while the mark was building, so it grows with your weapon and never ignores your
         // gear the way a plain percent of the boss's health would. The percent of max health stays as a ceiling.
-        private const float BurstShareOfMarkedDamage = 0.5f;
+        private const float BurstShareOfMarkedDamage = 1f;
         private const int CooldownTicks = 8 * 60; // 480 ticks = 8 seconds
 
         // Tracked per-player (on AugmentPlayer), not per-target - the mark only
@@ -114,7 +114,7 @@ namespace Augments
         // spawn our own via CombatText.NewText, same as MeteorStrikeAugment.
         private static void Strike(Player player, NPC target, float effectiveness, float markedDamage)
         {
-            // Half of the damage dealt while marking, but never more than 5% of the boss's max health.
+            // All of the damage dealt while marking, but never more than 5% of the boss's max health.
             float ceiling = BossMaxLife(target) * BurstPercentOfMaxHP;
             float payout = markedDamage * BurstShareOfMarkedDamage;
             int damage = System.Math.Max(1, (int)(System.Math.Min(ceiling, payout) * effectiveness));
