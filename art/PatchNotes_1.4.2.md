@@ -23,6 +23,19 @@ Balance changes now show as cards, with a NERF, BUFF, ADJUSTED or NEW tag and th
 
 ## New plugins
 
+**Going Out With a Bang** (Legendary, new)
+- Falling is optional. The fireworks are not.
+- The damage you take over the last 20 seconds is stored, and the status icon shows the multiplier you would deal.
+- When a hit would kill you, your health drops to 0 and your Pod counts down 3, 2, 1 while you keep fighting, then you explode and die.
+- The blast hits every enemy within about 26 tiles for the stored damage: at least 3x your max health and at most 20x.
+- Bosses also take 1% of their max health from the blast.
+- The blast goes off just before you die, so bosses are still there to take it.
+- It only hurts enemies and does not trigger other plugins.
+**Grave Danger** (Epic, new)
+- The more tombstones around, the more your enemies should worry.
+- Every tombstone within 30 tiles gives you +3% damage to all your attacks.
+- Up to 10 tombstones count, for a total of +30% damage.
+- Any tombstone counts, both the ones left when a player dies and the ones you place yourself.
 **Upgrade Pod: Vein Miner** (Common, new)
 - Hit one rock, and the whole family tumbles out.
 - Your Pod becomes Pod 360, and it works even while the Pod is hidden.

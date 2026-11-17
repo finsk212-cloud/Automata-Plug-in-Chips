@@ -70,7 +70,24 @@ namespace Augments
 
 		// Soul Martyr & Lifeline: fires on the dying player's own client the moment HP hits 0.
 		// Returning false prevents death; returning true allows it.
+		// Going Out With a Bang sits behind every life-saving plugin: it only takes over a death that would really happen.
 		public override bool PreKill(double damage, int hitDirection, bool pvp, ref bool playSound, ref bool genGore, ref PlayerDeathReason damageSource)
+		{
+			bool bangPlugin = HasAugment("death_blast");
+			// While the countdown runs nothing may kill the player, and no life-saver should be spent on it.
+			if (bangPlugin && GoingOutWithABangAugment.BlocksDeath)
+				return false;
+
+			if (!PreKillSaves(damage, hitDirection, pvp, ref playSound, ref genGore, ref damageSource))
+				return false;
+
+			if (bangPlugin && GoingOutWithABangAugment.TryDelayDeath(Player, damage, hitDirection, pvp, damageSource))
+				return false;
+
+			return true;
+		}
+
+		private bool PreKillSaves(double damage, int hitDirection, bool pvp, ref bool playSound, ref bool genGore, ref PlayerDeathReason damageSource)
 		{
 			// Type-D Bastion Protocol: Energy Barrier active completely prevents death
 			if (BastionBarrierTicks > 0)

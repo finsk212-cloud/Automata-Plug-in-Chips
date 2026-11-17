@@ -196,6 +196,8 @@ namespace Augments
             Register(new PeaShooterAugment());
             Register(new WatchYourStepAugment());
             Register(new VeinMinerAugment());
+            Register(new GraveDangerAugment());
+            Register(new GoingOutWithABangAugment());
         }
 
         public const int FirstRecentIndex = 118;
