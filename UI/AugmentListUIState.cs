@@ -107,7 +107,11 @@ namespace Augments
 					{
 						AccountStore.Unlock(readingNew.SeenKey); // gone for good: this account has now read it
 						readingNew = null;
-						PopulateGrid();
+						// The cards read IsNew every frame, so the mark just stops drawing. Rebuilding the grid replaced the card under the mouse, which made the tooltip
+						// flicker, so it is only rebuilt when the list itself changes (the New-only filter or a #new search).
+						string q = (searchQuery ?? "").Trim();
+						if (currentStatusFilter == AugmentStatusFilter.NewOnly || q.Equals("#new", StringComparison.OrdinalIgnoreCase) || q.Equals("tag:new", StringComparison.OrdinalIgnoreCase))
+							PopulateGrid();
 					}
 				}
 			}
