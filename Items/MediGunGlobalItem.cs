@@ -7,6 +7,7 @@ using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
+using Microsoft.Xna.Framework.Input;
 
 namespace Augments.Items
 {
@@ -128,8 +129,62 @@ namespace Augments.Items
 			}
 		}
 
+		private static bool ShiftHeld => Main.keyState.IsKeyDown(Keys.LeftShift) || Main.keyState.IsKeyDown(Keys.RightShift);
+
+		private static int TierOf(Item item)
+		{
+			if (item.type == ModContent.ItemType<MediGunMK4Item>()) return 4;
+			if (item.type == ModContent.ItemType<MediGunMK3Item>()) return 3;
+			if (item.type == ModContent.ItemType<MediGunMK2Item>()) return 2;
+			return 1;
+		}
+
+		// The extra lines shown while Shift is held (the short tooltip is in the localization file).
+		private static string[] DetailLines(int tier)
+		{
+			int[] seconds = { 35, 30, 25, 20 };
+			int[] ovHeal = { 30, 50, 75, 100 };
+			int[] ovDamage = { 40, 100, 250, 500 };
+			int[] range = { 650, 750, 850, 1000 };
+			string ally = tier switch
+			{
+				1 => "[c/2DD4BF:+20% movement speed]",
+				2 => "[c/2DD4BF:+20% movement speed] and [c/FB923C:+10% attack speed]",
+				3 => "[c/2DD4BF:+25% movement speed], [c/FB923C:+15% attack speed] and [c/FFC83B:+8% critical strike chance]",
+				_ => "[c/2DD4BF:+30% movement speed], [c/FB923C:+20% attack speed], [c/FFC83B:+12% critical strike chance] and [c/FF5C5C:+15% all damage]"
+			};
+			string enemy = tier switch
+			{
+				1 => "[c/FFA500:Corrosion] (-5 defense for 5 seconds)",
+				2 => "[c/EAB308:Ichor] (-15 defense for 6 seconds)",
+				3 => "[c/EAB308:Ichor] (-15 defense for 8 seconds)",
+				_ => "[c/EAB308:Ichor] (-15 defense) and [c/D946EF:Betsy's Curse] (-40 defense) for 10 seconds"
+			};
+			int i = tier - 1;
+			return new[]
+			{
+				$"Healing or damaging builds Overclock over [c/A5C8E8:{seconds[i]} seconds]",
+				$"Right-Click at 100% while healing: restores [c/4ADE80:{ovHeal[i]} HP] to your ally and grants {ally} for [c/A5C8E8:6 seconds]",
+				$"Left-Click at 100% while damaging: deals [c/FF5C5C:{ovDamage[i]} damage] and inflicts {enemy}",
+				"A new target, or letting go of the beam, restarts the warm-up",
+				$"The beam locks on within {range[i]} pixels and breaks if the line of sight is blocked or the target gets too far away",
+				"Right-Click with an empty hand to detach an attached accessory"
+			};
+		}
 		public override void ModifyTooltips(Item item, List<TooltipLine> tooltips)
 		{
+			// Holding Shift swaps the short tooltip for the full Overclock details.
+			if (ShiftHeld)
+			{
+				int at = tooltips.FindIndex(t => t.Mod == "Terraria" && t.Name.StartsWith("Tooltip"));
+				tooltips.RemoveAll(t => t.Mod == "Terraria" && t.Name.StartsWith("Tooltip"));
+				if (at < 0)
+					at = Math.Min(1, tooltips.Count);
+				string[] lines = DetailLines(TierOf(item));
+				for (int i = 0; i < lines.Length; i++)
+					tooltips.Insert(at + i, new TooltipLine(Mod, "MediDetail" + i, lines[i]));
+			}
+
 			if (SocketedAccessoryType > 0)
 			{
 				tooltips.Add(new TooltipLine(Mod, "SocketHeader", $"[c/FFC83B:Attached Accessory: {Lang.GetItemNameValue(SocketedAccessoryType)}]")
@@ -259,21 +314,10 @@ namespace Augments.Items
 					});
 				}
 
-				tooltips.Add(new TooltipLine(Mod, "SocketPrompt", "Right-Click with empty hand to detach into hand")
-				{
-					OverrideColor = new Color(148, 163, 184)
-				});
 			}
 			else
 			{
-				tooltips.Add(new TooltipLine(Mod, "EmptySocket", "[c/94A3B8:Empty Accessory Socket]")
-				{
-					OverrideColor = new Color(148, 163, 184)
-				});
-				tooltips.Add(new TooltipLine(Mod, "EmptySocketHint", "Pick up an accessory and right-click to socket")
-				{
-					OverrideColor = new Color(140, 230, 160)
-				});
+				tooltips.Add(new TooltipLine(Mod, "EmptySocket", "[c/94A3B8:Empty socket:] [c/8CE6A0:right-click an accessory to attach it]"));
 			}
 		}
 	}
