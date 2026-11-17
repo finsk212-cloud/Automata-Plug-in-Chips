@@ -13,6 +13,7 @@ namespace Augments
         public override string Description =>
             "Ranged hits against a boss build a mark; once it reaches " +
             $"{AugmentText.Trigger("15 hits")}, the next hit triggers a bonus burst dealing " +
+            $"{AugmentText.BonusDamage("50% of the damage you dealt while marking")}, up to " +
             $"{AugmentText.BonusDamage("5% of the boss's max HP")}, then the mark resets. " +
             $"{AugmentText.Cooldown("8 seconds cooldown")}.";
 
@@ -22,6 +23,9 @@ namespace Augments
 
         private const int MaxMarkStacks = 15;
         private const float BurstPercentOfMaxHP = 0.05f;
+        // The burst pays out half of the damage dealt while the mark was building, so it grows with your weapon and never ignores your
+        // gear the way a plain percent of the boss's health would. The percent of max health stays as a ceiling.
+        private const float BurstShareOfMarkedDamage = 0.5f;
         private const int CooldownTicks = 8 * 60; // 480 ticks = 8 seconds
 
         // Tracked per-player (on AugmentPlayer), not per-target - the mark only
@@ -38,13 +42,13 @@ namespace Augments
         public override void OnHitNPCWithItem(Player player, Item item, NPC target, NPC.HitInfo hit)
         {
             if (IsBossTarget(target) && item.CountsAsClass(DamageClass.Ranged))
-                HandleMark(player, target);
+                HandleMark(player, target, hit.Damage);
         }
 
         public override void OnHitNPCWithProj(Player player, Projectile proj, NPC target, NPC.HitInfo hit)
         {
             if (IsBossTarget(target) && proj.CountsAsClass(DamageClass.Ranged))
-                HandleMark(player, target);
+                HandleMark(player, target, hit.Damage);
         }
 
         // A hit counts when it lands on the boss or on any part of the boss fight. Many bosses are built from several NPCs and only one
@@ -82,17 +86,22 @@ namespace Augments
             return max;
         }
 
-        private void HandleMark(Player player, NPC target)
+        private void HandleMark(Player player, NPC target, int hitDamage)
         {
             var ap = player.GetModPlayer<AugmentPlayer>();
             if (ap.ApexHunterCooldown > 0)
                 return;
 
+            // Every hit while the mark builds (and the one that triggers the burst) adds its damage to the total the burst is paid from.
+            ap.ApexHunterMarkDamage += System.Math.Max(0, hitDamage);
+
             if (ap.ApexHunterMarkStacks >= MaxMarkStacks)
             {
+                float marked = ap.ApexHunterMarkDamage;
                 ap.ApexHunterMarkStacks = 0;
+                ap.ApexHunterMarkDamage = 0f;
                 ap.ApexHunterCooldown = CooldownTicks;
-                Strike(player, target, HitEffectiveness);
+                Strike(player, target, HitEffectiveness, marked);
             }
             else
             {
@@ -103,9 +112,12 @@ namespace Augments
         // Built manually (instead of SimpleStrikeNPC) so the combat text can be
         // forced to yellow - HideCombatText suppresses the auto popup and we
         // spawn our own via CombatText.NewText, same as MeteorStrikeAugment.
-        private static void Strike(Player player, NPC target, float effectiveness)
+        private static void Strike(Player player, NPC target, float effectiveness, float markedDamage)
         {
-            int damage = System.Math.Max(1, (int)(BossMaxLife(target) * BurstPercentOfMaxHP * effectiveness));
+            // Half of the damage dealt while marking, but never more than 5% of the boss's max health.
+            float ceiling = BossMaxLife(target) * BurstPercentOfMaxHP;
+            float payout = markedDamage * BurstShareOfMarkedDamage;
+            int damage = System.Math.Max(1, (int)(System.Math.Min(ceiling, payout) * effectiveness));
 
             var hit = new NPC.HitInfo
             {

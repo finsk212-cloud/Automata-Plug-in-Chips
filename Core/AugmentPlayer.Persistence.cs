@@ -210,6 +210,7 @@ namespace Augments
 			AmbushStillTicks = 0;
 			AmbushReady = false;
 			ApexHunterMarkStacks = 0f;
+			ApexHunterMarkDamage = 0f;
 			ApexHunterCooldown = 0;
 			ArcaneSingularityCharge = 0f;
 			AvatarOfRageLastLife = -1;

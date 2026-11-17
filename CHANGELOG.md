@@ -14,6 +14,7 @@
 - **Cleaner badges and emblems**: The Badges row shows each emblem as a clean tile with its name, marked WORN, owned or LOCKED. The emblem icons are redrawn as simple solid shapes everywhere, including the Cosmetics page.
 - **Easier to read Orders**: The progress numbers on the Orders cards, like 3 h 01 min / 10 h 00 min, are bigger and easier to read.
 - **Hidden endings**: Five secret challenge endings, A to E, are now tracked for each character and shown on the Profile page as a riddle until you earn them. They are about how you beat a boss, not just that you beat it. Every ending only counts from the Wall of Flesh onward, because beating an early boss without a hit was too easy, and the last one needs a Mechanical Boss or later. A boss older than your world's current stage never counts. Endings only work in singleplayer for now.
+- **Apex Hunter fixed and rebalanced**: Apex Hunter now counts hits on every part of a boss, such as Golem's head and fists and the body segments of Calamity worm bosses, so the mark builds in those fights too. The burst now deals 50% of the damage you dealt while marking, up to 5% of the boss's max HP, so it grows with your weapon instead of depending only on the boss's health.
 
 ## Version 1.4.0
 

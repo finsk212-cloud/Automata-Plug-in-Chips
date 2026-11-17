@@ -403,6 +403,7 @@ namespace Augments
 		public int AmbushStillTicks;
 		public bool AmbushReady;
 		public float ApexHunterMarkStacks;
+		public float ApexHunterMarkDamage;
 		public int ApexHunterCooldown;
 		public float ArcaneSingularityCharge;
 		public int AvatarOfRageLastLife = -1;
