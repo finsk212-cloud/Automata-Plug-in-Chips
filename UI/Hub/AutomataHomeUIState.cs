@@ -875,14 +875,14 @@ namespace Augments
 			Color c = DirColor(dir);
 			if (dir == 0)
 			{
-				HubDraw.Diamond(sb, new Vector2(x + 4, cy), 3f, c);
+				HubDraw.Diamond(sb, new Vector2(x + 6, cy), 5f, c);
 				return;
 			}
 
-			for (int i = 0; i < 5; i++)
+			for (int i = 0; i < 7; i++)
 			{
-				int w = dir > 0 ? i : 4 - i;
-				HubDraw.Fill(sb, new Rectangle(x + 4 - w, (int)cy - 2 + i, w * 2 + 1, 1), c);
+				int w = dir > 0 ? i : 6 - i;
+				HubDraw.Fill(sb, new Rectangle(x + 6 - w, (int)cy - 3 + i, w * 2 + 1, 1), c);
 			}
 		}
 
@@ -1348,7 +1348,7 @@ namespace Augments
 				}
 
 				if (l.Marker == 7)
-					DrawDirIcon(sb, body.X + l.X - 14, sy + HubDraw.CapMid(l.Scale), l.Dir);
+					DrawDirIcon(sb, body.X + l.X - 18, sy + HubDraw.CapMid(l.Scale), l.Dir);
 
 				if (l.Marker == 2)
 				{
@@ -1396,7 +1396,7 @@ namespace Augments
 		{
 			// The strike-through, the arrow and the icon all sit on the middle of the letters.
 			float cy = sy + HubDraw.CapMid(l.Scale);
-			DrawDirIcon(sb, body.X + l.X - 14, cy, l.Dir);
+			DrawDirIcon(sb, body.X + l.X - 18, cy, l.Dir);
 
 			float x = body.X + l.X;
 			if (l.Label.Length > 0)
