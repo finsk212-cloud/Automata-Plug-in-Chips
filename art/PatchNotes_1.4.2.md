@@ -1,37 +1,11 @@
 # Automata: Plug-in Chips 1.4.2
 
-A small update: a new way to customise your plugin cards, a fix for Phase Round with modded guns, a Queen's Swarm nerf, an optional way to share anonymous stats, a tidier Cosmetics page, and a better Profile page.
+A bigger update: hidden endings, a better Profile page, an old computer screen effect for the Plugins menu, the Shop and Combat Analytics, a new Patch Notes page, and balance changes to Apex Hunter and Meteor Strike.
 
 ## What's new
 
-**Tier designs**
-There is a new Tier Design row on the Cosmetics page. It changes how the borders of your plugin cards are built, and the colours always follow the colour scheme you picked.
-- Nier: the default look from 1.4.0
-- Holo glass: rounded corners and clean flat lines
-- Hard shadow: a solid block shadow behind each card that gets deeper with the tier
-- Folder tabs: a file folder tab on each card that gets wider with the tier
-
-You can buy the three new ones in the Shop on the new Tiers tab: Holo glass costs 400 Data Fragments, Hard shadow 350 and Folder tabs 300.
-
-**A Cosmetics page that scrolls**
-The page is longer, so you can scroll it with the mouse wheel. The colour scheme cards are taller, so their previews fit above the name.
-
-**Easier to read**
-The descriptions on the colour scheme and panel frame cards are bigger and brighter. A long one wraps onto a second line instead of running past the edge of the card.
-
-**Small alignment fixes**
-The filter buttons on the Archive page and the Data Fragments box on the title screen are lined up properly.
-
-**Phase Round works with modded guns**
-Phase Round now also works with guns and bows from other mods, such as the Calamity ranger weapons. Their shots fly through blocks, just like the vanilla ones.
-
-**Queen's Swarm nerf**
-Queen's Swarm was doing far too much damage, so it is toned down. The base damage of each bug goes from 18 to 15. The same enemy can only release a swarm again after 3 seconds, and you can only release one swarm every 1 second.
-
-**Optional anonymous stats**
-The first time you open the title screen, a pop-up asks if you want to share anonymous stats to help balance Plug-in Chips and improve the quality of the mod. SHARE and NO THANKS look the same, and nothing is sent unless you press SHARE.
-If you share, the mod sends the plugin, the weapon, the game stage, how much damage was dealt and how long the fight lasted. It never sends your name, Steam account, world name or IP address.
-You can change your choice any time in Mod Config, under Privacy Settings.
+**Hidden endings**
+Five secret challenge endings, A to E, are now tracked for each character and shown on the Profile page as a riddle until you earn them. They are about how you beat a boss, not just that you beat it. Every ending only counts from the Wall of Flesh onward, and the last one needs a Mechanical Boss or later. A boss older than your world's current stage never counts. Endings only work in singleplayer for now.
 
 **A better Profile page**
 The Profile page on the title screen now shows more about your character.
@@ -41,8 +15,22 @@ The Profile page on the title screen now shows more about your character.
 - You can pin up to 3 favourite plugins. Click a slot and pick one of the plugins that character has collected. Right click a slot to clear it.
 - With more than one character, click the name box at the top right to pick one from a list, or use the arrows.
 
-**Cleaner badges and emblems**
-The Badges row shows each emblem as a clean tile with its name, marked WORN, owned or LOCKED. The emblem icons are redrawn as simple solid shapes everywhere, including the Cosmetics page.
+**Old screen effect**
+The Plugins menu, the Shop and Combat Analytics now turn off like an old computer screen, collapsing to a bright line and then a dot, and turn on the same way backwards.
 
-**Easier to read Orders**
-The progress numbers on the Orders cards, like 3 h 01 min / 10 h 00 min, are bigger and easier to read.
+**A new Patch Notes page**
+Balance changes now show as cards, with a NERF, BUFF or ADJUSTED tag and the old and new numbers side by side. The index on the left is grouped by version, and a glowing marker shows until you have opened the newest notes.
+
+## Plugin changes
+
+**Apex Hunter** (Legendary, adjusted)
+- Now counts hits on every part of a boss, such as Golem's head and fists and the segments of Calamity worm bosses.
+- Burst damage: 5% of the boss's max HP => 100% of the damage you dealt while marking. The burst is still capped at 5% of the boss's max HP.
+
+**Meteor Strike** (Epic, buff)
+- Now triggers on crits against every part of a boss fight, such as Golem's head and fists.
+- Strike size: 2.5% of the hit part's max HP => 2.5% of the whole boss's max HP.
+
+## Polish
+
+Improved text size and alignment for readability on the Orders and Profile pages, sharper page titles, and cleaner badge tiles and emblem icons.

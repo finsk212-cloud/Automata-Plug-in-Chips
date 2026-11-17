@@ -3,22 +3,13 @@
 ## Version 1.4.2
 
 ### Highlights
-- **Tier designs**: A new Tier Design choice on the Cosmetics page lets you pick how the plugin card borders are built. Nier is the default. Holo glass has rounded corners and clean flat lines. Hard shadow puts a solid block shadow behind each card that gets deeper with the tier. Folder tabs gives each card a file folder tab that gets wider with the tier. The colours always follow the colour scheme you picked. You can buy them in the Shop on the new Tiers tab: Holo glass costs 400 Data Fragments, Hard shadow 350 and Folder tabs 300.
-- **A Cosmetics page that scrolls**: The page is longer now, so it scrolls with the mouse wheel. The colour scheme cards are taller, so their little previews fit above the name instead of overlapping it.
-- **Readability and polish**: Improved text size and alignment for readability on the Cosmetics, Orders, Archive and title screen pages, and the Badges row and emblem icons are cleaner.
-- **Phase Round works with modded guns**: Phase Round now also works with guns and bows from other mods, such as the Calamity ranger weapons. Their shots fly through blocks, just like the vanilla ones.
-- **Optional anonymous stats**: The first time you open the title screen, a pop-up asks if you want to share anonymous stats to help balance Plug-in Chips and improve the quality of the mod. Nothing is sent unless you press SHARE. If you share, the mod sends the plugin, the weapon, the game stage, how much damage was dealt and how long the fight lasted, and never your name, Steam account, world name or IP address. You can change this any time in Mod Config, under Privacy Settings.
-- **A better Profile page**: The Profile page on the title screen now draws your real character. It also shows your Best DPS (the highest damage per second you have reached over 3 seconds, saved for each character and shown as -- until you have one), your Data Fragments and how many points you have toward the next rank, like 25 / 50. The Machine Cores row is gone from this page. You can pin up to 3 favourite plugins: click a slot and pick one of the plugins that character has collected, and right click a slot to clear it. With more than one character, click the name box at the top right to pick one from a list, or use the arrows.
 - **Hidden endings**: Five secret challenge endings, A to E, are now tracked for each character and shown on the Profile page as a riddle until you earn them. They are about how you beat a boss, not just that you beat it. Every ending only counts from the Wall of Flesh onward, because beating an early boss without a hit was too easy, and the last one needs a Mechanical Boss or later. A boss older than your world's current stage never counts. Endings only work in singleplayer for now.
+- **A better Profile page**: The Profile page on the title screen now draws your real character. It also shows your Best DPS (the highest damage per second you have reached over 3 seconds, saved for each character and shown as -- until you have one), your Data Fragments and how many points you have toward the next rank, like 25 / 50. The Machine Cores row is gone from this page. You can pin up to 3 favourite plugins: click a slot and pick one of the plugins that character has collected, and right click a slot to clear it. With more than one character, click the name box at the top right to pick one from a list, or use the arrows.
 - **Old screen effect on more panels**: The Plugins menu, the Shop and Combat Analytics now turn off like an old computer screen, collapsing to a bright line and then a dot, and turn on the same way backwards.
+- **A new Patch Notes page**: Balance changes now show as cards with a NERF, BUFF or ADJUSTED tag and the old and new numbers side by side. The index on the left is grouped by version, and a glowing marker shows until you have opened the newest notes.
+- **Readability and polish**: Improved text size and alignment for readability on the Orders and Profile pages, sharper page titles, and cleaner badge tiles and emblem icons.
 
 ### Plugin changes
-
-#### Queen's Swarm | Rare | NERF
-> It was doing far too much damage.
-- Bug damage: 18 => 15
-- The same enemy can only release a swarm again after 3 seconds
-- You can only release one swarm every 1 second
 
 #### Apex Hunter | Legendary | ADJUSTED
 > It missed boss parts like Golem's head, and a flat percent ignored your gear.
@@ -30,6 +21,24 @@
 > It ignored most multi-part bosses.
 - Now triggers on crits against every part of a boss fight, such as Golem's head and fists
 - Strike size: 2.5% of the hit part's max HP => 2.5% of the whole boss's max HP
+
+## Version 1.4.1
+
+### Highlights
+- **Tier designs**: A new Tier Design choice on the Cosmetics page lets you pick how the plugin card borders are built. Nier is the default. Holo glass has rounded corners and clean flat lines. Hard shadow puts a solid block shadow behind each card that gets deeper with the tier. Folder tabs gives each card a file folder tab that gets wider with the tier. The colours always follow the colour scheme you picked. You can buy them in the Shop on the new Tiers tab: Holo glass costs 400 Data Fragments, Hard shadow 350 and Folder tabs 300.
+- **A Cosmetics page that scrolls**: The page is longer now, so it scrolls with the mouse wheel. The colour scheme cards are taller, so their little previews fit above the name instead of overlapping it.
+- **Easier to read**: The descriptions on the colour scheme and panel frame cards are bigger and brighter, and a long one wraps onto a second line instead of running past the edge of the card.
+- **Small alignment fixes**: The filter buttons on the Archive page and the Data Fragments box on the title screen are lined up properly.
+- **Phase Round works with modded guns**: Phase Round now also works with guns and bows from other mods, such as the Calamity ranger weapons. Their shots fly through blocks, just like the vanilla ones.
+- **Optional anonymous stats**: The first time you open the title screen, a pop-up asks if you want to share anonymous stats to help balance Plug-in Chips and improve the quality of the mod. Nothing is sent unless you press SHARE. If you share, the mod sends the plugin, the weapon, the game stage, how much damage was dealt and how long the fight lasted, and never your name, Steam account, world name or IP address. You can change this any time in Mod Config, under Privacy Settings.
+
+### Plugin changes
+
+#### Queen's Swarm | Rare | NERF
+> It was doing far too much damage.
+- Bug damage: 18 => 15
+- The same enemy can only release a swarm again after 3 seconds
+- You can only release one swarm every 1 second
 
 ## Version 1.4.0
 

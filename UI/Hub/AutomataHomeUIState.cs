@@ -909,7 +909,30 @@ namespace Augments
 			public float Y;
 			public bool Header;
 			public bool Latest; // the newest version heading, the one that glows while it is unread
-		}
+				public int Version;  // 0 for the newest version, 1 for the one before it, and so on
+			}
+
+			// The row numbers that are shown in the index. Every version heading is shown, and the sections under a version only while it is the
+			// newest or the one being read, so three or four versions still fit.
+			private List<int> IndexRows(float scroll)
+			{
+				int active = 0;
+				for (int i = 0; i < anchors.Count; i++)
+				{
+					if (anchors[i].Y <= scroll + 40f)
+						active = i;
+				}
+
+				int activeVersion = anchors.Count > 0 ? anchors[active].Version : 0;
+				var rows = new List<int>();
+				for (int i = 0; i < anchors.Count; i++)
+				{
+					if (anchors[i].Header || anchors[i].Version == 0 || anchors[i].Version == activeVersion)
+						rows.Add(i);
+				}
+
+				return rows;
+			}
 
 		private readonly List<Anchor> anchors = new List<Anchor>();
 
@@ -985,12 +1008,13 @@ namespace Augments
 					return;
 				}
 
-				for (int i = 0; i < anchors.Count; i++)
+				List<int> shown = IndexRows(bar.ViewPosition);
+				for (int k = 0; k < shown.Count; k++)
 				{
-					if (IndexRow(r, i).Contains(p))
+					if (IndexRow(r, k).Contains(p))
 					{
 						SoundEngine.PlaySound(SoundID.MenuTick);
-						bar.ViewPosition = Math.Max(0f, anchors[i].Y - 6f);
+						bar.ViewPosition = Math.Max(0f, anchors[shown[k]].Y - 6f);
 						return;
 					}
 				}
@@ -1039,6 +1063,7 @@ namespace Augments
 			}
 
 			bool firstVersion = true;
+			int versionIndex = -1;
 			foreach (PatchBlock b in PatchNotesData.Blocks)
 			{
 				if (b.Kind != PatchKind.Quote && b.Kind != PatchKind.Stat)
@@ -1062,7 +1087,8 @@ namespace Augments
 						break;
 
 					case PatchKind.Version:
-						anchors.Add(new Anchor { Text = HeaderText(b.Body), Y = y, Header = true, Latest = firstVersion });
+						versionIndex++;
+						anchors.Add(new Anchor { Text = HeaderText(b.Body), Y = y, Header = true, Latest = firstVersion, Version = versionIndex });
 						firstVersion = false;
 						Add(b.Body.ToUpperInvariant(), 0, 1.1f, 3f, 3, 0, 28f);
 						y += 44f;
@@ -1071,7 +1097,7 @@ namespace Augments
 					case PatchKind.Section:
 						if (y > 0f)
 							y += 20f;
-						anchors.Add(new Anchor { Text = b.Body, Y = y });
+						anchors.Add(new Anchor { Text = b.Body, Y = y, Version = Math.Max(0, versionIndex) });
 						Add(b.Body.ToUpperInvariant(), 20, 0.9f, 1.5f, 2, 2, 22f);
 						lines.Add(new PLine { Y = y + 26f, Marker = 4, H = 1f });
 						y += 40f;
@@ -1223,9 +1249,11 @@ namespace Augments
 				if (anchors[i].Y <= scroll + 40f)
 					active = i;
 			}
-			for (int i = 0; i < anchors.Count; i++)
+			List<int> shownRows = IndexRows(scroll);
+			for (int k = 0; k < shownRows.Count; k++)
 			{
-				Rectangle row = IndexRow(r, i);
+				int i = shownRows[k];
+				Rectangle row = IndexRow(r, k);
 				if (row.Bottom > r.Bottom - BottomPad + 10)
 					break;
 
