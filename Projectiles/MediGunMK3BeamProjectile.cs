@@ -14,12 +14,14 @@ namespace Augments.Projectiles
     {
         private const float MaxAcquireRange = 850f;
         private const float MaxBreakRange = 1000f;
-        private const int HealPulseInterval = 12; // 5 pulses per second (10 HP/sec total)
-        private const int HealAmount = 2;
+        private const int HealPulseInterval = 10; // 6 pulses per second (12 HP/sec total), before warm-up
+        private const int BaseHealAmount = 2;
 
         private int targetPlayerWhoAmI = -1;
         private int targetNPCWhoAmI = -1;
         private int healPulseTimer;
+        private int warmTicks;           // how long the beam has stayed on the same target (see MediGunWarmUp)
+        private int warmTargetKey = -1;
         private Vector2 laggedMidPoint = Vector2.Zero;
 
         public override string Texture => "Terraria/Images/MagicPixel";
@@ -167,6 +169,16 @@ namespace Augments.Projectiles
                         isTargetHurt = npc.life < npc.lifeMax;
                     }
 
+                    // Warm-up: the longer the beam stays on the same target, the more it heals.
+                    int warmKey = targetPlayerWhoAmI >= 0 ? targetPlayerWhoAmI : 1000 + targetNPCWhoAmI;
+                    if (warmKey != warmTargetKey)
+                    {
+                        warmTargetKey = warmKey;
+                        warmTicks = 0;
+                    }
+                    else if (warmTicks < MediGunWarmUp.Ticks)
+                        warmTicks++;
+
                     // Build Overclock while actively tethered (~25s full charge)
                     if (mediPlayer.OverclockCharge < 100f)
                     {
@@ -180,6 +192,11 @@ namespace Augments.Projectiles
                     if (healPulseTimer >= HealPulseInterval)
                     {
                         healPulseTimer = 0;
+                        // A target under half health gets the full warm-up bonus straight away.
+                        bool lowHealth = targetPlayerWhoAmI >= 0
+                            ? Main.player[targetPlayerWhoAmI].statLife * 2 < Math.Max(Main.player[targetPlayerWhoAmI].statLifeMax, Main.player[targetPlayerWhoAmI].statLifeMax2)
+                            : targetNPCWhoAmI >= 0 && Main.npc[targetNPCWhoAmI].life * 2 < Main.npc[targetNPCWhoAmI].lifeMax;
+                        int heal = MediGunWarmUp.Scale(BaseHealAmount, MediGunWarmUp.Multiplier(warmTicks, lowHealth));
 
                         if (targetPlayerWhoAmI >= 0)
                         {
@@ -190,40 +207,42 @@ namespace Augments.Projectiles
                             {
                                 if (Main.netMode == NetmodeID.SinglePlayer)
                                 {
-                                    SupportEffects.ServerHealPlayer(target, HealAmount);
+                                    SupportEffects.ServerHealPlayer(target, heal);
                                 }
                                 else if (Main.netMode == NetmodeID.MultiplayerClient)
                                 {
                                     ModPacket packet = ModContent.GetInstance<Augments>().GetPacket();
                                     packet.Write((byte)AugmentPacketType.MediGunHealRequest);
                                     packet.Write((byte)target.whoAmI);
-                                    packet.Write(HealAmount);
+                                    packet.Write(heal);
                                     packet.Send();
                                 }
                                 SoundEngine.PlaySound(SoundID.Item29 with { Volume = 0.07f, Pitch = 1.05f }, target.Center);
                             }
-                            SupportEffects.ProcessSocketHealPulse(player, target, null, HealAmount, socketed);
+                            SupportEffects.ProcessSocketHealPulse(player, target, null, heal, socketed);
                         }
                         else if (targetNPCWhoAmI >= 0)
                         {
                             NPC npc = Main.npc[targetNPCWhoAmI];
                             if (npc.life < npc.lifeMax)
                             {
-                                npc.life = Math.Min(npc.lifeMax, npc.life + HealAmount);
-                                npc.HealEffect(HealAmount);
+                                npc.life = Math.Min(npc.lifeMax, npc.life + heal);
+                                npc.HealEffect(heal);
                                 if (Main.netMode == NetmodeID.Server)
                                 {
                                     NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, npc.whoAmI);
                                 }
                                 SoundEngine.PlaySound(SoundID.Item29 with { Volume = 0.07f, Pitch = 1.05f }, npc.Center);
                             }
-                            SupportEffects.ProcessSocketHealPulse(player, null, npc, HealAmount, socketed);
+                            SupportEffects.ProcessSocketHealPulse(player, null, npc, heal, socketed);
                         }
                     }
                 }
                 else
                 {
                     healPulseTimer = 0;
+                    warmTicks = 0;
+                    warmTargetKey = -1;
                 }
             }
             else

@@ -310,10 +310,10 @@ namespace Augments
 
 			int burstDamage = tier switch
 			{
-				4 => 300,
-				3 => 150,
-				2 => 60,
-				_ => 25
+				4 => 500,
+				3 => 250,
+				2 => 100,
+				_ => 40
 			};
 
 			int hitDir = Player.direction;

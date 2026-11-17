@@ -16,6 +16,8 @@ namespace Augments.Projectiles
         private int burstShotsRemaining = 0;
         private int burstShotDelayTimer = 0;
         private Vector2 laggedMidPoint = Vector2.Zero;
+        private int warmTicks;              // how long the beam has stayed on the same enemy (see MediGunWarmUp)
+        private int warmTargetNPC = -1;
 
         public override string Texture => "Terraria/Images/MagicPixel";
 
@@ -159,6 +161,17 @@ namespace Augments.Projectiles
                 var mediPlayer = player.GetModPlayer<MediGunPlayer>();
                 mediPlayer.CurrentEnemySiphonWhoAmI = targetNPCWhoAmI;
 
+                // Warm-up: the longer the beam stays on the same enemy, the harder it hits (up to +50% after 5 seconds).
+                if (targetNPCWhoAmI != warmTargetNPC)
+                {
+                    warmTargetNPC = targetNPCWhoAmI;
+                    warmTicks = 0;
+                }
+                else if (targetNPCWhoAmI >= 0 && warmTicks < MediGunWarmUp.Ticks)
+                {
+                    warmTicks++;
+                }
+
                 if (targetNPCWhoAmI >= 0)
                 {
                     // Build Overclock while siphoning life from enemies (scales with MK tier)
@@ -173,18 +186,18 @@ namespace Augments.Projectiles
 
                     if (tier <= 2)
                     {
-                        // Continuous DPS mode (MK1: 6 DMG/s, MK2: 20 DMG/s)
+                        // Continuous DPS mode (MK1: 10 DMG/s, MK2: 40 DMG/s, before warm-up)
                         if (mediPlayer.SiphonContinuousCooldown <= 0)
                         {
                             mediPlayer.SiphonContinuousCooldown = 60; // 1 second cooldown
-                            int dmgAmount = tier == 2 ? 20 : 6;
+                            int dmgAmount = tier == 2 ? 40 : 10;
                             DealSiphonDamage(player, target, dmgAmount);
                         }
                     }
                     else
                     {
-                        // Burst mode (MK3: 3x 20 DMG every 1.5s, MK4: 3x 50 DMG every 1.5s)
-                        int burstDmg = tier >= 4 ? 50 : 20;
+                        // Burst mode (MK3: 3x 40 DMG every 1.5s, MK4: 3x 100 DMG every 1.5s, before warm-up)
+                        int burstDmg = tier >= 4 ? 100 : 40;
 
                         if (burstShotsRemaining > 0)
                         {
@@ -303,6 +316,9 @@ namespace Augments.Projectiles
         {
             if (!target.active || target.life <= 0)
                 return;
+
+            // The warm-up bonus, then Corrosive Tip on top of it.
+            amount = MediGunWarmUp.Scale(amount, MediGunWarmUp.Multiplier(warmTicks));
 
             // Corrosive Tip. DealSiphonDamage only runs on the beam owner's client, which sends the
             // strike to the server, so the boosted amount is what every client and the server see.
