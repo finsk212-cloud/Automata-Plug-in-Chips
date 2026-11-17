@@ -53,6 +53,27 @@ namespace Augments
 			return tex;
 		}
 
+		private static readonly Dictionary<(string, int), Texture2D> emblemSized = new Dictionary<(string, int), Texture2D>();
+
+		// The same emblem made at exactly px by px screen pixels, so it is drawn one to one and stays sharp at any UI scale.
+		internal static Texture2D GetEmblem(string id, int px)
+		{
+			if (Main.dedServ || Main.graphics?.GraphicsDevice == null || string.IsNullOrEmpty(id))
+				return null;
+
+			px = Math.Max(8, Math.Min(256, px));
+			if (emblemSized.TryGetValue((id, px), out Texture2D cached) && cached != null && !cached.IsDisposed)
+				return cached;
+
+			List<Op> ops = DescribeEmblem(id);
+			if (ops == null)
+				return null;
+
+			Texture2D tex = Render(ops, px);
+			emblemSized[(id, px)] = tex;
+			return tex;
+		}
+
 		// The icon texture for a class (white, to be tinted), or null for a class without one.
 		internal static Texture2D Get(AugmentClass augmentClass)
 		{
@@ -75,6 +96,8 @@ namespace Augments
 		{
 			var old = new List<Texture2D>(textures.Values);
 			old.AddRange(emblemTextures.Values);
+			old.AddRange(emblemSized.Values);
+			emblemSized.Clear();
 			emblemTextures.Clear();
 			textures.Clear();
 			if (old.Count == 0)
@@ -233,15 +256,17 @@ namespace Augments
 
 		// --- Turning shapes into a texture ---
 
-		private static Texture2D Render(List<Op> ops)
+		private static Texture2D Render(List<Op> ops) => Render(ops, Size);
+
+		private static Texture2D Render(List<Op> ops, int size)
 		{
-			var data = new Color[Size * Size];
-			float scale = 32f / Size;
+			var data = new Color[size * size];
+			float scale = 32f / size;
 			int total = Samples * Samples;
 
-			for (int py = 0; py < Size; py++)
+			for (int py = 0; py < size; py++)
 			{
-				for (int px = 0; px < Size; px++)
+				for (int px = 0; px < size; px++)
 				{
 					int hits = 0;
 					for (int sy = 0; sy < Samples; sy++)
@@ -265,11 +290,11 @@ namespace Augments
 
 					// Premultiplied white: the game's sprite batch expects colour already multiplied by alpha.
 					int a = (int)Math.Round(255f * hits / total);
-					data[py * Size + px] = new Color(a, a, a, a);
+					data[py * size + px] = new Color(a, a, a, a);
 				}
 			}
 
-			var tex = new Texture2D(Main.graphics.GraphicsDevice, Size, Size);
+			var tex = new Texture2D(Main.graphics.GraphicsDevice, size, size);
 			tex.SetData(data);
 			return tex;
 		}

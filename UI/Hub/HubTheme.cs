@@ -167,8 +167,140 @@ namespace Augments
 			return tex;
 		}
 
+		// --- Smooth polygons and pixel-exact icons ---
+		// The old way of filling a polygon was one rectangle per UI-unit row, which turns into uneven steps once the interface is scaled by a
+		// fraction (1.47 for example). FillPolygon rasterises the polygon at the size it has on the screen, with soft edges, and places it on
+		// the pixel grid. The pictures are cached by their shape, so a still icon costs nothing after the first frame.
+		private static readonly Dictionary<ulong, Texture2D> polyCache = new Dictionary<ulong, Texture2D>();
+		private const int PolyCacheLimit = 600;
+		private const int PolyMaxPixels = 192;
+
+		public static float UiScale => PixelScale;
+
+		private static ulong Mix(ulong h, int v)
+		{
+			return (h ^ (uint)v) * 1099511628211UL;
+		}
+
+		// Fills the polygon with soft edges. Returns false (and draws nothing) if it is too big, so the caller can fall back.
+		public static bool FillPolygon(SpriteBatch sb, ReadOnlySpan<Vector2> pts, Color c)
+		{
+			if (pts.Length < 3 || Main.dedServ || Main.graphics?.GraphicsDevice == null)
+				return false;
+
+			float m = PixelScale;
+			float minX = float.MaxValue, minY = float.MaxValue, maxX = float.MinValue, maxY = float.MinValue;
+			for (int i = 0; i < pts.Length; i++)
+			{
+				minX = Math.Min(minX, pts[i].X * m);
+				minY = Math.Min(minY, pts[i].Y * m);
+				maxX = Math.Max(maxX, pts[i].X * m);
+				maxY = Math.Max(maxY, pts[i].Y * m);
+			}
+
+			int ox = (int)Math.Floor(minX) - 1;
+			int oy = (int)Math.Floor(minY) - 1;
+			int w = (int)Math.Ceiling(maxX) + 1 - ox;
+			int h = (int)Math.Ceiling(maxY) + 1 - oy;
+			if (w < 1 || h < 1 || w > PolyMaxPixels || h > PolyMaxPixels)
+				return false;
+
+			// The corners, measured from the picture's corner and rounded to an eighth of a pixel: the same shape gives the same key.
+			var rel = new Vector2[pts.Length];
+			ulong key = 14695981039346656037UL;
+			key = Mix(key, w);
+			key = Mix(key, h);
+			for (int i = 0; i < pts.Length; i++)
+			{
+				int qx = (int)Math.Round((pts[i].X * m - ox) * 8f);
+				int qy = (int)Math.Round((pts[i].Y * m - oy) * 8f);
+				rel[i] = new Vector2(qx / 8f, qy / 8f);
+				key = Mix(key, qx);
+				key = Mix(key, qy);
+			}
+
+			if (!polyCache.TryGetValue(key, out Texture2D tex) || tex == null || tex.IsDisposed)
+			{
+				if (polyCache.Count >= PolyCacheLimit)
+					ClearPolygons();
+
+				tex = BuildPolygon(rel, w, h);
+				polyCache[key] = tex;
+			}
+
+			sb.Draw(tex, new Vector2(ox / m, oy / m), null, c, 0f, Vector2.Zero, 1f / m, SpriteEffects.None, 0f);
+			return true;
+		}
+
+		private static Texture2D BuildPolygon(Vector2[] p, int w, int h)
+		{
+			const int ss = 4; // 4 rows per pixel, exact coverage across each row
+			var data = new Color[w * h];
+			var cover = new float[w];
+			var xs = new List<float>(8);
+
+			for (int y = 0; y < h; y++)
+			{
+				Array.Clear(cover, 0, w);
+				for (int sy = 0; sy < ss; sy++)
+				{
+					float yc = y + (sy + 0.5f) / ss;
+					xs.Clear();
+					for (int i = 0; i < p.Length; i++)
+					{
+						Vector2 a = p[i];
+						Vector2 b = p[(i + 1) % p.Length];
+						if ((a.Y <= yc && b.Y > yc) || (b.Y <= yc && a.Y > yc))
+							xs.Add(a.X + (yc - a.Y) * (b.X - a.X) / (b.Y - a.Y));
+					}
+					xs.Sort();
+
+					for (int i = 0; i + 1 < xs.Count; i += 2)
+					{
+						float xa = xs[i];
+						float xb = xs[i + 1];
+						for (int x = Math.Max(0, (int)Math.Floor(xa)); x < w && x < xb; x++)
+						{
+							float overlap = Math.Min(xb, x + 1f) - Math.Max(xa, x);
+							if (overlap > 0f)
+								cover[x] += overlap / ss;
+						}
+					}
+				}
+
+				for (int x = 0; x < w; x++)
+				{
+					float a = MathHelper.Clamp(cover[x], 0f, 1f);
+					data[y * w + x] = new Color(a, a, a, a); // premultiplied, like the other shapes
+				}
+			}
+
+			var tex = new Texture2D(Main.graphics.GraphicsDevice, w, h);
+			tex.SetData(data);
+			return tex;
+		}
+
+		private static void ClearPolygons()
+		{
+			var all = new List<Texture2D>(polyCache.Values);
+			polyCache.Clear();
+			Main.QueueMainThreadAction(() =>
+			{
+				foreach (Texture2D t in all)
+					t?.Dispose();
+			});
+		}
+
+		// A texture drawn one to one: its picture is `px` screen pixels wide and tall, centred on `center` (UI units) and put on the pixel grid.
+		public static void DrawPixelPerfect(SpriteBatch sb, Texture2D tex, Vector2 center, Color c)
+		{
+			float m = PixelScale;
+			var pos = new Vector2((float)Math.Round(center.X * m - tex.Width / 2f) / m, (float)Math.Round(center.Y * m - tex.Height / 2f) / m);
+			sb.Draw(tex, pos, null, c, 0f, Vector2.Zero, 1f / m, SpriteEffects.None, 0f);
+		}
 		public static void UnloadShapes()
 		{
+			ClearPolygons();
 			var all = new List<Texture2D>(shapes.Values);
 			shapes.Clear();
 			Main.QueueMainThreadAction(() =>

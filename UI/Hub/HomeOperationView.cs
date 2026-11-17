@@ -545,11 +545,42 @@ namespace Augments
 
 		private static void DrawLock(SpriteBatch sb, Rectangle box, Color c)
 		{
-			HubDraw.Fill(sb, new Rectangle(box.X, box.Y + box.Height / 2, box.Width, box.Height / 2), c);
-			var shackle = new Rectangle(box.X + 3, box.Y, box.Width - 6, box.Height / 2 + 1);
-			HubDraw.Border(sb, shackle, c, 2);
-		}
+			// A padlock made of smooth shapes: a body, and an arched shackle on top.
+			float cx = box.X + box.Width / 2f;
+			float bodyTop = box.Y + box.Height * 0.45f;
+			Span<Vector2> body = stackalloc Vector2[]
+			{
+				new Vector2(box.X, bodyTop), new Vector2(box.Right, bodyTop), new Vector2(box.Right, box.Bottom), new Vector2(box.X, box.Bottom)
+			};
+			if (!HubDraw.FillPolygon(sb, body, c))
+				HubDraw.Fill(sb, new Rectangle(box.X, (int)bodyTop, box.Width, box.Bottom - (int)bodyTop), c);
 
+			float outer = box.Width * 0.29f;      // the shackle's outer radius
+			float inner = outer - 1.7f;           // and its inner radius (the wire is 1.7 units thick)
+			float arcY = box.Y + outer;
+			const int steps = 10;
+			var pts = new Vector2[(steps + 1) * 2 + 4];
+			int n = 0;
+			pts[n++] = new Vector2(cx - outer, bodyTop + 0.5f);
+			for (int i = 0; i <= steps; i++)
+			{
+				float a = MathHelper.Pi + MathHelper.Pi * i / steps;
+				pts[n++] = new Vector2(cx + outer * (float)Math.Cos(a), arcY + outer * (float)Math.Sin(a));
+			}
+			pts[n++] = new Vector2(cx + outer, bodyTop + 0.5f);
+			pts[n++] = new Vector2(cx + inner, bodyTop + 0.5f);
+			for (int i = steps; i >= 0; i--)
+			{
+				float a = MathHelper.Pi + MathHelper.Pi * i / steps;
+				pts[n++] = new Vector2(cx + inner * (float)Math.Cos(a), arcY + inner * (float)Math.Sin(a));
+			}
+			pts[n++] = new Vector2(cx - inner, bodyTop + 0.5f);
+			if (!HubDraw.FillPolygon(sb, pts, c))
+			{
+				var shackle = new Rectangle(box.X + 3, box.Y, box.Width - 6, box.Height / 2 + 1);
+				HubDraw.Border(sb, shackle, c, 2);
+			}
+		}
 		private static void DrawCheck(SpriteBatch sb, Point p, Color c)
 		{
 			for (int i = 0; i < 3; i++)

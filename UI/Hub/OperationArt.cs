@@ -20,6 +20,10 @@ namespace Augments
 		// Fills any simple polygon, one pixel row at a time (even-odd rule).
 		private static void Poly(SpriteBatch sb, ReadOnlySpan<Vector2> p, Color c)
 		{
+			// Smooth, pixel-exact fill; the row-by-row fill below is only for a polygon too big for that.
+			if (HubDraw.FillPolygon(sb, p, c))
+				return;
+
 			float minY = float.MaxValue;
 			float maxY = float.MinValue;
 			for (int i = 0; i < p.Length; i++)
@@ -71,6 +75,17 @@ namespace Augments
 		// A thin line between two points, drawn as small steps.
 		private static void Line(SpriteBatch sb, Vector2 a, Vector2 b, Color c)
 		{
+			// A thin soft-edged strip, one screen pixel wide, instead of a row of dots.
+			Vector2 along = b - a;
+			if (along.LengthSquared() > 0.01f)
+			{
+				Vector2 n = new Vector2(-along.Y, along.X);
+				n.Normalize();
+				n *= HubDraw.OnePx * 0.6f;
+				if (HubDraw.FillPolygon(sb, stackalloc Vector2[] { a + n, b + n, b - n, a - n }, c))
+					return;
+			}
+
 			int steps = Math.Max(1, (int)Math.Max(Math.Abs(b.X - a.X), Math.Abs(b.Y - a.Y)));
 			for (int i = 0; i <= steps; i++)
 			{
@@ -144,12 +159,14 @@ namespace Augments
 		// icons (see ClassIcons) so the two match. The box is a square and the id is an emblem id from Cosmetic.Emblems.
 		public static void Emblem(SpriteBatch sb, string id, Rectangle box, Color c)
 		{
-			Texture2D tex = ClassIcons.GetEmblem(id);
+			int size = Math.Min(box.Width, box.Height);
+
+			// Made at exactly the size it has on the screen and drawn one to one, so it is never squeezed or stretched by the filter.
+			Texture2D tex = ClassIcons.GetEmblem(id, (int)Math.Round(size * HubDraw.UiScale));
 			if (tex == null)
 				return;
 
-			int size = Math.Min(box.Width, box.Height);
-			sb.Draw(tex, new Rectangle(box.Center.X - size / 2, box.Center.Y - size / 2, size, size), c);
+			HubDraw.DrawPixelPerfect(sb, tex, box.Center.ToVector2(), c);
 		}
 		// A badge behind an emblem: an octagon with a rim, so it looks like something you wear.
 		private static void Badge(SpriteBatch sb, Rectangle box, Color rim, Color fill)
