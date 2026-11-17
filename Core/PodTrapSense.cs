@@ -56,7 +56,7 @@ namespace Augments
 		{
 			if (type == TileID.Boulder)
 				return BoulderRangeTiles;
-			if (type == TileID.Explosives)
+			if (type == TileID.Explosives || type == TileID.LandMine)
 				return ExplosiveRangeTiles;
 
 			bool trap = type == TileID.Traps
@@ -71,6 +71,8 @@ namespace Augments
 		{
 			if (type == TileID.Boulder)
 				return "Boulder";
+			if (type == TileID.LandMine)
+				return "Landmine";
 			return type == TileID.Explosives ? "Explosives" : "Trap";
 		}
 

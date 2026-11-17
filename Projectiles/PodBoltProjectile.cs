@@ -17,6 +17,8 @@ namespace Augments
 
 		public override void SetDefaults()
 		{
+			// Marked as plugin damage, like the other plugin projectiles, so a bolt every second never sets off other plugins' on-hit effects.
+			Projectile.GetGlobalProjectile<AugmentProjectileTag>().IsAugmentProcDamage = true;
 			Projectile.width = 8;
 			Projectile.height = 8;
 			Projectile.friendly = true;

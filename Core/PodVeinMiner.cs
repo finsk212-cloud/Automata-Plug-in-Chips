@@ -88,6 +88,13 @@ namespace Augments
 		private const int TicksBetweenTiles = 2;
 		private int clock;
 
+		public override void OnWorldUnload()
+		{
+			PodVeinMiner.Pending.Clear();
+			PodVeinMiner.Working = false;
+			clock = 0;
+		}
+
 		public override void PostUpdateEverything()
 		{
 			if (Main.dedServ || PodVeinMiner.Pending.Count == 0)
@@ -105,6 +112,9 @@ namespace Augments
 			clock = 0;
 
 			Point at = PodVeinMiner.Pending.Dequeue();
+			if (!WorldGen.InWorld(at.X, at.Y, 2))
+				return;
+
 			Tile t = Main.tile[at.X, at.Y];
 			if (!t.HasTile || !PodVeinMiner.IsOre(t.TileType) || !p.HasEnoughPickPowerToHurtTile(at.X, at.Y))
 				return;

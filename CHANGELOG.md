@@ -18,7 +18,7 @@
 #### Upgrade Pod: Watch Your Step | Common | NEW
 > Your Pod gets a funny feeling about that floor tile.
 - [+] Your Pod becomes Pod 077, and it works even while the Pod is hidden
-- [+] Senses traps within about 15 tiles: dart, spear, flame and spiky ball traps, pressure plates, spikes and geyser traps. It sees explosives from about 25 tiles and boulders from about 30 tiles
+- [+] Senses traps within about 15 tiles: dart, spear, flame and spiky ball traps, pressure plates, spikes and geyser traps. It sees explosives and landmines from about 25 tiles and boulders from about 30 tiles
 - [+] The Pod flashes red and a small chip points toward the closest one, like "Trap nearby, below and left"
 #### Upgrade Pod: Pea Shooter | Common | NEW
 > Tiny bolts, big attitude. It really tries.
