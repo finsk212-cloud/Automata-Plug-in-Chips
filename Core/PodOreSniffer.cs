@@ -299,7 +299,7 @@ namespace Augments
 			string shown = "Sniffing" + new string('.', dots);
 			float scale = 0.62f;
 			float w = HubDraw.Width(full, scale);
-			DrawShadowed(sb, shown, new Vector2(anchor.X - w / 2f, anchor.Y + 40f), Orange * (a * 0.9f), scale);
+			DrawOutlined(sb, shown, new Vector2(anchor.X - w / 2f, anchor.Y + 40f), Orange * (a * 0.95f), scale, a);
 		}
 
 		// A thin circle, drawn as short straight pieces.
@@ -350,16 +350,47 @@ namespace Augments
 				line2 = distanceTiles <= 4f || where.Length == 0 ? close : close + ", " + where;
 			}
 
-			float scale = 0.62f;
+			// The riddle in cream with a black outline, so it reads over grass, dirt and sky alike.
+			float scale = 0.66f;
 			float y = anchor.Y + ring + 22f;
-			DrawShadowed(sb, line1, new Vector2(anchor.X - HubDraw.Width(line1, scale) / 2f, y), Orange * a, scale);
-			if (line2 != null)
-				DrawShadowed(sb, line2, new Vector2(anchor.X - HubDraw.Width(line2, scale) / 2f, y + HubDraw.LineHeight(scale) + 1f), Color.White * (0.9f * a), scale);
+			DrawOutlined(sb, line1, new Vector2(anchor.X - HubDraw.Width(line1, scale) / 2f, y), Cream * a, scale, a);
+
+			if (line2 == null)
+				return;
+
+			// Under it, an orange chip with a small arrow pointing toward the ore and how close and which way.
+			const float chipScale = 0.56f;
+			const float arrowSize = 9f;
+			float textW = HubDraw.Width(line2, chipScale, 0.5f);
+			int boxH = (int)Math.Round(HubDraw.LineHeight(chipScale) * 0.5f) + 10;
+			int boxW = (int)Math.Round(textW) + (int)arrowSize + 5 + 16;
+			var chip = new Rectangle((int)Math.Round(anchor.X - boxW / 2f), (int)Math.Round(y + HubDraw.LineHeight(scale) + 5f), boxW, boxH);
+			HubDraw.Fill(sb, new Rectangle(chip.X - 1, chip.Y - 1, chip.Width + 2, chip.Height + 2), Color.Black * (0.75f * a));
+			HubDraw.Fill(sb, chip, Orange * a);
+
+			Vector2 d = delta.LengthSquared() > 0.01f ? Vector2.Normalize(delta) : new Vector2(0f, 1f);
+			Vector2 p = new Vector2(-d.Y, d.X);
+			Vector2 c = new Vector2(chip.X + 8f + arrowSize / 2f, chip.Y + boxH / 2f);
+			Span<Vector2> arrow = stackalloc Vector2[] { c + d * (arrowSize / 2f), c - d * (arrowSize / 2f) + p * (arrowSize / 2.4f), c - d * (arrowSize / 2f) - p * (arrowSize / 2.4f) };
+			HubDraw.FillPolygon(sb, arrow, Dark * a);
+			HubDraw.Text(sb, line2, new Vector2(chip.X + 8f + arrowSize + 5f, chip.Y + boxH / 2f - HubDraw.CapMid(chipScale)), Dark * a, chipScale, 0.5f);
 		}
 
-		private static void DrawShadowed(SpriteBatch sb, string text, Vector2 pos, Color c, float scale)
+		private static readonly Color Cream = new Color(255, 243, 220);
+
+		// Text with a one-pixel black outline all the way round it.
+		private static void DrawOutlined(SpriteBatch sb, string text, Vector2 pos, Color c, float scale, float alpha)
 		{
-			HubDraw.Text(sb, text, pos + new Vector2(1f, 1f), Color.Black * (c.A / 255f * 0.8f), scale);
+			float o = HubDraw.OnePx;
+			Color black = Color.Black * (0.95f * alpha);
+			for (int dx = -1; dx <= 1; dx++)
+			{
+				for (int dy = -1; dy <= 1; dy++)
+				{
+					if (dx != 0 || dy != 0)
+						HubDraw.Text(sb, text, pos + new Vector2(dx * o, dy * o), black, scale);
+				}
+			}
 			HubDraw.Text(sb, text, pos, c, scale);
 		}
 	}
