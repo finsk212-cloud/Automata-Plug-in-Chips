@@ -347,7 +347,7 @@ namespace Augments
 			string letter = def.Letter.ToString();
 			float letterScale = HubDraw.BigScale(28f);
 			float lw = HubDraw.BigWidth(letter, letterScale);
-			HubDraw.BigText(sb, letter, new Vector2(tile.Center.X - lw / 2f, tile.Y + 9), (tint.HasValue ? Color.White : HubTheme.OnAccent) * alpha, letterScale);
+			HubDraw.BigText(sb, letter, new Vector2(tile.Center.X - lw / 2f, tile.Y + 14), (tint.HasValue ? Color.White : HubTheme.OnAccent) * alpha, letterScale);
 
 			int tx = tile.Right + 12;
 			HubDraw.Text(sb, "CHALLENGE COMPLETE", new Vector2(tx, y - 1), (tint ?? HubTheme.Warn) * alpha, 0.46f, 2f);
