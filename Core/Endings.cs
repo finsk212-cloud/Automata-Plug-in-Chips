@@ -187,10 +187,11 @@ namespace Augments
 
 				RarityBracket world = BossTierMap.GetCurrentWorldBracket();
 				bool listed = BossTierMap.Brackets.TryGetValue(key, out RarityBracket bracket);
-				if (!listed)
+				if (!listed && !BossAugmentDrop.TryGetCalamityBracket(key, out bracket))
 				{
-					// A boss that is not in the tier map (some modded ones) is guessed with a slightly different ladder than the
-					// world's, so never let it count as older than the world: it counts as a boss of the world's current stage.
+					// A boss that is in neither table (some modded ones) is guessed from world progress, with a slightly different ladder
+					// than the world's, so never let it count as older than the world: it counts as a boss of the world's current stage.
+					// A boss that IS in a table keeps its own stage, so an old boss in a late world still does not count.
 					bracket = BossAugmentDrop.GetModdedBossBracket(npc);
 					if (bracket < world)
 						bracket = world;

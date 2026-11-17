@@ -117,6 +117,18 @@ namespace Augments
 			{ "Artemis", RarityBracket.FinalCalamity },
 		};
 
+		// A Calamity boss that is in the table above, found from the fight's leader type (so a body segment or an arm gives the same answer as the head).
+		// False for anything else, so the caller knows the bracket was not a table hit.
+		internal static bool TryGetCalamityBracket(int fightKey, out RarityBracket bracket)
+		{
+			bracket = RarityBracket.PreHardmode;
+			if (fightKey < NPCID.Count)
+				return false;
+
+			ModNPC leader = NPCLoader.GetNPC(fightKey);
+			return leader?.Mod?.Name == "CalamityMod" && CalamityBrackets.TryGetValue(leader.Name, out bracket);
+		}
+
 		internal static RarityBracket GetModdedBossBracket(NPC npc)
 		{
 			if (npc.ModNPC?.Mod?.Name == "CalamityMod")
