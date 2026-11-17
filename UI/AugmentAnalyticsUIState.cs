@@ -21,6 +21,9 @@ namespace Augments
 	public class AugmentAnalyticsUIState : UIState
 	{
 		private AnalyticsBackPanel backPanel;
+
+		// The panel's rectangle in UI units, for the turn on and turn off effect.
+		public Rectangle PanelBounds => backPanel != null ? backPanel.GetDimensions().ToRectangle() : Rectangle.Empty;
 		private UIList recordsList;
 		private PanelScrollbar listScrollbar;
 

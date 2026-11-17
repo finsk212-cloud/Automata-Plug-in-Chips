@@ -77,12 +77,10 @@ namespace Augments
 			builtScheme = MenuLook.SelectedIndex;
 		}
 
-		// The Plugins menu turns on and off like an old computer screen (see CrtScreenEffect). 0 = off, 1 = fully on.
-		private float listOpen = 1f;
-		// +1 while turning on, -1 while turning off, 0 when settled.
-		private int listAnimDir;
-		private const float ListOnSeconds = 0.30f;
-		private const float ListOffSeconds = 0.38f;
+		// The Plugins menu, the Shop and Combat Analytics turn on and off like an old computer screen (see CrtScreenEffect).
+		private readonly PanelScreen listScreen = new PanelScreen();
+		private readonly PanelScreen shopScreen = new PanelScreen();
+		private readonly PanelScreen analyticsScreen = new PanelScreen();
 
 		private bool AnyPanelOpen =>
 			augmentInterface?.CurrentState != null || listInterface?.CurrentState != null || shopInterface?.CurrentState != null
@@ -99,40 +97,26 @@ namespace Augments
 			if (augmentInterface?.CurrentState != null)
 				augmentInterface.Update(gameTime);
 
-			if (listAnimDir != 0)
-			{
-				float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-				if (listAnimDir > 0)
-				{
-					listOpen += dt / ListOnSeconds;
-					if (listOpen >= 1f)
-					{
-						listOpen = 1f;
-						listAnimDir = 0;
-					}
-				}
-				else
-				{
-					listOpen -= dt / ListOffSeconds;
-					if (listOpen <= 0f)
-					{
-						listOpen = 0f;
-						listAnimDir = 0;
-						listInterface?.SetState(null);
-					}
-				}
-			}
+			// Advance the turn on / turn off of the three panels; a panel that has finished turning off is taken away.
+			float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+			if (listScreen.Tick(dt))
+				listInterface?.SetState(null);
+			if (shopScreen.Tick(dt))
+				shopInterface?.SetState(null);
+			if (analyticsScreen.Tick(dt))
+				analyticsInterface?.SetState(null);
 
-			if (listInterface?.CurrentState != null && listAnimDir >= 0)
+			// A panel that is turning off no longer reacts to the mouse.
+			if (listInterface?.CurrentState != null && !listScreen.Closing)
 				listInterface.Update(gameTime);
 
-			if (shopInterface?.CurrentState != null)
+			if (shopInterface?.CurrentState != null && !shopScreen.Closing)
 				shopInterface.Update(gameTime);
 
 			if (gachaInterface?.CurrentState != null)
 				gachaInterface.Update(gameTime);
 
-			if (analyticsInterface?.CurrentState != null)
+			if (analyticsInterface?.CurrentState != null && !analyticsScreen.Closing)
 				analyticsInterface.Update(gameTime);
 
 			if (bannerInterface?.CurrentState != null)
@@ -201,7 +185,7 @@ namespace Augments
 				{
 					if (lastUpdateUiGameTime != null && analyticsInterface?.CurrentState != null)
 					{
-						analyticsInterface.Draw(Main.spriteBatch, lastUpdateUiGameTime);
+						DrawPanel(analyticsInterface, analyticsScreen, analyticsState.PanelBounds);
 						if (Main.LocalPlayer != null && Main.LocalPlayer.active)
 							Main.LocalPlayer.mouseInterface = true;
 					}
@@ -308,7 +292,7 @@ namespace Augments
 				delegate
 				{
 					if (lastUpdateUiGameTime != null && shopInterface?.CurrentState != null)
-						shopInterface.Draw(Main.spriteBatch, lastUpdateUiGameTime);
+						DrawPanel(shopInterface, shopScreen, shopState.PanelBounds);
 					return true;
 				},
 				InterfaceScaleType.UI)
@@ -319,7 +303,7 @@ namespace Augments
 				delegate
 				{
 					if (lastUpdateUiGameTime != null && listInterface?.CurrentState != null)
-						DrawList();
+						DrawPanel(listInterface, listScreen, listState.PanelBounds);
 					return true;
 				},
 				InterfaceScaleType.UI)
@@ -491,12 +475,17 @@ namespace Augments
 		{
 			analyticsState?.Refresh();
 			analyticsInterface?.SetState(analyticsState);
+			analyticsScreen.Show();
 			SoundEngine.PlaySound(SoundID.MenuOpen);
 		}
 
 		public void HideAnalytics()
 		{
-			analyticsInterface?.SetState(null);
+			if (analyticsInterface?.CurrentState == null || analyticsScreen.Closing)
+				return;
+
+			// Turn the screen off; the panel is removed when the effect has finished (see UpdateUI).
+			analyticsScreen.Hide();
 			SoundEngine.PlaySound(SoundID.MenuClose);
 		}
 
@@ -516,7 +505,7 @@ namespace Augments
 			}
 		}
 
-		public bool IsAnalyticsOpen => analyticsInterface?.CurrentState != null;
+		public bool IsAnalyticsOpen => analyticsInterface?.CurrentState != null && !analyticsScreen.Closing;
 
 		// --- "Your Augments" list controls ---
 
@@ -526,30 +515,28 @@ namespace Augments
 			listInterface?.SetState(listState);
 
 			// Turn the screen on. If it was still turning off, it turns back on from where it is.
-			if (listAnimDir == 0)
-				listOpen = 0f;
-			listAnimDir = 1;
+			listScreen.Show();
 		}
 
-		// One frame of the Plugins menu: drawn normally when settled, through the screen effect while turning on or off.
-		private void DrawList()
+		// One frame of a panel: drawn normally when settled, through the screen effect while turning on or off.
+		private void DrawPanel(UserInterface ui, PanelScreen screen, Microsoft.Xna.Framework.Rectangle bounds)
 		{
-			if (listAnimDir == 0 && listOpen >= 1f)
+			if (screen.Settled)
 			{
-				listInterface.Draw(Main.spriteBatch, lastUpdateUiGameTime);
+				ui.Draw(Main.spriteBatch, lastUpdateUiGameTime);
 				return;
 			}
 
-			CrtScreenEffect.Draw(Main.spriteBatch, listOpen, listState.PanelBounds, () => listInterface.Draw(Main.spriteBatch, lastUpdateUiGameTime));
+			CrtScreenEffect.Draw(Main.spriteBatch, screen.Open, bounds, () => ui.Draw(Main.spriteBatch, lastUpdateUiGameTime));
 		}
 
 		public void HideList()
 		{
-			if (listInterface?.CurrentState == null || listAnimDir < 0)
+			if (listInterface?.CurrentState == null || listScreen.Closing)
 				return;
 
 			// Turn the screen off; the menu is removed when the effect has finished (see UpdateUI).
-			listAnimDir = -1;
+			listScreen.Hide();
 		}
 
 		public void ToggleList()
@@ -568,7 +555,7 @@ namespace Augments
 			}
 		}
 
-		public bool IsListOpen => listInterface?.CurrentState != null && listAnimDir >= 0;
+		public bool IsListOpen => listInterface?.CurrentState != null && !listScreen.Closing;
 
 		// --- Vendor shop panel controls ---
 
@@ -603,11 +590,24 @@ namespace Augments
 			shopState.ResetTab();
 			shopState.Refresh();
 			shopInterface?.SetState(shopState);
+			shopScreen.Show();
 		}
 
-		public void HideShop()
+		// `instant` closes it with no effect, for when another panel takes its place.
+		public void HideShop(bool instant = false)
 		{
-			shopInterface?.SetState(null);
+			if (shopInterface?.CurrentState == null)
+				return;
+
+			if (instant)
+			{
+				shopScreen.HideInstant();
+				shopInterface.SetState(null);
+				return;
+			}
+
+			if (!shopScreen.Closing)
+				shopScreen.Hide();
 		}
 
 		public void ToggleShop()
@@ -618,7 +618,7 @@ namespace Augments
 				ShowShop();
 		}
 
-		public bool IsShopOpen => shopInterface?.CurrentState != null;
+		public bool IsShopOpen => shopInterface?.CurrentState != null && !shopScreen.Closing;
 
 		// --- Vendor gacha decryption panel controls ---
 
@@ -627,8 +627,9 @@ namespace Augments
 			if (gachaState == null)
 				return;
 
-			if (IsShopOpen)
-				HideShop();
+			// The shop is swapped out for this panel at once, with no turn off effect.
+			if (shopInterface?.CurrentState != null)
+				HideShop(true);
 
 			int essenceType = ModContent.ItemType<AugmentEssenceItem>();
 			for (int i = 0; i < Main.maxItems; i++)
