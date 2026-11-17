@@ -151,6 +151,11 @@ namespace Augments
 			}
 		}
 
+		// Where the middle of the capital letters is, measured down from the top of a line of text at this scale. The game font keeps its letters
+		// in the upper part of the line box (the lower part is room for descenders), so this is about 36% of the line height, not 50%.
+		// Anything that has to sit level with text (icons, arrows, tag boxes, strike-through lines) is centred on this.
+		public static float CapMid(float scale) => LineHeight(scale) * 0.36f;
+
 		// The colour of the "new" glow: a warm orange that shows on both the cream pages and the dark bars.
 		public static readonly Color Unread = new Color(238, 112, 48);
 

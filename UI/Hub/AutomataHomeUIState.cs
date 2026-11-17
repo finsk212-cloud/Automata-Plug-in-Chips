@@ -1304,7 +1304,7 @@ namespace Augments
 				}
 
 				if (l.Marker == 7)
-					DrawDirIcon(sb, body.X + l.X - 18, sy + HubDraw.LineHeight(l.Scale) * 0.40f, l.Dir);
+					DrawDirIcon(sb, body.X + l.X - 14, sy + HubDraw.CapMid(l.Scale), l.Dir);
 
 				if (l.Marker == 2)
 				{
@@ -1333,14 +1333,16 @@ namespace Augments
 			const float nameScale = 0.86f;
 			HubDraw.Text(sb, l.Name, new Vector2(body.X + 18, sy), HubTheme.Text, nameScale, 0.5f);
 			float x = body.X + 18 + HubDraw.Width(l.Name, nameScale, 0.5f) + 12f;
-			int chipH = (int)HubDraw.LineHeight(0.56f) + 4;
-			int chipY = (int)(sy + (HubDraw.LineHeight(nameScale) - chipH) / 2f) + 1;
 
-if (!string.IsNullOrEmpty(l.Tag))
+			if (!string.IsNullOrEmpty(l.Tag))
 			{
-				var tag = new Rectangle((int)x, chipY, (int)HubDraw.Width(l.Tag, 0.56f, 1f) + 12, chipH);
+				// The tag box is centred on the middle of the name's letters, and the tag's own letters are centred in the box.
+				const float tagScale = 0.56f;
+				int boxH = (int)Math.Round(HubDraw.LineHeight(tagScale) * 0.5f) + 10;
+				int boxY = (int)Math.Round(sy + HubDraw.CapMid(nameScale) - boxH / 2f);
+				var tag = new Rectangle((int)x, boxY, (int)Math.Round(HubDraw.Width(l.Tag, tagScale, 1f)) + 16, boxH);
 				HubDraw.Fill(sb, tag, DirColor(l.Dir));
-				HubDraw.Text(sb, l.Tag, new Vector2(tag.X + 6, tag.Y + 2), Color.White * 0.95f, 0.56f, 1f);
+				HubDraw.Text(sb, l.Tag, new Vector2(tag.X + 8, tag.Y + boxH / 2f - HubDraw.CapMid(tagScale)), Color.White * 0.95f, tagScale, 1f);
 			}
 		}
 
@@ -1348,10 +1350,9 @@ if (!string.IsNullOrEmpty(l.Tag))
 		// one pixel apart, so it stands out as the number that matters).
 		private static void DrawStatLine(SpriteBatch sb, Rectangle body, PLine l, float sy)
 		{
-			// The game font draws its letters in the upper part of the line box (the lower part is room for descenders), so the middle of the
-			// letters is about 40% down, not 50%. The strike-through, the arrow and the icon all sit on that line.
-			float cy = sy + HubDraw.LineHeight(l.Scale) * 0.40f;
-			DrawDirIcon(sb, body.X + l.X - 18, cy, l.Dir);
+			// The strike-through, the arrow and the icon all sit on the middle of the letters.
+			float cy = sy + HubDraw.CapMid(l.Scale);
+			DrawDirIcon(sb, body.X + l.X - 14, cy, l.Dir);
 
 			float x = body.X + l.X;
 			if (l.Label.Length > 0)
