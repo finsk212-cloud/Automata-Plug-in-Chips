@@ -24,6 +24,7 @@
 
 - **Old screen effect on more panels**: The Plugins menu, the Shop and Combat Analytics now turn off like an old computer screen, collapsing to a bright line and then a dot, and turn on the same way backwards.
 - **Readability and polish**: Improved text size and alignment for readability on the Orders and Profile pages, sharper page titles, and cleaner badge tiles and emblem icons.
+- **A shorter Medi Gun tooltip**: The Medi Gun's tooltip is much shorter now: one line for each beam, the warm-up, and what Overclock does. Hold Shift to see the full Overclock details.
 
 ### Bugs and fixes
 - **Bosses made of several parts**: Apex Hunter and Meteor Strike now work on every part of a boss, such as Golem's head and fists and the segments of Calamity worm bosses. Before, hits on those parts did not count.
