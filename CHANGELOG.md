@@ -2,12 +2,10 @@
 
 ## Version 1.4.2
 
-### Highlights
+### New features
 - **Hidden endings**: Five secret challenge endings, A to E, are now tracked for each character and shown on the Profile page as a riddle until you earn them. They are about how you beat a boss, not just that you beat it. Every ending only counts from the Wall of Flesh onward, because beating an early boss without a hit was too easy, and the last one needs a Mechanical Boss or later. A boss older than your world's current stage never counts. Endings only work in singleplayer for now.
 - **A better Profile page**: The Profile page on the title screen now draws your real character. It also shows your Best DPS (the highest damage per second you have reached over 3 seconds, saved for each character and shown as -- until you have one), your Data Fragments and how many points you have toward the next rank, like 25 / 50. The Machine Cores row is gone from this page. You can pin up to 3 favourite plugins: click a slot and pick one of the plugins that character has collected, and right click a slot to clear it. With more than one character, click the name box at the top right to pick one from a list, or use the arrows.
-- **Old screen effect on more panels**: The Plugins menu, the Shop and Combat Analytics now turn off like an old computer screen, collapsing to a bright line and then a dot, and turn on the same way backwards.
-- **A new Patch Notes page**: Balance changes now show as cards with a NERF, BUFF or ADJUSTED tag and the old and new numbers side by side. The index on the left is grouped by version, and a glowing marker shows until you have opened the newest notes.
-- **Readability and polish**: Improved text size and alignment for readability on the Orders and Profile pages, sharper page titles, and cleaner badge tiles and emblem icons.
+- **A new Patch Notes page**: Balance changes now show as cards with a NERF, BUFF or ADJUSTED tag and the old and new numbers side by side. The notes are split into categories (New features, Plugin changes, Visuals, Bugs and fixes), the index on the left is grouped by version, and a glowing marker shows until you have opened the newest notes.
 
 ### Plugin changes
 
@@ -21,6 +19,13 @@
 > It used to be picky about what counted as a boss. Not anymore.
 - Now triggers on crits against every part of a boss fight, such as Golem's head and fists
 - Strike size: 2.5% of the hit part's max HP => 2.5% of the whole boss's max HP
+
+### Visuals
+- **Old screen effect on more panels**: The Plugins menu, the Shop and Combat Analytics now turn off like an old computer screen, collapsing to a bright line and then a dot, and turn on the same way backwards.
+- **Readability and polish**: Improved text size and alignment for readability on the Orders and Profile pages, sharper page titles, and cleaner badge tiles and emblem icons.
+
+### Bugs and fixes
+- **Bosses made of several parts**: Apex Hunter and Meteor Strike now work on every part of a boss, such as Golem's head and fists and the segments of Calamity worm bosses. Before, hits on those parts did not count.
 
 ## Version 1.4.1
 

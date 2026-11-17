@@ -1,9 +1,9 @@
 [h1]AUTOMATA: PLUG-IN CHIPS  //  UPDATE 1.4.2[/h1]
-[i]A bigger update: hidden endings, a better Profile page, an old computer screen effect, a new Patch Notes page, and balance changes to Apex Hunter and Meteor Strike.[/i]
+[i]A bigger update: hidden endings, a better Profile page, an old computer screen effect, a new Patch Notes page sorted into categories, balance changes to Apex Hunter and Meteor Strike, and a fix for bosses made of several parts.[/i]
 
 [hr][/hr]
 
-[h2]WHAT'S NEW[/h2]
+[h2]NEW FEATURES[/h2]
 
 [b]HIDDEN ENDINGS[/b]
 Five secret challenge endings, A to E, are now tracked for each character and shown on the Profile page as a riddle until you earn them. They are about how you beat a boss, not just that you beat it. Every ending only counts from the Wall of Flesh onward, and the last one needs a Mechanical Boss or later. A boss older than your world's current stage never counts. Endings only work in singleplayer for now.
@@ -18,11 +18,8 @@ The Profile page on the title screen now shows more about your character.
 [*]With more than one character, click the name box at the top right to pick one from a list, or use the arrows.
 [/list]
 
-[b]OLD SCREEN EFFECT[/b]
-The Plugins menu, the Shop and Combat Analytics now turn off like an old computer screen, collapsing to a bright line and then a dot, and turn on the same way backwards.
-
 [b]A NEW PATCH NOTES PAGE[/b]
-Balance changes now show as cards, with a NERF, BUFF or ADJUSTED tag and the old and new numbers side by side. The index on the left is grouped by version, and a glowing marker shows until you have opened the newest notes.
+Balance changes now show as cards, with a NERF, BUFF or ADJUSTED tag and the old and new numbers side by side. The notes are split into categories, the index on the left is grouped by version, and a glowing marker shows until you have opened the newest notes.
 
 [h2]PLUGIN CHANGES[/h2]
 
@@ -38,8 +35,18 @@ Balance changes now show as cards, with a NERF, BUFF or ADJUSTED tag and the old
 [*]Strike size: 2.5% of the hit part's max HP => 2.5% of the whole boss's max HP.
 [/list]
 
-[b]POLISH[/b]
+[h2]VISUALS[/h2]
+
+[b]OLD SCREEN EFFECT[/b]
+The Plugins menu, the Shop and Combat Analytics now turn off like an old computer screen, collapsing to a bright line and then a dot, and turn on the same way backwards.
+
+[b]READABILITY AND POLISH[/b]
 Improved text size and alignment for readability on the Orders and Profile pages, sharper page titles, and cleaner badge tiles and emblem icons.
+
+[h2]BUGS AND FIXES[/h2]
+
+[b]BOSSES MADE OF SEVERAL PARTS[/b]
+Apex Hunter and Meteor Strike now work on every part of a boss, such as Golem's head and fists and the segments of Calamity worm bosses. Before, hits on those parts did not count.
 
 [hr][/hr]
 
