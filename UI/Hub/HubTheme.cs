@@ -57,10 +57,10 @@ namespace Augments
 		public static Texture2D Pixel => TextureAssets.MagicPixel.Value;
 		public static DynamicSpriteFont Font => FontAssets.MouseText.Value;
 
-		// While true (set by pages that want the sharpest text), text is placed on whole screen pixels. The interface is drawn scaled by the
-		// player's UI scale (1.47 for example), so a position that is whole in UI units usually lands between two pixels, and text drawn
-		// between pixels is blurred by the filter. Off everywhere else so the other pages are not touched.
-		public static bool SnapToPixels;
+		// While true, text is placed on whole screen pixels. The interface is drawn scaled by the player's UI scale (1.47 for example), so a
+		// position that is whole in UI units usually lands between two pixels, and text drawn between pixels is blurred by the filter.
+		// On everywhere now: it only moves text by less than one screen pixel, so no layout changes.
+		public static bool SnapToPixels = true;
 
 		private static float PixelScale
 		{
@@ -83,6 +83,27 @@ namespace Augments
 		// and drawn through the same value, so the layout stays consistent.
 		private static readonly float[] CrispTargets = { 1f, 2f };
 
+		// Every page's normal text goes through this: a scale that lands almost on a whole-number ratio of the font's real size once the
+		// UI scale is applied is moved onto it, so the letters are drawn clean instead of stretched by a fraction. It only ever makes text
+		// smaller (or at most 1% bigger), never wider, so nothing that fitted can overflow. Width, LineHeight and Text all use it, so what is
+		// measured is what is drawn. (The pixel font and the big font have their own rules and are left alone.)
+		private static float Fine(float scale)
+		{
+			if (PixelFont.Active)
+				return scale;
+
+			float u = PixelScale;
+			if (Math.Abs(u - 1f) < 0.01f)
+				return scale;
+
+			foreach (float target in CrispTargets)
+			{
+				float ratio = scale * u / target;
+				if (ratio >= 0.91f && ratio <= 1.01f)
+					return target / u;
+			}
+			return scale;
+		}
 		public static float Crisp(float scale)
 		{
 			float u = PixelScale;
@@ -283,6 +304,12 @@ namespace Augments
 		// equivalent square, so the diamond is about 1.4x that tall.
 		public static void Diamond(SpriteBatch sb, Vector2 center, float size, Color c)
 		{
+			// Every page's diamonds are the smooth kind (same drawn size as the stacked rows below, which are kept for reference).
+			SmoothDiamond(sb, new Vector2(Snap(center.X), Snap(center.Y)), size, c);
+		}
+
+		private static void DiamondRows(SpriteBatch sb, Vector2 center, float size, Color c)
+		{
 			int half = Math.Max(1, (int)Math.Round(size * 0.7f));
 			int cx = (int)Math.Round(center.X);
 			int cy = (int)Math.Round(center.Y);
@@ -366,6 +393,7 @@ namespace Augments
 		{
 			if (string.IsNullOrEmpty(text))
 				return 0f;
+			scale = Fine(scale);
 			if (PixelFont.Active)
 			{
 				EnsureFontCache();
@@ -478,6 +506,7 @@ namespace Augments
 
 		public static float LineHeight(float scale)
 		{
+			scale = Fine(scale);
 			EnsureFontCache();
 			return cachedLineHeight * scale;
 		}
@@ -488,6 +517,7 @@ namespace Augments
 			if (string.IsNullOrEmpty(text))
 				return;
 
+			scale = Fine(scale);
 			pos = SnapToPixels ? new Vector2(Snap(pos.X), Snap(pos.Y)) : new Vector2((float)Math.Round(pos.X), (float)Math.Round(pos.Y));
 			if (PixelFont.Active)
 			{
