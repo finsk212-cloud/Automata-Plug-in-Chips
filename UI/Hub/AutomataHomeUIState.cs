@@ -182,6 +182,8 @@ namespace Augments
 				return;
 
 			Section = section;
+			if (section == HomeSection.PatchNotes)
+				patchView?.Opened();
 			lastSize = Vector2.Zero; // the bar, currency box and logo move between HOME and the other sections, so lay out again
 			SwitchTicks = SwitchDuration;
 			SoundEngine.PlaySound(SoundID.MenuOpen);
@@ -476,6 +478,10 @@ namespace Augments
 				// looks about 3 units too high next to an icon centred in the bar. Nudge it down to the same centre line.
 				float ty = r.Y + (r.Height - HubDraw.LineHeight(scale)) / 2f + 4.2f * scale;
 				HubDraw.Text(sb, Labels[i], new Vector2(r.X + 18 + 14 + 8, ty), fg, scale, tracking);
+
+				// A glowing dot on the PATCH NOTES tab while the newest notes have not been opened.
+				if (i == (int)HomeSection.PatchNotes && !active && PatchNotesData.IsUnread)
+					HubDraw.GlowDot(sb, new Vector2(r.Right - 10, r.Y + r.Height / 2f), 2.5f);
 			}
 		}
 
@@ -670,7 +676,13 @@ namespace Augments
 			float leftEnd = r.X + 40 + HubDraw.Width(left, scale, 2.5f) + 24f;
 			float rightW = HubDraw.Width(right, 0.62f, 2f);
 			if (r.Right - 16 - rightW > leftEnd)
+			{
 				HubDraw.TextRight(sb, right, r.Right - 16, r.Y + (r.Height - HubDraw.LineHeight(0.62f)) / 2f, fg * 0.8f, 0.62f, 2f);
+
+				// A glowing dot in front of the version note while the newest notes have not been opened.
+				if (PatchNotesData.IsUnread && r.Right - 16 - rightW - 16 > leftEnd)
+					HubDraw.GlowDot(sb, new Vector2(r.Right - 16 - rightW - 12, r.Y + r.Height / 2f), 3f);
+			}
 		}
 	}
 
@@ -890,7 +902,33 @@ namespace Augments
 		private readonly AutomataHomeUIState state;
 		private readonly HubScrollbar bar;
 		private readonly List<PLine> lines = new List<PLine>();
-		private readonly List<KeyValuePair<string, float>> anchors = new List<KeyValuePair<string, float>>();
+		// One row of the index on the left: a version heading ("PATCH NOTES 1.4.2") or one of the sections under it.
+		private class Anchor
+		{
+			public string Text;
+			public float Y;
+			public bool Header;
+			public bool Latest; // the newest version heading, the one that glows while it is unread
+		}
+
+		private readonly List<Anchor> anchors = new List<Anchor>();
+
+		// Whether the newest notes had not been read when this page was opened. Kept for as long as the page stays open, so the marker
+		// is still there while you read, and gone the next time you come back.
+		private bool openedUnread;
+
+		// Called when the PATCH NOTES section is opened: remembers whether it was new, and marks it as read.
+		public void Opened()
+		{
+			openedUnread = PatchNotesData.IsUnread;
+			PatchNotesData.MarkRead();
+		}
+
+		private static string HeaderText(string version)
+		{
+			const string word = "Version ";
+			return "PATCH NOTES " + (version.StartsWith(word, StringComparison.OrdinalIgnoreCase) ? version.Substring(word.Length) : version).ToUpperInvariant();
+		}
 		private float laidOutWidth = -1f;
 		private float totalHeight;
 
@@ -952,7 +990,7 @@ namespace Augments
 					if (IndexRow(r, i).Contains(p))
 					{
 						SoundEngine.PlaySound(SoundID.MenuTick);
-						bar.ViewPosition = Math.Max(0f, anchors[i].Value - 6f);
+						bar.ViewPosition = Math.Max(0f, anchors[i].Y - 6f);
 						return;
 					}
 				}
@@ -1000,6 +1038,7 @@ namespace Augments
 				openCard = null;
 			}
 
+			bool firstVersion = true;
 			foreach (PatchBlock b in PatchNotesData.Blocks)
 			{
 				if (b.Kind != PatchKind.Quote && b.Kind != PatchKind.Stat)
@@ -1023,6 +1062,8 @@ namespace Augments
 						break;
 
 					case PatchKind.Version:
+						anchors.Add(new Anchor { Text = HeaderText(b.Body), Y = y, Header = true, Latest = firstVersion });
+						firstVersion = false;
 						Add(b.Body.ToUpperInvariant(), 0, 1.1f, 3f, 3, 0, 28f);
 						y += 44f;
 						break;
@@ -1030,7 +1071,7 @@ namespace Augments
 					case PatchKind.Section:
 						if (y > 0f)
 							y += 20f;
-						anchors.Add(new KeyValuePair<string, float>(b.Body, y));
+						anchors.Add(new Anchor { Text = b.Body, Y = y });
 						Add(b.Body.ToUpperInvariant(), 20, 0.9f, 1.5f, 2, 2, 22f);
 						lines.Add(new PLine { Y = y + 26f, Marker = 4, H = 1f });
 						y += 40f;
@@ -1179,7 +1220,7 @@ namespace Augments
 			int active = 0;
 			for (int i = 0; i < anchors.Count; i++)
 			{
-				if (anchors[i].Value <= scroll + 40f)
+				if (anchors[i].Y <= scroll + 40f)
 					active = i;
 			}
 			for (int i = 0; i < anchors.Count; i++)
@@ -1188,6 +1229,7 @@ namespace Augments
 				if (row.Bottom > r.Bottom - BottomPad + 10)
 					break;
 
+				Anchor a = anchors[i];
 				bool hot = row.Contains(Main.MouseScreen.ToPoint());
 				if (i == active)
 					HubDraw.Fill(sb, row, HubTheme.Accent);
@@ -1195,7 +1237,32 @@ namespace Augments
 					HubDraw.Fill(sb, row, HubTheme.PanelAlt);
 
 				Color c = i == active ? HubTheme.OnAccent : (hot ? HubTheme.Text : HubTheme.Dim);
-				HubDraw.Text(sb, Fit(anchors[i].Key, IndexW - 20, 0.68f), new Vector2(row.X + 10, row.Y + (row.Height - HubDraw.LineHeight(0.68f)) / 2f), c, 0.68f, 0.5f);
+				float ty = row.Y + (row.Height - HubDraw.LineHeight(0.68f)) / 2f;
+
+				if (a.Header)
+				{
+					// "PATCH NOTES 1.4.2": the version heading. A glowing dot sits at the start of the newest one until it has been read, and the
+					// word NEW at its end; older versions get a plain square.
+					Color hc = i == active ? HubTheme.OnAccent : HubTheme.Text;
+					if (a.Latest && openedUnread)
+						HubDraw.GlowDot(sb, new Vector2(row.X + 13, row.Y + row.Height / 2f), 3f);
+					else
+						HubDraw.Fill(sb, new Rectangle(row.X + 10, row.Y + row.Height / 2 - 2, 5, 5), i == active ? HubTheme.OnAccent : HubTheme.Dim);
+
+					float tx = row.X + 26;
+					float maxW = IndexW - 26 - (a.Latest && openedUnread ? 44 : 10);
+					string head = Fit(a.Text, maxW, 0.68f);
+					HubDraw.Text(sb, head, new Vector2(tx, ty), hc, 0.68f, 0.5f);
+					HubDraw.Text(sb, head, new Vector2(tx + 1, ty), hc, 0.68f, 0.5f);
+					if (a.Latest && openedUnread)
+						HubDraw.TextRight(sb, "NEW", row.Right - 10, ty, HubDraw.Unread, 0.62f, 1.5f);
+				}
+				else
+				{
+					// A section under its version: indented, with a short tick in front.
+					HubDraw.Fill(sb, new Rectangle(row.X + 26, row.Y + row.Height / 2, 6, 1), i == active ? HubTheme.OnAccent : HubTheme.LineSoft);
+					HubDraw.Text(sb, Fit(a.Text, IndexW - 48, 0.68f), new Vector2(row.X + 38, ty), c, 0.68f, 0.5f);
+				}
 			}
 
 			HubDraw.VLine(sb, r.X + 24 + IndexW + 10, r.Y + BodyTop, r.Height - BodyTop - BottomPad, HubTheme.LineSoft);

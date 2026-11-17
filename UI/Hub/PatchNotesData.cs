@@ -50,6 +50,20 @@ namespace Augments
 		public static string Error;
 		public static string VersionLabel = "";
 
+		// The newest version in the file (the first "## Version" line), and whether this account has opened the patch notes since it came out.
+		// What was last read is kept in the account file, so it is remembered for every character.
+		public static string LatestVersionId = "";
+		private const string ReadSlot = "patch_notes_read";
+
+		public static bool IsUnread
+			=> Error == null && Blocks.Count > 0 && LatestVersionId.Length > 0 && AccountStore.Equipped(ReadSlot, "") != LatestVersionId;
+
+		public static void MarkRead()
+		{
+			if (IsUnread)
+				AccountStore.Equip(ReadSlot, LatestVersionId);
+		}
+
 		private static readonly Regex BoldLead = new Regex(@"^\*\*(.+?)\*\*\s*(?:[:\-]\s*)?(.*)$", RegexOptions.Compiled);
 
 		public static void Load(Mod mod)
@@ -57,8 +71,9 @@ namespace Augments
 			Blocks.Clear();
 			Error = null;
 			VersionLabel = "";
+			LatestVersionId = "";
 
-			try
+						try
 			{
 				if (!mod.FileExists("CHANGELOG.md"))
 				{
@@ -139,7 +154,10 @@ namespace Augments
 					inCard = false;
 					string v = Clean(trimmed.Substring(3));
 					if (VersionLabel.Length == 0)
+					{
 						VersionLabel = v.ToUpperInvariant();
+						LatestVersionId = v;
+					}
 					Blocks.Add(new PatchBlock { Kind = PatchKind.Version, Body = v });
 				}
 				else if (trimmed.StartsWith("# "))

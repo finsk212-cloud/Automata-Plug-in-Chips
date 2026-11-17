@@ -151,6 +151,18 @@ namespace Augments
 			}
 		}
 
+		// The colour of the "new" glow: a warm orange that shows on both the cream pages and the dark bars.
+		public static readonly Color Unread = new Color(238, 112, 48);
+
+		// A glowing dot for "new, not read yet": a solid core with two soft halos that slowly breathe.
+		public static void GlowDot(SpriteBatch sb, Vector2 center, float size = 3f)
+		{
+			float pulse = 0.5f + 0.5f * (float)Math.Sin(Main.GlobalTimeWrappedHourly * 4f);
+			Diamond(sb, center, size * (2.6f + 0.7f * pulse), Unread * (0.10f + 0.12f * pulse));
+			Diamond(sb, center, size * 1.7f, Unread * (0.28f + 0.2f * pulse));
+			Diamond(sb, center, size, Unread);
+		}
+
 		// Right-pointing menu cursor made of stacked rows.
 		public static void CursorRight(SpriteBatch sb, int x, int centerY, int height, Color c)
 		{
