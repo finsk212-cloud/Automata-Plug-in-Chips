@@ -491,7 +491,7 @@ namespace Augments
 			HubDraw.Fill(sb, sq, HubTheme.Accent);
 			float iw = HubDraw.Width("02", 0.9f, 1f);
 			HubDraw.Text(sb, "02", new Vector2(sq.X + (sq.Width - iw) / 2f, sq.Y + (sq.Height - HubDraw.LineHeight(0.9f)) / 2f), HubTheme.OnAccent, 0.9f, 1f);
-			HubDraw.Text(sb, "ARCHIVE", new Vector2(r.X + Pad + 52, r.Y + 12), HubTheme.Text, 1.25f, 3f);
+			HubDraw.BigText(sb, "ARCHIVE", new Vector2(r.X + Pad + 52, r.Y + 6), HubTheme.Text, HubDraw.BigScale(34f), 3f);
 			HubDraw.Text(sb, "EVERY PLUGIN IN THE MOD", new Vector2(r.X + Pad + 53, r.Y + 42), HubTheme.Dim, 0.66f, 1.5f);
 			HubDraw.TextRight(sb, shown.Count + " / " + all.Count + " PLUGINS", r.Right - Pad, r.Y + 34, HubTheme.Dim, 0.72f, 2f);
 			if (collectedFrom != null)

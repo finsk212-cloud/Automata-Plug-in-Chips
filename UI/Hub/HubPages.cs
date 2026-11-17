@@ -54,7 +54,8 @@ namespace Augments
 			float iw = HubDraw.Width(index, 0.9f, 1f);
 			HubDraw.Text(sb, index, new Vector2(sq.X + (sq.Width - iw) / 2f, sq.Y + (sq.Height - HubDraw.LineHeight(0.9f)) / 2f), F(HubTheme.OnAccent), 0.9f, 1f);
 
-			HubDraw.Text(sb, title, new Vector2(a.X + 52, a.Y - 2), F(HubTheme.Text), 1.25f, 3f);
+			// The big title uses the large display font (sharp at this size) instead of stretching the small one, which looked blurry.
+			HubDraw.BigText(sb, title, new Vector2(a.X + 52, a.Y - 6), F(HubTheme.Text), HubDraw.BigScale(34f), 3f);
 			HubDraw.Text(sb, subtitle, new Vector2(a.X + 53, a.Y + 28), F(HubTheme.Dim), 0.68f, 1.5f);
 
 			HubDraw.HLine(sb, a.X, a.Y + 50, a.Width, F(HubTheme.Line));

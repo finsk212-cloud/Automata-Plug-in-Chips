@@ -1025,7 +1025,7 @@ namespace Augments
 			HubDraw.Fill(sb, new Rectangle(sq.X + 15, sq.Y + 14, 8, 1), HubTheme.OnAccent);
 			HubDraw.Fill(sb, new Rectangle(sq.X + 15, sq.Y + 18, 8, 1), HubTheme.OnAccent);
 			HubDraw.Fill(sb, new Rectangle(sq.X + 15, sq.Y + 22, 5, 1), HubTheme.OnAccent);
-			HubDraw.Text(sb, "PATCH NOTES", new Vector2(r.X + 76, r.Y + 12), HubTheme.Text, 1.25f, 3f);
+			HubDraw.BigText(sb, "PATCH NOTES", new Vector2(r.X + 76, r.Y + 6), HubTheme.Text, HubDraw.BigScale(34f), 3f);
 			string version = PatchNotesData.VersionLabel.Length > 0 ? PatchNotesData.VersionLabel : "WHAT'S NEW";
 			HubDraw.Text(sb, version + "   //   SCROLL OR PICK A SECTION", new Vector2(r.X + 77, r.Y + 42), HubTheme.Dim, 0.66f, 1.5f);
 			HubDraw.HLine(sb, r.X + 24, r.Y + 68, r.Width - 48, HubTheme.Line);

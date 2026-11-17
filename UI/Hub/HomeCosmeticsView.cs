@@ -164,7 +164,7 @@ namespace Augments
 			HubDraw.Fill(sb, sq, HubTheme.Accent);
 			float iw = HubDraw.Width("05", 0.9f, 1f);
 			HubDraw.Text(sb, "05", new Vector2(sq.X + (sq.Width - iw) / 2f, sq.Y + (sq.Height - HubDraw.LineHeight(0.9f)) / 2f), HubTheme.OnAccent, 0.9f, 1f);
-			HubDraw.Text(sb, "COSMETICS", new Vector2(r.X + Pad + 52, r.Y + 12), HubTheme.Text, 1.25f, 3f);
+			HubDraw.BigText(sb, "COSMETICS", new Vector2(r.X + Pad + 52, r.Y + 6), HubTheme.Text, HubDraw.BigScale(34f), 3f);
 			HubDraw.Text(sb, "COLOUR SCHEME, PANEL FRAME AND TIER DESIGN", new Vector2(r.X + Pad + 53, r.Y + 42), HubTheme.Dim, 0.66f, 1.5f);
 			HubDraw.TextRight(sb, "DATA FRAGMENTS  " + AccountStore.Balance, r.Right - Pad, r.Y + 34, HubTheme.Warn, 0.72f, 2f);
 			HubDraw.HLine(sb, r.X + Pad, r.Y + 68, r.Width - Pad * 2, HubTheme.Line);
