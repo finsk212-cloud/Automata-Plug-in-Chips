@@ -530,9 +530,20 @@ namespace Augments
 			CrtScreenEffect.Draw(Main.spriteBatch, screen.Open, bounds, () => ui.Draw(Main.spriteBatch, lastUpdateUiGameTime));
 		}
 
-		public void HideList()
+		// instant closes it with no effect, for when another panel takes its place.
+		public void HideList(bool instant = false)
 		{
-			if (listInterface?.CurrentState == null || listScreen.Closing)
+			if (listInterface?.CurrentState == null)
+				return;
+
+			if (instant)
+			{
+				listScreen.HideInstant();
+				listInterface.SetState(null);
+				return;
+			}
+
+			if (listScreen.Closing)
 				return;
 
 			// Turn the screen off; the menu is removed when the effect has finished (see UpdateUI).

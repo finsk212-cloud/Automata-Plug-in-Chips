@@ -536,7 +536,7 @@ namespace Augments
 			};
 			spawnVendorBtn.RightClicked += () =>
 			{
-				ModContent.GetInstance<AugmentUISystem>().HideList();
+				ModContent.GetInstance<AugmentUISystem>().HideList(true);
 				ModContent.GetInstance<AugmentUISystem>().ShowShop();
 				SoundEngine.PlaySound(SoundID.MenuOpen);
 			};

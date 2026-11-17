@@ -81,6 +81,9 @@ namespace Augments
 					BeginUi(sb, Clip);
 					batchOpen = true;
 					gd.ScissorRectangle = band;
+					// Interface elements read the device's current rasterizer state to restore it after a scrolling list has drawn, so it must
+					// already be the clipping one, or the clip would be lost part-way through the panel.
+					gd.RasterizerState = Clip;
 					drawContent();
 					sb.End();
 					batchOpen = false;
@@ -145,6 +148,7 @@ namespace Augments
 				}
 
 				gd.ScissorRectangle = savedScissor;
+				gd.RasterizerState = Main.Rasterizer;
 
 				// Leave the sprite batch open for the layer, exactly as it was handed to us.
 				BeginUi(sb, Main.Rasterizer);
