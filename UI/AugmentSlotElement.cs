@@ -395,7 +395,7 @@ namespace Augments
 			}
 
 			// 8. New / Recently Added Indicator Badge (Clean unboxed text, matching ✓ style)
-			if (Augment.IsRecent)
+			if (Augment.IsNew)
 			{
 				if (RarityLook.Style == TierStyle.Nier)
 				{

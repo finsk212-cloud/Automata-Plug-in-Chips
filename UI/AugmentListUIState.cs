@@ -96,6 +96,22 @@ namespace Augments
 		{
 			base.Update(gameTime);
 
+			if (readingNew != null)
+			{
+				if (selectedAugment != readingNew || !readingNew.IsNew)
+					readingNew = null;
+				else
+				{
+					readTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
+					if (readTime >= ReadSeconds)
+					{
+						AccountStore.Unlock(readingNew.SeenKey); // gone for good: this account has now read it
+						readingNew = null;
+						PopulateGrid();
+					}
+				}
+			}
+
 			KeybindEditor.Tick();
 
 			if (backPanel != null && backPanel.ContainsPoint(Main.MouseScreen))
@@ -1006,7 +1022,7 @@ namespace Augments
 					continue;
 				if (currentStatusFilter == AugmentStatusFilter.Unequipped && ap.HasAugment(aug.Id))
 					continue;
-				if (currentStatusFilter == AugmentStatusFilter.NewOnly && !aug.IsRecent)
+				if (currentStatusFilter == AugmentStatusFilter.NewOnly && !aug.IsNew)
 					continue;
 
 				// Rarity filter
@@ -1022,7 +1038,7 @@ namespace Augments
 				{
 					if (query.Equals("#new", StringComparison.OrdinalIgnoreCase) || query.Equals("tag:new", StringComparison.OrdinalIgnoreCase))
 					{
-						if (!aug.IsRecent)
+						if (!aug.IsNew)
 							continue;
 					}
 					else
@@ -1105,7 +1121,7 @@ namespace Augments
 				};
 				slot.Left.Set(slotIndexInRow * (SlotWidth + SlotSpacing), 0f);
 				slot.Top.Set(0f, 0f);
-				slot.Clicked += SelectAugment;
+				slot.Clicked += OnSlotClicked;
 				slot.RightClicked += OnSlotRightClicked;
 
 				currentRow.Append(slot);
@@ -1119,6 +1135,18 @@ namespace Augments
 
 			if (gridScrollbar != null && !hasQuery)
 				gridScrollbar.ViewPosition = prevScroll;
+		}
+
+		// A plugin marked NEW stops being new once it has stayed open on the detail panel for this long after a click.
+		private const float ReadSeconds = 1.5f;
+		private Augment readingNew;
+		private float readTime;
+
+		private void OnSlotClicked(Augment augment)
+		{
+			readingNew = augment.IsNew ? augment : null;
+			readTime = 0f;
+			SelectAugment(augment);
 		}
 
 		private void SelectAugment(Augment augment)

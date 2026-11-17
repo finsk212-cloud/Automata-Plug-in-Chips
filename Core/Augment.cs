@@ -74,6 +74,10 @@ namespace Augments
 		// Indicates whether this plugin was added in the recent updates (v1.3+).
 		public virtual bool IsRecent => RegistrationOrder >= AugmentDatabase.FirstRecentIndex;
 
+		// Shown with the NEW mark until the player has opened it in the Codex and read it (see AugmentListUIState). Kept on the account, so it never comes back.
+		public string SeenKey => "seen:" + Id;
+		public bool IsNew => IsRecent && !AccountStore.IsUnlocked(SeenKey);
+
 		// The description with fixed damage numbers already scaled to the current world stage.
 		public string LiveDescription => AugmentScaling.ApplyToText(Description, GetScalingEntries(), false);
 
