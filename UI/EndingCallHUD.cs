@@ -38,6 +38,7 @@ namespace Augments
 		private static Entry current;
 		private static float t;
 		private static int beeps;
+		private static int chimes;
 		private static bool openedSound;
 		private static bool closedSound;
 		private static int lastTickedAt;
@@ -92,6 +93,7 @@ namespace Augments
 				active = true;
 				t = 0f;
 				beeps = 0;
+				chimes = 0;
 				openedSound = false;
 				closedSound = false;
 				lastTickedAt = 0;
@@ -112,7 +114,17 @@ namespace Augments
 			{
 				openedSound = true;
 				SoundEngine.PlaySound(SoundID.MenuOpen with { Pitch = -0.35f, Volume = 0.8f });
-				SoundEngine.PlaySound(SoundID.Item35 with { Volume = 0.7f });
+				if (!Gold) // ending E plays its own chime below instead
+					SoundEngine.PlaySound(SoundID.Item35 with { Volume = 0.7f });
+			}
+
+			// Ending E only: a bright three-note chime climbing up just after the panel opens (the game's own bell sound at three pitches).
+			float[] chimeAt = { CallTime, CallTime + 0.22f, CallTime + 0.44f };
+			float[] chimePitch = { 0f, 0.35f, 0.7f };
+			while (Gold && chimes < chimeAt.Length && t >= chimeAt[chimes])
+			{
+				SoundEngine.PlaySound(SoundID.Item35 with { Pitch = chimePitch[chimes], Volume = 0.85f, MaxInstances = 4 }); // several at once, so a note rings on under the next
+				chimes++;
 			}
 
 			// A quiet tick while the letters appear.
