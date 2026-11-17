@@ -128,8 +128,8 @@ namespace Augments
 			new PodSkinInfo { Id = "gold", Name = "GOLD", Tint = new Color(255, 226, 110) },
 			// Ending rewards (see Endings.Rewards). Never sold, never an Operation reward.
 			new PodSkinInfo { Id = "untouched", Name = "UNTOUCHED", Tint = new Color(235, 245, 255), Style = "pearl" },
-			new PodSkinInfo { Id = "blank", Name = "BLANK SLATE", Tint = new Color(196, 192, 182), Style = "blank" },
-			new PodSkinInfo { Id = "hollow", Name = "EMPTY CHASSIS", Tint = new Color(150, 170, 190), Style = "hollow" },
+			new PodSkinInfo { Id = "smiley", Name = "SMILEY", Tint = new Color(251, 191, 36), Style = "sticker" },
+			new PodSkinInfo { Id = "hologram", Name = "HOLOGRAM", Tint = new Color(120, 230, 225), Style = "hologram" },
 			new PodSkinInfo { Id = "scarred", Name = "PAIN TOLERANCE", Tint = new Color(255, 90, 60), Style = "scarred" },
 			new PodSkinInfo { Id = "glory", Name = "GLORY TO MANKIND", Tint = new Color(255, 214, 90), Style = "glory" }
 		};

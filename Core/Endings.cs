@@ -61,7 +61,7 @@ namespace Augments
 		// What each ending gives, in the same order as All (A to E): a Profile title and a Pod skin. They belong to the account, are never
 		// sold, and stay owned. The ids match Cosmetic.Titles and Cosmetic.PodSkins.
 		public static readonly string[] RewardTitles = { "untouched", "basicinstinct", "emptychassis", "paintolerance", "glory" };
-		public static readonly string[] RewardPods = { "untouched", "blank", "hollow", "scarred", "glory" };
+		public static readonly string[] RewardPods = { "untouched", "smiley", "hologram", "scarred", "glory" };
 
 		// Which ending gives this item (0 = A ... 4 = E), or -1 if no ending does.
 		public static int EndingOfTitle(string id) => Array.IndexOf(RewardTitles, id);

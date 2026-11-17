@@ -310,6 +310,14 @@ namespace Augments
 					Dot(p, 1, 3, new Color(255, 230, 140) * (a * 0.7f));
 				}
 			}
+			// Hologram pod: a bright scan line travels down the projection.
+			if (style == "hologram")
+			{
+				float scan = (t * 0.12f) % 26f - 4f;
+				if (scan > 3f && scan < 16f)
+					Dot(At(new Vector2(10f, scan)), 12, 1, new Color(190, 255, 250) * 0.55f);
+			}
+
 			// 4. The lens glows and pulses (green while the Autopilot upgrade is healing someone), and shutters shut now and then.
 			Vector2 lens = At(PodSprites.Lens);
 			bool healing = pet.AutopilotOn && pet.Autopilot.Healing;

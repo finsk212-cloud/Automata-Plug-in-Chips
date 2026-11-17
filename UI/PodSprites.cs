@@ -129,7 +129,7 @@ namespace Augments
 			return Cosmetic.PodSkins[skinIndex].Style ?? "";
 		}
 
-		// The looks of the five ending skins (A pearl, B blank, C hollow, D scarred, E glory). A colour with an alpha below 255 is see-through.
+		// The looks of the five ending skins (A pearl, B sticker, C hologram, D scarred, E glory). A colour with an alpha below 255 is see-through.
 		private static Palette StylePalette(string style)
 		{
 			Palette p = MakePalette(Color.White);
@@ -142,21 +142,21 @@ namespace Augments
 					p.EyeOuter = C(40, 60, 80); p.EyeBright = C(150, 235, 255); p.EyeGlint = C(255, 255, 255); p.Accent = C(120, 190, 220);
 					p.Signal = C(130, 238, 255); p.Thruster = C(160, 232, 255, 235);
 					break;
-				case "blank":
-					// One flat colour and no detail: the plainest pod there is.
-					Color flat = C(196, 192, 182);
-					p.Outline = C(60, 58, 52);
-					p.Highlight = p.Body = p.Mid = p.Shadow = p.Seam = p.Arm = p.ArmJoint = p.Antenna = p.Accent = p.Signal = flat;
-					p.EyeOuter = C(150, 146, 136); p.EyeBright = C(120, 116, 108); p.EyeGlint = C(120, 116, 108);
-					p.Thruster = C(196, 192, 182, 235);
+				case "sticker":
+					// A plain grey pod with one yellow smiley sticker on its side (see Overlay).
+					p.Highlight = C(190, 194, 200); p.Body = C(168, 172, 180); p.Mid = C(146, 150, 158); p.Shadow = C(120, 124, 132);
+					p.Seam = C(96, 100, 108); p.Arm = C(156, 160, 168); p.ArmJoint = C(90, 94, 102); p.Antenna = C(176, 180, 188);
+					p.EyeOuter = C(70, 74, 82); p.EyeBright = C(230, 232, 236); p.EyeGlint = C(255, 255, 255); p.Accent = C(130, 134, 142);
+					p.Signal = C(176, 180, 188); p.Thruster = C(176, 180, 188, 235);
 					break;
-				case "hollow":
-					p.Highlight = C(215, 228, 242, 150); p.Body = C(150, 170, 190, 60); p.Mid = C(120, 140, 165, 85); p.Shadow = C(90, 105, 130, 110);
-					p.Seam = C(46, 56, 76); p.Arm = C(110, 128, 150, 90); p.ArmJoint = C(60, 72, 92); p.Antenna = C(150, 165, 185);
-					p.EyeOuter = C(40, 55, 72, 160); p.EyeBright = C(90, 150, 175); p.EyeGlint = C(170, 200, 215); p.Accent = C(70, 90, 110, 120);
-					p.Signal = C(120, 160, 185); p.Thruster = C(110, 160, 190, 200);
-					break;
-				case "scarred":
+				case "hologram":
+					// A teal projection: a little see-through, with dark scan lines (see StyleTweak).
+					p.Outline = C(40, 170, 170);
+					p.Highlight = C(170, 255, 245, 235); p.Body = C(60, 190, 190, 225); p.Mid = C(40, 150, 160, 225); p.Shadow = C(30, 110, 125, 225);
+					p.Seam = C(24, 90, 105); p.Arm = C(50, 160, 170, 225); p.ArmJoint = C(30, 110, 125); p.Antenna = C(120, 230, 225);
+					p.EyeOuter = C(10, 60, 70); p.EyeBright = C(220, 255, 250); p.EyeGlint = C(255, 255, 255); p.Accent = C(40, 150, 160);
+					p.Signal = C(170, 255, 245); p.Thruster = C(100, 230, 225, 235);
+					break;				case "scarred":
 					p.Highlight = C(150, 130, 118); p.Body = C(110, 95, 88); p.Mid = C(84, 72, 66); p.Shadow = C(56, 48, 46);
 					p.Seam = C(26, 20, 20); p.Arm = C(96, 82, 74); p.ArmJoint = C(40, 30, 28); p.Antenna = C(130, 112, 100);
 					p.EyeOuter = C(60, 20, 20); p.EyeBright = C(255, 70, 60); p.EyeGlint = C(255, 200, 190); p.Accent = C(150, 70, 40);
@@ -176,9 +176,27 @@ namespace Augments
 		// Pixels drawn on top of the sprite for a style (the cracks and the patch plate of the scarred pod), in sprite cells.
 		private static readonly List<(int x, int y, Color c)> NoOverlay = new List<(int x, int y, Color c)>();
 		private static List<(int x, int y, Color c)> scarredOverlay;
+		private static List<(int x, int y, Color c)> stickerOverlay;
+
+		// The smiley sticker: a yellow square on the left of the body with two eyes and a smile.
+		private static List<(int x, int y, Color c)> BuildSticker()
+		{
+			var list = new List<(int x, int y, Color c)>();
+			var yellow = new Color(251, 191, 36);
+			var ink = new Color(17, 17, 17);
+			for (int y = 9; y <= 11; y++)
+				for (int x = 5; x <= 7; x++)
+					list.Add((x, y, yellow));
+			list.Add((5, 10, ink));
+			list.Add((7, 10, ink));
+			list.Add((6, 11, ink));
+			return list;
+		}
 
 		internal static List<(int x, int y, Color c)> Overlay(string style)
 		{
+			if (style == "sticker")
+				return stickerOverlay ??= BuildSticker();
 			if (style != "scarred")
 				return NoOverlay;
 			if (scarredOverlay != null)
@@ -195,6 +213,14 @@ namespace Augments
 			list.Add((14, 11, new Color(74, 88, 108)));
 			scarredOverlay = list;
 			return list;
+		}
+
+		// The hologram's dark scan lines: every second row of the body is darker.
+		private static Color StyleTweak(string style, int y, char ch, Color c)
+		{
+			if (style != "hologram" || (y & 1) != 0 || "BMSHL".IndexOf(ch) < 0)
+				return c;
+			return new Color((int)(c.R * 0.62f), (int)(c.G * 0.62f), (int)(c.B * 0.62f), c.A);
 		}
 
 		// The game blends with premultiplied colour, so a see-through pixel must have its colour scaled by its alpha.
@@ -283,7 +309,7 @@ namespace Augments
 			{
 				string row = Mask[y];
 				for (int x = 0; x < Width; x++)
-					data[y * Width + x] = Premul(ColorOf(row[x], palette));
+					data[y * Width + x] = Premul(StyleTweak(info.Style, y, row[x], ColorOf(row[x], palette)));
 			}
 
 			foreach ((int ox, int oy, Color oc) in Overlay(info.Style))
@@ -347,7 +373,7 @@ namespace Augments
 
 					int left = ox + (int)Math.Round(x * s);
 					int right = ox + (int)Math.Round(x2 * s);
-					HubDraw.Fill(sb, new Rectangle(left, top, Math.Max(1, right - left), Math.Max(1, bottom - top)), Premul(ColorOf(ch, palette)));
+					HubDraw.Fill(sb, new Rectangle(left, top, Math.Max(1, right - left), Math.Max(1, bottom - top)), Premul(StyleTweak(style, y, ch, ColorOf(ch, palette))));
 					x = x2;
 				}
 			}
