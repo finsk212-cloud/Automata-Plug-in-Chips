@@ -1,4 +1,4 @@
-﻿Keybinds: {
+Keybinds: {
 	OpenAugmentList.DisplayName: Open Plugins
 	DebugTriggerPopup.DisplayName: Debug Trigger Popup
 	DebugSpawnVendor.DisplayName: Spawn Mistress 2B (Vendor)
@@ -344,6 +344,7 @@ Projectiles: {
 	AdminAuraProjectile.DisplayName: Admin Aura Projectile
 	GrandEntranceBoltProjectile.DisplayName: Grand Entrance Bolt Projectile
 	GroupHugBurstProjectile.DisplayName: Group Hug Burst Projectile
+	PodBoltProjectile.DisplayName: Pod Bolt Projectile
 }
 
 Configs: {
