@@ -338,8 +338,8 @@ Projectiles: {
 	DangerCloseMarkerProjectile.DisplayName: Danger Close Marker Projectile
 	DangerCloseShellProjectile.DisplayName: Danger Close Shell Projectile
 	DangerCloseBombletProjectile.DisplayName: Danger Close Bomblet Projectile
-	GoingOutMarkerProjectile.DisplayName: Going Out With a Bang Marker Projectile
-	GoingOutBlastProjectile.DisplayName: Going Out With a Bang Blast Projectile
+	LastGaspMarkerProjectile.DisplayName: Last Gasp Marker Projectile
+	LastGaspBlastProjectile.DisplayName: Last Gasp Blast Projectile
 	StarPowerAuraProjectile.DisplayName: Star Power Aura Projectile
 	DiscountRodAfterimageProjectile.DisplayName: Discount Rod Afterimage Projectile
 	LongDistancePortalProjectile.DisplayName: Long Distance Portal Projectile

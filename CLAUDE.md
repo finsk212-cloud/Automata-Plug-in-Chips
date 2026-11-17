@@ -40,6 +40,7 @@ Every change a player would notice goes in all three files, kept in sync: `CHANG
 - **Plugin changes:** balance cards: `#### Name | Rarity | NERF` (or BUFF or ADJUSTED), `> reason`, and stat lines like `- Damage: 6 => 10 per second` (ONE old and new pair per line), or `[+]`, `[-]`, `[~]` lines.
 - Only big, visible changes get their own entry. Small tweaks fold into one polish line ("Improved text size and alignment for readability").
 - Flavour text is playful or positive and never names one specific boss.
+- One icon per topic, not per sentence. Sentences about the same thing go together in one line; start a new line only for a different topic.
 
 ## Before publishing to the Workshop
 - Delete the temporary `Debug/EndingsDebugCommand.cs`.

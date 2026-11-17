@@ -7,15 +7,19 @@ using Terraria.ModLoader;
 
 namespace Augments
 {
-    // The explosion itself. It lives a short moment, hits every enemy in its circle once for Projectile.damage,
-    // and draws hexagon shock rings in the Pod's colours.
-    public class GoingOutBlastProjectile : ModProjectile
+    // The explosion that ends Last Gasp. It lives a short moment, hits every enemy in its circle once for
+    // Projectile.damage, and draws hexagon shock rings in the Pod's colours.
+    // ai[0] = the blast radius in pixels (synced, so every client draws the same size).
+    public class LastGaspBlastProjectile : ModProjectile
     {
-        public const float Radius = 420f; // about 26 tiles
+        private const float DefaultRadius = 300f;
+        private const float MaxRadius = 420f;           // the hitbox is sized for the biggest blast
         private const float BossHealthFraction = 0.01f;
         private const int LifeTicks = 26;
 
         public override string Texture => "Terraria/Images/MagicPixel";
+
+        private float Radius => Projectile.ai[0] > 0f ? Math.Min(Projectile.ai[0], MaxRadius) : DefaultRadius;
 
         public override void SetDefaults()
         {
@@ -26,8 +30,8 @@ namespace Augments
             tag.PreventEchoChamberCopy = true;
             tag.PreventRicochetEngineCopy = true;
 
-            Projectile.width = (int)(Radius * 2f);
-            Projectile.height = (int)(Radius * 2f);
+            Projectile.width = (int)(MaxRadius * 2f);
+            Projectile.height = (int)(MaxRadius * 2f);
             Projectile.friendly = true;
             Projectile.hostile = false;
             Projectile.DamageType = DamageClass.Default;
@@ -61,26 +65,26 @@ namespace Augments
 
         public override void AI()
         {
-            Lighting.AddLight(Projectile.Center, 1.4f * (1f - Elapsed / (float)LifeTicks), 0.6f, 0.2f);
+            Lighting.AddLight(Projectile.Center, 1.2f * (1f - Elapsed / (float)LifeTicks), 0.5f, 0.2f);
 
             if (burstPlayed || Main.dedServ)
                 return;
 
             burstPlayed = true;
-            SoundEngine.PlaySound(SoundID.Item14 with { Volume = 1f, Pitch = -0.4f }, Projectile.Center);
-            SoundEngine.PlaySound(SoundID.Item62 with { Volume = 0.8f, Pitch = -0.3f }, Projectile.Center);
+            SoundEngine.PlaySound(SoundID.Item14 with { Volume = 1f, Pitch = -0.3f }, Projectile.Center);
+            SoundEngine.PlaySound(SoundID.Item62 with { Volume = 0.7f, Pitch = -0.2f }, Projectile.Center);
 
             // A burst of data-sparks and embers, plus a ring of dust out at the edge of the blast.
-            for (int i = 0; i < 70; i++)
+            for (int i = 0; i < 50; i++)
             {
                 int type = Main.rand.NextBool() ? DustID.SilverCoin : DustID.Torch;
-                Dust d = Dust.NewDustPerfect(Projectile.Center, type, Main.rand.NextVector2Circular(16f, 16f), 100, default, Main.rand.NextFloat(1.1f, 2f));
+                Dust d = Dust.NewDustPerfect(Projectile.Center, type, Main.rand.NextVector2Circular(13f, 13f), 100, default, Main.rand.NextFloat(1.1f, 1.8f));
                 d.noGravity = true;
             }
-            for (int i = 0; i < 48; i++)
+            for (int i = 0; i < 36; i++)
             {
-                Vector2 dir = (MathHelper.TwoPi * i / 48f).ToRotationVector2();
-                Dust d = Dust.NewDustPerfect(Projectile.Center + dir * Radius * 0.9f, DustID.Torch, dir * 3f, 100, default, 1.6f);
+                Vector2 dir = (MathHelper.TwoPi * i / 36f).ToRotationVector2();
+                Dust d = Dust.NewDustPerfect(Projectile.Center + dir * Radius * 0.9f, DustID.Torch, dir * 3f, 100, default, 1.5f);
                 d.noGravity = true;
             }
         }
@@ -90,11 +94,12 @@ namespace Augments
             float t = Elapsed / (float)LifeTicks;
             float eased = 1f - (1f - t) * (1f - t);
             float fade = 1f - t;
+            float radius = Radius;
 
             // Three hexagon rings rolling outward: beige, amber, red.
-            DangerCloseVisuals.Hex(Projectile.Center, Radius * eased, t * 0.8f, 6f, DangerCloseVisuals.Beige * fade);
-            DangerCloseVisuals.Hex(Projectile.Center, Radius * eased * 0.82f, -t * 0.8f, 4f, DangerCloseVisuals.Amber * (0.9f * fade));
-            DangerCloseVisuals.Hex(Projectile.Center, Radius * eased * 0.64f, t * 1.2f, 3f, DangerCloseVisuals.Red * (0.9f * fade));
+            DangerCloseVisuals.Hex(Projectile.Center, radius * eased, t * 0.8f, 5f, DangerCloseVisuals.Beige * fade);
+            DangerCloseVisuals.Hex(Projectile.Center, radius * eased * 0.82f, -t * 0.8f, 3.5f, DangerCloseVisuals.Amber * (0.9f * fade));
+            DangerCloseVisuals.Hex(Projectile.Center, radius * eased * 0.64f, t * 1.2f, 2.5f, DangerCloseVisuals.Red * (0.9f * fade));
 
             // A starburst flash at the middle for the first few ticks.
             if (Elapsed < 9)
@@ -103,7 +108,7 @@ namespace Augments
                 for (int i = 0; i < 12; i++)
                 {
                     Vector2 dir = (MathHelper.TwoPi * i / 12f).ToRotationVector2();
-                    DangerCloseVisuals.Line(Projectile.Center, Projectile.Center + dir * (90f + 160f * eased), 16f * flash, DangerCloseVisuals.Beige * flash);
+                    DangerCloseVisuals.Line(Projectile.Center, Projectile.Center + dir * (70f + 120f * eased), 14f * flash, DangerCloseVisuals.Beige * flash);
                 }
             }
 

@@ -75,13 +75,13 @@ namespace Augments
 		{
 			bool bangPlugin = HasAugment("death_blast");
 			// While the countdown runs nothing may kill the player, and no life-saver should be spent on it.
-			if (bangPlugin && GoingOutWithABangAugment.BlocksDeath)
+			if (bangPlugin && LastGaspAugment.BlocksDeath)
 				return false;
 
 			if (!PreKillSaves(damage, hitDirection, pvp, ref playSound, ref genGore, ref damageSource))
 				return false;
 
-			if (bangPlugin && GoingOutWithABangAugment.TryDelayDeath(Player, damage, hitDirection, pvp, damageSource))
+			if (bangPlugin && LastGaspAugment.TryDelayDeath(Player, damage, hitDirection, pvp, damageSource))
 				return false;
 
 			return true;
