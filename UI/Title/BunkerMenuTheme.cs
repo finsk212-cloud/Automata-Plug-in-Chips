@@ -525,8 +525,8 @@ namespace Augments
 			// Panel size must not depend on the current text: measure the widest of both variants
 			bool cjk = CheckCjkSupport(fontMouse);
 			float kataW = Math.Max(
-				fontMouse.MeasureString(cjk ? " / オートマタ" : " / Automata").X,
-				fontMouse.MeasureString(cjk ? " / テラリア" : " / Terraria").X) * katakanaScale;
+				ModText.Measure(fontMouse, cjk ? " / オートマタ" : " / Automata", katakanaScale).X,
+				ModText.Measure(fontMouse, cjk ? " / テラリア" : " / Terraria", katakanaScale).X);
 			Vector2 subSize = ModText.Measure(fontMouse, subTitle, subScale);
 
 			float totalTitleW = slotsTotalW + kataW + 12f;
