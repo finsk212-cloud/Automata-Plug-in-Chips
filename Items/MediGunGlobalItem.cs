@@ -166,7 +166,7 @@ namespace Augments.Items
 				$"Healing or damaging builds Overclock over [c/A5C8E8:{seconds[i]} seconds]",
 				$"Right-Click at 100% while healing: restores [c/4ADE80:{ovHeal[i]} HP] to your ally and grants {ally} for [c/A5C8E8:6 seconds]",
 				$"Left-Click at 100% while damaging: deals [c/FF5C5C:{ovDamage[i]} damage] and inflicts {enemy}",
-				"A new target, or letting go of the beam, restarts the warm-up",
+				"A new target, or letting go of the beam, restarts the warm up",
 				$"The beam locks on within {range[i]} pixels and breaks if the line of sight is blocked or the target gets too far away",
 				"Right-Click with an empty hand to detach an attached accessory"
 			};

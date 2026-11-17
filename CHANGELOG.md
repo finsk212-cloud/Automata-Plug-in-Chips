@@ -28,12 +28,12 @@
 - Damage tether: MK I 6 => 10 per second, MK II 20 => 40 per second, MK III 3x20 => 3x40, MK IV 3x50 => 3x100
 - Overclock hit: 25 => 40, 60 => 100, 150 => 250, 300 => 500
 - Heal tether per second: 3 => 4, 6 => 8, 10 => 12, 16 => 20
-- [~] Switching target, or letting go of the beam, starts the warm-up again
+- [~] Switching target, or letting go of the beam, starts the warm up again
 
 ### Visuals
 - **Old screen effect on more panels**: The Plugins menu, the Shop and Combat Analytics now turn off like an old computer screen, collapsing to a bright line and then a dot, and turn on the same way backwards.
 - **Readability and polish**: Improved text size and alignment for readability on the Orders and Profile pages, sharper page titles, and cleaner badge tiles and emblem icons.
-- **A shorter Medi Gun tooltip**: The Medi Gun's tooltip is much shorter now: one line for each beam, the warm-up, and what Overclock does. Hold Shift to see the full Overclock details.
+- **A shorter Medi Gun tooltip**: The Medi Gun's tooltip is much shorter now: one line for each beam, the warm up, and what Overclock does. Hold Shift to see the full Overclock details.
 - **Sharper text and icons**: Text and icons are sharper on every page and screen, with cleaner edges on diamonds and arrows, especially if your UI scale is above 100%.
 - **NEW marks that go away**: Plugins marked NEW in the Plugins menu now lose their mark for good once you have opened one and read it for a moment. It stays gone on every character.
 

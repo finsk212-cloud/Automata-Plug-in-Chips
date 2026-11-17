@@ -37,7 +37,7 @@ Balance changes now show as cards, with a NERF, BUFF or ADJUSTED tag and the old
 - Damage tether: MK I 6 => 10 per second, MK II 20 => 40 per second, MK III 3x20 => 3x40, MK IV 3x50 => 3x100.
 - Overclock hit: 25 => 40, 60 => 100, 150 => 250, 300 => 500.
 - Heal tether per second: 3 => 4, 6 => 8, 10 => 12, 16 => 20.
-- Switching target, or letting go of the beam, starts the warm-up again.
+- Switching target, or letting go of the beam, starts the warm up again.
 
 ## Visuals
 
@@ -48,7 +48,7 @@ The Plugins menu, the Shop and Combat Analytics now turn off like an old compute
 Improved text size and alignment for readability on the Orders and Profile pages, sharper page titles, and cleaner badge tiles and emblem icons.
 
 **A shorter Medi Gun tooltip**
-The Medi Gun's tooltip is much shorter now: one line for each beam, the warm-up, and what Overclock does. Hold Shift to see the full Overclock details.
+The Medi Gun's tooltip is much shorter now: one line for each beam, the warm up, and what Overclock does. Hold Shift to see the full Overclock details.
 
 **Sharper text and icons**
 Text and icons are sharper on every page and screen, with cleaner edges on diamonds and arrows, especially if your UI scale is above 100%.
