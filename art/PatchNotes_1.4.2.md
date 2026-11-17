@@ -23,7 +23,7 @@ Balance changes now show as cards, with a NERF, BUFF, ADJUSTED or NEW tag and th
 
 ## New plugins
 
-**Upgrade Pod: Vein Miner** (Rare, new)
+**Upgrade Pod: Vein Miner** (Common, new)
 - Hit one rock, and the whole family tumbles out.
 - Your Pod becomes Pod 360, and it works even while the Pod is hidden.
 - When you mine an ore, your Pod also mines up to 8 more tiles of the same ore touching it.

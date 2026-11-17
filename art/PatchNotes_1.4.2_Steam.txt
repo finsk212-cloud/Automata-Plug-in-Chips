@@ -26,7 +26,7 @@ Balance changes now show as cards, with a NERF, BUFF, ADJUSTED or NEW tag and th
 
 [h2]NEW PLUGINS[/h2]
 
-[b]UPGRADE POD: VEIN MINER[/b] (Rare, new)
+[b]UPGRADE POD: VEIN MINER[/b] (Common, new)
 [list]
 [*]Hit one rock, and the whole family tumbles out.
 [*]Your Pod becomes Pod 360, and it works even while the Pod is hidden.

@@ -10,7 +10,7 @@
 
 ### New plugins
 
-#### Upgrade Pod: Vein Miner | Rare | NEW
+#### Upgrade Pod: Vein Miner | Common | NEW
 > Hit one rock, and the whole family tumbles out.
 - [+] Your Pod becomes Pod 360, and it works even while the Pod is hidden
 - [+] When you mine an ore, your Pod also mines up to 8 more tiles of the same ore touching it

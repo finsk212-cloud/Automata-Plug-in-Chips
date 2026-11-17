@@ -18,7 +18,7 @@ namespace Augments
             Description + "\n" +
             "[c/94A3B8:(Works with any pickaxe or drill, on ores and gems, and only on tiles your pickaxe is strong enough to mine. The extra tiles break one after another, nearest first, and drop their loot as normal. It does not chain from the extra tiles, so one swing never eats the whole cave. Upgrades the Pod you already have instead of adding another, and works alongside other Pod upgrades. It still works while the Pod is hidden.)]";
 
-        public override AugmentRarity Rarity => AugmentRarity.Rare;
+        public override AugmentRarity Rarity => AugmentRarity.Common;
         public override AugmentClass Class => AugmentClass.Universal;
     }
 }
