@@ -198,7 +198,7 @@ namespace Augments
 		}
 
 		// The game blends with premultiplied colour, so a see-through pixel must have its colour scaled by its alpha.
-		private static Color Premul(Color c) => c.A == 255 ? c : c * (c.A / 255f);
+		private static Color Premul(Color c) => c.A == 255 ? c : new Color((int)(c.R * c.A / 255f), (int)(c.G * c.A / 255f), (int)(c.B * c.A / 255f), (int)c.A);
 		private static Color ColorOf(char c, in Palette p)
 		{
 			switch (c)
@@ -225,6 +225,34 @@ namespace Augments
 		// One texture per skin and set of upgrades, built the first time it is needed (the graphics device is not ready while the mod
 		// loads). `modules` is the colours of the upgrade LEDs, in slot order (at most three are shown).
 		private static readonly Dictionary<long, Texture2D> textures = new Dictionary<long, Texture2D>();
+
+		// A soft round glow (white, fading to nothing at the edge), tinted when drawn. Used behind the Glory to Mankind pod.
+		private static Texture2D halo;
+
+		internal static Texture2D Halo()
+		{
+			if (Main.dedServ || Main.graphics?.GraphicsDevice == null)
+				return null;
+			if (halo != null && !halo.IsDisposed)
+				return halo;
+
+			const int n = 48;
+			var data = new Color[n * n];
+			for (int y = 0; y < n; y++)
+			{
+				for (int x = 0; x < n; x++)
+				{
+					float dx = (x + 0.5f - n / 2f) / (n / 2f);
+					float dy = (y + 0.5f - n / 2f) / (n / 2f);
+					float d = (float)Math.Sqrt(dx * dx + dy * dy);
+					float a = d >= 1f ? 0f : (1f - d) * (1f - d);
+					data[y * n + x] = new Color(a, a, a, a); // premultiplied
+				}
+			}
+			halo = new Texture2D(Main.graphics.GraphicsDevice, n, n);
+			halo.SetData(data);
+			return halo;
+		}
 
 		private static long KeyOf(int skinIndex, IReadOnlyList<Color> modules)
 		{
@@ -336,6 +364,9 @@ namespace Augments
 		internal static void Unload()
 		{
 			var old = new List<Texture2D>(textures.Values);
+			if (halo != null)
+				old.Add(halo);
+			halo = null;
 			textures.Clear();
 			if (old.Count == 0)
 				return;

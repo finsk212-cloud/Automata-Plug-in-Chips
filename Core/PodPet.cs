@@ -272,9 +272,9 @@ namespace Augments
 			{
 				float breath = 0.5f + 0.5f * (float)Math.Sin(t * 0.033f);
 				Vector2 mid = At(PodSprites.Origin);
-				Dot(mid, 34, 30, new Color(255, 214, 90) * (0.035f + 0.02f * breath));
-				Dot(mid, 28, 24, new Color(255, 214, 90) * (0.05f + 0.03f * breath));
-				Dot(mid, 24, 20, new Color(255, 226, 120) * (0.07f + 0.04f * breath));
+				Texture2D glow = PodSprites.Halo();
+				if (glow != null)
+					cache.Add(new DrawData(glow, mid, null, new Color(255, 214, 90) * (0.42f + 0.18f * breath), 0f, new Vector2(glow.Width / 2f, glow.Height / 2f), 0.75f, SpriteEffects.None, 0));
 			}
 			// 2. Thruster flame, flickering, behind the body.
 			float flicker = 0.5f + 0.5f * (float)Math.Sin(t * 0.9f) * (float)Math.Cos(t * 0.37f);
@@ -316,7 +316,8 @@ namespace Augments
 			Color lensColor = healing ? new Color(110, 255, 160) : palette.EyeBright;
 			float pulse = 0.5f + 0.5f * (float)Math.Sin(t * (healing ? 0.22f : 0.07f));
 			Dot(lens, 6, 7, lensColor * (0.10f + 0.12f * pulse));
-			Dot(lens, 2, 3, lensColor * (0.45f + 0.35f * pulse));
+			float lensFlicker = style == "scarred" && (int)(t / 9f) % 7 == 0 ? 0.2f : 1f; // the scarred pod's lens stutters now and then
+			Dot(lens, 2, 3, lensColor * ((0.45f + 0.35f * pulse) * lensFlicker));
 			if (pet.BlinkTicks > 0)
 			{
 				Dot(lens, 4, 5, palette.Seam);
@@ -336,7 +337,7 @@ namespace Augments
 	{
 		public override string Command => "pod";
 		public override CommandType Type => CommandType.Chat;
-		public override string Usage => "/pod [on|off|skin <standard|amber|frost|verdant|violet|gold|untouched|blank|hollow|scarred|glory>]";
+		public override string Usage => "/pod [on|off|skin <standard|amber|frost|verdant|violet|gold>]";
 		public override string Description => "Show or hide your Pod 042 pet, or change its skin.";
 
 		public override void Action(CommandCaller caller, string input, string[] args)
@@ -377,7 +378,7 @@ namespace Augments
 					return;
 				}
 
-				caller.Reply("Skins: standard, amber, frost, verdant, violet, gold, untouched, blank, hollow, scarred, glory.", Color.OrangeRed);
+				caller.Reply("Skins: standard, amber, frost, verdant, violet, gold.", Color.OrangeRed);
 				return;
 			}
 

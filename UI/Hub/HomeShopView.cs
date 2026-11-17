@@ -129,6 +129,15 @@ namespace Augments
 			}
 		}
 
+		private readonly HubClipRegion gridClip;
+		private float scrollY;          // how far the card grid is scrolled (the Pods and Titles tabs hold more cards than fit)
+
+		public HomeShopView()
+		{
+			gridClip = new HubClipRegion(DrawGrid) { VisibleWhen = () => IsShown };
+			Append(gridClip);
+		}
+
 		private int selected;
 		private int category;           // which tab is open
 		private List<ShopItem> shown;    // the items on the open tab
@@ -166,11 +175,40 @@ namespace Augments
 			return l;
 		}
 
-		private static Rectangle CardRect(Layout l, int i)
+		private static Rectangle CardRect(Layout l, int i, float scroll = 0f)
 		{
 			int col = i % l.Columns;
 			int row = i / l.Columns;
-			return new Rectangle(l.Left.X + col * (l.CardW + 12), l.Left.Y + 58 + row * (l.CardH + 10), l.CardW, l.CardH);
+			return new Rectangle(l.Left.X + col * (l.CardW + 12), l.Left.Y + 58 + row * (l.CardH + 10) - (int)scroll, l.CardW, l.CardH);
+		}
+
+		// The part of the left side the cards live in (below the tabs). Cards scroll inside it and are cut at its edges.
+		private static Rectangle GridRect(Layout l)
+		{
+			int top = l.Left.Y + 54;
+			return new Rectangle(l.Left.X, top, l.Left.Width, Math.Max(0, l.Left.Bottom - top));
+		}
+
+		private float MaxScroll(Layout l)
+		{
+			int rows = (Shown.Count + l.Columns - 1) / l.Columns;
+			float content = 4 + rows * (l.CardH + 10);
+			return Math.Max(0f, content - GridRect(l).Height);
+		}
+
+		public override void ScrollWheel(UIScrollWheelEvent evt)
+		{
+			base.ScrollWheel(evt);
+			Layout l = LayOut(GetDimensions().ToRectangle());
+			scrollY = MathHelper.Clamp(scrollY - evt.ScrollWheelValue * 0.5f, 0f, MaxScroll(l));
+		}
+
+		// The clip region gets its size every update, even while this page is hidden (an unsized clip region cuts away everything drawn after it).
+		protected override void UpdateContent(GameTime gameTime)
+		{
+			Rectangle r = GetDimensions().ToRectangle();
+			if (r.Width > 0 && r.Height > 0)
+				gridClip.Place(GridRect(LayOut(r)), r);
 		}
 
 		// The tab row sits between the heading and the cards.
@@ -201,6 +239,7 @@ namespace Augments
 							category = i;
 							shown = null;
 							selected = 0;
+							scrollY = 0f;
 							confirmUntil = 0;
 							SoundEngine.PlaySound(SoundID.MenuTick);
 						}
@@ -210,7 +249,7 @@ namespace Augments
 
 				for (int i = 0; i < Shown.Count; i++)
 				{
-					if (CardRect(l, i).Contains(p))
+					if (GridRect(l).Contains(p) && CardRect(l, i, scrollY).Contains(p))
 					{
 						if (selected != i)
 						{
@@ -295,17 +334,38 @@ namespace Augments
 			HubDraw.TextRight(sb, Shown.Count + " ITEMS", l.Left.Right, l.Left.Y + 1, HubTheme.Dim, 0.6f, 2f);
 			DrawTabs(sb, l, mouse);
 
-			for (int i = 0; i < Shown.Count; i++)
+			// The cards are drawn by the clip region (a child element), which cuts them at the edges of the grid. Keep the scroll in range
+			// (a tab with fewer cards, or a taller window, may need less of it) and draw a thin handle beside the grid when it can scroll.
+			scrollY = MathHelper.Clamp(scrollY, 0f, MaxScroll(l));
+			float maxScroll = MaxScroll(l);
+			if (maxScroll > 0f)
 			{
-				Rectangle card = CardRect(l, i);
-				if (card.Bottom > l.Left.Bottom)
-					break;
-				DrawCard(sb, card, Shown[i], i == selected, card.Contains(mouse));
+				Rectangle grid = GridRect(l);
+				var track = new Rectangle(l.Left.Right + 5, grid.Y, 6, grid.Height);
+				HubDraw.Fill(sb, track, HubTheme.PanelAlt);
+				int handleH = Math.Max(24, (int)(track.Height * grid.Height / (grid.Height + maxScroll)));
+				int handleY = track.Y + (int)((track.Height - handleH) * (scrollY / maxScroll));
+				HubDraw.Fill(sb, new Rectangle(track.X, handleY, track.Width, handleH), HubTheme.Line);
 			}
 
 			DrawDetail(sb, l, selected >= 0 && selected < Shown.Count ? Shown[selected] : null, mouse);
 
 			HubDraw.TextFit(sb, "EARN DATA FRAGMENTS BY PLAYING WITH THE MOD AND BY COMPLETING ORDERS     THEY BELONG TO YOUR ACCOUNT, NOT ONE CHARACTER", new Vector2(r.X + Pad, r.Bottom - 26), HubTheme.Dim, 0.6f, 2f, r.Width - Pad * 2);
+		}
+
+		// Draws the cards. Called by the clip region, so everything here is cut at the edge of the grid.
+		private void DrawGrid(SpriteBatch sb, Rectangle clipArea)
+		{
+			Layout l = LayOut(GetDimensions().ToRectangle());
+			Point mouse = Main.MouseScreen.ToPoint();
+			Rectangle grid = GridRect(l);
+			for (int i = 0; i < Shown.Count; i++)
+			{
+				Rectangle card = CardRect(l, i, scrollY);
+				if (card.Bottom < grid.Y || card.Y > grid.Bottom)
+					continue;
+				DrawCard(sb, card, Shown[i], i == selected, grid.Contains(mouse) && card.Contains(mouse));
+			}
 		}
 
 		private void DrawTabs(SpriteBatch sb, Layout l, Point mouse)
@@ -401,7 +461,10 @@ namespace Augments
 					if (item.Kind == RewardKind.PodSkin)
 						AugmentAdvisoryHUD.DrawPodIcon(sb, box, new Color(44, 48, 58));
 					else
-						HubDraw.Text(sb, "?", new Vector2(box.Center.X - HubDraw.Width("?", 1.6f) / 2f, box.Center.Y - HubDraw.CapMid(1.6f)), HubTheme.Dim, 1.6f);
+						{
+							float qs = HubDraw.BigScale(Math.Max(24f, box.Height * 0.5f));
+							HubDraw.BigText(sb, "?", new Vector2(box.Center.X - HubDraw.BigWidth("?", qs) / 2f, box.Center.Y - box.Height * 0.25f), HubTheme.Dim, qs);
+						}
 				}
 				else
 					OperationArt.RewardIcon(sb, item.Reward, box, Color.White);
@@ -418,7 +481,7 @@ namespace Augments
 
 			int tx = swatch.Right + 14;
 			HubDraw.Text(sb, item.KindLabel, new Vector2(tx, card.Y + 10), HubTheme.Dim, 0.52f, 2f);
-			HubDraw.Text(sb, item.DisplayName, new Vector2(tx, card.Y + 28), HubTheme.Text, 0.86f, 2f);
+			HubDraw.TextFit(sb, item.DisplayName, new Vector2(tx, card.Y + 28), HubTheme.Text, 0.86f, 2f, card.Right - tx - 10);
 
 			string tag;
 			Color color;
@@ -461,7 +524,7 @@ namespace Augments
 			int x = d.X + 18;
 			int y = d.Y + 16;
 			HubDraw.Text(sb, item.KindLabel, new Vector2(x, y), HubTheme.Warn, 0.62f, 2f);
-			HubDraw.Text(sb, item.DisplayName, new Vector2(x, y + 22), HubTheme.Text, 1.2f, 3f);
+			HubDraw.TextFit(sb, item.DisplayName, new Vector2(x, y + 22), HubTheme.Text, 1.2f, 3f, d.Width - 36);
 
 			int previewH = Math.Max(70, Math.Min(130, d.Height - 250));
 			var preview = new Rectangle(x, y + 62, d.Width - 36, previewH);

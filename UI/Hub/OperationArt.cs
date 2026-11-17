@@ -266,9 +266,9 @@ namespace Augments
 			Poly(sb, outer, HubTheme.Accent);
 			Poly(sb, inner, HubTheme.PanelAlt);
 
-			float scale = Math.Max(0.5f, s / 14f);
 			string text = letter.ToString();
-			HubDraw.Text(sb, text, new Vector2(m.X - HubDraw.Width(text, scale) / 2f, m.Y - HubDraw.CapMid(scale)), HubTheme.Accent, scale);
+			float scale = HubDraw.BigScale(Math.Max(16f, s * 1.1f));
+			HubDraw.BigText(sb, text, new Vector2(m.X - HubDraw.BigWidth(text, scale) / 2f, m.Y - s * 0.55f), HubTheme.Accent, scale);
 		}
 		// A small mock-up of the title screen in a colour scheme.
 		private static void SchemeCard(SpriteBatch sb, Rectangle box, MenuLook.Scheme s)
