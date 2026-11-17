@@ -56,6 +56,8 @@ namespace Augments
 		private readonly List<Color> moduleColors = new List<Color>();
 		internal bool AutopilotOn;
 		internal bool LightOn;
+		internal bool SnifferOn;
+		internal readonly PodOreSniffer Sniffer = new PodOreSniffer();
 		internal IReadOnlyList<Color> ModuleColors => moduleColors;
 		internal float AnimClock;
 		internal int BlinkTicks;
@@ -70,9 +72,12 @@ namespace Augments
 			moduleColors.Clear();
 			AutopilotOn = false;
 			LightOn = false;
+			SnifferOn = false;
 			foreach (PodUpgrade upgrade in activeUpgrades)
 			{
 				moduleColors.Add(upgrade.Color);
+				if (upgrade.ChipId == OreSnifferAugment.ChipId)
+					SnifferOn = true;
 				if (upgrade.ChipId == TinyLighthouseAugment.ChipId)
 					LightOn = true;
 				if (upgrade.ChipId == AutopilotAugment.ChipId)
@@ -133,6 +138,15 @@ namespace Augments
 				float breath = 0.94f + 0.06f * (float)Math.Sin(AnimClock * 0.05f);
 				Vector2 at = Visible ? podPos : Player.Center;
 				Lighting.AddLight(at, 1.0f * breath, 0.9f * breath, 0.58f * breath);
+			}
+
+			// The Ore Sniffer upgrade only matters on the owner's own screen, so only their machine scans.
+			if (Player.whoAmI == Main.myPlayer)
+			{
+				if (SnifferOn && Player.active && !Player.dead && !Player.ghost)
+					Sniffer.Update(Player);
+				else
+					Sniffer.Reset();
 			}
 
 			if (AutopilotOn && Visible)

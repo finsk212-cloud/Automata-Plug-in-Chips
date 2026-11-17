@@ -332,6 +332,17 @@ namespace Augments
 				InterfaceScaleType.UI)
 			);
 
+			// The Ore Sniffer upgrade's arrow and hint by the Pod, drawn under the panels like Pod 042's tips.
+			layers.Insert(mouseTextIndex, new LegacyGameInterfaceLayer(
+				"Augments: Ore Sniffer HUD",
+				delegate
+				{
+					PodOreSniffer.Draw(Main.spriteBatch);
+					return true;
+				},
+				InterfaceScaleType.UI)
+			);
+
 			// Inserted last = drawn first = beneath all UI panels but above the game world.
 			layers.Insert(mouseTextIndex, new LegacyGameInterfaceLayer(
 				"Augments: Auras",
