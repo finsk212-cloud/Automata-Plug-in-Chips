@@ -154,15 +154,57 @@ namespace Augments
 
 			// Above the Pod (the Ore Sniffer writes under it), or above the player while the Pod is hidden.
 			Vector2 anchor;
-			if (!PodPetPlayer.TryGetLocalPodScreenPos(out anchor))
+			bool podShown = PodPetPlayer.TryGetLocalPodScreenPos(out anchor);
+			if (!podShown)
 				anchor = Vector2.Transform(p.Center - Main.screenPosition + new Vector2(0f, -56f), Main.GameViewMatrix.ZoomMatrix) / Main.UIScale;
 
-			// The words flash a little with the Pod's light.
-			float flash = 0.82f + 0.18f * (float)Math.Sin(pet.AnimClock * 0.25f);
 			string where = PodOreSniffer.Where(s.delta);
 			string name = NameFor(s.trapType);
 			string text = s.distanceTiles <= 3f ? name + " right here!" : name + " nearby" + (where.Length > 0 ? ", " + where : "");
-			PodHintChip.Draw(sb, anchor.X, anchor.Y - 44f, text, s.delta, Red, Ink, s.fade * flash);
+
+			// A red chip with a round "!" badge, a small arrow toward the trap, and a soft red glow that pulses with the Pod's light. A thin
+			// line joins it to the Pod, so it reads as the Pod's own warning.
+			float pulse = 0.5f + 0.5f * (float)Math.Sin(pet.AnimClock * 0.25f);
+			float a = s.fade;
+			const float textScale = 0.6f;
+			const float badge = 16f;
+			const float arrowSize = 9f;
+			float textW = HubDraw.Width(text, textScale, 0.5f);
+			int boxH = Math.Max(22, (int)Math.Round(HubDraw.LineHeight(textScale) * 0.5f) + 12);
+			int boxW = 3 + (int)badge + 7 + (int)Math.Round(textW) + 7 + (int)arrowSize + 8;
+			int boxY = (int)Math.Round(anchor.Y - 20f - boxH);
+			var chip = new Rectangle((int)Math.Round(anchor.X - boxW / 2f), boxY, boxW, boxH);
+
+			// The line down to the Pod, then the glow, then the chip itself.
+			if (podShown)
+				HubDraw.Fill(sb, new Rectangle((int)Math.Round(anchor.X), chip.Bottom, 1, Math.Max(2, (int)Math.Round(anchor.Y - 9f) - chip.Bottom)), Red * (0.8f * a));
+			for (int i = 3; i >= 1; i--)
+				HubDraw.Fill(sb, new Rectangle(chip.X - i * 2, chip.Y - i * 2, chip.Width + i * 4, chip.Height + i * 4), Red * (a * (0.05f + 0.07f * pulse) * (4 - i) / 3f));
+			HubDraw.Fill(sb, new Rectangle(chip.X - 1, chip.Y - 1, chip.Width + 2, chip.Height + 2), Color.Black * (0.9f * a));
+			HubDraw.Fill(sb, chip, Red * a);
+
+			// The round badge with its "!".
+			Vector2 bc = new Vector2(chip.X + 3f + badge / 2f, chip.Y + boxH / 2f);
+			Span<Vector2> disc = stackalloc Vector2[16];
+			for (int i = 0; i < disc.Length; i++)
+			{
+				float ang = MathHelper.TwoPi * i / disc.Length;
+				disc[i] = bc + new Vector2((float)Math.Cos(ang), (float)Math.Sin(ang)) * (badge / 2f);
+			}
+			HubDraw.FillPolygon(sb, disc, Ink * a);
+			float bangW = HubDraw.Width("!", textScale, 0.5f);
+			HubDraw.Text(sb, "!", new Vector2(bc.X - bangW / 2f, bc.Y - HubDraw.CapMid(textScale)), new Color(255, 155, 147) * a, textScale, 0.5f);
+
+			// The words, then a small arrow pointing toward the trap.
+			float tx = chip.X + 3f + badge + 7f;
+			HubDraw.Text(sb, text, new Vector2(tx, bc.Y - HubDraw.CapMid(textScale)), Ink * a, textScale, 0.5f);
+
+			Vector2 d = s.delta.LengthSquared() > 0.01f ? Vector2.Normalize(s.delta) : new Vector2(0f, 1f);
+			Vector2 perp = new Vector2(-d.Y, d.X);
+			Vector2 ac = new Vector2(tx + textW + 7f + arrowSize / 2f, bc.Y);
+			Span<Vector2> arrow = stackalloc Vector2[] { ac + d * (arrowSize / 2f), ac - d * (arrowSize / 2f) + perp * (arrowSize / 2.4f), ac - d * (arrowSize / 2f) - perp * (arrowSize / 2.4f) };
+			HubDraw.FillPolygon(sb, arrow, Ink * a);
 		}
+
 	}
 }
