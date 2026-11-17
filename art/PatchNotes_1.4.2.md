@@ -1,4 +1,4 @@
-# Automata: Plug-in Chips 1.4.1
+# Automata: Plug-in Chips 1.4.2
 
 A small update: a new way to customise your plugin cards, a fix for Phase Round with modded guns, a Queen's Swarm nerf, an optional way to share anonymous stats, a tidier Cosmetics page, and a better Profile page.
 

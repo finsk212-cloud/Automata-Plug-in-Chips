@@ -1,4 +1,4 @@
-[h1]AUTOMATA: PLUG-IN CHIPS  //  UPDATE 1.4.1[/h1]
+[h1]AUTOMATA: PLUG-IN CHIPS  //  UPDATE 1.4.2[/h1]
 [i]A small update: new plugin card designs, a Phase Round fix for modded guns, a Queen's Swarm nerf, optional anonymous stats, a tidier Cosmetics page and a better Profile page.[/i]
 
 [hr][/hr]
