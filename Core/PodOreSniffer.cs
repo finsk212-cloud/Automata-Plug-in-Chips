@@ -25,7 +25,9 @@ namespace Augments
 		private float distanceTiles;
 		private Vector2 delta;                 // in tiles, from the player to the ore
 		private float fade;                    // 0..1, how visible the hint is
-		private Point lastPinged = new Point(-1, -1);
+		private bool wasNear;
+		private int lastPingClock = -100000;
+		private const int PingCooldownTicks = 600; // at least 10 seconds apart
 
 		private static PodOreSniffer Local
 		{
@@ -59,7 +61,12 @@ namespace Augments
 				return false;
 			if (Main.tileContainer[type] || type == TileID.Heart)
 				return false;
-			return TileID.Sets.Ore[type] || Main.tileOreFinderPriority[type] > 0;
+			if (type == TileID.LifeFruit)
+				return false;
+			if (TileID.Sets.Ore[type])
+				return true;
+			// The metal detector's list is broader than ore (it can hold pots and fruit), so only solid blocks from it count.
+			return Main.tileOreFinderPriority[type] > 0 && Main.tileSolid[type];
 		}
 
 		private void Scan(Player owner)
@@ -95,6 +102,7 @@ namespace Augments
 			if (bestType < 0)
 			{
 				found = false;
+				wasNear = false;
 				return;
 			}
 
@@ -104,11 +112,14 @@ namespace Augments
 			delta = new Vector2(bestTile.X - centre.X, bestTile.Y - centre.Y);
 			distanceTiles = (float)Math.Sqrt(best);
 
-			if (distanceTiles <= NearTiles && tile != lastPinged)
+			// One soft ping when you come close to ore, not one for every block of a vein you walk along or mine.
+			bool near = distanceTiles <= NearTiles;
+			if (near && !wasNear && clock - lastPingClock >= PingCooldownTicks)
 			{
-				lastPinged = tile;
+				lastPingClock = clock;
 				SoundEngine.PlaySound(SoundID.Item35 with { Volume = 0.35f, Pitch = 0.5f, MaxInstances = 2 }, owner.Center);
 			}
+			wasNear = near;
 		}
 
 		private static string NameOf(int type)
@@ -159,6 +170,10 @@ namespace Augments
 			Span<Vector2> inner = stackalloc Vector2[] { tip, baseMid + perp * 5f, baseMid - perp * 5f };
 			HubDraw.FillPolygon(sb, outer, dark * (0.85f * a));
 			HubDraw.FillPolygon(sb, inner, orange * a);
+
+			// The words wait while Pod 042 is speaking a tip next to it, so the two never overlap. The arrow stays.
+			if (AugmentAdvisoryHUD.IsTalking)
+				return;
 
 			// What it is, how far, and which way.
 			string where = Where(s.delta);
