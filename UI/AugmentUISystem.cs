@@ -77,6 +77,18 @@ namespace Augments
 			builtScheme = MenuLook.SelectedIndex;
 		}
 
+		public override void Unload()
+		{
+			CrtScreenEffect.Unload();
+		}
+
+		// The Plugins menu turns on and off like an old computer screen (see CrtScreenEffect). 0 = off, 1 = fully on.
+		private float listOpen = 1f;
+		// +1 while turning on, -1 while turning off, 0 when settled.
+		private int listAnimDir;
+		private const float ListOnSeconds = 0.30f;
+		private const float ListOffSeconds = 0.38f;
+
 		private bool AnyPanelOpen =>
 			augmentInterface?.CurrentState != null || listInterface?.CurrentState != null || shopInterface?.CurrentState != null
 			|| gachaInterface?.CurrentState != null || analyticsInterface?.CurrentState != null || bannerInterface?.CurrentState != null;
@@ -92,7 +104,31 @@ namespace Augments
 			if (augmentInterface?.CurrentState != null)
 				augmentInterface.Update(gameTime);
 
-			if (listInterface?.CurrentState != null)
+			if (listAnimDir != 0)
+			{
+				float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+				if (listAnimDir > 0)
+				{
+					listOpen += dt / ListOnSeconds;
+					if (listOpen >= 1f)
+					{
+						listOpen = 1f;
+						listAnimDir = 0;
+					}
+				}
+				else
+				{
+					listOpen -= dt / ListOffSeconds;
+					if (listOpen <= 0f)
+					{
+						listOpen = 0f;
+						listAnimDir = 0;
+						listInterface?.SetState(null);
+					}
+				}
+			}
+
+			if (listInterface?.CurrentState != null && listAnimDir >= 0)
 				listInterface.Update(gameTime);
 
 			if (shopInterface?.CurrentState != null)
@@ -288,7 +324,7 @@ namespace Augments
 				delegate
 				{
 					if (lastUpdateUiGameTime != null && listInterface?.CurrentState != null)
-						listInterface.Draw(Main.spriteBatch, lastUpdateUiGameTime);
+						DrawList();
 					return true;
 				},
 				InterfaceScaleType.UI)
@@ -493,11 +529,32 @@ namespace Augments
 		{
 			listState.Refresh();
 			listInterface?.SetState(listState);
+
+			// Turn the screen on. If it was still turning off, it turns back on from where it is.
+			if (listAnimDir == 0)
+				listOpen = 0f;
+			listAnimDir = 1;
+		}
+
+		// One frame of the Plugins menu: drawn normally when settled, through the screen effect while turning on or off.
+		private void DrawList()
+		{
+			if (listAnimDir == 0 && listOpen >= 1f)
+			{
+				listInterface.Draw(Main.spriteBatch, lastUpdateUiGameTime);
+				return;
+			}
+
+			CrtScreenEffect.Draw(Main.spriteBatch, listOpen, listState.PanelBounds, () => listInterface.Draw(Main.spriteBatch, lastUpdateUiGameTime));
 		}
 
 		public void HideList()
 		{
-			listInterface?.SetState(null);
+			if (listInterface?.CurrentState == null || listAnimDir < 0)
+				return;
+
+			// Turn the screen off; the menu is removed when the effect has finished (see UpdateUI).
+			listAnimDir = -1;
 		}
 
 		public void ToggleList()
@@ -516,7 +573,7 @@ namespace Augments
 			}
 		}
 
-		public bool IsListOpen => listInterface?.CurrentState != null;
+		public bool IsListOpen => listInterface?.CurrentState != null && listAnimDir >= 0;
 
 		// --- Vendor shop panel controls ---
 

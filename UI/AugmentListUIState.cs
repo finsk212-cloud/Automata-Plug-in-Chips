@@ -51,6 +51,9 @@ namespace Augments
 		private AugmentDetailPanel detailPanel;
 
 		private CodexSearchBar searchBar;
+		// The panel's rectangle in UI units (the middle of this is where the screen-off effect squashes towards).
+		public Rectangle PanelBounds => backPanel != null ? backPanel.GetDimensions().ToRectangle() : Rectangle.Empty;
+
 		public bool IsSearchFocused => searchBar != null && searchBar.IsFocused;
 		private string searchQuery = "";
 
