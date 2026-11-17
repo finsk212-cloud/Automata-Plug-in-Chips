@@ -1087,6 +1087,13 @@ namespace Augments
 						break;
 
 					case PatchKind.Version:
+						// A heavy rule and a big gap mark where the previous version ends, so its notes don't run into the next one.
+						if (versionIndex >= 0)
+						{
+							y += 40f;
+							lines.Add(new PLine { Y = y, Marker = 5, H = 6f });
+							y += 36f;
+						}
 						versionIndex++;
 						anchors.Add(new Anchor { Text = HeaderText(b.Body), Y = y, Header = true, Latest = firstVersion, Version = versionIndex });
 						firstVersion = false;
@@ -1315,6 +1322,15 @@ namespace Augments
 				if (l.Marker == 4)
 				{
 					HubDraw.HLine(sb, body.X, (int)sy, body.Width, HubTheme.LineSoft);
+					continue;
+				}
+
+				if (l.Marker == 5)
+				{
+					// End-of-version rule: a thick bar over a thin one.
+					for (int t = 0; t < 3; t++)
+						HubDraw.HLine(sb, body.X, (int)sy + t, body.Width, HubTheme.Text);
+					HubDraw.HLine(sb, body.X, (int)sy + 5, body.Width, HubTheme.Line);
 					continue;
 				}
 
