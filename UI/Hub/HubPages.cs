@@ -258,7 +258,7 @@ namespace Augments
 		private const int FavStep = FavW + 8;
 		private const int SectionGap = 30;
 		private const int SectionRowH = 70;
-		private const int EndingsRowH = 112;  // label, a tile, and up to 3 lines of text under it
+		private const int EndingsRowH = 136;  // label, a tile, and up to 3 lines of text under it
 		private const int BottomRowH = 96;    // favourite plugins and badges
 
 		// Where everything on the Profile page sits. Drawing and (later) click testing both use this, so they can never disagree.
@@ -465,18 +465,29 @@ namespace Augments
 					CenteredText(sb, def.Letter.ToString(), tile, F(HubTheme.Dim), 0.9f);
 				}
 
-				string title = FitText(earned ? def.Name : "???", 0.62f, 1.5f, cell.Width - tile.Width - 10);
-				HubDraw.Text(sb, title, new Vector2(tile.Right + 10, tile.Y + (tile.Height - HubDraw.LineHeight(0.62f)) / 2f), F(earned ? HubTheme.Text : HubTheme.Dim), 0.62f, 1.5f);
+				// The name is never cut off: it shrinks (and tightens its letter spacing) until it fits beside the tile.
+				string titleText = earned ? def.Name : "???";
+				float titleW = cell.Width - tile.Width - 10;
+				float titleScale = 0.62f;
+				float titleTrack = 1.5f;
+				while (titleScale > 0.4f && HubDraw.Width(titleText, titleScale, titleTrack) > titleW)
+				{
+					titleScale -= 0.02f;
+					titleTrack = Math.Max(0.5f, titleTrack - 0.1f);
+				}
 
+				HubDraw.Text(sb, titleText, new Vector2(tile.Right + 10, tile.Y + (tile.Height - HubDraw.LineHeight(titleScale)) / 2f), F(earned ? HubTheme.Text : HubTheme.Dim), titleScale, titleTrack);
+
+				// The text under it gets a little more air between lines, and the row below starts further down (EndingsRowH).
 				string body = earned ? def.Transmission : "\"" + def.Riddle + "\"";
-				int ly = tile.Bottom + 6;
+				int ly = tile.Bottom + 8;
 				int shown = 0;
 				foreach (string line in HubDraw.Wrap(body, cell.Width - 2, 0.52f))
 				{
 					if (shown++ >= 3)
 						break;
 					HubDraw.Text(sb, line, new Vector2(cell.X, ly), F(earned ? HubTheme.Text : HubTheme.Dim), 0.52f);
-					ly += (int)HubDraw.LineHeight(0.52f) + 1;
+					ly += (int)HubDraw.LineHeight(0.52f) + 4;
 				}
 			}
 
