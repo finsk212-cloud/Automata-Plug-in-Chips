@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
@@ -874,16 +874,9 @@ namespace Augments
 		{
 			Color c = DirColor(dir);
 			if (dir == 0)
-			{
-				HubDraw.Diamond(sb, new Vector2(x + 6, cy), 5f, c);
-				return;
-			}
-
-			for (int i = 0; i < 7; i++)
-			{
-				int w = dir > 0 ? i : 6 - i;
-				HubDraw.Fill(sb, new Rectangle(x + 6 - w, (int)cy - 3 + i, w * 2 + 1, 1), c);
-			}
+				HubDraw.SmoothDiamond(sb, new Vector2(x + 6.5f, cy), 4.5f, c);
+			else
+				HubDraw.Triangle(sb, new Vector2(x + 6.5f, cy), 13f, 9f, dir > 0, c);
 		}
 
 		private const int ArrowW = 14;
@@ -891,12 +884,8 @@ namespace Augments
 		// A right-pointing arrow between the old and the new value.
 		private static void DrawArrow(SpriteBatch sb, int x, float cy, Color c)
 		{
-			HubDraw.Fill(sb, new Rectangle(x, (int)cy - 1, 9, 2), c);
-			for (int j = 0; j < 5; j++)
-			{
-				int h = (5 - j) * 2 - 1;
-				HubDraw.Fill(sb, new Rectangle(x + 8 + j, (int)cy - h / 2, 1, h), c);
-			}
+			HubDraw.Fill(sb, new Rectangle(x, (int)cy - 1, 8, 2), c);
+			HubDraw.TriangleRight(sb, new Vector2(x + 10.25f, cy), 6.5f, 9f, c);
 		}
 
 		private readonly AutomataHomeUIState state;
@@ -953,6 +942,7 @@ namespace Augments
 			return "PATCH NOTES " + (version.StartsWith(word, StringComparison.OrdinalIgnoreCase) ? version.Substring(word.Length) : version).ToUpperInvariant();
 		}
 		private float laidOutWidth = -1f;
+		private float laidOutUi = -1f;
 		private float totalHeight;
 
 		public HomePatchNotesView(AutomataHomeUIState state)
@@ -1032,7 +1022,7 @@ namespace Augments
 
 			Rectangle body = BodyRect(r);
 			bodyClip.Place(body, r);
-			if (Math.Abs(body.Width - laidOutWidth) > 0.5f)
+			if (Math.Abs(body.Width - laidOutWidth) > 0.5f || Math.Abs(Main.UIScale - laidOutUi) > 0.001f)
 				Build(body.Width);
 
 			bar.SetView(body.Height, Math.Max(totalHeight, body.Height));
@@ -1042,6 +1032,7 @@ namespace Augments
 		private void Build(float width)
 		{
 			laidOutWidth = width;
+			laidOutUi = Main.UIScale;
 			lines.Clear();
 			anchors.Clear();
 			float y = 0f;
@@ -1078,7 +1069,7 @@ namespace Augments
 						break;
 
 					case PatchKind.Quote:
-						WrapInto(b.Body, 18, width, 0.7f, 1, ref y);
+						WrapInto(b.Body, 18, width, HubDraw.Crisp(0.7f), 1, ref y);
 						y += 4f;
 						break;
 
@@ -1097,7 +1088,7 @@ namespace Augments
 						versionIndex++;
 						anchors.Add(new Anchor { Text = HeaderText(b.Body), Y = y, Header = true, Latest = firstVersion, Version = versionIndex });
 						firstVersion = false;
-						Add(b.Body.ToUpperInvariant(), 0, 1.1f, 3f, 3, 0, 28f);
+						Add(b.Body.ToUpperInvariant(), 0, HubDraw.Crisp(1.1f), 3f, 3, 0, 28f);
 						y += 44f;
 						break;
 
@@ -1105,7 +1096,7 @@ namespace Augments
 						if (y > 0f)
 							y += 20f;
 						anchors.Add(new Anchor { Text = b.Body, Y = y, Version = Math.Max(0, versionIndex) });
-						Add(b.Body.ToUpperInvariant(), 20, 0.9f, 1.5f, 2, 2, 22f);
+						Add(b.Body.ToUpperInvariant(), 20, HubDraw.Crisp(0.9f), 1.5f, 2, 2, 22f);
 						lines.Add(new PLine { Y = y + 26f, Marker = 4, H = 1f });
 						y += 40f;
 						break;
@@ -1113,13 +1104,13 @@ namespace Augments
 					case PatchKind.Item:
 						if (b.Title.Length > 0)
 						{
-							Add(b.Title, 18, 0.82f, 0.5f, 0, 1, 20f);
+							Add(b.Title, 18, HubDraw.Crisp(0.82f), 0.5f, 0, 1, 20f);
 							y += 22f;
-							WrapInto(b.Body, 18, width, 0.72f, 4, ref y);
+							WrapInto(b.Body, 18, width, HubDraw.Crisp(0.72f), 4, ref y);
 						}
 						else
 						{
-							WrapInto(b.Body, 18, width, 0.74f, 4, ref y, marker: 1);
+							WrapInto(b.Body, 18, width, HubDraw.Crisp(0.74f), 4, ref y, marker: 1);
 						}
 						y += 8f;
 						break;
@@ -1128,13 +1119,13 @@ namespace Augments
 					{
 						int indent = 18 + 18 * b.Level;
 						string text = b.Title.Length > 0 ? (b.Body.Length > 0 ? b.Title + ": " + b.Body : b.Title) : b.Body;
-						WrapInto(text, indent, width, 0.68f, 1, ref y, marker: 3);
+						WrapInto(text, indent, width, HubDraw.Crisp(0.68f), 1, ref y, marker: 3);
 						y += 4f;
 						break;
 					}
 
 					default:
-						WrapInto(b.Body, 0, width, 0.72f, 1, ref y);
+						WrapInto(b.Body, 0, width, HubDraw.Crisp(0.72f), 1, ref y);
 						y += 6f;
 						break;
 				}
@@ -1148,7 +1139,7 @@ namespace Augments
 		// value. A line without an arrow (or one too wide for the page) is plain wrapped text with the same direction icon.
 		private void AddStat(PatchBlock b, float width, ref float y)
 		{
-			const float scale = 0.72f;
+			float scale = HubDraw.Crisp(0.72f);
 			const int textX = 36;
 			string text = b.Body;
 
@@ -1211,6 +1202,21 @@ namespace Augments
 
 		protected override void DrawContent(SpriteBatch sb)
 		{
+			// This page draws its text on whole screen pixels, so it stays sharp at any UI scale and while scrolling.
+			bool snap = HubDraw.SnapToPixels;
+			HubDraw.SnapToPixels = true;
+			try
+			{
+				DrawPage(sb);
+			}
+			finally
+			{
+				HubDraw.SnapToPixels = snap;
+			}
+		}
+
+		private void DrawPage(SpriteBatch sb)
+		{
 			Rectangle r = GetDimensions().ToRectangle();
 			HubDraw.Fill(sb, r, HubTheme.Panel);
 			HubDraw.Border(sb, r, HubTheme.Line);
@@ -1256,6 +1262,7 @@ namespace Augments
 				if (anchors[i].Y <= scroll + 40f)
 					active = i;
 			}
+			float idx = HubDraw.Crisp(0.68f);
 			List<int> shownRows = IndexRows(scroll);
 			for (int k = 0; k < shownRows.Count; k++)
 			{
@@ -1272,7 +1279,7 @@ namespace Augments
 					HubDraw.Fill(sb, row, HubTheme.PanelAlt);
 
 				Color c = i == active ? HubTheme.OnAccent : (hot ? HubTheme.Text : HubTheme.Dim);
-				float ty = row.Y + (row.Height - HubDraw.LineHeight(0.68f)) / 2f;
+				float ty = row.Y + (row.Height - HubDraw.LineHeight(idx)) / 2f;
 
 				if (a.Header)
 				{
@@ -1286,9 +1293,9 @@ namespace Augments
 
 					float tx = row.X + 26;
 					float maxW = IndexW - 26 - (a.Latest && openedUnread ? 44 : 10);
-					string head = Fit(a.Text, maxW, 0.68f);
-					HubDraw.Text(sb, head, new Vector2(tx, ty), hc, 0.68f, 0.5f);
-					HubDraw.Text(sb, head, new Vector2(tx + 1, ty), hc, 0.68f, 0.5f);
+					string head = Fit(a.Text, maxW, idx);
+					HubDraw.Text(sb, head, new Vector2(tx, ty), hc, idx, 0.5f);
+					HubDraw.Text(sb, head, new Vector2(tx + 1, ty), hc, idx, 0.5f);
 					if (a.Latest && openedUnread)
 						HubDraw.TextRight(sb, "NEW", row.Right - 10, ty, HubDraw.Unread, 0.62f, 1.5f);
 				}
@@ -1296,7 +1303,7 @@ namespace Augments
 				{
 					// A section under its version: indented, with a short tick in front.
 					HubDraw.Fill(sb, new Rectangle(row.X + 26, row.Y + row.Height / 2, 6, 1), i == active ? HubTheme.OnAccent : HubTheme.LineSoft);
-					HubDraw.Text(sb, Fit(a.Text, IndexW - 48, 0.68f), new Vector2(row.X + 38, ty), c, 0.68f, 0.5f);
+					HubDraw.Text(sb, Fit(a.Text, IndexW - 48, idx), new Vector2(row.X + 38, ty), c, idx, 0.5f);
 				}
 			}
 
@@ -1308,6 +1315,20 @@ namespace Augments
 
 		// The notes, drawn inside a clipping region: lines that are partly scrolled out are cut at the edge, not dropped.
 		private void DrawBody(SpriteBatch sb, Rectangle body)
+		{
+			bool snap = HubDraw.SnapToPixels;
+			HubDraw.SnapToPixels = true;
+			try
+			{
+				DrawBodyLines(sb, body);
+			}
+			finally
+			{
+				HubDraw.SnapToPixels = snap;
+			}
+		}
+
+		private void DrawBodyLines(SpriteBatch sb, Rectangle body)
 		{
 			if (PatchNotesData.Error != null || PatchNotesData.Blocks.Count == 0)
 				return;
@@ -1374,7 +1395,7 @@ namespace Augments
 			Color rc = RarityColorOf(l.Rarity);
 			HubDraw.Fill(sb, new Rectangle(body.X + 2, (int)sy, 4, (int)l.H), rc);
 
-			const float nameScale = 0.86f;
+			float nameScale = HubDraw.Crisp(0.86f);
 			HubDraw.Text(sb, l.Name, new Vector2(body.X + 18, sy), HubTheme.Text, nameScale, 0.5f);
 			float x = body.X + 18 + HubDraw.Width(l.Name, nameScale, 0.5f) + 12f;
 

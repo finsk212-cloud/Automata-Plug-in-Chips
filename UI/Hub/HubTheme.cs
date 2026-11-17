@@ -57,6 +57,117 @@ namespace Augments
 		public static Texture2D Pixel => TextureAssets.MagicPixel.Value;
 		public static DynamicSpriteFont Font => FontAssets.MouseText.Value;
 
+		// While true (set by pages that want the sharpest text), text is placed on whole screen pixels. The interface is drawn scaled by the
+		// player's UI scale (1.47 for example), so a position that is whole in UI units usually lands between two pixels, and text drawn
+		// between pixels is blurred by the filter. Off everywhere else so the other pages are not touched.
+		public static bool SnapToPixels;
+
+		private static float PixelScale
+		{
+			get
+			{
+				float m = Main.UIScaleMatrix.M11;
+				return m > 0.1f ? m : 1f;
+			}
+		}
+
+		// A UI position moved to the nearest whole screen pixel.
+		public static float Snap(float v)
+		{
+			float m = PixelScale;
+			return (float)Math.Round(v * m) / m;
+		}
+
+		// A text scale nudged (by at most 9%) so that scale x UI scale is exactly 1, 1.25, 1.5 or 2: the font is drawn at a whole-number
+		// ratio of its real size, which keeps the letter shapes clean instead of stretched by a fraction. Used for text that is both measured
+		// and drawn through the same value, so the layout stays consistent.
+		public static float Crisp(float scale)
+		{
+			float u = PixelScale;
+			if (Math.Abs(u - 1f) < 0.01f)
+				return scale;
+
+			foreach (float target in new[] { 1f, 1.25f, 1.5f, 2f })
+			{
+				if (Math.Abs(scale * u - target) <= 0.09f * target)
+					return target / u;
+			}
+			return scale;
+		}
+
+		// Smooth shapes: small white pictures with soft edges, made once, then tinted. The old triangles and diamonds were stacks of
+		// one-pixel rows, which look stepped when the interface is scaled by a fraction.
+		private static Texture2D triTex, diamondTex;
+
+		private static Texture2D MakeShape(int n, Func<float, float, bool> inside)
+		{
+			const int ss = 4;
+			var data = new Color[n * n];
+			for (int y = 0; y < n; y++)
+			{
+				for (int x = 0; x < n; x++)
+				{
+					int hit = 0;
+					for (int sy = 0; sy < ss; sy++)
+						for (int sx = 0; sx < ss; sx++)
+							if (inside((x + (sx + 0.5f) / ss) / n, (y + (sy + 0.5f) / ss) / n))
+								hit++;
+					float a = hit / (float)(ss * ss);
+					data[y * n + x] = new Color(a, a, a, a);
+				}
+			}
+			var tex = new Texture2D(Main.graphics.GraphicsDevice, n, n);
+			tex.SetData(data);
+			return tex;
+		}
+
+		private static void EnsureShapes()
+		{
+			if (triTex == null || triTex.IsDisposed)
+				triTex = MakeShape(48, (px, py) => Math.Abs(px - 0.5f) <= 0.5f * py);
+			if (diamondTex == null || diamondTex.IsDisposed)
+				diamondTex = MakeShape(48, (px, py) => Math.Abs(px - 0.5f) + Math.Abs(py - 0.5f) <= 0.5f);
+		}
+
+		public static void UnloadShapes()
+		{
+			Texture2D a = triTex, b = diamondTex;
+			triTex = null;
+			diamondTex = null;
+			Main.QueueMainThreadAction(() =>
+			{
+				a?.Dispose();
+				b?.Dispose();
+			});
+		}
+
+		private static void DrawShape(SpriteBatch sb, Texture2D tex, Vector2 center, float w, float h, Color c, float rotation, SpriteEffects fx)
+		{
+			sb.Draw(tex, center, null, c, rotation, new Vector2(tex.Width / 2f, tex.Height / 2f), new Vector2(w / tex.Width, h / tex.Height), fx, 0f);
+		}
+
+		// A triangle `w` wide and `h` tall, pointing up or down, centred on `center`.
+		public static void Triangle(SpriteBatch sb, Vector2 center, float w, float h, bool up, Color c)
+		{
+			EnsureShapes();
+			DrawShape(sb, triTex, center, w, h, c, 0f, up ? SpriteEffects.None : SpriteEffects.FlipVertically);
+		}
+
+		// A triangle pointing to the right: `h` tall, `length` from its flat edge to its tip.
+		public static void TriangleRight(SpriteBatch sb, Vector2 center, float length, float h, Color c)
+		{
+			EnsureShapes();
+			DrawShape(sb, triTex, center, h, length, c, MathHelper.PiOver2, SpriteEffects.None);
+		}
+
+		// A smooth diamond, the same size as Diamond() with this `size`.
+		public static void SmoothDiamond(SpriteBatch sb, Vector2 center, float size, Color c)
+		{
+			EnsureShapes();
+			float d = size * 2.8f + 1f;
+			DrawShape(sb, diamondTex, center, d, d, c, 0f, SpriteEffects.None);
+		}
+
 		public static void Fill(SpriteBatch sb, Rectangle r, Color c)
 		{
 			if (r.Width > 0 && r.Height > 0)
@@ -163,9 +274,9 @@ namespace Augments
 		public static void GlowDot(SpriteBatch sb, Vector2 center, float size = 3f)
 		{
 			float pulse = 0.5f + 0.5f * (float)Math.Sin(Main.GlobalTimeWrappedHourly * 4f);
-			Diamond(sb, center, size * (2.6f + 0.7f * pulse), Unread * (0.10f + 0.12f * pulse));
-			Diamond(sb, center, size * 1.7f, Unread * (0.28f + 0.2f * pulse));
-			Diamond(sb, center, size, Unread);
+			SmoothDiamond(sb, center, size * (2.6f + 0.7f * pulse), Unread * (0.10f + 0.12f * pulse));
+			SmoothDiamond(sb, center, size * 1.7f, Unread * (0.28f + 0.2f * pulse));
+			SmoothDiamond(sb, center, size, Unread);
 		}
 
 		// Right-pointing menu cursor made of stacked rows.
@@ -320,11 +431,11 @@ namespace Augments
 				return;
 			}
 
-			float x = (float)Math.Round(pos.X);
-			float y = (float)Math.Round(pos.Y);
+			float x = SnapToPixels ? Snap(pos.X) : (float)Math.Round(pos.X);
+			float y = SnapToPixels ? Snap(pos.Y) : (float)Math.Round(pos.Y);
 			foreach (char ch in text)
 			{
-				sb.DrawString(bigCache.Font, bigCache.Str(ch), new Vector2((float)Math.Round(x), y), c, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+				sb.DrawString(bigCache.Font, bigCache.Str(ch), new Vector2(SnapToPixels ? Snap(x) : (float)Math.Round(x), y), c, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
 				x += bigCache.Width(ch) * scale + tracking;
 			}
 		}
@@ -346,7 +457,7 @@ namespace Augments
 			if (string.IsNullOrEmpty(text))
 				return;
 
-			pos = new Vector2((float)Math.Round(pos.X), (float)Math.Round(pos.Y));
+			pos = SnapToPixels ? new Vector2(Snap(pos.X), Snap(pos.Y)) : new Vector2((float)Math.Round(pos.X), (float)Math.Round(pos.Y));
 			if (PixelFont.Active)
 			{
 				EnsureFontCache();
@@ -367,7 +478,7 @@ namespace Augments
 			float x = pos.X;
 			foreach (char ch in text)
 			{
-				sb.DrawString(Font, CharString(ch), new Vector2((float)Math.Round(x), pos.Y), c, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+				sb.DrawString(Font, CharString(ch), new Vector2(SnapToPixels ? Snap(x) : (float)Math.Round(x), pos.Y), c, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
 				x += CharWidth(ch) * scale + tracking;
 			}
 		}

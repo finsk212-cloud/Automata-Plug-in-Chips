@@ -85,6 +85,7 @@ namespace Augments
 		{
 			On_Main.DrawMenu -= DrawMenuHook;
 			ShowcaseVideo.Unload();
+			HubDraw.UnloadShapes();
 			ProfileStore.Unload();
 			AccountStore.Unload();
 
