@@ -1256,8 +1256,8 @@ namespace Augments
 			}
 		}
 
-		// The first line of a plugin change card: its name, a rarity chip and a NERF / BUFF / ADJUSTED tag, with a bar in the rarity colour
-		// running down the left side of the whole card.
+		// The first line of a plugin change card: its name and a NERF / BUFF / ADJUSTED tag, with a bar in the rarity colour running down the
+		// left side of the whole card (the colour is the tier, so there is no tier text).
 		private static void DrawCardHeader(SpriteBatch sb, Rectangle body, PLine l, float sy)
 		{
 			Color rc = RarityColorOf(l.Rarity);
@@ -1269,16 +1269,7 @@ namespace Augments
 			int chipH = (int)HubDraw.LineHeight(0.56f) + 4;
 			int chipY = (int)(sy + (HubDraw.LineHeight(nameScale) - chipH) / 2f) + 1;
 
-			if (!string.IsNullOrEmpty(l.Rarity))
-			{
-				string rt = l.Rarity.ToUpperInvariant();
-				var chip = new Rectangle((int)x, chipY, (int)HubDraw.Width(rt, 0.56f, 1f) + 12, chipH);
-				HubDraw.Border(sb, chip, rc);
-				HubDraw.Text(sb, rt, new Vector2(chip.X + 6, chip.Y + 2), rc, 0.56f, 1f);
-				x = chip.Right + 8f;
-			}
-
-			if (!string.IsNullOrEmpty(l.Tag))
+if (!string.IsNullOrEmpty(l.Tag))
 			{
 				var tag = new Rectangle((int)x, chipY, (int)HubDraw.Width(l.Tag, 0.56f, 1f) + 12, chipH);
 				HubDraw.Fill(sb, tag, DirColor(l.Dir));
