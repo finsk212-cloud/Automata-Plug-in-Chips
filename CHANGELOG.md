@@ -25,9 +25,18 @@
 > It used to be gentle. Now it gets stronger the longer you stay.
 - [+] The damage tether warms up: up to +50% damage after 5 seconds on the same enemy
 - [+] The heal tether warms up too: up to +50% healing after 5 seconds on the same ally, and at once for an ally under half health
-- Damage tether: MK I 6 => 10 per second, MK II 20 => 40 per second, MK III 3x20 => 3x40, MK IV 3x50 => 3x100
-- Overclock hit: 25 => 40, 60 => 100, 150 => 250, 300 => 500
-- Heal tether per second: 3 => 4, 6 => 8, 10 => 12, 16 => 20
+- MK I damage tether: 6 => 10 per second
+- MK II damage tether: 20 => 40 per second
+- MK III damage tether: 3x20 => 3x40
+- MK IV damage tether: 3x50 => 3x100
+- MK I Overclock hit: 25 => 40
+- MK II Overclock hit: 60 => 100
+- MK III Overclock hit: 150 => 250
+- MK IV Overclock hit: 300 => 500
+- MK I heal tether: 3 => 4 per second
+- MK II heal tether: 6 => 8 per second
+- MK III heal tether: 10 => 12 per second
+- MK IV heal tether: 16 => 20 per second
 - [~] Switching target, or letting go of the beam, starts the warm up again
 
 ### Visuals

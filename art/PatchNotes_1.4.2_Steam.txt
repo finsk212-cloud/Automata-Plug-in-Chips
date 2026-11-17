@@ -43,8 +43,8 @@ Balance changes now show as cards, with a NERF, BUFF or ADJUSTED tag and the old
 [*]The damage tether warms up: up to +50% damage after 5 seconds on the same enemy.
 [*]The heal tether warms up too: up to +50% healing after 5 seconds on the same ally, and at once for an ally under half health.
 [*]Damage tether: MK I 6 => 10 per second, MK II 20 => 40 per second, MK III 3x20 => 3x40, MK IV 3x50 => 3x100.
-[*]Overclock hit: 25 => 40, 60 => 100, 150 => 250, 300 => 500.
-[*]Heal tether per second: 3 => 4, 6 => 8, 10 => 12, 16 => 20.
+[*]Overclock hit: MK I 25 => 40, MK II 60 => 100, MK III 150 => 250, MK IV 300 => 500.
+[*]Heal tether: MK I 3 => 4 per second, MK II 6 => 8, MK III 10 => 12, MK IV 16 => 20.
 [*]Switching target, or letting go of the beam, starts the warm up again.
 [/list]
 
