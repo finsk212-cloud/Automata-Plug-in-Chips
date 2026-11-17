@@ -129,7 +129,7 @@ namespace Augments
 		}
 
 		// Ore, but not chests, life crystals and the like. Mod ores usually set the same flags as the vanilla ones.
-		private static bool IsOre(int type)
+		internal static bool IsOre(int type)
 		{
 			if (type < 0 || type >= TileLoader.TileCount)
 				return false;

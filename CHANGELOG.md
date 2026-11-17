@@ -10,6 +10,11 @@
 
 ### New plugins
 
+#### Upgrade Pod: Vein Miner | Rare | NEW
+> Hit one rock, and the whole family tumbles out.
+- [+] Your Pod becomes Pod 360, and it works even while the Pod is hidden
+- [+] When you mine an ore, your Pod also mines up to 8 more tiles of the same ore touching it
+- [~] You still need a pickaxe strong enough for that ore, and the extra tiles break one after another, nearest first
 #### Upgrade Pod: Watch Your Step | Common | NEW
 > Your Pod gets a funny feeling about that floor tile.
 - [+] Your Pod becomes Pod 077, and it works even while the Pod is hidden
