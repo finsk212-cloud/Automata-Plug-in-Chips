@@ -21,7 +21,7 @@
 - Now triggers on crits against every part of a boss fight, such as Golem's head and fists
 - Strike size: 2.5% of the hit part's max HP => 2.5% of the whole boss's max HP
 
-### Visuals
+
 - **Old screen effect on more panels**: The Plugins menu, the Shop and Combat Analytics now turn off like an old computer screen, collapsing to a bright line and then a dot, and turn on the same way backwards.
 - **Readability and polish**: Improved text size and alignment for readability on the Orders and Profile pages, sharper page titles, and cleaner badge tiles and emblem icons.
 

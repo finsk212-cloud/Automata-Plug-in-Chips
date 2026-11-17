@@ -1,6 +1,6 @@
 # Automata: Plug-in Chips 1.4.2
 
-A bigger update: hidden endings, a better Profile page, an old computer screen effect, a new Patch Notes page sorted into categories, balance changes to Apex Hunter and Meteor Strike, and a fix for bosses made of several parts.
+A bigger update: hidden endings, a better Profile page, an old computer screen effect, a new Patch Notes page sorted into categories, balance changes to Apex Hunter, Meteor Strike and the Medi Gun, and a fix for bosses made of several parts.
 
 ## New features
 
@@ -30,6 +30,14 @@ Balance changes now show as cards, with a NERF, BUFF or ADJUSTED tag and the old
 **Meteor Strike** (Epic, buff)
 - Now triggers on crits against every part of a boss fight, such as Golem's head and fists.
 - Strike size: 2.5% of the hit part's max HP => 2.5% of the whole boss's max HP.
+
+**Medi Gun** (Epic, buff)
+- The damage tether warms up: up to +50% damage after 5 seconds on the same enemy.
+- The heal tether warms up too: up to +50% healing after 5 seconds on the same ally, and at once for an ally under half health.
+- Damage tether: MK I 6 => 10 per second, MK II 20 => 40 per second, MK III 3x20 => 3x40, MK IV 3x50 => 3x100.
+- Overclock hit: 25 => 40, 60 => 100, 150 => 250, 300 => 500.
+- Heal tether per second: 3 => 4, 6 => 8, 10 => 12, 16 => 20.
+- Switching target, or letting go of the beam, starts the warm-up again.
 
 ## Visuals
 
