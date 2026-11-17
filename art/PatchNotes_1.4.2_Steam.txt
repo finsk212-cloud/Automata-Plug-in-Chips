@@ -59,6 +59,12 @@ Improved text size and alignment for readability on the Orders and Profile pages
 [b]A SHORTER MEDI GUN TOOLTIP[/b]
 The Medi Gun's tooltip is much shorter now: one line for each beam, the warm-up, and what Overclock does. Hold Shift to see the full Overclock details.
 
+[b]SHARPER TEXT AND ICONS[/b]
+Text and icons are sharper on every page and screen, with cleaner edges on diamonds and arrows, especially if your UI scale is above 100%.
+
+[b]NEW MARKS THAT GO AWAY[/b]
+Plugins marked NEW in the Plugins menu now lose their mark for good once you have opened one and read it for a moment. It stays gone on every character.
+
 [h2]BUGS AND FIXES[/h2]
 
 [b]BOSSES MADE OF SEVERAL PARTS[/b]
