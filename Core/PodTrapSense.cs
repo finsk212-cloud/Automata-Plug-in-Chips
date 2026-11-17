@@ -12,7 +12,10 @@ namespace Augments
 	// the network. While a trap is within range the Pod flashes red and a small red chip above it points the way.
 	internal sealed class PodTrapSense
 	{
-		private const int RangeTiles = 15;
+		private const int RangeTiles = 15;          // for most traps
+		private const int ExplosiveRangeTiles = 25;  // explosives can be seen from further away
+		private const int BoulderRangeTiles = 30;    // and so can boulders, which are the biggest danger
+		private const int MaxRangeTiles = BoulderRangeTiles;
 		private const int ScanIntervalTicks = 15;
 		private const int BeepCooldownTicks = 300; // the warning sound at most every 5 seconds
 
@@ -21,6 +24,7 @@ namespace Augments
 		private bool found;
 		private bool wasFound;
 		private Point tile;
+		private int trapType;
 		private Vector2 delta;                 // in tiles, from the player to the trap
 		private float distanceTiles;
 		private float fade;                    // 0..1, how visible the warning is
@@ -47,15 +51,27 @@ namespace Augments
 			fade = found ? Math.Min(1f, fade + 0.12f) : Math.Max(0f, fade - 0.08f);
 		}
 
-		// Tiles that are traps or that set one off.
-		private static bool IsTrap(int type)
+		// How far away this tile is sensed, in tiles, or 0 if it is not a trap (or something that sets one off).
+		private static int RangeFor(int type)
 		{
-			return type == TileID.Traps
+			if (type == TileID.Boulder)
+				return BoulderRangeTiles;
+			if (type == TileID.Explosives)
+				return ExplosiveRangeTiles;
+
+			bool trap = type == TileID.Traps
 				|| type == TileID.PressurePlates
-				|| type == TileID.Explosives
 				|| type == TileID.GeyserTrap
 				|| type == TileID.Spikes
 				|| type == TileID.WoodenSpikes;
+			return trap ? RangeTiles : 0;
+		}
+
+		private static string NameFor(int type)
+		{
+			if (type == TileID.Boulder)
+				return "Boulder";
+			return type == TileID.Explosives ? "Explosives" : "Trap";
 		}
 
 		private void Scan(Player owner)
@@ -64,13 +80,14 @@ namespace Augments
 			int best = int.MaxValue;
 			Point bestTile = default;
 			bool any = false;
+			int bestType = 0;
 
-			for (int dx = -RangeTiles; dx <= RangeTiles; dx++)
+			for (int dx = -MaxRangeTiles; dx <= MaxRangeTiles; dx++)
 			{
-				for (int dy = -RangeTiles; dy <= RangeTiles; dy++)
+				for (int dy = -MaxRangeTiles; dy <= MaxRangeTiles; dy++)
 				{
 					int d2 = dx * dx + dy * dy;
-					if (d2 >= best || d2 > RangeTiles * RangeTiles)
+					if (d2 >= best || d2 > MaxRangeTiles * MaxRangeTiles)
 						continue;
 
 					int x = centre.X + dx;
@@ -79,11 +96,15 @@ namespace Augments
 						continue;
 
 					Tile t = Main.tile[x, y];
-					if (!t.HasTile || !IsTrap(t.TileType))
+					if (!t.HasTile)
+						continue;
+					int range = RangeFor(t.TileType);
+					if (range == 0 || d2 > range * range)
 						continue;
 
 					best = d2;
 					bestTile = new Point(x, y);
+					bestType = t.TileType;
 					any = true;
 				}
 			}
@@ -96,6 +117,7 @@ namespace Augments
 			}
 
 			tile = bestTile;
+			trapType = bestType;
 			Track(owner);
 
 			// A short beep when a trap first comes into range, not while you stay near it.
@@ -138,7 +160,8 @@ namespace Augments
 			// The words flash a little with the Pod's light.
 			float flash = 0.82f + 0.18f * (float)Math.Sin(pet.AnimClock * 0.25f);
 			string where = PodOreSniffer.Where(s.delta);
-			string text = s.distanceTiles <= 3f ? "Trap right here!" : "Trap nearby" + (where.Length > 0 ? ", " + where : "");
+			string name = NameFor(s.trapType);
+			string text = s.distanceTiles <= 3f ? name + " right here!" : name + " nearby" + (where.Length > 0 ? ", " + where : "");
 			PodHintChip.Draw(sb, anchor.X, anchor.Y - 44f, text, s.delta, Red, Ink, s.fade * flash);
 		}
 	}

@@ -16,7 +16,7 @@ namespace Augments
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +
-            "[c/94A3B8:(Senses traps within about 15 tiles, even inside walls: dart, spear, flame and spiky ball traps, pressure plates, landmines and explosives, spikes, and geyser traps. A small chip by the Pod points toward the closest one and says how far and which way, like \"Trap nearby, below and left\". It is automatic and quiet when nothing is around. It also counts traps you placed yourself. Upgrades the Pod you already have instead of adding another, and works alongside other Pod upgrades. It still works while the Pod is hidden.)]";
+            "[c/94A3B8:(Senses traps within about 15 tiles, even inside walls: dart, spear, flame and spiky ball traps, pressure plates, spikes and geyser traps. It sees explosives from about 25 tiles and boulders from about 30 tiles. A small chip by the Pod points toward the closest one and says what it is and which way, like \"Trap nearby, below and left\" or \"Boulder nearby, above\". It is automatic and quiet when nothing is around. It also counts traps you placed yourself. Upgrades the Pod you already have instead of adding another, and works alongside other Pod upgrades. It still works while the Pod is hidden.)]";
 
         public override AugmentRarity Rarity => AugmentRarity.Common;
         public override AugmentClass Class => AugmentClass.Universal;
