@@ -77,11 +77,6 @@ namespace Augments
 			builtScheme = MenuLook.SelectedIndex;
 		}
 
-		public override void Unload()
-		{
-			CrtScreenEffect.Unload();
-		}
-
 		// The Plugins menu turns on and off like an old computer screen (see CrtScreenEffect). 0 = off, 1 = fully on.
 		private float listOpen = 1f;
 		// +1 while turning on, -1 while turning off, 0 when settled.

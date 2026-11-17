@@ -8,55 +8,34 @@ namespace Augments
 {
 	// The "old computer screen" turn on and turn off, used by the Plugins menu.
 	//
-	// Turning off: the panel squashes flat into a bright line, the line shrinks sideways into a dot, and the dot goes out.
-	// Turning on is the same thing played backwards. `open` is how far on the screen is: 0 = off, 1 = fully on.
+	// Turning off: the picture is cut away from the top and bottom until only a bright line is left, the line shrinks sideways into a dot,
+	// and the dot goes out. Turning on is the same thing played backwards. `open` is how far on the screen is: 0 = off, 1 = fully on.
 	//
 	//   open 0.00 to 0.15   a dot that grows
 	//   open 0.15 to 0.50   a bright line that stretches out sideways
-	//   open 0.50 to 1.00   the panel unsquashing from the line to its full height
+	//   open 0.50 to 1.00   the panel opening out of the line, from the middle
 	//
-	// The panel is first drawn normally into an off-screen picture (a render target), and that picture is then drawn squashed. Drawing
-	// the real panel through a squashing transform would not work, because the panel's scrolling lists restart the sprite batch with
-	// their own matrix and would ignore it.
+	// The panel is drawn normally, but only inside a window (a scissor rectangle) that grows and shrinks around its middle. Nothing is
+	// drawn to a different render target, so the world behind the panel is never touched. (An earlier version drew the panel into an
+	// off-screen picture and squashed that; on this game it blanked the whole screen while the effect ran.)
 	public static class CrtScreenEffect
 	{
-		private static RenderTarget2D target;
 		private static bool failed;
 
 		private static readonly Color Beam = new Color(232, 224, 190);
 
-		public static void Unload()
+		private static readonly RasterizerState Clip = new RasterizerState
 		{
-			RenderTarget2D old = target;
-			target = null;
-			if (old != null)
-				Main.QueueMainThreadAction(() => old.Dispose());
-		}
+			CullMode = CullMode.CullCounterClockwiseFace,
+			ScissorTestEnable = true
+		};
 
 		private static float EaseOut(float t) => 1f - (1f - t) * (1f - t);
 
-		private static void BeginUi(SpriteBatch sb)
+		private static void BeginUi(SpriteBatch sb, RasterizerState raster)
 		{
 			// The same settings the game uses for its own interface layers.
-			sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Main.UIScaleMatrix);
-		}
-
-		private static bool EnsureTarget(GraphicsDevice gd)
-		{
-			int w = gd.Viewport.Width;
-			int h = gd.Viewport.Height;
-			if (w < 16 || h < 16)
-				return false;
-
-			if (target == null || target.IsDisposed || target.Width != w || target.Height != h)
-			{
-				RenderTarget2D old = target;
-				target = new RenderTarget2D(gd, w, h);
-				if (old != null && !old.IsDisposed)
-					old.Dispose();
-			}
-
-			return true;
+			sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, raster, null, Main.UIScaleMatrix);
 		}
 
 		// Draws one frame. `panelUi` is the panel's rectangle in UI units; `drawContent` draws the panel normally.
@@ -77,50 +56,45 @@ namespace Augments
 				m = 1f;
 
 			GraphicsDevice gd = sb.GraphicsDevice;
+			Rectangle savedScissor = gd.ScissorRectangle;
 			var px = new Rectangle((int)(panelUi.X * m), (int)(panelUi.Y * m), (int)(panelUi.Width * m), (int)(panelUi.Height * m));
 			float cx = px.Center.X;
 			float cy = px.Center.Y;
 
 			bool batchOpen = true;
-			bool targetSet = false;
-			RenderTargetBinding[] previous = null;
 
 			try
 			{
 				if (open > 0.5f)
 				{
-					if (!EnsureTarget(gd))
-					{
-						drawContent();
-						return;
-					}
+					float t = (open - 0.5f) / 0.5f;
+					float vis = MathHelper.Lerp(0.012f, 1f, EaseOut(t));
 
-					// 1. The panel, drawn normally, into the off-screen picture.
-					previous = gd.GetRenderTargets();
+					// The window the panel is drawn in: grows from a thin strip to the whole panel (a little extra room for its corner marks).
+					int half = Math.Max(1, (int)((px.Height * vis) / 2f + 14f * m * vis));
+					var band = new Rectangle(px.X - (int)(14f * m), (int)cy - half, px.Width + (int)(28f * m), half * 2);
+					band = Rectangle.Intersect(band, gd.Viewport.Bounds);
+
+					// 1. The panel, drawn normally but clipped to the window.
 					sb.End();
 					batchOpen = false;
-					gd.SetRenderTarget(target);
-					targetSet = true;
-					gd.Clear(Color.Transparent);
-					BeginUi(sb);
+					BeginUi(sb, Clip);
 					batchOpen = true;
+					gd.ScissorRectangle = band;
 					drawContent();
 					sb.End();
 					batchOpen = false;
-					if (previous.Length == 0)
-						gd.SetRenderTarget(null);
-					else
-						gd.SetRenderTargets(previous);
-					targetSet = false;
 
-					// 2. That picture, squashed towards the middle of the panel, with a bright wash that grows as it gets thinner.
-					float t = (open - 0.5f) / 0.5f;
-					float sy = MathHelper.Lerp(0.012f, 1f, EaseOut(t));
-					Matrix squash = Matrix.CreateTranslation(-cx, -cy, 0f) * Matrix.CreateScale(1f, sy, 1f) * Matrix.CreateTranslation(cx, cy, 0f);
-					sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullNone, null, squash);
+					// 2. A bright wash over the window while it is thin, and a bright edge at its top and bottom, in screen pixels.
+					sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, null, Matrix.Identity);
 					batchOpen = true;
-					sb.Draw(target, Vector2.Zero, Color.White);
-					HubDraw.Fill(sb, px, Beam * (0.55f * (1f - t)));
+					if (t < 0.999f)
+					{
+						HubDraw.Fill(sb, band, Beam * (0.5f * (1f - t)));
+						int edge = Math.Max(2, (int)Math.Round(2f * m));
+						HubDraw.Fill(sb, new Rectangle(band.X, band.Y, band.Width, edge), Beam * (1f - t));
+						HubDraw.Fill(sb, new Rectangle(band.X, band.Bottom - edge, band.Width, edge), Beam * (1f - t));
+					}
 					sb.End();
 					batchOpen = false;
 				}
@@ -170,16 +144,10 @@ namespace Augments
 					}
 				}
 
-				if (targetSet)
-				{
-					if (previous == null || previous.Length == 0)
-						gd.SetRenderTarget(null);
-					else
-						gd.SetRenderTargets(previous);
-				}
+				gd.ScissorRectangle = savedScissor;
 
 				// Leave the sprite batch open for the layer, exactly as it was handed to us.
-				BeginUi(sb);
+				BeginUi(sb, Main.Rasterizer);
 			}
 		}
 	}
