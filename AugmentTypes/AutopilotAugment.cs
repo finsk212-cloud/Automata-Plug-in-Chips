@@ -10,9 +10,9 @@ namespace Augments
         public const string ChipId = "autopilot";
 
         public override string Id => ChipId;
-        public override string DisplayName => "Autopilot";
+        public override string DisplayName => "Upgrade Pod: Autopilot";
         public override string Description =>
-            $"Pod upgrade: your Pod becomes Pod 153 and heals the lowest-health nearby player for {AugmentText.Healing("5 HP")} per second.";
+            $"Your Pod becomes Pod 153 and heals the lowest-health nearby player for {AugmentText.Healing("5 HP")} per second.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +

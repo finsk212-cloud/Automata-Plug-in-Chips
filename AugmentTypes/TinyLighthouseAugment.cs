@@ -10,9 +10,9 @@ namespace Augments
         public const string ChipId = "pod_light";
 
         public override string Id => ChipId;
-        public override string DisplayName => "Tiny Lighthouse";
+        public override string DisplayName => "Upgrade Pod: Lighthouse";
         public override string Description =>
-            "Pod upgrade: your Pod becomes Pod 096 and lights up the area around you with a warm glow.";
+            "Your Pod becomes Pod 096 and lights up the area around you with a warm glow.";
 
         public override string GetDetailedDescription(Player player) =>
             Description + "\n" +
