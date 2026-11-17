@@ -1237,7 +1237,7 @@ namespace Augments
 				}
 
 				if (l.Marker == 7)
-					DrawDirIcon(sb, body.X + l.X - 18, sy + HubDraw.LineHeight(l.Scale) / 2f + 1f, l.Dir);
+					DrawDirIcon(sb, body.X + l.X - 18, sy + HubDraw.LineHeight(l.Scale) * 0.40f, l.Dir);
 
 				if (l.Marker == 2)
 				{
@@ -1281,7 +1281,9 @@ if (!string.IsNullOrEmpty(l.Tag))
 		// one pixel apart, so it stands out as the number that matters).
 		private static void DrawStatLine(SpriteBatch sb, Rectangle body, PLine l, float sy)
 		{
-			float cy = sy + HubDraw.LineHeight(l.Scale) / 2f + 1f;
+			// The game font draws its letters in the upper part of the line box (the lower part is room for descenders), so the middle of the
+			// letters is about 40% down, not 50%. The strike-through, the arrow and the icon all sit on that line.
+			float cy = sy + HubDraw.LineHeight(l.Scale) * 0.40f;
 			DrawDirIcon(sb, body.X + l.X - 18, cy, l.Dir);
 
 			float x = body.X + l.X;
