@@ -20,6 +20,20 @@ namespace Augments
 
 		public static bool Pixel => PixelFont.Active;
 
+		// Sharp text on every screen: a scale that lands almost on a whole-number ratio of the font once the UI scale is applied is moved onto it
+		// (shrink only, at most 1% bigger), and a position is moved onto a whole screen pixel. See HubDraw.FineScale / HubDraw.Snap.
+		// Size, Measure and every draw call use the same adjusted scale, so a line is measured at the size it is drawn.
+		private static Vector2 Sharp(Vector2 scale)
+		{
+			if (scale.X <= 0f)
+				return scale;
+
+			float f = HubDraw.FineScale(scale.X) / scale.X;
+			return f == 1f ? scale : scale * f;
+		}
+
+		private static Vector2 SnapPos(Vector2 pos) => new Vector2(HubDraw.Snap(pos.X), HubDraw.Snap(pos.Y));
+
 		// True when this text should be drawn with the pixel font: it is picked, and the text is not squeezed too small for it.
 		public static bool UsePixel(DynamicSpriteFont font, float scale)
 		{
@@ -49,7 +63,7 @@ namespace Augments
 		public static Vector2 Size(DynamicSpriteFont font, string text, Vector2 baseScale, float maxWidth = -1f)
 		{
 			if (!UsePixel(font, baseScale.X))
-				return ChatManager.GetStringSize(font, text, baseScale, maxWidth);
+				return ChatManager.GetStringSize(font, text, Sharp(baseScale), maxWidth);
 
 			return PixelSize(font, text, baseScale);
 		}
@@ -71,7 +85,7 @@ namespace Augments
 		public static Vector2 Measure(DynamicSpriteFont font, string text, float scale)
 		{
 			if (!UsePixel(font, scale))
-				return font.MeasureString(text) * scale;
+				return font.MeasureString(text) * Sharp(new Vector2(scale)).X;
 
 			return PixelSize(font, text, new Vector2(scale));
 		}
@@ -80,7 +94,7 @@ namespace Augments
 		public static Vector2 DrawCoded(SpriteBatch sb, DynamicSpriteFont font, string text, Vector2 position, Color baseColor, float rotation, Vector2 origin, Vector2 baseScale, float maxWidth = -1f, float spread = 2f)
 		{
 			if (!UsePixel(font, baseScale.X))
-				return ChatManager.DrawColorCodedStringWithShadow(sb, font, text, position, baseColor, rotation, origin, baseScale, maxWidth, spread);
+				return ChatManager.DrawColorCodedStringWithShadow(sb, font, text, rotation == 0f ? SnapPos(position) : position, baseColor, rotation, origin, Sharp(baseScale), maxWidth, spread);
 
 			DrawPixel(sb, font, text, position - origin * baseScale, baseColor, baseScale, true);
 			return PixelSize(font, text, baseScale);
@@ -148,7 +162,7 @@ namespace Augments
 			DynamicSpriteFont font = FontAssets.MouseText.Value;
 			if (!UsePixel(font, scale))
 			{
-				Utils.DrawBorderString(sb, text, pos, color, scale, anchorX, anchorY, maxCharactersDisplayed);
+				Utils.DrawBorderString(sb, text, SnapPos(pos), color, Sharp(new Vector2(scale)).X, anchorX, anchorY, maxCharactersDisplayed);
 				return;
 			}
 
@@ -168,7 +182,7 @@ namespace Augments
 		{
 			if (!UsePixel(font, scale))
 			{
-				sb.DrawString(font, text, pos, color, rotation, origin, scale, effects, depth);
+				sb.DrawString(font, text, rotation == 0f ? SnapPos(pos) : pos, color, rotation, origin, Sharp(new Vector2(scale)).X, effects, depth);
 				return;
 			}
 

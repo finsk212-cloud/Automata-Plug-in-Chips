@@ -87,6 +87,9 @@ namespace Augments
 		// UI scale is applied is moved onto it, so the letters are drawn clean instead of stretched by a fraction. It only ever makes text
 		// smaller (or at most 1% bigger), never wider, so nothing that fitted can overflow. Width, LineHeight and Text all use it, so what is
 		// measured is what is drawn. (The pixel font and the big font have their own rules and are left alone.)
+		// The same rule, for the mod's other screens (ModText).
+		internal static float FineScale(float scale) => Fine(scale);
+
 		private static float Fine(float scale)
 		{
 			if (PixelFont.Active)
