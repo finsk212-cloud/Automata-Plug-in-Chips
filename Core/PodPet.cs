@@ -260,7 +260,9 @@ namespace Augments
 			List<DrawData> cache = drawInfo.DrawDataCache; // (a ref parameter cannot be used inside a local function)
 			void Dot(Vector2 centre, int w, int h, Color c)
 			{
-				cache.Add(new DrawData(pixel, new Rectangle((int)Math.Round(centre.X - w * 0.5f), (int)Math.Round(centre.Y - h * 0.5f), w, h), c));
+				// Drawn exactly like the body (a position, a rotation and a scale, no separate rectangle), so a dot can never
+				// drift away from the pod while it moves.
+				cache.Add(new DrawData(pixel, new Vector2((float)Math.Round(centre.X - w * 0.5f), (float)Math.Round(centre.Y - h * 0.5f)), new Rectangle(0, 0, 1, 1), c, 0f, Vector2.Zero, new Vector2(w, h), SpriteEffects.None, 0));
 			}
 
 			// 1. The Autopilot upgrade's wire, under everything.
