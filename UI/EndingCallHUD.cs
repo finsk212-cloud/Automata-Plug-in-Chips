@@ -153,6 +153,20 @@ namespace Augments
 			}
 		}
 
+		// The call's colours. Ending E (the true ending) gets a gold screen instead of the usual rust-and-steel one.
+		private static bool Gold => current.Index == Endings.All.Length - 1;
+
+		private static class Pal
+		{
+			public static Color Panel => Gold ? new Color(34, 26, 8) : HubTheme.Panel;
+			public static Color Line => Gold ? new Color(196, 152, 52) : HubTheme.Line;
+			public static Color LineSoft => Gold ? new Color(110, 86, 34) : HubTheme.LineSoft;
+			public static Color Accent => Gold ? new Color(240, 196, 80) : HubTheme.Accent;
+			public static Color Warn => Gold ? new Color(255, 228, 150) : HubTheme.Warn;
+			public static Color Text => Gold ? new Color(255, 244, 216) : HubTheme.Text;
+			public static Color OnAccent => Gold ? new Color(48, 32, 4) : HubTheme.OnAccent;
+			public static Color Dim => Gold ? new Color(184, 154, 92) : HubTheme.Dim;
+		}
 		public static void Draw(SpriteBatch sb)
 		{
 			if (!active || Main.dedServ || Main.gameMenu)
@@ -212,7 +226,7 @@ namespace Augments
 			int panelH = Math.Max(4, (int)(h * grow));
 			var rect = new Rectangle(full.X, full.Bottom - panelH, full.Width, panelH);
 
-			DrawGlitchBackground(sb, rect, HubTheme.Panel, HubTheme.Line, glitch, frame, alpha);
+			DrawGlitchBackground(sb, rect, Pal.Panel, Pal.Line, glitch, frame, alpha);
 
 			if (grow >= 0.92f)
 			{
@@ -231,6 +245,27 @@ namespace Augments
 			}
 
 			DrawGlitchOverlay(sb, rect, glitch, frame, alpha);
+			if (Gold && grow >= 0.92f)
+				DrawGoldShimmer(sb, rect, alpha);
+		}
+
+		// Ending E only: a soft band of light sweeps across the gold panel, and its edge breathes.
+		private static void DrawGoldShimmer(SpriteBatch sb, Rectangle r, float alpha)
+		{
+			float sweep = (t * 0.45f) % 2f - 0.5f;
+			int bandW = 46;
+			int bx = r.X + (int)(sweep * r.Width);
+			for (int i = 0; i < bandW; i += 2)
+			{
+				float edge = 1f - Math.Abs(i - bandW / 2f) / (bandW / 2f);
+				int x0 = Math.Max(bx + i, r.X + 2);
+				int x1 = Math.Min(bx + i + 2, r.Right - 2);
+				if (x1 > x0)
+					HubDraw.Fill(sb, new Rectangle(x0, r.Y + 18, x1 - x0, r.Height - 20), new Color(255, 236, 170) * (0.10f * edge * alpha));
+			}
+
+			float breath = 0.5f + 0.5f * (float)Math.Sin(t * 3f);
+			HubDraw.Border(sb, new Rectangle(r.X - 1, r.Y - 1, r.Width + 2, r.Height + 2), new Color(255, 214, 100) * ((0.25f + 0.3f * breath) * alpha));
 		}
 
 		// The small "incoming" bar before the panel.
@@ -243,7 +278,7 @@ namespace Augments
 			float glitch = t < 0.3f ? 0.9f - t * 2f : (Rnd((int)(t * 6f), 21) < 0.12f ? 0.5f : 0f);
 			float alpha = (glitch > 0f && Rnd(frame, 12) < glitch * 0.4f) ? 0.4f : 1f;
 
-			DrawGlitchBackground(sb, bar, HubTheme.Panel, HubTheme.Line, glitch, frame, alpha);
+			DrawGlitchBackground(sb, bar, Pal.Panel, Pal.Line, glitch, frame, alpha);
 
 			if (slide >= 1f)
 			{
@@ -252,12 +287,12 @@ namespace Augments
 				{
 					float level = 0.3f + 0.7f * (0.5f + 0.5f * (float)Math.Sin(t * 9f + i * 1.3f));
 					int bh = (int)((4 + i * 3) * level) + 2;
-					HubDraw.Fill(sb, new Rectangle(bar.X + 10 + i * 6, bar.Bottom - 6 - bh, 4, bh), HubTheme.Accent * alpha);
+					HubDraw.Fill(sb, new Rectangle(bar.X + 10 + i * 6, bar.Bottom - 6 - bh, 4, bh), Pal.Accent * alpha);
 				}
 
 				bool lit = ((int)(t * 4f)) % 2 == 0;
-				HubDraw.Text(sb, "INCOMING TRANSMISSION", new Vector2(bar.X + 40, bar.Y + 6), HubTheme.Text * alpha, 0.54f, 2f);
-				HubDraw.TextRight(sb, "CMDR", bar.Right - 10, bar.Y + 6, (lit ? HubTheme.Warn : HubTheme.Dim) * alpha, 0.54f, 2f);
+				HubDraw.Text(sb, "INCOMING TRANSMISSION", new Vector2(bar.X + 40, bar.Y + 6), Pal.Text * alpha, 0.54f, 2f);
+				HubDraw.TextRight(sb, "CMDR", bar.Right - 10, bar.Y + 6, (lit ? Pal.Warn : Pal.Dim) * alpha, 0.54f, 2f);
 			}
 
 			DrawGlitchOverlay(sb, bar, glitch, frame, alpha);
@@ -293,7 +328,7 @@ namespace Augments
 			HubDraw.Fill(sb, new Rectangle(r.X + lastDx, r.Bottom - 2, r.Width, 2), line * alpha);
 
 			if (r.Height > 40)
-				HubDraw.Corners(sb, new Rectangle(r.X - 3, r.Y - 3, r.Width + 6, r.Height + 6), HubTheme.Accent * alpha, 12, 2);
+				HubDraw.Corners(sb, new Rectangle(r.X - 3, r.Y - 3, r.Width + 6, r.Height + 6), Pal.Accent * alpha, 12, 2);
 		}
 
 		// Flashing colour bars across the panel, then fine scanlines on top.
@@ -310,7 +345,7 @@ namespace Augments
 					int bh = 2 + (int)(Rnd(frame, i, 13) * 7f);
 					int bx = r.X + (int)(Rnd(frame, i, 14) * Math.Max(1, r.Width - bw));
 					int by = r.Y + (int)(Rnd(frame, i, 15) * Math.Max(1, r.Height - bh));
-					Color c = Rnd(frame, i, 16) > 0.5f ? HubTheme.Warn : HubTheme.Accent;
+					Color c = Rnd(frame, i, 16) > 0.5f ? Pal.Warn : Pal.Accent;
 					HubDraw.Fill(sb, new Rectangle(bx, by, bw, bh), c * (0.6f * alpha));
 				}
 			}
@@ -322,8 +357,8 @@ namespace Augments
 		private static void DrawHeader(SpriteBatch sb, Rectangle r, Endings.Def def, float alpha, int dx)
 		{
 			var bar = new Rectangle(r.X + 2 + dx, r.Y + 2, r.Width - 4, 16);
-			HubDraw.Fill(sb, bar, HubTheme.Accent * alpha);
-			HubDraw.Text(sb, "INCOMING TRANSMISSION", new Vector2(bar.X + 8, bar.Y + 2), HubTheme.OnAccent * alpha, 0.5f, 2f);
+			HubDraw.Fill(sb, bar, Pal.Accent * alpha);
+			HubDraw.Text(sb, "INCOMING TRANSMISSION", new Vector2(bar.X + 8, bar.Y + 2), Pal.OnAccent * alpha, 0.5f, 2f);
 
 			int count = 0;
 			for (int i = 0; i < Endings.All.Length; i++)
@@ -332,7 +367,7 @@ namespace Augments
 					count++;
 			}
 
-			HubDraw.TextRight(sb, "ENDING " + count + " OF " + Endings.All.Length, bar.Right - 8, bar.Y + 2, HubTheme.OnAccent * alpha, 0.5f, 2f);
+			HubDraw.TextRight(sb, "ENDING " + count + " OF " + Endings.All.Length, bar.Right - 8, bar.Y + 2, Pal.OnAccent * alpha, 0.5f, 2f);
 		}
 
 		// The big letter tile, the CHALLENGE COMPLETE line and the name. Drawn on its own so the colour split can repeat it.
@@ -342,16 +377,16 @@ namespace Augments
 			int y = r.Y + 25 + off.Y;
 
 			var tile = new Rectangle(x, y, 48, 48);
-			HubDraw.Fill(sb, tile, (tint ?? HubTheme.Accent) * alpha);
+			HubDraw.Fill(sb, tile, (tint ?? Pal.Accent) * alpha);
 
 			string letter = def.Letter.ToString();
 			float letterScale = HubDraw.BigScale(28f);
 			float lw = HubDraw.BigWidth(letter, letterScale);
-			HubDraw.BigText(sb, letter, new Vector2(tile.Center.X - lw / 2f, tile.Y + 14), (tint.HasValue ? Color.White : HubTheme.OnAccent) * alpha, letterScale);
+			HubDraw.BigText(sb, letter, new Vector2(tile.Center.X - lw / 2f, tile.Y + 14), (tint.HasValue ? Color.White : Pal.OnAccent) * alpha, letterScale);
 
 			int tx = tile.Right + 12;
-			HubDraw.Text(sb, "CHALLENGE COMPLETE", new Vector2(tx, y - 1), (tint ?? HubTheme.Warn) * alpha, 0.46f, 2f);
-			HubDraw.BigText(sb, def.Name, new Vector2(tx, y + 11), (tint ?? HubTheme.Text) * alpha, HubDraw.BigScale(20f), 2f);
+			HubDraw.Text(sb, "CHALLENGE COMPLETE", new Vector2(tx, y - 1), (tint ?? Pal.Warn) * alpha, 0.46f, 2f);
+			HubDraw.BigText(sb, def.Name, new Vector2(tx, y + 11), (tint ?? Pal.Text) * alpha, HubDraw.BigScale(20f), 2f);
 		}
 
 		// The Commander's words (typed out) and the row of five ending squares.
@@ -362,7 +397,7 @@ namespace Augments
 			float scale = 0.62f; // the Commander's words: about 3 pixels taller than the first version (0.5)
 			float lineStep = HubDraw.LineHeight(scale) + 2f;
 
-			HubDraw.HLine(sb, tx, r.Y + 52, maxW, HubTheme.LineSoft * alpha);
+			HubDraw.HLine(sb, tx, r.Y + 52, maxW, Pal.LineSoft * alpha);
 
 			List<string> lines = HubDraw.Wrap(def.Call, maxW, scale);
 			int remaining = RevealedLetters(def);
@@ -374,31 +409,31 @@ namespace Augments
 
 				string shown = remaining >= line.Length ? line : line.Substring(0, remaining);
 				remaining -= line.Length + 1;
-				HubDraw.Text(sb, shown, new Vector2(tx, ly), HubTheme.Text * alpha, scale);
+				HubDraw.Text(sb, shown, new Vector2(tx, ly), Pal.Text * alpha, scale);
 				ly += lineStep;
 			}
 
 			// A blinking cursor while the line is still being typed.
 			if (RevealedLetters(def) < def.Call.Length && ((int)(t * 6f)) % 2 == 0)
-				HubDraw.Fill(sb, new Rectangle(tx + maxW - 5, r.Y + 57, 5, 7), HubTheme.Accent * alpha);
+				HubDraw.Fill(sb, new Rectangle(tx + maxW - 5, r.Y + 57, 5, 7), Pal.Accent * alpha);
 
 			// The five endings: earned ones are filled, this one is rust coloured.
 			int px = r.X + 14 + dx;
 			int py = r.Bottom - 17;
-			HubDraw.Text(sb, "ENDINGS", new Vector2(px, py), HubTheme.Dim * alpha, 0.44f, 2f);
+			HubDraw.Text(sb, "ENDINGS", new Vector2(px, py), Pal.Dim * alpha, 0.44f, 2f);
 			int sx = px + 52;
 			for (int i = 0; i < Endings.All.Length; i++)
 			{
 				var sq = new Rectangle(sx + i * 13, py + 1, 8, 8);
 				if (i == current.Index)
-					HubDraw.Fill(sb, sq, HubTheme.Warn * alpha);
+					HubDraw.Fill(sb, sq, Pal.Warn * alpha);
 				else if (Endings.Has(current.Mask, i))
-					HubDraw.Fill(sb, sq, HubTheme.Accent * alpha);
+					HubDraw.Fill(sb, sq, Pal.Accent * alpha);
 				else
-					HubDraw.Border(sb, sq, HubTheme.Line * alpha);
+					HubDraw.Border(sb, sq, Pal.Line * alpha);
 			}
 
-			HubDraw.TextRight(sb, "- COMMANDER", r.Right - 14, py, HubTheme.Dim * alpha, 0.44f, 2f);
+			HubDraw.TextRight(sb, "- COMMANDER", r.Right - 14, py, Pal.Dim * alpha, 0.44f, 2f);
 		}
 	}
 }
