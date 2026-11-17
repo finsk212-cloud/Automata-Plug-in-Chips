@@ -144,6 +144,41 @@ namespace Augments
 			return false;
 		}
 
+		// Whether a hit on this NPC is a hit on a boss: the boss itself or any part of its fight (Golem's head and fists, worm bodies,
+		// Calamity limbs...). Plugins that react to "hits against a boss" use this, because many bosses are several NPCs and only one of
+		// them has the boss flag.
+		public static bool IsBossTarget(NPC npc)
+		{
+			if (npc.boss || TryGetFightKey(npc, out _))
+				return true;
+
+			// Segments that share the health of a boss-flagged head.
+			return npc.realLife >= 0 && npc.realLife < Main.maxNPCs
+				&& Main.npc[npc.realLife].active && Main.npc[npc.realLife].boss;
+		}
+
+		// The max health of the whole boss that this NPC belongs to (not of the part that was hit: a Golem fist or a worm segment has far
+		// less than the boss).
+		public static int BossMaxLife(NPC npc)
+		{
+			int max = npc.lifeMax;
+
+			if (npc.realLife >= 0 && npc.realLife < Main.maxNPCs)
+				max = System.Math.Max(max, Main.npc[npc.realLife].lifeMax);
+
+			if (TryGetFightKey(npc, out int key))
+			{
+				for (int i = 0; i < Main.maxNPCs; i++)
+				{
+					NPC other = Main.npc[i];
+					if (other.active && other.type == key)
+						max = System.Math.Max(max, other.lifeMax);
+				}
+			}
+
+			return max;
+		}
+
 		// Whether this NPC dying should pay the fight out. Parts of a bigger fight never do, only its leader.
 		public static bool IsRewardTrigger(NPC npc, int key)
 		{

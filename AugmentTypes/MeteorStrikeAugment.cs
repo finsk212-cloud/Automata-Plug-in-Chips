@@ -25,13 +25,13 @@ namespace Augments
 
         public override void OnHitNPCWithItem(Player player, Item item, NPC target, NPC.HitInfo hit)
         {
-            if (hit.Crit && target.boss && RollFortuneChance(player, ProcChance))
+            if (hit.Crit && BossFights.IsBossTarget(target) && RollFortuneChance(player, ProcChance))
                 Strike(player, target, HitEffectiveness);
         }
 
         public override void OnHitNPCWithProj(Player player, Projectile proj, NPC target, NPC.HitInfo hit)
         {
-            if (hit.Crit && target.boss && RollFortuneChance(player, ProcChance))
+            if (hit.Crit && BossFights.IsBossTarget(target) && RollFortuneChance(player, ProcChance))
                 Strike(player, target, HitEffectiveness);
         }
 
@@ -40,7 +40,7 @@ namespace Augments
         // spawn our own via CombatText.NewText.
         private static void Strike(Player player, NPC target, float effectiveness)
         {
-            int damage = System.Math.Max(1, (int)(target.lifeMax * BonusDamagePercentOfMaxHP * effectiveness));
+            int damage = System.Math.Max(1, (int)(BossFights.BossMaxLife(target) * BonusDamagePercentOfMaxHP * effectiveness));
 
             var hit = new NPC.HitInfo
             {

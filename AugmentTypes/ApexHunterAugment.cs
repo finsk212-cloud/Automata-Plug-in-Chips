@@ -41,49 +41,14 @@ namespace Augments
 
         public override void OnHitNPCWithItem(Player player, Item item, NPC target, NPC.HitInfo hit)
         {
-            if (IsBossTarget(target) && item.CountsAsClass(DamageClass.Ranged))
+            if (BossFights.IsBossTarget(target) && item.CountsAsClass(DamageClass.Ranged))
                 HandleMark(player, target, hit.Damage);
         }
 
         public override void OnHitNPCWithProj(Player player, Projectile proj, NPC target, NPC.HitInfo hit)
         {
-            if (IsBossTarget(target) && proj.CountsAsClass(DamageClass.Ranged))
+            if (BossFights.IsBossTarget(target) && proj.CountsAsClass(DamageClass.Ranged))
                 HandleMark(player, target, hit.Damage);
-        }
-
-        // A hit counts when it lands on the boss or on any part of the boss fight. Many bosses are built from several NPCs and only one
-        // of them has the boss flag (Golem's head and fists, worm bodies and tails, Calamity's Ravager limbs, Slime God paladins and so
-        // on), so checking only the boss flag missed every hit on those parts. BossFights already knows which NPCs belong to a fight.
-        private static bool IsBossTarget(NPC target)
-        {
-            if (target.boss || BossFights.TryGetFightKey(target, out _))
-                return true;
-
-            // Segments that share the health of a boss-flagged head.
-            return target.realLife >= 0 && target.realLife < Main.maxNPCs
-                && Main.npc[target.realLife].active && Main.npc[target.realLife].boss;
-        }
-
-        // The burst is a percentage of the BOSS's max health, not of the part that happened to be hit (a Golem fist or a worm segment
-        // has far less than the whole boss).
-        private static int BossMaxLife(NPC target)
-        {
-            int max = target.lifeMax;
-
-            if (target.realLife >= 0 && target.realLife < Main.maxNPCs)
-                max = System.Math.Max(max, Main.npc[target.realLife].lifeMax);
-
-            if (BossFights.TryGetFightKey(target, out int key))
-            {
-                for (int i = 0; i < Main.maxNPCs; i++)
-                {
-                    NPC other = Main.npc[i];
-                    if (other.active && other.type == key)
-                        max = System.Math.Max(max, other.lifeMax);
-                }
-            }
-
-            return max;
         }
 
         private void HandleMark(Player player, NPC target, int hitDamage)
@@ -115,7 +80,7 @@ namespace Augments
         private static void Strike(Player player, NPC target, float effectiveness, float markedDamage)
         {
             // All of the damage dealt while marking, but never more than 5% of the boss's max health.
-            float ceiling = BossMaxLife(target) * BurstPercentOfMaxHP;
+            float ceiling = BossFights.BossMaxLife(target) * BurstPercentOfMaxHP;
             float payout = markedDamage * BurstShareOfMarkedDamage;
             int damage = System.Math.Max(1, (int)(System.Math.Min(ceiling, payout) * effectiveness));
 
