@@ -874,7 +874,7 @@ namespace Augments
 		{
 			Color c = DirColor(dir);
 			if (dir == 0)
-				HubDraw.SmoothDiamond(sb, new Vector2(x + 6.5f, cy), 4.5f, c);
+				HubDraw.SmoothDiamond(sb, new Vector2(x + 6.5f, cy), 5.5f, c);
 			else
 				HubDraw.Triangle(sb, new Vector2(x + 6.5f, cy), 13f, 9f, dir > 0, c);
 		}

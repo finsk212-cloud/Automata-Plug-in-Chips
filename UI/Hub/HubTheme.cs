@@ -186,7 +186,7 @@ namespace Augments
 			// The glow dot breathes, so its size changes every frame. Pick one of a few ready sizes (never more than half again off) instead
 			// of making a new picture each frame, and draw that one scaled.
 			float m = PixelScale;
-			float d = size * 2.8f + 1f;
+			float d = size * 1.4f + 1f;
 			float want = d * m;
 			int bucket = 12;
 			foreach (int b in DiamondSizes)
