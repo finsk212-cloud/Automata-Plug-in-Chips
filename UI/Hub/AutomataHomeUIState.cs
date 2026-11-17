@@ -841,8 +841,20 @@ namespace Augments
 
 		private static Color DirColor(int dir) => dir < 0 ? NerfColor : dir > 0 ? BuffColor : AdjustColor;
 
+		// Fixed hues, not the tier colours of the colour scheme: in the Nier scheme Epic is ivory, which would disappear on the page.
 		private static Color RarityColorOf(string rarity)
-			=> Enum.TryParse(rarity, true, out AugmentRarity r) ? RarityLook.Of(r) : HubTheme.Dim;
+		{
+			if (!Enum.TryParse(rarity, true, out AugmentRarity r))
+				return HubTheme.Dim;
+
+			switch (r)
+			{
+				case AugmentRarity.Rare: return new Color(74, 120, 176);
+				case AugmentRarity.Epic: return new Color(128, 84, 176);
+				case AugmentRarity.Legendary: return new Color(196, 140, 30);
+				default: return new Color(128, 122, 106);
+			}
+		}
 
 		// The game font has no triangle or arrow symbols, so these are drawn from rectangles: up for a buff, down for a nerf, a diamond
 		// for an adjustment.
@@ -1105,7 +1117,7 @@ namespace Augments
 			bool first = true;
 			foreach (string line in HubDraw.Wrap(text, width - indent - 8f, scale))
 			{
-				lines.Add(new PLine { Text = line, X = indent, Y = y, Scale = scale, Tracking = 0f,	Style = style, Marker = first ? marker : 0, Dir = dir, H = lh });
+				lines.Add(new PLine { Text = line, X = indent, Y = y, Scale = scale, Tracking = 0f, Style = style, Marker = first ? marker : 0, Dir = dir, H = lh });
 				y += lh;
 				first = false;
 			}
