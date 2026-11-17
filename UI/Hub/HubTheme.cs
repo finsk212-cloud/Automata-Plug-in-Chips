@@ -78,16 +78,18 @@ namespace Augments
 			return (float)Math.Round(v * m) / m;
 		}
 
-		// A text scale nudged (by at most 9%) so that scale x UI scale is exactly 1, 1.25, 1.5 or 2: the font is drawn at a whole-number
+		// A text scale nudged (by at most 9%) so that scale x UI scale is exactly 1 or 2: the font is drawn at a whole-number
 		// ratio of its real size, which keeps the letter shapes clean instead of stretched by a fraction. Used for text that is both measured
 		// and drawn through the same value, so the layout stays consistent.
+		private static readonly float[] CrispTargets = { 1f, 2f };
+
 		public static float Crisp(float scale)
 		{
 			float u = PixelScale;
 			if (Math.Abs(u - 1f) < 0.01f)
 				return scale;
 
-			foreach (float target in new[] { 1f, 1.25f, 1.5f, 2f })
+			foreach (float target in CrispTargets)
 			{
 				if (Math.Abs(scale * u - target) <= 0.09f * target)
 					return target / u;
@@ -95,77 +97,106 @@ namespace Augments
 			return scale;
 		}
 
-		// Smooth shapes: small white pictures with soft edges, made once, then tinted. The old triangles and diamonds were stacks of
-		// one-pixel rows, which look stepped when the interface is scaled by a fraction.
-		private static Texture2D triTex, diamondTex;
+		// Smooth shapes: small white pictures with soft edges, tinted when drawn. The old triangles and diamonds were stacks of one-pixel rows,
+		// which look stepped when the interface is scaled by a fraction. Each shape is made at exactly the size it is drawn on the screen (and
+		// drawn one to one at a whole screen pixel), so its soft edge is never squeezed by the filter. Made on first use, one per size.
+		private static readonly int[] DiamondSizes = { 12, 16, 24, 32, 48, 64, 96 };
+		private static readonly Dictionary<(int kind, int w, int h), Texture2D> shapes = new Dictionary<(int, int, int), Texture2D>();
 
-		private static Texture2D MakeShape(int n, Func<float, float, bool> inside)
+		private static bool ShapeInside(int kind, float px, float py)
 		{
-			const int ss = 4;
-			var data = new Color[n * n];
-			for (int y = 0; y < n; y++)
+			switch (kind)
 			{
-				for (int x = 0; x < n; x++)
+				case 0: return Math.Abs(px - 0.5f) <= 0.5f * py;           // triangle pointing up
+				case 1: return Math.Abs(px - 0.5f) <= 0.5f * (1f - py);    // pointing down
+				case 2: return Math.Abs(py - 0.5f) <= 0.5f * (1f - px);    // pointing right
+				default: return Math.Abs(px - 0.5f) + Math.Abs(py - 0.5f) <= 0.5f; // diamond
+			}
+		}
+
+		private static Texture2D GetShape(int kind, int w, int h)
+		{
+			w = Math.Max(2, w);
+			h = Math.Max(2, h);
+			var key = (kind, w, h);
+			if (shapes.TryGetValue(key, out Texture2D tex) && !tex.IsDisposed)
+				return tex;
+
+			const int ss = 4;
+			var data = new Color[w * h];
+			for (int y = 0; y < h; y++)
+			{
+				for (int x = 0; x < w; x++)
 				{
 					int hit = 0;
 					for (int sy = 0; sy < ss; sy++)
 						for (int sx = 0; sx < ss; sx++)
-							if (inside((x + (sx + 0.5f) / ss) / n, (y + (sy + 0.5f) / ss) / n))
+							if (ShapeInside(kind, (x + (sx + 0.5f) / ss) / w, (y + (sy + 0.5f) / ss) / h))
 								hit++;
 					float a = hit / (float)(ss * ss);
-					data[y * n + x] = new Color(a, a, a, a);
+					data[y * w + x] = new Color(a, a, a, a); // the game blends with premultiplied colour
 				}
 			}
-			var tex = new Texture2D(Main.graphics.GraphicsDevice, n, n);
+			tex = new Texture2D(Main.graphics.GraphicsDevice, w, h);
 			tex.SetData(data);
+			shapes[key] = tex;
 			return tex;
-		}
-
-		private static void EnsureShapes()
-		{
-			if (triTex == null || triTex.IsDisposed)
-				triTex = MakeShape(48, (px, py) => Math.Abs(px - 0.5f) <= 0.5f * py);
-			if (diamondTex == null || diamondTex.IsDisposed)
-				diamondTex = MakeShape(48, (px, py) => Math.Abs(px - 0.5f) + Math.Abs(py - 0.5f) <= 0.5f);
 		}
 
 		public static void UnloadShapes()
 		{
-			Texture2D a = triTex, b = diamondTex;
-			triTex = null;
-			diamondTex = null;
+			var all = new List<Texture2D>(shapes.Values);
+			shapes.Clear();
 			Main.QueueMainThreadAction(() =>
 			{
-				a?.Dispose();
-				b?.Dispose();
+				foreach (Texture2D t in all)
+					t?.Dispose();
 			});
 		}
 
-		private static void DrawShape(SpriteBatch sb, Texture2D tex, Vector2 center, float w, float h, Color c, float rotation, SpriteEffects fx)
+		// One screen pixel, in UI units.
+		public static float OnePx => 1f / PixelScale;
+
+		// Draws a shape of `w` x `h` UI units centred on `center`: made at its exact pixel size and placed on the pixel grid.
+		private static void DrawShape(SpriteBatch sb, int kind, Vector2 center, float w, float h, Color c)
 		{
-			sb.Draw(tex, center, null, c, rotation, new Vector2(tex.Width / 2f, tex.Height / 2f), new Vector2(w / tex.Width, h / tex.Height), fx, 0f);
+			float m = PixelScale;
+			int pw = Math.Max(2, (int)Math.Round(w * m));
+			int ph = Math.Max(2, (int)Math.Round(h * m));
+			Texture2D tex = GetShape(kind, pw, ph);
+			var pos = new Vector2((float)Math.Round(center.X * m - pw / 2f) / m, (float)Math.Round(center.Y * m - ph / 2f) / m);
+			sb.Draw(tex, pos, null, c, 0f, Vector2.Zero, 1f / m, SpriteEffects.None, 0f);
 		}
 
 		// A triangle `w` wide and `h` tall, pointing up or down, centred on `center`.
 		public static void Triangle(SpriteBatch sb, Vector2 center, float w, float h, bool up, Color c)
 		{
-			EnsureShapes();
-			DrawShape(sb, triTex, center, w, h, c, 0f, up ? SpriteEffects.None : SpriteEffects.FlipVertically);
+			DrawShape(sb, up ? 0 : 1, center, w, h, c);
 		}
 
 		// A triangle pointing to the right: `h` tall, `length` from its flat edge to its tip.
 		public static void TriangleRight(SpriteBatch sb, Vector2 center, float length, float h, Color c)
 		{
-			EnsureShapes();
-			DrawShape(sb, triTex, center, h, length, c, MathHelper.PiOver2, SpriteEffects.None);
+			DrawShape(sb, 2, center, length, h, c);
 		}
 
 		// A smooth diamond, the same size as Diamond() with this `size`.
 		public static void SmoothDiamond(SpriteBatch sb, Vector2 center, float size, Color c)
 		{
-			EnsureShapes();
+			// The glow dot breathes, so its size changes every frame. Pick one of a few ready sizes (never more than half again off) instead
+			// of making a new picture each frame, and draw that one scaled.
+			float m = PixelScale;
 			float d = size * 2.8f + 1f;
-			DrawShape(sb, diamondTex, center, d, d, c, 0f, SpriteEffects.None);
+			float want = d * m;
+			int bucket = 12;
+			foreach (int b in DiamondSizes)
+			{
+				bucket = b;
+				if (b >= want * 0.9f)
+					break;
+			}
+			Texture2D tex = GetShape(3, bucket, bucket);
+			sb.Draw(tex, center, null, c, 0f, new Vector2(bucket / 2f, bucket / 2f), want / bucket, SpriteEffects.None, 0f);
 		}
 
 		public static void Fill(SpriteBatch sb, Rectangle r, Color c)

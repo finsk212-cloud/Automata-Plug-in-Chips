@@ -1295,7 +1295,7 @@ namespace Augments
 					float maxW = IndexW - 26 - (a.Latest && openedUnread ? 44 : 10);
 					string head = Fit(a.Text, maxW, idx);
 					HubDraw.Text(sb, head, new Vector2(tx, ty), hc, idx, 0.5f);
-					HubDraw.Text(sb, head, new Vector2(tx + 1, ty), hc, idx, 0.5f);
+					HubDraw.Text(sb, head, new Vector2(tx + HubDraw.OnePx, ty), hc, idx, 0.5f);
 					if (a.Latest && openedUnread)
 						HubDraw.TextRight(sb, "NEW", row.Right - 10, ty, HubDraw.Unread, 0.62f, 1.5f);
 				}
@@ -1435,7 +1435,7 @@ namespace Augments
 			x += ArrowW + 8f;
 
 			HubDraw.Text(sb, l.New, new Vector2(x, sy), HubTheme.Text, l.Scale);
-			HubDraw.Text(sb, l.New, new Vector2(x + 1f, sy), HubTheme.Text, l.Scale);
+			HubDraw.Text(sb, l.New, new Vector2(x + HubDraw.OnePx, sy), HubTheme.Text, l.Scale);
 		}
 
 		// Shortens a label with "..." until it fits the given width.
