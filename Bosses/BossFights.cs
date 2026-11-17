@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -99,6 +99,12 @@ namespace Augments
 			{ "PerforatorHeadLarge", "PerforatorHive" },
 			{ "PerforatorBodyLarge", "PerforatorHive" },
 			{ "PerforatorTailLarge", "PerforatorHive" },
+			// Primordial Wyrm: the head is the one that dies, the body and tail soak the hits.
+			{ "PrimordialWyrmBody", "PrimordialWyrmHead" },
+			{ "PrimordialWyrmBodyAlt", "PrimordialWyrmHead" },
+			{ "PrimordialWyrmTail", "PrimordialWyrmHead" },
+			// Polterghast's hooks.
+			{ "PolterghastHook", "Polterghast" },
 		};
 
 		// Calamity parts that belong to a vanilla boss.
