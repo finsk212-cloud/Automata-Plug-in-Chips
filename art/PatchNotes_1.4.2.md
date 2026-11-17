@@ -7,6 +7,9 @@ A bigger update: hidden endings, a better Profile page, an old computer screen e
 **Hidden endings**
 Five secret challenge endings, A to E, are now tracked for each character and shown on the Profile page as a riddle until you earn them. They are about how you beat a boss, not just that you beat it. Every ending only counts from the Wall of Flesh onward, and the last one needs a Mechanical Boss or later. A boss older than your world's current stage never counts. Endings only work in singleplayer for now.
 
+**Ending rewards**
+Each hidden ending now gives a Profile title and a Pod skin, yours for the whole account: Untouched (A), Basic Instinct with a plain Blank Slate pod (B), Empty Chassis with a see-through pod (C), Pain Tolerance with a cracked, patched-up pod (D) and Glory to Mankind with a shining gold pod (E). Until you earn them they show as secrets in the Shop, on the Pods and Titles tabs, with only the ending's riddle as a hint.
+
 **A better Profile page**
 The Profile page on the title screen now shows more about your character.
 - Your real character is drawn in the portrait box.

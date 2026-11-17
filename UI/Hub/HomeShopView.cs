@@ -27,6 +27,13 @@ namespace Augments
 			public string Blurb;
 			public int Price;
 			public string UnlockId;
+			public string Hint;            // for an ending reward: the riddle that names the ending
+
+			// An ending reward has no price: it is earned, never bought. Until then it shows as a secret with only the riddle.
+			public bool Earned => Price < 0;
+			public bool Locked => Earned && !Owned;
+			public string DisplayName => Locked ? (Kind == RewardKind.PodSkin ? "SECRET POD" : "SECRET TITLE") : Name;
+			public string ShownBlurb => !Earned ? Blurb : (Locked ? "Earned by finishing a hidden ending. Hint: \"" + Hint + "\"" : Blurb + " Earned from a hidden ending.");
 
 			public bool IsScheme => Kind == RewardKind.Scheme;
 			public bool IsFrame => Kind == RewardKind.Frame;
@@ -106,6 +113,16 @@ namespace Augments
 					if (Cosmetic.PodSkinPrice(skin.Id) >= 0) items.Add(MakeItem(RewardKind.PodSkin, skin.Id, Cosmetic.PodSkinPrice(skin.Id)));
 				foreach (string[] title in Cosmetic.Titles)
 					if (Cosmetic.TitlePrice(title[0]) >= 0) items.Add(MakeItem(RewardKind.Title, title[0], Cosmetic.TitlePrice(title[0])));
+				// The hidden-ending rewards (a Pod skin and a title for each ending). Not for sale: they show as secrets until earned.
+				for (int e = 0; e < Endings.All.Length; e++)
+				{
+					ShopItem pod = MakeItem(RewardKind.PodSkin, Endings.RewardPods[e], -1);
+					pod.Hint = Endings.All[e].Riddle;
+					items.Add(pod);
+					ShopItem title = MakeItem(RewardKind.Title, Endings.RewardTitles[e], -1);
+					title.Hint = Endings.All[e].Riddle;
+					items.Add(title);
+				}
 				foreach (string[] emblem in Cosmetic.Emblems)
 					if (Cosmetic.EmblemPrice(emblem[0]) >= 0) items.Add(MakeItem(RewardKind.Emblem, emblem[0], Cosmetic.EmblemPrice(emblem[0])));
 				return items;
@@ -229,7 +246,7 @@ namespace Augments
 				return;
 			}
 
-			if (AccountStore.Balance < item.Price)
+			if (item.Earned || AccountStore.Balance < item.Price)
 				return;
 
 			long now = Environment.TickCount64;
@@ -245,7 +262,7 @@ namespace Augments
 			if (AccountStore.TrySpend(item.Price, item.UnlockId))
 			{
 				SoundEngine.PlaySound(SoundID.Item35);
-				message = item.Name + " IS YOURS";
+				message = item.DisplayName + " IS YOURS";
 				messageUntil = now + 4000;
 			}
 		}
@@ -378,7 +395,16 @@ namespace Augments
 				HubDraw.Border(sb, area, HubTheme.Line);
 				int side = Math.Max(16, Math.Min(area.Width, area.Height) - 16);
 				var box = new Rectangle(area.X + (area.Width - side) / 2, area.Y + (area.Height - side) / 2, side, side);
-				OperationArt.RewardIcon(sb, item.Reward, box, Color.White);
+				if (item.Locked)
+				{
+					// Not earned yet: a dark outline of the pod, or a question mark for a title.
+					if (item.Kind == RewardKind.PodSkin)
+						AugmentAdvisoryHUD.DrawPodIcon(sb, box, new Color(44, 48, 58));
+					else
+						HubDraw.Text(sb, "?", new Vector2(box.Center.X - HubDraw.Width("?", 1.6f) / 2f, box.Center.Y - HubDraw.CapMid(1.6f)), HubTheme.Dim, 1.6f);
+				}
+				else
+					OperationArt.RewardIcon(sb, item.Reward, box, Color.White);
 			}
 		}
 
@@ -392,7 +418,7 @@ namespace Augments
 
 			int tx = swatch.Right + 14;
 			HubDraw.Text(sb, item.KindLabel, new Vector2(tx, card.Y + 10), HubTheme.Dim, 0.52f, 2f);
-			HubDraw.Text(sb, item.Name, new Vector2(tx, card.Y + 28), HubTheme.Text, 0.86f, 2f);
+			HubDraw.Text(sb, item.DisplayName, new Vector2(tx, card.Y + 28), HubTheme.Text, 0.86f, 2f);
 
 			string tag;
 			Color color;
@@ -404,6 +430,11 @@ namespace Augments
 			else if (item.Owned)
 			{
 				tag = "OWNED";
+				color = HubTheme.Dim;
+			}
+			else if (item.Earned)
+			{
+				tag = "LOCKED";
 				color = HubTheme.Dim;
 			}
 			else
@@ -430,21 +461,21 @@ namespace Augments
 			int x = d.X + 18;
 			int y = d.Y + 16;
 			HubDraw.Text(sb, item.KindLabel, new Vector2(x, y), HubTheme.Warn, 0.62f, 2f);
-			HubDraw.Text(sb, item.Name, new Vector2(x, y + 22), HubTheme.Text, 1.2f, 3f);
+			HubDraw.Text(sb, item.DisplayName, new Vector2(x, y + 22), HubTheme.Text, 1.2f, 3f);
 
 			int previewH = Math.Max(70, Math.Min(130, d.Height - 250));
 			var preview = new Rectangle(x, y + 62, d.Width - 36, previewH);
 			DrawSwatch(sb, preview, item);
 
 			int ty = preview.Bottom + 12;
-			foreach (string line in HubDraw.Wrap(item.Blurb, d.Width - 36, 0.64f))
+			foreach (string line in HubDraw.Wrap(item.ShownBlurb, d.Width - 36, 0.64f))
 			{
 				HubDraw.Text(sb, line, new Vector2(x, ty), HubTheme.Dim, 0.64f);
 				ty += (int)HubDraw.LineHeight(0.64f) + 2;
 			}
 
 			ty += 6;
-			if (!item.Owned)
+			if (!item.Owned && !item.Earned)
 			{
 				HubDraw.Text(sb, "PRICE", new Vector2(x, ty), HubTheme.Dim, 0.58f, 2f);
 				HubDraw.TextRight(sb, item.Price + " FRAGMENTS", d.Right - 18, ty - 1, HubTheme.Warn, 0.72f, 1.5f);
@@ -462,6 +493,11 @@ namespace Augments
 			{
 				label = item.Equipped ? "EQUIPPED" : "EQUIP";
 				enabled = !item.Equipped;
+			}
+			else if (item.Earned)
+			{
+				label = "LOCKED";
+				enabled = false;
 			}
 			else if (AccountStore.Balance < item.Price)
 			{

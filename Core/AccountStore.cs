@@ -180,6 +180,16 @@ namespace Augments
 			return true;
 		}
 
+		// Unlocks an item with no price and no claim (an ending reward). Does nothing if it is already owned.
+		public static void Unlock(string unlockId)
+		{
+			if (string.IsNullOrEmpty(unlockId) || IsUnlocked(unlockId))
+				return;
+
+			pendingUnlocks.Add(unlockId);
+			Flush();
+		}
+
 		public static void Equip(string slot, string id)
 		{
 			pendingEquipped[slot] = id;

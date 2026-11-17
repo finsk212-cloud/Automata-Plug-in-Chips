@@ -113,7 +113,10 @@ namespace Augments
 			public string Id;
 			public string Name;
 			public Color Tint;
-		}
+			// A skin earned from a hidden ending has its own look (see PodSprites.StylePalette) instead of just a tint; this names it.
+			// Empty for the ordinary tinted skins. `Tint` is still the colour used where only one colour fits.
+			public string Style = "";
+			}
 
 		public static readonly PodSkinInfo[] PodSkins =
 		{
@@ -122,7 +125,13 @@ namespace Augments
 			new PodSkinInfo { Id = "frost", Name = "FROST", Tint = new Color(150, 210, 255) },
 			new PodSkinInfo { Id = "verdant", Name = "VERDANT", Tint = new Color(150, 255, 175) },
 			new PodSkinInfo { Id = "violet", Name = "VIOLET", Tint = new Color(205, 155, 255) },
-			new PodSkinInfo { Id = "gold", Name = "GOLD", Tint = new Color(255, 226, 110) }
+			new PodSkinInfo { Id = "gold", Name = "GOLD", Tint = new Color(255, 226, 110) },
+			// Ending rewards (see Endings.Rewards). Never sold, never an Operation reward.
+			new PodSkinInfo { Id = "untouched", Name = "UNTOUCHED", Tint = new Color(235, 245, 255), Style = "pearl" },
+			new PodSkinInfo { Id = "blank", Name = "BLANK SLATE", Tint = new Color(196, 192, 182), Style = "blank" },
+			new PodSkinInfo { Id = "hollow", Name = "EMPTY CHASSIS", Tint = new Color(150, 170, 190), Style = "hollow" },
+			new PodSkinInfo { Id = "scarred", Name = "PAIN TOLERANCE", Tint = new Color(255, 90, 60), Style = "scarred" },
+			new PodSkinInfo { Id = "glory", Name = "GLORY TO MANKIND", Tint = new Color(255, 214, 90), Style = "glory" }
 		};
 
 		public static readonly string[][] Titles =
@@ -132,7 +141,13 @@ namespace Augments
 			new[] { "vanguard", "VANGUARD" },
 			new[] { "veteran", "VETERAN" },
 			new[] { "commander", "COMMANDER" },
-			new[] { "legend", "LEGEND" }
+			new[] { "legend", "LEGEND" },
+			// Ending rewards (see Endings.Rewards): one title for each hidden ending, A to E.
+			new[] { "untouched", "UNTOUCHED" },
+			new[] { "basicinstinct", "BASIC INSTINCT" },
+			new[] { "emptychassis", "EMPTY CHASSIS" },
+			new[] { "paintolerance", "PAIN TOLERANCE" },
+			new[] { "glory", "GLORY TO MANKIND" }
 		};
 
 		public static readonly string[][] Emblems =
@@ -143,6 +158,16 @@ namespace Augments
 			new[] { "star", "STAR" },
 			new[] { "crown", "CROWN" }
 		};
+
+		public static PodSkinInfo FindPodSkin(string id)
+		{
+			foreach (PodSkinInfo s in PodSkins)
+			{
+				if (s.Id == id)
+					return s;
+			}
+			return PodSkins[0];
+		}
 
 		public static string PodSkinName(string id)
 		{

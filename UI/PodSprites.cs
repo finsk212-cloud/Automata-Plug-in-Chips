@@ -46,6 +46,24 @@ namespace Augments
 			"    " + "     TT     " + "    "
 		};
 
+		// The cells of the body a light band can pass over (the Glory to Mankind pod), and where its sparkles twinkle, in sprite cells.
+		internal static readonly Vector2[] GlintCells = BuildGlintCells();
+		internal static readonly Vector2[] SparkleSpots = { new Vector2(-2f, 0f), new Vector2(20f, 3f), new Vector2(2f, 17f), new Vector2(18f, 16f), new Vector2(10f, -2f), new Vector2(-3f, 10f) };
+
+		private static Vector2[] BuildGlintCells()
+		{
+			var cells = new List<Vector2>();
+			for (int y = 0; y < Height; y++)
+			{
+				for (int x = 0; x < Width; x++)
+				{
+					if ("BHMSAL".IndexOf(Mask[y][x]) >= 0)
+						cells.Add(new Vector2(x, y));
+				}
+			}
+			return cells.ToArray();
+		}
+
 		internal struct Palette
 		{
 			public Color Outline, Antenna, Highlight, Body, Mid, Shadow, Seam, Arm, ArmJoint, EyeOuter, EyeBright, EyeGlint, Accent, Signal, Thruster;
@@ -98,6 +116,89 @@ namespace Augments
 			return p;
 		}
 
+		// The palette for a skin: a hidden-ending style if it has one, otherwise the tint recolouring.
+		internal static Palette MakePalette(Cosmetic.PodSkinInfo skin)
+		{
+			return string.IsNullOrEmpty(skin.Style) ? MakePalette(skin.Tint) : StylePalette(skin.Style);
+		}
+
+		// The skin's style name ("" for an ordinary tinted skin), by position in Cosmetic.PodSkins.
+		internal static string StyleOf(int skinIndex)
+		{
+			skinIndex = Math.Max(0, Math.Min(skinIndex, Cosmetic.PodSkins.Length - 1));
+			return Cosmetic.PodSkins[skinIndex].Style ?? "";
+		}
+
+		// The looks of the five ending skins (A pearl, B blank, C hollow, D scarred, E glory). A colour with an alpha below 255 is see-through.
+		private static Palette StylePalette(string style)
+		{
+			Palette p = MakePalette(Color.White);
+			Color C(int r, int g, int b, int a = 255) => new Color(r, g, b, a);
+			switch (style)
+			{
+				case "pearl":
+					p.Highlight = C(252, 254, 255); p.Body = C(226, 233, 243); p.Mid = C(192, 202, 217); p.Shadow = C(152, 162, 180);
+					p.Seam = C(112, 122, 142); p.Arm = C(202, 210, 224); p.ArmJoint = C(122, 132, 152); p.Antenna = C(200, 210, 225);
+					p.EyeOuter = C(40, 60, 80); p.EyeBright = C(150, 235, 255); p.EyeGlint = C(255, 255, 255); p.Accent = C(120, 190, 220);
+					p.Signal = C(130, 238, 255); p.Thruster = C(160, 232, 255, 235);
+					break;
+				case "blank":
+					// One flat colour and no detail: the plainest pod there is.
+					Color flat = C(196, 192, 182);
+					p.Outline = C(60, 58, 52);
+					p.Highlight = p.Body = p.Mid = p.Shadow = p.Seam = p.Arm = p.ArmJoint = p.Antenna = p.Accent = p.Signal = flat;
+					p.EyeOuter = C(150, 146, 136); p.EyeBright = C(120, 116, 108); p.EyeGlint = C(120, 116, 108);
+					p.Thruster = C(196, 192, 182, 235);
+					break;
+				case "hollow":
+					p.Highlight = C(215, 228, 242, 150); p.Body = C(150, 170, 190, 60); p.Mid = C(120, 140, 165, 85); p.Shadow = C(90, 105, 130, 110);
+					p.Seam = C(46, 56, 76); p.Arm = C(110, 128, 150, 90); p.ArmJoint = C(60, 72, 92); p.Antenna = C(150, 165, 185);
+					p.EyeOuter = C(40, 55, 72, 160); p.EyeBright = C(90, 150, 175); p.EyeGlint = C(170, 200, 215); p.Accent = C(70, 90, 110, 120);
+					p.Signal = C(120, 160, 185); p.Thruster = C(110, 160, 190, 200);
+					break;
+				case "scarred":
+					p.Highlight = C(150, 130, 118); p.Body = C(110, 95, 88); p.Mid = C(84, 72, 66); p.Shadow = C(56, 48, 46);
+					p.Seam = C(26, 20, 20); p.Arm = C(96, 82, 74); p.ArmJoint = C(40, 30, 28); p.Antenna = C(130, 112, 100);
+					p.EyeOuter = C(60, 20, 20); p.EyeBright = C(255, 70, 60); p.EyeGlint = C(255, 200, 190); p.Accent = C(150, 70, 40);
+					p.Signal = C(255, 60, 50); p.Thruster = C(255, 120, 60, 235);
+					break;
+				case "glory":
+					p.Outline = C(44, 30, 8);
+					p.Highlight = C(255, 248, 200); p.Body = C(238, 196, 84); p.Mid = C(190, 140, 40); p.Shadow = C(128, 86, 20);
+					p.Seam = C(28, 18, 4); p.Arm = C(214, 166, 56); p.ArmJoint = C(60, 40, 8); p.Antenna = C(250, 220, 130);
+					p.EyeOuter = C(24, 16, 4); p.EyeBright = C(255, 244, 190); p.EyeGlint = C(255, 255, 250); p.Accent = C(255, 226, 120);
+					p.Signal = C(255, 246, 200); p.Thruster = C(255, 220, 120, 235);
+					break;
+			}
+			return p;
+		}
+
+		// Pixels drawn on top of the sprite for a style (the cracks and the patch plate of the scarred pod), in sprite cells.
+		private static readonly List<(int x, int y, Color c)> NoOverlay = new List<(int x, int y, Color c)>();
+		private static List<(int x, int y, Color c)> scarredOverlay;
+
+		internal static List<(int x, int y, Color c)> Overlay(string style)
+		{
+			if (style != "scarred")
+				return NoOverlay;
+			if (scarredOverlay != null)
+				return scarredOverlay;
+
+			var list = new List<(int x, int y, Color c)>();
+			var crack = new Color(26, 18, 16);
+			foreach ((int x, int y) in new[] { (6, 5), (7, 6), (7, 7), (8, 8), (8, 9), (9, 10), (9, 11), (10, 12), (12, 4), (12, 5), (13, 6) })
+				list.Add((x, y, crack));
+			for (int y = 9; y <= 11; y++)
+				for (int x = 13; x <= 14; x++)
+					list.Add((x, y, new Color(111, 127, 148)));
+			list.Add((13, 9, new Color(169, 184, 204)));
+			list.Add((14, 11, new Color(74, 88, 108)));
+			scarredOverlay = list;
+			return list;
+		}
+
+		// The game blends with premultiplied colour, so a see-through pixel must have its colour scaled by its alpha.
+		private static Color Premul(Color c) => c.A == 255 ? c : c * (c.A / 255f);
 		private static Color ColorOf(char c, in Palette p)
 		{
 			switch (c)
@@ -146,15 +247,19 @@ namespace Augments
 			if (textures.TryGetValue(key, out Texture2D tex) && tex != null && !tex.IsDisposed)
 				return tex;
 
-			Palette palette = MakePalette(Cosmetic.PodSkins[skinIndex].Tint);
+			Cosmetic.PodSkinInfo info = Cosmetic.PodSkins[skinIndex];
+			Palette palette = MakePalette(info);
 			tex = new Texture2D(Main.graphics.GraphicsDevice, Width, Height);
 			var data = new Color[Width * Height];
 			for (int y = 0; y < Height; y++)
 			{
 				string row = Mask[y];
 				for (int x = 0; x < Width; x++)
-					data[y * Width + x] = ColorOf(row[x], palette);
+					data[y * Width + x] = Premul(ColorOf(row[x], palette));
 			}
+
+			foreach ((int ox, int oy, Color oc) in Overlay(info.Style))
+				data[oy * Width + ox] = Premul(oc);
 
 			// Upgrade LEDs: a 2x2 light on each arm, one slot per upgrade (rows 6-7, 9-10 and 12-13), bright with a dark ring.
 			if (modules != null)
@@ -181,9 +286,13 @@ namespace Augments
 
 		// Draws the Pod into `box` as flat blocks (no texture needed), in a skin colour. Used for icons. The scale is a fraction of a
 		// pixel per cell, rounded at the block edges, so any box size fills nicely without gaps.
-		internal static void DrawBlocks(SpriteBatch sb, Rectangle box, Color skin)
+		internal static void DrawBlocks(SpriteBatch sb, Rectangle box, Color skin) => DrawBlocks(sb, box, MakePalette(skin), "");
+
+		// The same for a skin that may have an ending style (see StylePalette).
+		internal static void DrawBlocks(SpriteBatch sb, Rectangle box, Cosmetic.PodSkinInfo skin) => DrawBlocks(sb, box, MakePalette(skin), skin.Style ?? "");
+
+		private static void DrawBlocks(SpriteBatch sb, Rectangle box, Palette palette, string style)
 		{
-			Palette palette = MakePalette(skin);
 			float s = Math.Max(1f, Math.Min(box.Width / (float)Width, box.Height / (float)Height));
 			if (s >= 2f)
 				s = (float)Math.Floor(s); // whole pixels when there is room, so it stays crisp
@@ -210,11 +319,19 @@ namespace Augments
 
 					int left = ox + (int)Math.Round(x * s);
 					int right = ox + (int)Math.Round(x2 * s);
-					HubDraw.Fill(sb, new Rectangle(left, top, Math.Max(1, right - left), Math.Max(1, bottom - top)), ColorOf(ch, palette));
+					HubDraw.Fill(sb, new Rectangle(left, top, Math.Max(1, right - left), Math.Max(1, bottom - top)), Premul(ColorOf(ch, palette)));
 					x = x2;
 				}
 			}
+
+			foreach ((int cx, int cy, Color oc) in Overlay(style))
+			{
+				int left = ox + (int)Math.Round(cx * s);
+				int top = oy + (int)Math.Round(cy * s);
+				HubDraw.Fill(sb, new Rectangle(left, top, Math.Max(1, ox + (int)Math.Round((cx + 1) * s) - left), Math.Max(1, oy + (int)Math.Round((cy + 1) * s) - top)), Premul(oc));
+			}
 		}
+
 		// Frees the textures when the mod unloads. Disposing has to happen on the main thread.
 		internal static void Unload()
 		{

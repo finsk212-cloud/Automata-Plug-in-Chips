@@ -206,6 +206,9 @@ namespace Augments
 		internal static Texture2D GetPodTexture() => PodSprites.Get(Cosmetic.EquippedPodIndex);
 
 		internal static void DrawPodIcon(SpriteBatch sb, Rectangle box, Color skin) => PodSprites.DrawBlocks(sb, box, skin);
+
+		// The same for a whole skin, so an ending skin shows its own look.
+		internal static void DrawPodIcon(SpriteBatch sb, Rectangle box, Cosmetic.PodSkinInfo skin) => PodSprites.DrawBlocks(sb, box, skin);
 		private static string bubbleFor = "";
 		private static List<string> bubbleLines = new List<string>();
 

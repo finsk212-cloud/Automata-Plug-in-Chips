@@ -58,6 +58,24 @@ namespace Augments
 			return gained;
 		}
 
+		// What each ending gives, in the same order as All (A to E): a Profile title and a Pod skin. They belong to the account, are never
+		// sold, and stay owned. The ids match Cosmetic.Titles and Cosmetic.PodSkins.
+		public static readonly string[] RewardTitles = { "untouched", "basicinstinct", "emptychassis", "paintolerance", "glory" };
+		public static readonly string[] RewardPods = { "untouched", "blank", "hollow", "scarred", "glory" };
+
+		// Which ending gives this item (0 = A ... 4 = E), or -1 if no ending does.
+		public static int EndingOfTitle(string id) => Array.IndexOf(RewardTitles, id);
+		public static int EndingOfPod(string id) => Array.IndexOf(RewardPods, id);
+
+		// Unlocks the title and Pod skin of one ending. Safe to repeat.
+		public static void UnlockRewards(int index)
+		{
+			if (index < 0 || index >= All.Length)
+				return;
+
+			AccountStore.Unlock("title:" + RewardTitles[index]);
+			AccountStore.Unlock("podskin:" + RewardPods[index]);
+		}
 		public static bool Has(int mask, int index) => index >= 0 && index < All.Length && (mask & (1 << index)) != 0;
 
 		// The one place that decides which bosses count. The boss must be at least the ending's own minimum, and at least as new as
@@ -110,6 +128,17 @@ namespace Augments
 		{
 			fights.Clear();
 			EndingCallHUD.Clear();
+
+			// Rewards for endings this character already earned (safe to repeat), so the account always has them.
+			if (Active)
+			{
+				for (int i = 0; i < Endings.All.Length; i++)
+				{
+					if (Endings.Has(EarnedMask, i))
+						Endings.UnlockRewards(i);
+				}
+			}
+
 			lastSicknessTime = 0;
 			lastLife = -1;
 			lastLifeMax = -1;
@@ -232,6 +261,7 @@ namespace Augments
 				return;
 
 			EarnedMask |= 1 << index;
+			Endings.UnlockRewards(index);
 			// The call screen shows the ending and plays its own sounds.
 			EndingCallHUD.Show(index, EarnedMask, delaySeconds);
 		}

@@ -249,8 +249,9 @@ namespace Augments
 			Color light = Lighting.GetColor(pet.podPos.ToTileCoordinates());
 			Color color = Color.Lerp(light, Color.White, 0.6f);
 
-			Color skinTint = Cosmetic.PodSkins[Math.Min(pet.SkinIndex, Cosmetic.PodSkins.Length - 1)].Tint;
-			PodSprites.Palette palette = PodSprites.MakePalette(skinTint);
+			Cosmetic.PodSkinInfo skinInfo = Cosmetic.PodSkins[Math.Min(pet.SkinIndex, Cosmetic.PodSkins.Length - 1)];
+			string style = skinInfo.Style ?? "";
+			PodSprites.Palette palette = PodSprites.MakePalette(skinInfo);
 			float t = pet.AnimClock;
 
 			// Where a point of the sprite is on screen (the sprite tilts a little with movement).
@@ -266,6 +267,15 @@ namespace Augments
 			if (pet.AutopilotOn)
 				pet.Autopilot.QueueWire(ref drawInfo, pet.podPos, 1f);
 
+			// Glory to Mankind pod: a soft gold halo that breathes, behind everything.
+			if (style == "glory")
+			{
+				float breath = 0.5f + 0.5f * (float)Math.Sin(t * 0.033f);
+				Vector2 mid = At(PodSprites.Origin);
+				Dot(mid, 34, 30, new Color(255, 214, 90) * (0.035f + 0.02f * breath));
+				Dot(mid, 28, 24, new Color(255, 214, 90) * (0.05f + 0.03f * breath));
+				Dot(mid, 24, 20, new Color(255, 226, 120) * (0.07f + 0.04f * breath));
+			}
 			// 2. Thruster flame, flickering, behind the body.
 			float flicker = 0.5f + 0.5f * (float)Math.Sin(t * 0.9f) * (float)Math.Cos(t * 0.37f);
 			int flameLen = 2 + (int)Math.Round(flicker * 3f + Math.Min(1.5f, Math.Abs(player.velocity.X) * 0.15f));
@@ -276,6 +286,30 @@ namespace Augments
 			// 3. The body.
 			drawInfo.DrawDataCache.Add(new DrawData(tex, screen, null, color, tilt, PodSprites.Origin, 1f, SpriteEffects.None, 0));
 
+			// Glory to Mankind pod: a band of light sweeps across the gold, and sparkles twinkle round it.
+			if (style == "glory")
+			{
+				float band = (t * 0.2f) % 46f - 12f;
+				foreach (Vector2 cell in PodSprites.GlintCells)
+				{
+					float d = Math.Abs(cell.X + cell.Y * 0.7f - band);
+					if (d < 2.2f)
+						Dot(At(cell + new Vector2(0.5f, 0.5f)), 1, 1, Color.White * ((1f - d / 2.2f) * 0.8f));
+				}
+
+				for (int i = 0; i < PodSprites.SparkleSpots.Length; i++)
+				{
+					float phase = (t * 0.0217f + i * 0.37f) % 1f;
+					if (phase >= 0.28f)
+						continue;
+
+					float a = (float)Math.Sin(phase / 0.28f * Math.PI);
+					Vector2 p = At(PodSprites.SparkleSpots[i]);
+					Dot(p, 1, 1, new Color(255, 246, 200) * a);
+					Dot(p, 3, 1, new Color(255, 230, 140) * (a * 0.7f));
+					Dot(p, 1, 3, new Color(255, 230, 140) * (a * 0.7f));
+				}
+			}
 			// 4. The lens glows and pulses (green while the Autopilot upgrade is healing someone), and shutters shut now and then.
 			Vector2 lens = At(PodSprites.Lens);
 			bool healing = pet.AutopilotOn && pet.Autopilot.Healing;
@@ -290,7 +324,9 @@ namespace Augments
 			}
 
 			// 5. The antenna's signal light blinks.
-			if ((int)(t / 24f) % 3 == 0)
+			// The scarred pod's warning light blinks faster, as if something is wrong.
+			bool signalOn = style == "scarred" ? (int)(t / 14f) % 2 == 0 : (int)(t / 24f) % 3 == 0;
+			if (signalOn)
 				Dot(At(PodSprites.Antenna), 2, 2, Color.Lerp(palette.Signal, Color.White, 0.35f));
 		}
 	}
@@ -300,7 +336,7 @@ namespace Augments
 	{
 		public override string Command => "pod";
 		public override CommandType Type => CommandType.Chat;
-		public override string Usage => "/pod [on|off|skin <standard|amber|frost|verdant|violet|gold>]";
+		public override string Usage => "/pod [on|off|skin <standard|amber|frost|verdant|violet|gold|untouched|blank|hollow|scarred|glory>]";
 		public override string Description => "Show or hide your Pod 042 pet, or change its skin.";
 
 		public override void Action(CommandCaller caller, string input, string[] args)
@@ -332,7 +368,7 @@ namespace Augments
 
 					if (wanted != "default" && !AccountStore.IsUnlocked("podskin:" + wanted))
 					{
-						caller.Reply("You have not unlocked that skin yet. Skins come from Campaign rewards.", Color.OrangeRed);
+						caller.Reply("You have not unlocked that skin yet. Skins come from Campaign rewards and hidden endings.", Color.OrangeRed);
 						return;
 					}
 
@@ -341,7 +377,7 @@ namespace Augments
 					return;
 				}
 
-				caller.Reply("Skins: standard, amber, frost, verdant, violet, gold.", Color.OrangeRed);
+				caller.Reply("Skins: standard, amber, frost, verdant, violet, gold, untouched, blank, hollow, scarred, glory.", Color.OrangeRed);
 				return;
 			}
 

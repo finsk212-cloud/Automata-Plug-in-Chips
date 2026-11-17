@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
@@ -210,19 +210,21 @@ namespace Augments
 
 				case RewardKind.PodSkin:
 				{
-					Color tint = Color.White;
-					foreach (Cosmetic.PodSkinInfo skin in Cosmetic.PodSkins)
-					{
-						if (skin.Id == reward.Id)
-							tint = skin.Tint;
-					}
-					AugmentAdvisoryHUD.DrawPodIcon(sb, box, tint);
+					AugmentAdvisoryHUD.DrawPodIcon(sb, box, Cosmetic.FindPodSkin(reward.Id));
 					break;
 				}
 
 				case RewardKind.Title:
 				{
-					// Military rank chevrons: one more for each title, and a star above the highest.
+					// A title earned from a hidden ending is a diamond with the ending's letter.
+						int ending = Endings.EndingOfTitle(reward.Id);
+						if (ending >= 0)
+						{
+							EndingMark(sb, box, (char)('A' + ending));
+							break;
+						}
+
+						// Military rank chevrons: one more for each title, and a star above the highest.
 					int rank = TitleRank(reward.Id);
 					Color c = HubTheme.Accent;
 					float w = 0.8f * s;
@@ -254,6 +256,20 @@ namespace Augments
 			}
 		}
 
+		// A diamond plate with an ending's letter, the picture of an ending title.
+		private static void EndingMark(SpriteBatch sb, Rectangle box, char letter)
+		{
+			Vector2 m = box.Center.ToVector2();
+			float s = Math.Min(box.Width, box.Height) / 2f * 0.9f;
+			Span<Vector2> outer = stackalloc Vector2[] { new Vector2(m.X, m.Y - s), new Vector2(m.X + s, m.Y), new Vector2(m.X, m.Y + s), new Vector2(m.X - s, m.Y) };
+			Span<Vector2> inner = stackalloc Vector2[] { new Vector2(m.X, m.Y - s * 0.82f), new Vector2(m.X + s * 0.82f, m.Y), new Vector2(m.X, m.Y + s * 0.82f), new Vector2(m.X - s * 0.82f, m.Y) };
+			Poly(sb, outer, HubTheme.Accent);
+			Poly(sb, inner, HubTheme.PanelAlt);
+
+			float scale = Math.Max(0.5f, s / 14f);
+			string text = letter.ToString();
+			HubDraw.Text(sb, text, new Vector2(m.X - HubDraw.Width(text, scale) / 2f, m.Y - HubDraw.CapMid(scale)), HubTheme.Accent, scale);
+		}
 		// A small mock-up of the title screen in a colour scheme.
 		private static void SchemeCard(SpriteBatch sb, Rectangle box, MenuLook.Scheme s)
 		{
