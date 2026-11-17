@@ -21,7 +21,16 @@
 - Now triggers on crits against every part of a boss fight, such as Golem's head and fists
 - Strike size: 2.5% of the hit part's max HP => 2.5% of the whole boss's max HP
 
+#### Medi Gun | Epic | BUFF
+> It used to be gentle. Now it gets stronger the longer you stay.
+- [+] The damage tether warms up: up to +50% damage after 5 seconds on the same enemy
+- [+] The heal tether warms up too: up to +50% healing after 5 seconds on the same ally, and at once for an ally under half health
+- Damage tether: MK I 6 => 10 per second, MK II 20 => 40 per second, MK III 3x20 => 3x40, MK IV 3x50 => 3x100
+- Overclock hit: 25 => 40, 60 => 100, 150 => 250, 300 => 500
+- Heal tether per second: 3 => 4, 6 => 8, 10 => 12, 16 => 20
+- [~] Switching target, or letting go of the beam, starts the warm-up again
 
+### Visuals
 - **Old screen effect on more panels**: The Plugins menu, the Shop and Combat Analytics now turn off like an old computer screen, collapsing to a bright line and then a dot, and turn on the same way backwards.
 - **Readability and polish**: Improved text size and alignment for readability on the Orders and Profile pages, sharper page titles, and cleaner badge tiles and emblem icons.
 - **A shorter Medi Gun tooltip**: The Medi Gun's tooltip is much shorter now: one line for each beam, the warm-up, and what Overclock does. Hold Shift to see the full Overclock details.
