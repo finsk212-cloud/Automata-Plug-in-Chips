@@ -6,9 +6,22 @@
 - **Hidden endings**: Five secret challenge endings, A to E, are now tracked for each character and shown on the Profile page as a riddle until you earn them. They are about how you beat a boss, not just that you beat it. Every ending only counts from the Wall of Flesh onward, because beating an early boss without a hit was too easy, and the last one needs a Mechanical Boss or later. A boss older than your world's current stage never counts. Endings only work in singleplayer for now.
 - **Ending rewards**: Each hidden ending now gives a Profile title and a Pod skin, yours for the whole account. They stay secret on the Shop's Pods and Titles tabs, with only the ending's riddle as a hint, until you earn them.
 - **A better Profile page**: The Profile page on the title screen now draws your real character. It also shows your Best DPS (the highest damage per second you have reached over 3 seconds, saved for each character and shown as -- until you have one), your Data Fragments and how many points you have toward the next rank, like 25 / 50. The Machine Cores row is gone from this page. You can pin up to 3 favourite plugins: click a slot and pick one of the plugins that character has collected, and right click a slot to clear it. With more than one character, click the name box at the top right to pick one from a list, or use the arrows.
-- **A new Patch Notes page**: Balance changes now show as cards with a NERF, BUFF or ADJUSTED tag and the old and new numbers side by side. The notes are split into categories (New features, Plugin changes, Visuals, Bugs and fixes), the index on the left is grouped by version, and a glowing marker shows until you have opened the newest notes.
-- **New plugin: Upgrade Pod: Lighthouse**: Upgrade Pod: Lighthouse is a new Common Support plugin that upgrades your Pod. With it, your Pod becomes Pod 096 and lights up the area around you with a warm glow. Everyone near you sees by it too, and it works even while the Pod is hidden. Autopilot is now called Upgrade Pod: Autopilot, so every Pod upgrade is easy to spot.
-- **New plugin: Upgrade Pod: Ore Sniffer**: Upgrade Pod: Ore Sniffer is a new Common plugin that upgrades your Pod. With it, your Pod becomes Pod 311 and sniffs out the nearest ore within about 60 tiles, even through the ground. It never says the ore's name, it gives you a riddle instead, like "I sense something shiny nearby", along with how close you are and which way to dig. An arrow by the Pod points the way. It is an active plugin: press its button (set the key in the Controls menu) and the Pod sniffs for 2 seconds, then the riddle and arrow stay up for 5 seconds. After that it rests for 6 seconds before you can sniff again. It works even while the Pod is hidden.
+- **A new Patch Notes page**: Balance changes now show as cards with a NERF, BUFF, ADJUSTED or NEW tag and the old and new numbers side by side. The notes are split into categories (New features, New plugins, Plugin changes, Visuals, Bugs and fixes), the index on the left is grouped by version, and a glowing marker shows until you have opened the newest notes.
+
+### New plugins
+
+#### Upgrade Pod: Ore Sniffer | Common | NEW
+> Your Pod learned to smell treasure. It won't tell you what, only hints.
+- [+] Your Pod becomes Pod 311, and it works even while the Pod is hidden
+- [+] Press its button (set the key in the Controls menu) and the Pod sniffs for 2 seconds
+- [+] It gives a riddle about the nearest ore within about 60 tiles, how close you are and which way to dig, with an arrow by the Pod
+- [~] The riddle and arrow stay up for 5 seconds, then it rests for 6 seconds before you can sniff again
+
+#### Upgrade Pod: Lighthouse | Common | NEW
+> Who turned the lights on? Your Pod did.
+- [+] Your Pod becomes Pod 096 and lights up the area around you with a warm glow
+- [+] Everyone near you sees by it too, and it works even while the Pod is hidden
+- [~] Autopilot is now called Upgrade Pod: Autopilot, so every Pod upgrade is easy to spot
 
 ### Plugin changes
 

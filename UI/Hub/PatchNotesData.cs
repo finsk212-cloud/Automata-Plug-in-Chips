@@ -37,7 +37,7 @@ namespace Augments
 		//   - Bug damage: 18 => 15          (the old value is dimmed and crossed out, then an arrow, then the new value)
 		//   - [+] Now counts every boss part  ([-] nerf, [+] buff, [~] adjusted; without one, the card's tag decides)
 		public string Rarity; // Card: Common, Rare, Epic or Legendary
-		public string Tag;    // Card: NERF, BUFF, ADJUSTED...
+		public string Tag;    // Card: NERF, BUFF, ADJUSTED, or NEW for a brand new plugin
 		public int Dir;       // Card and Stat: -1 nerf, +1 buff, 0 adjusted
 	}
 
@@ -100,6 +100,7 @@ namespace Augments
 			{
 				case "NERF": return -1;
 				case "BUFF": return 1;
+				case "NEW": return 1;
 				default: return 0;
 			}
 		}
