@@ -20,8 +20,8 @@ namespace Augments.Core
 	//     - the damage that plugin dealt and how many hits (PluginDamage / PluginHits)
 	//     - the damage the weapon dealt while that plugin was equipped, and its hits (WeaponDamage / WeaponHits)
 	//     - the seconds spent in combat with that pair (Seconds)
-	//   and nothing else: the plugin id, an internal weapon key (like "Terraria/Uzi"), the weapon's damage class and the
-	//   progress stage. There is NO player name, Steam id, world name, install id, chat text or IP address in what is sent.
+	//   and nothing else: the plugin id, an internal weapon key (like "Terraria/Uzi"), the weapon's damage class, the weapon's
+	//   rarity and base damage (properties of the item itself) and the progress stage. There is NO player name, Steam id, world name, install id, chat text or IP address in what is sent.
 	//
 	// HOW IT IS NUMBERED. The numbers are plain additions, so the server can add batches from many players together and
 	// work out for each plugin and weapon: plugin damage per combat second, and the plugin's share of the total damage.
@@ -68,6 +68,11 @@ namespace Augments.Core
 		private static readonly Dictionary<int, string> keyByType = new Dictionary<int, string>();
 		private static readonly Dictionary<string, int> classByKey = new Dictionary<string, int>();
 
+		// What the weapon IS, not how it was used: its rarity and its base damage (before any prefix). Both are fixed properties of the item,
+		// so they say how late in the game the weapon belongs without comparing it to other players. The server uses them to tell a weapon that
+		// really is strong from one that is only strong because late-game gear was used in an early world.
+		private static readonly Dictionary<string, (int rare, int baseDamage)> infoByKey = new Dictionary<string, (int, int)>();
+
 		private static string lastWeapon = "none";
 		private static uint lastWeaponTick;
 		private static int flushCounter;
@@ -94,8 +99,16 @@ namespace Augments.Core
 
 			keyByType[item.type] = key;
 			classByKey[key] = (int)ClassOf(item);
+
+			// Only the vanilla rarities (white to purple) have a known order. Modded rarities, gray and the special ones are sent as -1 (unknown).
+			int rare = item.rare >= ItemRarityID.White && item.rare <= ItemRarityID.Purple ? item.rare : -1;
+			infoByKey[key] = (rare, Math.Max(0, item.OriginalDamage));
 			return key;
 		}
+
+		// The rarity and base damage recorded for a weapon key, or (-1, 0) for "none" and for a weapon that was never seen.
+		public static (int rare, int baseDamage) WeaponInfo(string key) =>
+			key != null && infoByKey.TryGetValue(key, out var info) ? info : (-1, 0);
 
 		private static AugmentClass ClassOf(Item item)
 		{
@@ -296,7 +309,8 @@ namespace Augments.Core
 				foreach (StatsBucket b in buckets.Values.OrderByDescending(x => x.PluginDamage).Take(max))
 				{
 					double dps = b.Seconds > 0.5 ? b.PluginDamage / b.Seconds : 0;
-					lines.Add($"{b.Plugin} on {b.Weapon} (class {b.Class}, stage {b.Stage}): plugin {b.PluginDamage} dmg / {b.PluginHits} hits, weapon {b.WeaponDamage} dmg / {b.WeaponHits} hits, {b.Seconds:0.0}s = {dps:0} per second");
+					var info = WeaponInfo(b.Weapon);
+					lines.Add($"{b.Plugin} on {b.Weapon} (class {b.Class}, rarity {info.rare}, base damage {info.baseDamage}, stage {b.Stage}): plugin {b.PluginDamage} dmg / {b.PluginHits} hits, weapon {b.WeaponDamage} dmg / {b.WeaponHits} hits, {b.Seconds:0.0}s = {dps:0} per second");
 				}
 				return lines;
 			}
@@ -350,6 +364,8 @@ namespace Augments.Core
 						p = r.Plugin,
 						w = r.Weapon,
 						c = r.Class,
+							r = StatsCollector.WeaponInfo(r.Weapon).rare,
+							bd = StatsCollector.WeaponInfo(r.Weapon).baseDamage,
 						g = r.Stage,
 						pd = r.PluginDamage,
 						ph = r.PluginHits,

@@ -19,7 +19,7 @@ const WEAPON_KEY = /^[A-Za-z0-9_./-]{1,80}$/;   // "Terraria/Uzi", "CalamityMod/
 const MOD_VERSION = /^[0-9.]{1,20}$/;
 
 // Sanity limits for ONE batch row (a batch is at most about 10 minutes of play), so a forged request cannot ruin the totals.
-const LIMITS = { pd: 2e9, ph: 1e6, wd: 2e9, wh: 1e6, t: 3600, c: 10, g: 30 };
+const LIMITS = { pd: 2e9, ph: 1e6, wd: 2e9, wh: 1e6, t: 3600, c: 10, g: 30, rare: 11, bd: 100000 };
 
 function int(value, max) {
   return Number.isInteger(value) && value >= 0 && value <= max ? value : null;
@@ -66,6 +66,13 @@ async function ingest(request, env) {
          batches = batches + 1, pdmg = pdmg + ?6, phits = phits + ?7, wdmg = wdmg + ?8, whits = whits + ?9, seconds = seconds + ?10,
          nb = nb + ?12, sb = sb + ?13, sb2 = sb2 + ?14`
     ).bind(r.p, r.w, c, g, cal, pd, ph, wd, wh, t, body.mod, counted, boost, boost * boost));
+
+    // What the weapon is (rarity and base damage). Older versions of the mod do not send these, so they are optional.
+    if (r.w !== 'none' && Number.isInteger(r.r) && r.r >= -1 && r.r <= LIMITS.rare && Number.isInteger(r.bd) && r.bd >= 0 && r.bd <= LIMITS.bd) {
+      statements.push(env.DB.prepare(
+        `INSERT INTO weapons (weapon, rare, bd) VALUES (?1, ?2, ?3) ON CONFLICT(weapon) DO UPDATE SET rare = ?2, bd = ?3`
+      ).bind(r.w, r.r, r.bd));
+    }
   }
 
   if (statements.length > 0) await env.DB.batch(statements);
@@ -88,7 +95,11 @@ async function reportJson(env) {
      UNION ALL
      SELECT plugin, weapon, class, stage, cal, 'earlier', batches, pdmg, phits, wdmg, whits, seconds, 0, 0, 0 FROM stats`
   ).all();
-  return new Response(JSON.stringify({ plugins: PLUGINS, rows: results }), { headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
+  // weapon -> [rarity, base damage]. Weapons that were never uploaded by a version that sends these are simply missing.
+  const weapons = {};
+  const w = await env.DB.prepare('SELECT weapon, rare, bd FROM weapons').all();
+  for (const x of w.results) weapons[x.weapon] = [x.rare, x.bd];
+  return new Response(JSON.stringify({ plugins: PLUGINS, rows: results, weapons }), { headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
 }
 
 export default {

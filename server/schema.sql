@@ -43,3 +43,12 @@ CREATE TABLE IF NOT EXISTS stats2 (
   sb2      REAL    NOT NULL DEFAULT 0,
   PRIMARY KEY (plugin, weapon, class, stage, cal, ver)
 );
+
+-- WHAT EACH WEAPON IS: its rarity (0 white to 11 purple, -1 = a modded or special rarity with no known order) and its base damage before
+-- any prefix. These are properties of the item itself, the same for every player, so the report can tell a weapon that really is strong
+-- from late-game gear used in an early world. One row per weapon; the newest upload overwrites the previous values.
+CREATE TABLE IF NOT EXISTS weapons (
+  weapon   TEXT    NOT NULL PRIMARY KEY,
+  rare     INTEGER NOT NULL,
+  bd       INTEGER NOT NULL
+);

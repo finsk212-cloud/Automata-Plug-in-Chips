@@ -44,7 +44,11 @@ because if the new worker goes live before the table exists, uploads fail and th
 2. `wrangler deploy`
 
 Your old numbers stay. The report shows them as the version "earlier". New uploads are filed under the mod version that sent them.
-The mod itself does not need to change: it already sends its version.
+The mod itself does not need to change for this: it already sends its version.
+
+**Weapon rarity (mod 1.4.2 and later).** The schema file also creates a small `weapons` table (one row per weapon: its rarity and base
+damage). Run step 1 again before step 2, for the same reason as above: a new worker writes to that table. Older mod versions send no rarity;
+the report copes with that, and fills in from newer uploads, because a weapon's rarity is the same for every player and every version.
 
 ## How to read the report
 
@@ -68,6 +72,11 @@ The page starts on the **newest mod version**, because balance is about the curr
   like weapons 3 or more stages ahead (this second rule still works when your own testing is most of a stage's data). A weapon is only
   flagged when its damage per second **and** its damage per hit are both high, so slow heavy hitters and fast weak weapons are left alone.
   The numbers come from every mod version, because gear does not change with a patch.
+  **The most reliable rule is the rarity rule** (needs mod 1.4.2 or later uploads): the mod sends each weapon's rarity, and an editable
+  "Rarity table" says from which stage each rarity belongs. A weapon used more than "slack" stages (default 1) before that is left out, even
+  with no other players to compare with. **The table's defaults are my guesses, not facts**: rarity is only a rough sign of progression
+  (Terra Blade is red but comes long before the Moon Lord), so check the "Rarity" and "Base damage" columns and edit the table. Weapons
+  with a modded rarity (for example from Calamity) have no known order and fall back to the other rules.
   **It is a best guess, not a measurement**: the data never says which gear a player had, and the damage cap squeezes the difference at low
   stages, so a moderately overgeared weapon can slip under the line. It also needs other players to compare with (at least 3 other weapons
   of the same class, each with a minute of data). **While most of the data is your own testing, it cannot judge those weapons and says so
@@ -107,7 +116,8 @@ To start over, empty the local tables first: `wrangler d1 execute automata-stats
 
 ## Privacy, in plain words
 
-The mod sends only: plugin id, an internal weapon key (like `Terraria/Uzi`), the weapon's damage class, the progress stage,
+The mod sends only: plugin id, an internal weapon key (like `Terraria/Uzi`), the weapon's damage class, the weapon's rarity and base
+damage (properties of the item, the same for every player; added in mod version 1.4.2), the progress stage,
 damage totals, hit counts, combat seconds, the mod version and whether Calamity is installed. No name, Steam account, world name,
 install id or chat. The server code never reads the IP address, and the database has no column that could hold one or a time.
 For the consistency measure the server also keeps, per row, how many uploads counted and two running sums of their Boost (the Boost and

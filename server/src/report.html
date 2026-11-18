@@ -148,12 +148,20 @@
 <p class="note bad" id="gear-note" style="display:none"></p>
 <p class="note low" id="gear-warn" style="display:none"></p>
 <details id="gear"><summary id="gear-sum">Gear check</summary>
- <p class="mini">Testing with late-game gear in an early world makes numbers look huge: weapon damage and Plugin DPS go up with gear, while a plugin's own damage grows only with the world stage. This check looks for weapons whose damage per second and damage per hit are both far above other weapons at the same stage, or already as high as weapons several stages ahead, and leaves them out of every number below. It is a best guess, so look at the list and use Skip or Keep on any row. Your choices are saved in this browser only.</p>
+ <p class="mini">Testing with late-game gear in an early world makes numbers look huge: weapon damage and Plugin DPS go up with gear, while a plugin's own damage grows only with the world stage. This check leaves out weapons that are too strong for the stage, using three signs: the weapon's rarity compared with the stage (when the mod sent it), damage per second and per hit both far above other weapons at the same stage, or already as high as weapons several stages ahead. It is a best guess, so look at the list and use Skip or Keep on any row. Your choices are saved in this browser only.</p>
  <div class="row" style="margin:0 0 10px">
   <label class="chk"><input type="checkbox" id="g-on" checked>Leave overgeared data out of everything below</label>
   <label>Flag at (times the stage's typical weapon)<input type="number" id="g-t" min="1.5" step="0.5" value="5"></label>
   <button class="btn" id="g-reset">Forget my Skip and Keep choices</button>
  </div>
+ <details id="gear-tier-d"><summary>Rarity table: from which stage each weapon rarity belongs (editable placeholders)</summary>
+  <p class="mini">Newer versions of the mod send each weapon's rarity. A weapon used more than "slack" stages before the stage its rarity belongs to is left out, even when no other player has uploaded anything to compare with. <b>The defaults are my guesses, not facts</b>: rarity is only a rough sign of progression (Terra Blade is red but comes long before the Moon Lord). Use the "Rarity" and "Base damage" columns below, and edit this table until the cut-offs match what you know of the game. Weapons with a modded or unknown rarity are not covered by this rule.</p>
+  <table id="gear-tier"></table>
+  <div class="row" style="margin:8px 0 0">
+   <label>Slack: stages a weapon may be early<input type="number" id="g-slack" min="0" max="10" value="1"></label>
+   <button class="btn" id="g-tier-reset">Reset the rarity table</button>
+  </div>
+ </details>
  <div id="gear-list" class="tbl"></div>
 </details>
 <section id="s-actions">
@@ -246,9 +254,21 @@ function thr(rarity) {
 // Rule 2 is there for when the tester is most of the data and the stage's own median is overgeared too.
 var GEAR_MIN_SEC = 60, GEAR_MIN_HITS = 20, GEAR_AHEAD = 3, GEAR_T = 5;
 var G = { pairs: [], auto: {} };
+var W = {}; // weapon -> [rarity, base damage], as uploaded by mod versions that send them
+var RARITY_NAMES = ['White', 'Blue', 'Green', 'Orange', 'Light red', 'Pink', 'Light purple', 'Lime', 'Yellow', 'Cyan', 'Red', 'Purple'];
+// The tier rule: the earliest stage each vanilla rarity usually belongs to. THESE ARE PLACEHOLDERS from my memory of the game, not facts:
+// rarity is only a rough sign of progression (for example Terra Blade is red but comes long before the Moon Lord). Check them against the
+// "stage used" column in the list and edit them in the Rarity table. A weapon is flagged when it is used more than "slack" stages earlier.
+// (Plain values inside the function, not constants declared above it: loadGear() runs while the page state is being created, before this
+// section has been reached, so a constant here would still be undefined at that moment.)
+function gearDefaults() { return { on: true, T: 5, skip: {}, keep: {}, tier: { 0: 0, 1: 0, 2: 0, 3: 1, 4: 2, 5: 2, 6: 3, 7: 4, 8: 5, 9: 6, 10: 4, 11: 6 }, slack: 1 }; }
 function loadGear() {
-  try { var s = JSON.parse(localStorage.getItem('automata-gear') || 'null'); if (s && typeof s.T === 'number' && s.skip && s.keep) return s; } catch (e) {}
-  return { on: true, T: GEAR_T, skip: {}, keep: {} };
+  var base = gearDefaults();
+  try {
+    var s = JSON.parse(localStorage.getItem('automata-gear') || 'null');
+    if (s && typeof s.T === 'number' && s.skip && s.keep) { s.tier = s.tier || base.tier; s.slack = typeof s.slack === 'number' ? s.slack : base.slack; return s; }
+  } catch (e) {}
+  return base;
 }
 function saveGear() { try { localStorage.setItem('automata-gear', JSON.stringify(S.gear)); } catch (e) {} }
 function gearKey(weapon, stage) { return weapon + '|' + stage; }
@@ -282,14 +302,24 @@ function analyzeGear() {
   }
   G = { pairs: list, auto: {}, nothing: 0 };
   list.forEach(function (p) {
-    p.same = 0; p.ahead = 0; p.why = []; p.cmp = false;
-    if (!p.ok) return;
-    var s = both(p, false), a = both(p, true);
-    p.cmp = s != null || a != null;
-    if (s != null) { p.same = s; if (s >= T) p.why.push('damage per second and per hit are both ' + s.toFixed(1) + 'x other weapons at this stage'); }
-    if (a != null) { p.ahead = a; if (a >= 1) p.why.push('already hits like weapons ' + GEAR_AHEAD + '+ stages ahead'); }
+    var wi = W[p.weapon];
+    p.rare = wi ? wi[0] : -1; p.bd = wi ? wi[1] : 0;
+    p.same = 0; p.ahead = 0; p.why = []; p.cmp = false; p.early = null;
+    // The tier rule needs no other players: what the weapon IS (its rarity) says from which stage it belongs. It works on thin data too,
+    // because a weapon that is too strong for the stage pollutes the numbers however little of it there is.
+    var from = p.rare >= 0 ? S.gear.tier[p.rare] : null;
+    if (from != null) {
+      p.cmp = true; p.early = from - p.stage;
+      if (p.early > S.gear.slack) p.why.push(RARITY_NAMES[p.rare] + ' weapons usually belong from ' + (STAGE_SHORT[from] || from) + ' on, ' + p.early + ' stage' + (p.early > 1 ? 's' : '') + ' later than this');
+    }
+    if (p.ok) {
+      var s = both(p, false), a = both(p, true);
+      p.cmp = p.cmp || s != null || a != null;
+      if (s != null) { p.same = s; if (s >= T) p.why.push('damage per second and per hit are both ' + s.toFixed(1) + 'x other weapons at this stage'); }
+      if (a != null) { p.ahead = a; if (a >= 1) p.why.push('already hits like weapons ' + GEAR_AHEAD + '+ stages ahead'); }
+    }
     if (p.why.length) G.auto[p.key] = true;
-    if (!p.cmp) G.nothing++;
+    if (p.ok && !p.cmp) G.nothing++;
   });
   list.sort(function (a, b) { return b.dps - a.dps; });
 }
@@ -303,6 +333,15 @@ function toggleGear(k) {
   saveGear(); render();
 }
 
+function renderTier() {
+  var h = '<tr><th>Weapon rarity</th><th>Belongs from stage</th><th>Weapons seen</th></tr>';
+  RARITY_NAMES.forEach(function (n, r) {
+    var seen = G.pairs.filter(function (p) { return p.rare === r; }).length;
+    h += '<tr><td>' + r + ' &middot; ' + n + '</td><td><select data-tier="' + r + '">' + STAGES.map(function (s, i) { return '<option value="' + i + '"' + (S.gear.tier[r] === i ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join('') + '</select></td><td class="mini">' + seen + ' weapon and stage pair' + (seen === 1 ? '' : 's') + '</td></tr>';
+  });
+  $('gear-tier').innerHTML = h; $('g-slack').value = S.gear.slack;
+}
+
 function renderGear() {
   var g = S.gear, flagged = Object.keys(G.auto).length, left = S.left, shown = G.pairs.filter(function (p) { return p.sec >= 10; }), lim = S.gearAll ? shown.length : 30;
   var checkable = G.pairs.filter(function (p) { return p.ok; }).length;
@@ -310,13 +349,13 @@ function renderGear() {
   var warn = $('gear-warn');
   if (G.nothing) {
     warn.style.display = 'block';
-    warn.innerHTML = '<b>The Gear check cannot judge ' + (G.nothing === checkable ? 'any' : G.nothing + ' of ' + checkable) + ' weapon and stage pair' + (checkable > 1 ? 's' : '') + ' yet.</b> It compares a weapon with at least 3 other weapons of the same class (at the same stage, or 3+ stages ahead), each with a minute or more of data, and there are not enough uploads for that. Until more players share, nothing is cut automatically for these: if you tested with gear that is too strong for the stage, use Skip in the list.<button class="btn" id="g-open2">Open the list</button>';
+    warn.innerHTML = '<b>The Gear check cannot judge ' + (G.nothing === checkable ? 'any' : G.nothing + ' of ' + checkable) + ' weapon and stage pair' + (checkable > 1 ? 's' : '') + ' yet.</b> It compares a weapon with at least 3 other weapons of the same class (at the same stage, or 3+ stages ahead), each with a minute or more of data, and there are not enough uploads for that. It can also use the rarity of the weapon, but only for uploads from a mod version that sends it. Until then nothing is cut automatically for these: if you tested with gear that is too strong for the stage, use Skip in the list.<button class="btn" id="g-open2">Open the list</button>';
   } else warn.style.display = 'none';
   var note = $('gear-note');
   if (left.pairs) { note.style.display = 'block'; note.innerHTML = '<b>The Gear check left out ' + left.rows + ' rows</b> (' + left.pairs + ' weapon and stage pair' + (left.pairs > 1 ? 's' : '') + ' that look overgeared for their stage, like late-game gear in an early world). Every number below ignores them.<button class="btn" id="g-open">Review the list</button>'; }
   else note.style.display = 'none';
   if (!shown.length) { $('gear-list').innerHTML = '<div class="none">No weapon data yet.</div>'; return; }
-  var h = '<table><thead><tr><th class="l">Weapon</th><th class="l">Stage</th><th class="l">Class</th><th>Weapon DPS</th><th>Damage per hit</th><th>vs this stage</th><th>vs stages ahead</th><th>Data</th><th class="l">Status</th><th></th></tr></thead><tbody>';
+  var h = '<table><thead><tr><th class="l">Weapon</th><th class="l">Stage</th><th class="l">Class</th><th class="l">Rarity</th><th>Base damage</th><th>Weapon DPS</th><th>Damage per hit</th><th>vs this stage</th><th>vs stages ahead</th><th>Data</th><th class="l">Status</th><th></th></tr></thead><tbody>';
   shown.slice(0, lim).forEach(function (p) {
     var ex = excludedKey(p.key), flag = !!G.auto[p.key], st;
     if (ex) st = '<span class="chip c-toostrong">left out</span> <span class="mini">' + (g.skip[p.key] ? 'by you' : esc(p.why.join('; '))) + '</span>';
@@ -325,7 +364,7 @@ function renderGear() {
     else if (!p.ok) st = '<span class="dim">too little data to judge</span>';
     else if (!p.cmp) st = '<span class="chip c-na">cannot check yet</span> <span class="mini">too few other weapons to compare with</span>';
     else st = '<span class="chip c-normal">looks fine</span>';
-    h += '<tr><td class="l">' + esc(weaponName(p.weapon)) + '</td><td class="l">' + esc(STAGES[p.stage] || p.stage) + '</td><td class="l">' + (CLASSES[p.cls] || p.cls) + '</td><td>' + fmt(p.dps) + '</td><td>' + fmt(p.hit) + '</td>' +
+    h += '<tr><td class="l">' + esc(weaponName(p.weapon)) + '</td><td class="l">' + esc(STAGES[p.stage] || p.stage) + '</td><td class="l">' + (CLASSES[p.cls] || p.cls) + '</td><td class="l">' + (p.rare >= 0 ? esc(RARITY_NAMES[p.rare]) : '<span class="dim">unknown</span>') + '</td><td>' + (p.bd > 0 ? p.bd : '<span class="dim">-</span>') + '</td><td>' + fmt(p.dps) + '</td><td>' + fmt(p.hit) + '</td>' +
       '<td>' + (p.same > 0 ? p.same.toFixed(1) + 'x' : '<span class="dim">-</span>') + '</td><td>' + (p.ahead > 0 ? p.ahead.toFixed(1) + 'x' : '<span class="dim">-</span>') + '</td>' +
       '<td class="mini">' + fmtTime(p.sec) + ', ' + p.wh + ' hits</td><td class="l">' + st + '</td><td><button class="btn" data-gear="' + esc(p.key) + '"' + (g.on ? '' : ' disabled title="Switch the check on to use Skip and Keep"') + '>' + (ex ? 'Keep' : 'Skip') + '</button></td></tr>';
   });
@@ -640,6 +679,9 @@ $('ttable').addEventListener('input', function (e) {
 });
 $('g-on').onchange = function () { S.gear.on = this.checked; saveGear(); render(); };
 $('g-t').addEventListener('input', function () { var v = +this.value; if (!(v >= 1.5)) return; S.gear.T = v; saveGear(); analyzeGear(); render(); });
+$('gear-tier').addEventListener('change', function (e) { var r = e.target.getAttribute('data-tier'); if (r == null) return; S.gear.tier[r] = +e.target.value; saveGear(); analyzeGear(); render(); });
+$('g-slack').addEventListener('input', function () { var v = +this.value; if (!(v >= 0)) return; S.gear.slack = v; saveGear(); analyzeGear(); render(); });
+$('g-tier-reset').onclick = function () { var d = gearDefaults(); S.gear.tier = d.tier; S.gear.slack = d.slack; saveGear(); analyzeGear(); renderTier(); render(); };
 $('g-reset').onclick = function () { S.gear.skip = {}; S.gear.keep = {}; saveGear(); render(); };
 $('t-reset').onclick = function () { S.targets = JSON.parse(JSON.stringify(DEFAULTS)); saveTargets(); renderTargets(); render(); };
 
@@ -662,8 +704,8 @@ document.addEventListener('mouseover', function (e) {
 document.addEventListener('mousemove', function (e) { if (tipEl.style.display === 'block') placeTip(e.clientX, e.clientY); });
 document.addEventListener('mouseout', function (e) { if (e.target.closest('[data-tip]')) tipEl.style.display = 'none'; });
 fetch('/report.json?token=' + encodeURIComponent(token)).then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); }).then(function (data) {
-  all = (data.rows || []).map(function (r) { r.nb = r.nb || 0; r.sb = r.sb || 0; r.sb2 = r.sb2 || 0; return r; }); plugins = data.plugins || {};
-  $('g-on').checked = S.gear.on; $('g-t').value = S.gear.T; analyzeGear();
+  all = (data.rows || []).map(function (r) { r.nb = r.nb || 0; r.sb = r.sb || 0; r.sb2 = r.sb2 || 0; return r; }); plugins = data.plugins || {}; W = data.weapons || {};
+  $('g-on').checked = S.gear.on; $('g-t').value = S.gear.T; analyzeGear(); renderTier();
   fillFilters(); renderTargets(); renderGaps(); render(); openFromHash();
 }).catch(function (e) { document.body.insertAdjacentHTML('beforeend', '<p style="color:var(--red)">Could not load the numbers (' + e + '). Is the password in the address right?</p>'); });
 })();

@@ -96,13 +96,28 @@ if (!testerOnly) for (const w of ['IronBroadsword', 'Katana', 'LightsBane']) {
 // The Gear check must leave it in, because only one of its two numbers is high.
 if (!testerOnly) specs.push(['riposte', 'Terraria/SlowHeavyHammer', 'Melee', 'Start', '1.4.2', 5, 40, 45, 30, 0.2, 400]);
 
+// What each weapon IS, as newer versions of the mod send it: [rarity 0 to 11 (-1 = modded or unknown), base damage]. Weapons not listed here send
+// nothing (like an older mod version), so the page has to cope with missing rarity too. The normal weapons get rarity by stage.
+const NORMAL_RARITY = [1, 3, 4, 5, 7, 8, 9];
+const INFO = {
+  'Terraria/Zenith': [10, 190], 'Terraria/TerraBlade': [10, 120], 'Terraria/StarWrath': [10, 170], 'Terraria/Meowmere': [10, 200],
+  'Terraria/SolarEruption': [9, 150], 'Terraria/Uzi': [3, 20], 'Terraria/Megashark': [4, 25], 'Terraria/SlowHeavyHammer': [2, 30],
+  'CalamityMod/FakeModdedBlade': [-1, 400]
+};
+STAGE_NAMES.forEach((stage, si) => ['Melee', 'Ranged'].forEach(cls => NORMAL[cls][si].forEach(w => { INFO['Terraria/' + w] ??= [NORMAL_RARITY[si], 10 + si * 15]; })));
+if (!process.argv.includes('--no-rarity')) {
+  // a modded weapon with unknown rarity used at Start, to see the page fall back to the other signs
+  specs.push(['riposte', 'CalamityMod/FakeModdedBlade', 'Melee', 'Start', '1.4.2', 4, 25, 900, 30, 0.2]);
+}
+
 let sent = 0;
 for (const [plugin, weapon, cls, stage, ver, uploads, secs, wdps, boost, spread, fixedHit] of specs) {
   for (let i = 0; i < uploads; i++) {
     const b = Math.max(0, boost * (1 + (rand() * 2 - 1) * spread));
     const t = Math.max(1, Math.round(secs * (0.7 + rand() * 0.6) * 10) / 10);
     const wd = Math.round(wdps * t), pd = boost === 0 ? 0 : Math.round(wd * b / 100);
-    const row = { p: plugin, w: weapon, c: CLASS[cls], g: STAGE[stage], pd, ph: Math.max(1, Math.round(pd / 40)), wd, wh: wd > 0 ? Math.max(1, Math.round(wd / (fixedHit || hitSize(wdps, stage)))) : 0, t };
+    const info = process.argv.includes('--no-rarity') ? null : INFO[weapon];
+    const row = { p: plugin, w: weapon, c: CLASS[cls], ...(info ? { r: info[0], bd: info[1] } : {}), g: STAGE[stage], pd, ph: Math.max(1, Math.round(pd / 40)), wd, wh: wd > 0 ? Math.max(1, Math.round(wd / (fixedHit || hitSize(wdps, stage)))) : 0, t };
     const res = await fetch(base + '/', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ v: 1, mod: ver, cal: false, rows: [row] }) });
     if (!res.ok) { console.error('POST failed', res.status, await res.text()); process.exit(1); }
     sent++;

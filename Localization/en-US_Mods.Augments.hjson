@@ -408,7 +408,7 @@ Configs: {
 
 		ShareAnonymousStats: {
 			Label: Share Anonymous Stats
-			Tooltip: Helps balance Plug-in Chips and improve the mod. Sends only plugin damage numbers: which plugin, which weapon, how much damage and how long the fight lasted. No name, Steam account, world name or IP address is stored. Turn this off at any time.
+			Tooltip: Helps balance Plug-in Chips and improve the mod. Sends only plugin damage numbers: which plugin, which weapon (with its rarity and base damage), how much damage and how long the fight lasted. No name, Steam account, world name or IP address is stored. Turn this off at any time.
 		}
 	}
 
