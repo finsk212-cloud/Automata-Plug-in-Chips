@@ -123,6 +123,16 @@ namespace Augments
 					title.Hint = Endings.All[e].Riddle;
 					items.Add(title);
 				}
+				// The Fallen Unit rewards (see FallenUnitLogs). Also secrets until earned.
+				for (int r = 0; r < FallenUnitLogs.RewardIds.Length; r++)
+				{
+					ShopItem pod = MakeItem(RewardKind.PodSkin, FallenUnitLogs.RewardIds[r], -1);
+					pod.Hint = FallenUnitLogs.RewardHints[r];
+					items.Add(pod);
+					ShopItem title = MakeItem(RewardKind.Title, FallenUnitLogs.RewardIds[r], -1);
+					title.Hint = FallenUnitLogs.RewardHints[r];
+					items.Add(title);
+				}
 				foreach (string[] emblem in Cosmetic.Emblems)
 					if (Cosmetic.EmblemPrice(emblem[0]) >= 0) items.Add(MakeItem(RewardKind.Emblem, emblem[0], Cosmetic.EmblemPrice(emblem[0])));
 				return items;

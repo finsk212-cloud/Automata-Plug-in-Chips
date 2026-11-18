@@ -690,6 +690,9 @@ namespace Augments
 			if (Player.dead)
 				return;
 
+			// Standing near a unit you have recovered saves its memory log, and may finish a reward (see FallenUnitLogs).
+			FallenUnitLogs.Update(Player);
+
 			// The Pod beeps when an unrecovered unit is within 50 tiles, faster and a little higher the closer it is,
 			// right up to the body. It goes quiet while the unit's panel is open.
 			FallenUnit nearest = FallenUnitSystem.Nearest(Player.Center, Player);
@@ -1206,7 +1209,8 @@ namespace Augments
 			Vector2 tl = TopLeft(unit, scene);
 
 			const float boxW = 250f;
-			float boxH = recovered ? 46f : 74f;
+			string[] log = recovered ? FallenUnitLogs.LinesOf(unit) : null; // a recovered unit's memory log, read from the Pod
+			float boxH = recovered ? 42f + 16f * (log.Length + 1) : 74f;
 			var center = new Vector2(unit.X * 16 + 8, tl.Y - 26f - boxH / 2f);
 			float fade = Math.Min(1f, focusTicks / 10f);
 
@@ -1234,7 +1238,19 @@ namespace Augments
 			Write("POD 042", left, dim);
 			Write(Typed(line1, shown), left + new Vector2(0f, 16f), recovered ? dim : text);
 			if (recovered)
+			{
+				// The header, then the log itself, one line after the other.
+				string header = "LOG " + (FallenUnitLogs.IndexOf(unit) + 1) + " OF " + FallenUnitLogs.Logs.Length;
+				int typed = shown - line1.Length;
+				Write(Typed(header, typed), left + new Vector2(0f, 32f), amber);
+				typed -= header.Length;
+				for (int i = 0; i < log.Length; i++)
+				{
+					Write(Typed(log[i], typed), left + new Vector2(0f, 48f + 16f * i), text);
+					typed -= log[i].Length;
+				}
 				return;
+			}
 
 			string line2 = "Its plugin can still be recovered.";
 			Write(Typed(line2, shown - line1.Length), left + new Vector2(0f, 32f), text);

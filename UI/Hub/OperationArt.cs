@@ -241,6 +241,14 @@ namespace Augments
 							break;
 						}
 
+						// The two Fallen Unit titles wear a diamond with a letter too (U, H).
+						char fallenMark = FallenUnitLogs.MarkOfTitle(reward.Id);
+						if (fallenMark != '\0')
+						{
+							EndingMark(sb, box, fallenMark);
+							break;
+						}
+
 						// Military rank chevrons: one more for each title, and a star above the highest.
 					int rank = TitleRank(reward.Id);
 					Color c = HubTheme.Accent;

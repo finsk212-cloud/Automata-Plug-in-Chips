@@ -169,6 +169,20 @@ namespace Augments
 					p.EyeOuter = C(24, 16, 4); p.EyeBright = C(255, 244, 190); p.EyeGlint = C(255, 255, 250); p.Accent = C(255, 226, 120);
 					p.Signal = C(255, 246, 200); p.Thruster = C(255, 220, 120, 235);
 					break;
+				case "patchwork":
+					// A beige pod stitched together from spare parts: six coloured patches sit on top (see Overlay).
+					p.Highlight = C(240, 234, 220); p.Body = C(214, 206, 190); p.Mid = C(184, 176, 160); p.Shadow = C(140, 132, 118);
+					p.Seam = C(96, 88, 76); p.Arm = C(196, 188, 172); p.ArmJoint = C(100, 92, 80); p.Antenna = C(210, 202, 186);
+					p.EyeOuter = C(50, 44, 36); p.EyeBright = C(255, 236, 180); p.EyeGlint = C(255, 255, 250); p.Accent = C(170, 150, 110);
+					p.Signal = C(255, 200, 90); p.Thruster = C(255, 200, 110, 235);
+					break;
+				case "musicbox":
+					// A pink pod that hums: little music notes float up from it (drawn in PodPetDrawLayer).
+					p.Highlight = C(255, 236, 246); p.Body = C(233, 176, 204); p.Mid = C(206, 140, 176); p.Shadow = C(150, 92, 126);
+					p.Seam = C(96, 56, 80); p.Arm = C(220, 160, 190); p.ArmJoint = C(110, 64, 90); p.Antenna = C(240, 196, 220);
+					p.EyeOuter = C(80, 40, 64); p.EyeBright = C(255, 240, 248); p.EyeGlint = C(255, 255, 255); p.Accent = C(255, 170, 210);
+					p.Signal = C(255, 150, 200); p.Thruster = C(255, 170, 214, 235);
+					break;
 			}
 			return p;
 		}
@@ -177,7 +191,26 @@ namespace Augments
 		private static readonly List<(int x, int y, Color c)> NoOverlay = new List<(int x, int y, Color c)>();
 		private static List<(int x, int y, Color c)> scarredOverlay;
 		private static List<(int x, int y, Color c)> stickerOverlay;
+		private static List<(int x, int y, Color c)> patchworkOverlay;
 
+		// Six 2x2 patches in different colours, kept off the lens and seam rows.
+		private static List<(int x, int y, Color c)> BuildPatchwork()
+		{
+			var list = new List<(int x, int y, Color c)>();
+			void Patch(int x0, int y0, Color c)
+			{
+				for (int y = y0; y < y0 + 2; y++)
+					for (int x = x0; x < x0 + 2; x++)
+						list.Add((x, y, c));
+			}
+			Patch(6, 5, new Color(201, 103, 74));
+			Patch(10, 5, new Color(91, 155, 208));
+			Patch(12, 5, new Color(216, 178, 74));
+			Patch(5, 8, new Color(111, 178, 122));
+			Patch(12, 9, new Color(169, 123, 208));
+			Patch(6, 11, new Color(213, 138, 168));
+			return list;
+		}
 		// The smiley sticker: a yellow square on the left of the body with two eyes and a smile.
 		private static List<(int x, int y, Color c)> BuildSticker()
 		{
@@ -197,6 +230,8 @@ namespace Augments
 		{
 			if (style == "sticker")
 				return stickerOverlay ??= BuildSticker();
+		if (style == "patchwork")
+			return patchworkOverlay ??= BuildPatchwork();
 			if (style != "scarred")
 				return NoOverlay;
 			if (scarredOverlay != null)

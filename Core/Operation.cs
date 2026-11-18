@@ -131,7 +131,10 @@ namespace Augments
 			new PodSkinInfo { Id = "smiley", Name = "SMILEY", Tint = new Color(251, 191, 36), Style = "sticker" },
 			new PodSkinInfo { Id = "hologram", Name = "HOLOGRAM", Tint = new Color(120, 230, 225), Style = "hologram" },
 			new PodSkinInfo { Id = "scarred", Name = "PAIN TOLERANCE", Tint = new Color(255, 90, 60), Style = "scarred" },
-			new PodSkinInfo { Id = "glory", Name = "GLORY TO MANKIND", Tint = new Color(255, 214, 90), Style = "glory" }
+			new PodSkinInfo { Id = "glory", Name = "GLORY TO MANKIND", Tint = new Color(255, 214, 90), Style = "glory" },
+			// Fallen Unit rewards (see FallenUnitLogs). Never sold, never an Operation reward.
+			new PodSkinInfo { Id = "nextunit", Name = "PATCHWORK", Tint = new Color(216, 178, 74), Style = "patchwork" },
+			new PodSkinInfo { Id = "humalong", Name = "MUSIC BOX", Tint = new Color(233, 176, 204), Style = "musicbox" }
 		};
 
 		public static readonly string[][] Titles =
@@ -147,7 +150,10 @@ namespace Augments
 			new[] { "basicinstinct", "BASIC INSTINCT" },
 			new[] { "emptychassis", "EMPTY CHASSIS" },
 			new[] { "paintolerance", "PAIN TOLERANCE" },
-			new[] { "glory", "GLORY TO MANKIND" }
+			new[] { "glory", "GLORY TO MANKIND" },
+			// Fallen Unit rewards (see FallenUnitLogs).
+			new[] { "nextunit", "THE NEXT UNIT" },
+			new[] { "humalong", "HUM ALONG" }
 		};
 
 		public static readonly string[][] Emblems =

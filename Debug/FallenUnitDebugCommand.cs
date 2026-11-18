@@ -39,6 +39,7 @@ namespace Augments
 						if (unit.IsRecoveredBy(player))
 							mine++;
 					caller.Reply($"{FallenUnitSystem.Units.Count} Fallen Units in this world. You recovered {mine}.", Color.LightGreen);
+					caller.Reply($"Memory logs read, whole account: {FallenUnitLogs.LogsRead()} of {FallenUnitLogs.Logs.Length}.", Color.LightGreen);
 					FallenUnit nearest = FallenUnitSystem.Nearest(player.Center, player);
 					if (nearest != null)
 						caller.Reply($"Nearest unrecovered: Unit {nearest.Name}, look {nearest.Look + 1}, {Describe(player, nearest)}.", Color.LightGreen);

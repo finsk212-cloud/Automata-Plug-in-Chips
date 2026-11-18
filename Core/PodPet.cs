@@ -404,6 +404,22 @@ namespace Augments
 					Dot(At(new Vector2(10f, scan)), 12, 1, new Color(190, 255, 250) * 0.55f);
 			}
 
+			// Music box pod: three little music notes drift up from the top of it, swaying, and fade out.
+			if (style == "musicbox")
+			{
+				for (int i = 0; i < 3; i++)
+				{
+					float phase = (t * 0.011f + i * 0.34f) % 1f;
+					float a = (float)Math.Sin(phase * Math.PI);
+					Vector2 n = At(new Vector2(10f, 3f)) + new Vector2((i - 1) * 6f + (float)Math.Sin(phase * 6.0 + i * 2.0) * 2.5f, -phase * 20f);
+					Color c = new Color(255, 194, 222) * (a * 0.9f);
+					Dot(n, 2, 2, c);                          // the head
+					Dot(n + new Vector2(1f, -2.5f), 1, 5, c); // the stem
+					if (i != 1)
+						Dot(n + new Vector2(2f, -4f), 1, 2, c); // a flag on two of the three notes
+				}
+			}
+
 			// 4. The lens glows and pulses (green while the Autopilot upgrade is healing someone), and shutters shut now and then.
 			Vector2 lens = At(PodSprites.Lens);
 			bool healing = pet.AutopilotOn && pet.Autopilot.Healing;
