@@ -43,7 +43,7 @@ namespace Augments
 
 		public static int IndexOf(FallenUnit unit)
 		{
-			return ((unit.Id - 1) + Math.Abs(Main.worldID)) % Logs.Length;
+			return (((unit.Id - 1) + (Main.worldID & 0x7fffffff)) % Logs.Length + Logs.Length) % Logs.Length;
 		}
 
 		public static string[] LinesOf(FallenUnit unit) => Logs[IndexOf(unit)];

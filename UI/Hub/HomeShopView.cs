@@ -27,13 +27,14 @@ namespace Augments
 			public string Blurb;
 			public int Price;
 			public string UnlockId;
-			public string Hint;            // for an ending reward: the riddle that names the ending
+			public string Hint;            // for a secret reward: the riddle or hint that names it
+			public bool FromUnits;         // true for the Fallen Unit rewards (the text says where they came from)
 
 			// An ending reward has no price: it is earned, never bought. Until then it shows as a secret with only the riddle.
 			public bool Earned => Price < 0;
 			public bool Locked => Earned && !Owned;
 			public string DisplayName => Locked ? (Kind == RewardKind.PodSkin ? "SECRET POD" : "SECRET TITLE") : Name;
-			public string ShownBlurb => !Earned ? Blurb : (Locked ? "Earned by finishing a hidden ending. Hint: \"" + Hint + "\"" : Blurb + " Earned from a hidden ending.");
+			public string ShownBlurb => !Earned ? Blurb : (Locked ? (FromUnits ? "A secret reward. Hint: \"" : "Earned by finishing a hidden ending. Hint: \"") + Hint + "\"" : Blurb + (FromUnits ? " Earned from the Fallen Units." : " Earned from a hidden ending."));
 
 			public bool IsScheme => Kind == RewardKind.Scheme;
 			public bool IsFrame => Kind == RewardKind.Frame;
@@ -128,9 +129,11 @@ namespace Augments
 				{
 					ShopItem pod = MakeItem(RewardKind.PodSkin, FallenUnitLogs.RewardIds[r], -1);
 					pod.Hint = FallenUnitLogs.RewardHints[r];
+						pod.FromUnits = true;
 					items.Add(pod);
 					ShopItem title = MakeItem(RewardKind.Title, FallenUnitLogs.RewardIds[r], -1);
 					title.Hint = FallenUnitLogs.RewardHints[r];
+						title.FromUnits = true;
 					items.Add(title);
 				}
 				foreach (string[] emblem in Cosmetic.Emblems)
