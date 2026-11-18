@@ -1,0 +1,514 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Plug-in Chips balance report</title>
+<style>
+ :root{--bg:#13151b;--panel:#1b1f29;--panel2:#212634;--line:#2d3345;--text:#ece8d6;--dim:#9aa1b5;--gold:#d6c36a;--red:#ff6b6b;--amber:#ffc857;--blue:#6bb8ff;--green:#7ed99a;--ink:#0f1218}
+ *{box-sizing:border-box}
+ body{font:15px/1.5 system-ui,Segoe UI,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:22px 28px 80px}
+ .wrap{max-width:1500px;margin:0 auto}
+ h1{font-size:22px;margin:0 0 2px} h2{font-size:13px;margin:0 0 10px;color:var(--gold);letter-spacing:.08em;text-transform:uppercase}
+ .sub{color:var(--dim);margin:0 0 16px;max-width:900px}
+ section{margin:0 0 24px}
+ .dim{color:var(--dim)} .mini{font-size:12px;color:var(--dim)}
+ button{font:inherit;color:inherit;cursor:pointer}
+
+ /* health strip */
+ .strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:0 0 12px}
+ .stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+ .stat span{display:block;color:var(--dim);font-size:12px} .stat b{display:block;font-size:24px;line-height:1.15}
+ .stat small{color:var(--dim);font-size:12px}
+ .ladder{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center}
+ .ladder .lab{color:var(--dim);font-size:13px}
+ .ladder .warn{color:var(--amber);font-size:13px}
+
+ /* controls */
+ .controls{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0 10px;margin:0 0 10px;border-bottom:1px solid var(--line)}
+ .row{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end}
+ .row label{color:var(--dim);font-size:12px;display:flex;flex-direction:column;gap:3px}
+ select,input[type=text],input[type=number]{background:var(--ink);color:var(--text);border:1px solid var(--line);padding:7px 9px;border-radius:6px;font:inherit;font-size:14px}
+ input[type=number]{width:78px} input[type=checkbox]{margin-right:6px}
+ label.chk{flex-direction:row;align-items:center;color:var(--text);font-size:13px;padding-bottom:8px}
+ .tabs{display:flex;margin:0 0 10px}
+ .tabs button{background:var(--panel);color:var(--dim);border:1px solid var(--line);padding:8px 16px}
+ .tabs button:first-child{border-radius:8px 0 0 8px} .tabs button:last-child{border-radius:0 8px 8px 0}
+ .tabs button+button{border-left:0}
+ .tabs button.on{background:var(--gold);color:#1b1a12;font-weight:600}
+
+ /* action lists */
+ .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px}
+ .col{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+ .col h3{margin:0 0 2px;font-size:15px} .col .why{color:var(--dim);font-size:12px;margin:0 0 8px}
+ .col.nerf{border-top:3px solid var(--red)} .col.watch{border-top:3px solid var(--amber)} .col.buff{border-top:3px solid var(--blue)}
+ .item{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:8px 2px}
+ .item:hover{background:var(--panel2)}
+ .item .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+ .item .nm{font-weight:600}
+ .item .num{font-weight:600;white-space:nowrap}
+ .item .sub2{color:var(--dim);font-size:12px}
+ .more{margin-top:6px;background:none;border:1px solid var(--line);border-radius:6px;padding:4px 10px;color:var(--dim);font-size:12px}
+ .none{color:var(--dim);font-size:13px;padding:6px 0}
+
+ /* table */
+ .tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+ table{border-collapse:collapse;width:100%}
+ th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+ th{position:sticky;top:0;background:var(--panel2);color:var(--gold);cursor:pointer;font-size:12px;user-select:none;letter-spacing:.03em}
+ th:hover{background:#2a3044}
+ td.l,th.l{text-align:left}
+ tbody tr{cursor:pointer} tbody tr:hover{background:var(--panel2)} tr.few td{opacity:.5}
+ tr.v-toostrong td:first-child{box-shadow:inset 4px 0 var(--red)} tr.v-strong td:first-child{box-shadow:inset 4px 0 var(--amber)}
+ tr.v-weak td:first-child{box-shadow:inset 4px 0 var(--blue)}
+ .pl{font-weight:600}
+ .rar{display:inline-block;margin-left:7px;padding:0 6px;border-radius:5px;font-size:11px;font-weight:600;vertical-align:1px;border:1px solid var(--line);color:var(--dim)}
+ .rar.Common{color:#c9ccd6}.rar.Rare{color:var(--blue);border-color:#2d5278}.rar.Epic{color:#c79bff;border-color:#563b82}.rar.Legendary{color:var(--amber);border-color:#7a5d1a}
+ .bb{display:inline-block;position:relative;width:110px;height:10px;background:var(--ink);border-radius:5px;vertical-align:middle;margin-right:8px;overflow:hidden}
+ .bb .f{position:absolute;left:0;top:0;bottom:0;display:block}
+ .bb u{position:absolute;top:0;bottom:0;width:1px;background:#8a90a3;opacity:.8} .bb u.t{background:#ff9a9a}
+ .f.v-toostrong{background:var(--red)} .f.v-strong{background:var(--amber)} .f.v-normal{background:var(--green)} .f.v-weak{background:var(--blue)} .f.v-na,.f.v-none{background:#555b6c}
+ .chip{display:inline-block;padding:1px 9px;border-radius:12px;font-size:12px;font-weight:600}
+ .c-toostrong{background:#5a2a2e;color:#ffb0b0} .c-strong{background:#4d3d18;color:var(--amber)} .c-normal{background:#1f3a2a;color:var(--green)}
+ .c-weak{background:#1c3550;color:var(--blue)} .c-none,.c-na{background:#2a2e3a;color:var(--dim)}
+ .q-good{color:var(--green)} .q-some{color:var(--amber)} .q-few{color:var(--red)}
+ .cons-steady{color:var(--green)} .cons-varies{color:var(--amber)} .cons-swingy{color:var(--red)}
+ #empty{padding:28px;text-align:center;color:var(--dim);display:none}
+
+ /* heat map */
+ .hm{border-collapse:separate;border-spacing:3px;width:auto}
+ .hm th{position:static;background:none;cursor:default;color:var(--dim);font-weight:500;padding:2px 4px;font-size:11px;white-space:normal;text-align:center;max-width:90px;border:0}
+ .hm td{padding:0;border:0}
+ .hm td.nm{text-align:left;padding-right:10px;font-size:13px;white-space:nowrap}
+ .hm td.c{width:74px;height:28px;border-radius:5px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;color:#10131a}
+ .hm td.c.empty{background:#181b24;cursor:default}
+ .hm .v-toostrong{background:var(--red)} .hm .v-strong{background:var(--amber)} .hm .v-normal{background:var(--green)} .hm .v-weak{background:var(--blue)} .hm .v-na,.hm .v-none{background:#4a5063;color:#d5d8e2}
+ .hm .q0{opacity:.35} .hm .q1{opacity:.7}
+ .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--dim);margin:8px 0 0}
+ .sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:5px}
+
+ /* panels */
+ details{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:0 0 10px}
+ details summary{cursor:pointer;font-weight:600} details[open] summary{margin-bottom:8px}
+ .chips span{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:1px 10px;margin:3px 4px 0 0;font-size:13px}
+ .targets table{width:auto} .targets td,.targets th{padding:5px 12px;text-align:left;border:0;background:none;position:static;cursor:default;color:var(--text);font-size:13px}
+ .targets th{color:var(--dim);font-weight:500}
+ .guide{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:8px 24px;font-size:13px;color:var(--dim)} .guide b{color:var(--gold)}
+
+ /* detail panel */
+ #shade{position:fixed;inset:0;background:rgba(5,6,10,.55);display:none;z-index:20}
+ #detail{position:fixed;top:0;right:0;bottom:0;width:min(640px,100vw);background:var(--panel);border-left:1px solid var(--line);z-index:21;overflow-y:auto;padding:18px 22px 40px;display:none}
+ #detail h2.big{font-size:20px;color:var(--text);letter-spacing:0;text-transform:none;margin:0}
+ #detail h4{margin:18px 0 6px;font-size:12px;color:var(--gold);letter-spacing:.08em;text-transform:uppercase}
+ #detail table{font-size:13px} #detail th{position:static;cursor:default} #detail td,#detail th{padding:6px 10px}
+ #detail .close{position:absolute;top:12px;right:14px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:3px 10px}
+ .note{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px;margin:8px 0}
+ .note.bad{border-color:#5a2a2e} .note.low{border-color:#1c3550}
+ pre.card{background:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:13px/1.45 ui-monospace,Consolas,monospace;white-space:pre-wrap;margin:6px 0}
+ .btn{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:5px 12px}
+ .btn:hover{border-color:var(--gold)}
+ .delta-up{color:var(--red)} .delta-down{color:var(--blue)}
+</style>
+<div class="wrap">
+<h1>Plug-in Chips balance report</h1>
+<p class="sub">Anonymous numbers from players who chose to share. It shows where to look, not an exact verdict: a few heavy players can pull a row, so only trust rows marked good.</p>
+
+<section>
+ <div class="strip">
+  <div class="stat"><span>Plugins with good data</span><b id="k-good">-</b><small id="k-good2"></small></div>
+  <div class="stat"><span>Nerf candidates</span><b id="k-nerf" style="color:var(--red)">-</b><small>good data, over the Too strong line</small></div>
+  <div class="stat"><span>Watch list</span><b id="k-watch" style="color:var(--amber)">-</b><small>good data, over the Strong line</small></div>
+  <div class="stat"><span>Buff candidates</span><b id="k-buff" style="color:var(--blue)">-</b><small>good data, in the Low band</small></div>
+  <div class="stat"><span>Weapons seen</span><b id="k-weapons">-</b><small id="k-versions"></small></div>
+ </div>
+ <div class="ladder" id="ladder"></div>
+</section>
+
+<div class="controls">
+ <div class="row">
+  <label>Mod version<select id="f-ver"></select></label>
+  <label>Progress stage<select id="f-stage"></select></label>
+  <label>Weapon class<select id="f-class"></select></label>
+  <label>Rarity<select id="f-rar"></select></label>
+  <label>Search plugin or weapon<input type="text" id="f-q" placeholder="e.g. chain or Uzi"></label>
+  <label>Min uploads<input type="number" id="f-b" value="3" min="1"></label>
+  <label>Min seconds<input type="number" id="f-s" value="20" min="0"></label>
+  <label class="chk"><input type="checkbox" id="f-low">Show rows with thin data</label>
+  <label class="chk"><input type="checkbox" id="f-cal">Calamity players only</label>
+ </div>
+</div>
+
+<p class="mini" id="ver-note" style="margin:-2px 0 10px"></p>
+<section id="s-actions">
+ <h2>What to look at first</h2>
+ <div class="cols" id="cols"></div>
+ <p class="mini" id="thin-note"></p>
+</section>
+
+<section>
+ <h2>All rows</h2>
+ <div class="tabs"><button id="t-plugin" class="on">By plugin (all weapons together)</button><button id="t-weapon">By plugin and weapon</button><button id="t-heat">Heat map</button></div>
+ <div id="v-table" class="tbl"><table><thead id="head"></thead><tbody id="body"></tbody></table><div id="empty">No rows match. Lower "Min uploads" and "Min seconds", or tick "Show rows with thin data".</div></div>
+ <div id="v-heat" style="display:none"></div>
+</section>
+
+<section>
+ <details class="targets" id="targets"><summary>Balance targets (editable placeholders)</summary>
+  <p class="mini">These lines decide the colours and the lists above. They are placeholders, not rules: set them to the Boost you think each rarity should have. They are saved in this browser only.</p>
+  <table id="ttable"></table>
+  <p><button class="btn" id="t-reset">Reset to defaults</button></p>
+ </details>
+ <details><summary>How to read this page</summary><div class="guide">
+  <div><b>Boost</b>: the extra damage a plugin adds on top of the weapon. +25% means the weapon does 100 and the plugin adds 25 more. The verdict is based on this, because it stays fair across weak and strong weapons.</div>
+  <div><b>Verdict</b>: Too strong and Strong are Boost over the lines of the plugin's rarity. Low means under 30% of the Strong line (change this under Balance targets). Normal is in between. Plugins that deal no damage, or have no weapon to compare, are not judged.</div>
+  <div><b>Plugin DPS</b>: plugin damage per second of fighting. <b>vs peers</b>: that DPS divided by the median plugin at the same stage and weapon class. It is context only: it says nothing about size, so a tiny plugin can look strong next to tiny peers.</div>
+  <div><b>Data</b>: <span class="q-good">good</span> is 10+ uploads and 2+ minutes, <span class="q-some">some</span> meets your minimums, <span class="q-few">few</span> does not. Only good rows reach the lists at the top.</div>
+  <div><b>Consistency</b>: how much a plugin's Boost changes from one upload to the next. Steady is reliable. Swingy means a few heavy uploads may be pulling the average. It needs 3+ uploads from the new version on, so older rows show a dash.</div>
+  <div><b>Rarity ladder</b>: the median Boost of good rows for each rarity. It should climb from Common to Legendary.</div>
+ </div></details>
+ <details><summary id="gap-sum">Gaps</summary><div id="gaps"></div></details>
+</section>
+</div>
+
+<div id="shade"></div>
+<aside id="detail" aria-label="Plugin detail"></aside>
+
+<script>
+(function () {
+'use strict';
+var STAGES = ['Start (before Skeletron)','Skeletron','Wall of Flesh','All Mechs','Plantera','Golem','Moon Lord','Providence','Devourer of Gods','Yharon','Exo Mechs / Supreme Calamitas'];
+var STAGE_SHORT = ['Start','Skel.','WoF','Mechs','Plant.','Golem','Moon','Prov.','DoG','Yharon','Exo'];
+var CLASSES = ['Universal','Melee','Ranged','Magic','Summon','Support'];
+var RARITIES = ['Common','Rare','Epic','Legendary'];
+var DEFAULTS = { t: { Common: [12, 25], Rare: [20, 40], Epic: [30, 60], Legendary: [45, 90] }, low: 30 };
+var GOOD_UPLOADS = 10, GOOD_SECONDS = 120;
+var VERDICT = { toostrong: 'Too strong', strong: 'Strong', normal: 'Normal', weak: 'Low', none: 'No damage', na: 'Not judged' };
+
+var token = new URLSearchParams(location.search).get('token') || '';
+var all = [], plugins = {};
+var S = { view: 'plugin', sortKey: 'ratio', sortDir: -1, targets: loadTargets(), showAll: {} };
+var $ = function (id) { return document.getElementById(id); };
+
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function nice(id) { return id.split('_').map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' '); }
+function info(id) { return plugins[id] || { n: nice(id), r: '', c: '' }; }
+function pname(id) { return info(id).n; }
+function weaponName(key) {
+  if (key === 'none') return 'No weapon (damage over time)';
+  var parts = key.split('/'), name = parts[parts.length - 1].replace(/([a-z0-9])([A-Z])/g, '$1 $2');
+  return parts[0] === 'Terraria' || parts.length < 2 ? name : name + ' (' + parts[0] + ')';
+}
+function fmt(n) { return n >= 1e6 ? (n / 1e6).toFixed(2) + 'M' : n >= 1e4 ? (n / 1e3).toFixed(1) + 'k' : n >= 100 ? n.toFixed(0) : n.toFixed(1); }
+function pct(n) { return n >= 10 ? n.toFixed(0) + '%' : n.toFixed(1) + '%'; }
+function boostTxt(x) { return x.boost == null ? '-' : '+' + pct(x.boost); }
+function fmtTime(s) { s = Math.round(s); if (s >= 3600) return Math.floor(s / 3600) + 'h ' + Math.floor(s % 3600 / 60) + 'm'; return Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60); }
+function median(a) { a = a.slice().sort(function (x, y) { return x - y; }); var m = a.length >> 1; return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; }
+function verKey(v) { return v === 'earlier' ? [-1] : v.split('.').map(Number); }
+function verCmp(a, b) { var x = verKey(a), y = verKey(b); for (var i = 0; i < Math.max(x.length, y.length); i++) { var d = (x[i] || 0) - (y[i] || 0); if (d) return d; } return 0; }
+
+// ---- balance targets (saved in this browser) ----
+function loadTargets() {
+  try { var s = JSON.parse(localStorage.getItem('automata-targets') || 'null'); if (s && s.t && typeof s.low === 'number') return s; } catch (e) {}
+  return JSON.parse(JSON.stringify(DEFAULTS));
+}
+function saveTargets() { try { localStorage.setItem('automata-targets', JSON.stringify(S.targets)); } catch (e) {} }
+function thr(rarity) {
+  var t = S.targets.t[rarity] || S.targets.t.Rare;
+  return { strong: t[0], too: Math.max(t[1], t[0]), low: t[0] * S.targets.low / 100 };
+}
+
+// ---- turning rows into units ----
+// mode: 'plugin' (weapons pooled, split by weapon class and stage), 'weapon' (also split by weapon), 'cell' (plugin and stage only)
+function build(rows, mode) {
+  var map = {}, list = [], minB = +$('f-b').value || 1, minS = +$('f-s').value || 0;
+  rows.forEach(function (r) {
+    var k = mode === 'cell' ? r.plugin + '|' + r.stage : r.plugin + '|' + (mode === 'weapon' ? r.weapon : '*') + '|' + r.class + '|' + r.stage, x = map[k];
+    if (!x) { x = map[k] = { plugin: r.plugin, weapon: mode === 'weapon' ? r.weapon : '', cls: mode === 'cell' ? -1 : r.class, stage: r.stage, batches: 0, pd: 0, ph: 0, wd: 0, sec: 0, nb: 0, sb: 0, sb2: 0 }; list.push(x); }
+    x.batches += r.batches; x.pd += r.pdmg; x.ph += r.phits; x.wd += r.wdmg; x.sec += r.seconds; x.nb += r.nb || 0; x.sb += r.sb || 0; x.sb2 += r.sb2 || 0;
+  });
+  list.forEach(function (x) {
+    var inf = info(x.plugin); x.rarity = inf.r; x.th = thr(inf.r);
+    x.dps = x.sec > 0 ? x.pd / x.sec : 0; x.wdps = x.sec > 0 ? x.wd / x.sec : 0; x.avg = x.ph > 0 ? x.pd / x.ph : 0;
+    x.boost = x.wd > 0 ? x.pd / x.wd * 100 : null;
+    x.enough = x.batches >= minB && x.sec >= minS;
+    x.quality = x.batches >= GOOD_UPLOADS && x.sec >= GOOD_SECONDS ? 2 : x.enough ? 1 : 0;
+    x.verdict = x.pd === 0 ? 'none' : x.boost == null ? 'na' : x.boost >= x.th.too ? 'toostrong' : x.boost >= x.th.strong ? 'strong' : x.boost < x.th.low ? 'weak' : 'normal';
+    x.ratio = x.boost == null ? -1 : x.boost / x.th.too;
+    // consistency of the per-upload Boost
+    x.cons = '';
+    if (x.nb >= 3) {
+      var mean = x.sb / x.nb, v = Math.max(0, (x.sb2 - x.sb * x.sb / x.nb) / (x.nb - 1)), cv = mean > 0 ? Math.sqrt(v) / mean : 0;
+      x.cons = cv < 0.5 ? 'steady' : cv < 1 ? 'varies' : 'swingy';
+    }
+  });
+  if (mode !== 'cell') {
+    var groups = {};
+    list.forEach(function (x) { if (x.enough && x.dps > 0) (groups[x.stage + '|' + x.cls] = groups[x.stage + '|' + x.cls] || []).push(x.dps); });
+    list.forEach(function (x) { var g = groups[x.stage + '|' + x.cls]; x.peers = g && g.length >= 3 && x.dps > 0 ? x.dps / median(g) : -1; });
+  }
+  return list;
+}
+
+function baseRows() {
+  var ver = $('f-ver').value, cal = $('f-cal').checked;
+  return all.filter(function (r) { return (ver === 'all' || r.ver === ver) && (!cal || r.cal); });
+}
+
+// ---- the lists at the top ----
+function suggestion(x) {
+  if (x.verdict === 'toostrong' || x.verdict === 'strong') {
+    var cut = Math.round((1 - x.th.strong / x.boost) * 100);
+    return 'To sit at the Strong line (+' + pct(x.th.strong) + ') cut its damage by about ' + cut + '%.';
+  }
+  if (x.verdict === 'weak') {
+    var up = Math.round((x.th.low / Math.max(x.boost, 0.01) - 1) * 100);
+    return 'To reach the bottom of Normal (+' + pct(x.th.low) + ') raise its damage by about ' + up + '%.';
+  }
+  return '';
+}
+
+function actionCol(cls, title, why, items, key) {
+  var shown = S.showAll[key] ? items : items.slice(0, 7), h = '<div class="col ' + cls + '"><h3>' + title + ' <span class="dim">(' + items.length + ')</span></h3><p class="why">' + why + '</p>';
+  if (!items.length) h += '<div class="none">Nothing here on good data.</div>';
+  shown.forEach(function (g) {
+    var x = g.top;
+    h += '<button class="item" data-plugin="' + esc(x.plugin) + '" data-stage="' + x.stage + '"><div class="top"><span class="nm">' + esc(pname(x.plugin)) + '<span class="rar ' + x.rarity + '">' + esc(x.rarity || '?') + '</span></span>' +
+      '<span class="num" style="color:var(--' + (x.verdict === 'toostrong' ? 'red' : x.verdict === 'strong' ? 'amber' : 'blue') + ')">' + boostTxt(x) + '</span></div>' +
+      '<div class="sub2">' + esc(STAGES[x.stage] || 'Stage ' + x.stage) + ', ' + (CLASSES[x.cls] || '') + ' weapons' + (g.more ? ' (+' + g.more + ' more stage' + (g.more > 1 ? 's' : '') + ')' : '') + ' &middot; ' + (x.verdict === 'weak' ? 'under +' + pct(x.th.low) : x.verdict === 'toostrong' ? 'Too strong from +' + pct(x.th.too) : 'Strong from +' + pct(x.th.strong)) + ' &middot; ' + x.batches + ' uploads' + (x.cons ? ' &middot; ' + x.cons : '') + '</div></button>';
+  });
+  if (items.length > 7) h += '<button class="more" data-more="' + key + '">' + (S.showAll[key] ? 'Show fewer' : 'Show all ' + items.length) + '</button>';
+  return h + '</div>';
+}
+
+function groupByPlugin(units, better) {
+  var by = {};
+  units.forEach(function (x) { var g = by[x.plugin]; if (!g) by[x.plugin] = { top: x, more: 0 }; else { g.more++; if (better(x, g.top)) g.top = x; } });
+  return Object.keys(by).map(function (k) { return by[k]; });
+}
+
+function renderActions(units) {
+  var good = units.filter(function (x) { return x.quality === 2; });
+  var nerf = groupByPlugin(good.filter(function (x) { return x.verdict === 'toostrong'; }), function (a, b) { return a.ratio > b.ratio; }).sort(function (a, b) { return b.top.ratio - a.top.ratio; });
+  var nerfIds = {}; nerf.forEach(function (g) { nerfIds[g.top.plugin] = 1; });
+  var watch = groupByPlugin(good.filter(function (x) { return x.verdict === 'strong' && !nerfIds[x.plugin]; }), function (a, b) { return a.ratio > b.ratio; }).sort(function (a, b) { return b.top.ratio - a.top.ratio; });
+  var buff = groupByPlugin(good.filter(function (x) { return x.verdict === 'weak'; }), function (a, b) { return a.boost < b.boost; }).sort(function (a, b) { return a.top.boost - b.top.boost; });
+  $('cols').innerHTML = actionCol('nerf', 'Nerf candidates', 'Boost is over the Too strong line of its rarity, on good data. Check these first.', nerf, 'nerf') +
+    actionCol('watch', 'Watch list', 'Over the Strong line but not past Too strong. Fine for now, but keep an eye on them.', watch, 'watch') +
+    actionCol('buff', 'Buff candidates', 'Deal damage but add very little on top of the weapon, on good data.', buff, 'buff');
+  $('k-nerf').textContent = nerf.length; $('k-watch').textContent = watch.length; $('k-buff').textContent = buff.length;
+  var thin = units.filter(function (x) { return x.quality < 2 && x.enough && x.verdict === 'toostrong'; }).length;
+  $('thin-note').textContent = thin ? thin + ' more row' + (thin > 1 ? 's look' : ' looks') + ' too strong but ' + (thin > 1 ? 'have' : 'has') + ' thin data, so ' + (thin > 1 ? 'they are' : 'it is') + ' left out here. Tick "Show rows with thin data" to see ' + (thin > 1 ? 'them' : 'it') + ' in the table.' : '';
+}
+
+// ---- the health strip and the rarity ladder ----
+function renderHealth(units) {
+  var damage = {}, goodP = {}, weapons = {}, vers = {};
+  baseRows().forEach(function (r) { if (r.weapon !== 'none') weapons[r.weapon] = 1; vers[r.ver] = 1; });
+  units.forEach(function (x) { if (x.pd > 0) { damage[x.plugin] = 1; if (x.quality === 2) goodP[x.plugin] = 1; } });
+  $('k-good').textContent = Object.keys(goodP).length; $('k-good2').textContent = 'of ' + Object.keys(damage).length + ' that dealt damage';
+  $('k-weapons').textContent = Object.keys(weapons).length;
+  $('k-versions').textContent = 'versions: ' + Object.keys(vers).sort(verCmp).join(', ');
+
+  var med = {}, h = '<span class="lab">Median Boost by rarity (good rows):</span>';
+  RARITIES.forEach(function (r) {
+    var b = units.filter(function (x) { return x.rarity === r && x.quality === 2 && x.boost != null && x.pd > 0; }).map(function (x) { return x.boost; });
+    med[r] = b.length >= 3 ? median(b) : null;
+    h += '<span><span class="rar ' + r + '" style="margin:0 6px 0 0">' + r + '</span>' + (med[r] == null ? '<span class="dim">not enough data</span>' : '<b>+' + pct(med[r]) + '</b> <span class="mini">(' + b.length + ' rows)</span>') + '</span>';
+  });
+  var known = RARITIES.filter(function (r) { return med[r] != null; }), bad = [];
+  for (var i = 1; i < known.length; i++) if (med[known[i]] < med[known[i - 1]]) bad.push(known[i] + ' is weaker than ' + known[i - 1]);
+  h += bad.length ? '<span class="warn">Not climbing: ' + bad.join('; ') + '.</span>' : (known.length > 1 ? '<span class="q-good" style="font-size:13px">Climbs as it should.</span>' : '');
+  $('ladder').innerHTML = h;
+}
+
+// ---- the table ----
+function filtered(list, skipClass) {
+  var stage = $('f-stage').value, cls = skipClass ? 'all' : $('f-class').value, rar = $('f-rar').value, q = $('f-q').value.toLowerCase(), low = $('f-low').checked;
+  return list.filter(function (x) {
+    return (stage === 'all' || x.stage == stage) && (cls === 'all' || x.cls == cls) && (rar === 'all' || x.rarity === rar) &&
+      (!q || (pname(x.plugin) + ' ' + x.plugin + ' ' + weaponName(x.weapon)).toLowerCase().indexOf(q) >= 0) && (low || x.enough);
+  });
+}
+
+var SORTVAL = {
+  plugin: function (x) { return pname(x.plugin); }, weapon: function (x) { return weaponName(x.weapon); }, stage: function (x) { return x.stage; }, cls: function (x) { return x.cls; },
+  rarity: function (x) { return RARITIES.indexOf(x.rarity); }, boost: function (x) { return x.boost == null ? -1 : x.boost; }, ratio: function (x) { return x.ratio; },
+  dps: function (x) { return x.dps; }, peers: function (x) { return x.peers; }, quality: function (x) { return x.quality * 1e6 + x.batches; }, sec: function (x) { return x.sec; }, cons: function (x) { return x.cons === 'steady' ? 3 : x.cons === 'varies' ? 2 : x.cons === 'swingy' ? 1 : 0; }
+};
+
+function renderTable(list) {
+  list = filtered(list);
+  var f = SORTVAL[S.sortKey] || SORTVAL.ratio;
+  list.sort(function (a, b) { var va = f(a), vb = f(b); return (typeof va === 'string' ? va.localeCompare(vb) : va - vb) * S.sortDir || b.quality - a.quality; });
+  var cols = [['plugin', 'Plugin', 1]];
+  if (S.view === 'weapon') cols.push(['weapon', 'Weapon', 1]);
+  cols.push(['stage', 'Stage', 1], ['cls', 'Class', 1], ['ratio', 'Boost (lines: Strong, Too strong)', 0], ['dps', 'Plugin DPS', 0], ['peers', 'vs peers', 0], ['quality', 'Data', 0], ['cons', 'Consistency', 0]);
+  $('head').innerHTML = '<tr>' + cols.map(function (c) { return '<th class="' + (c[2] ? 'l' : '') + '" data-k="' + c[0] + '">' + c[1] + (S.sortKey === c[0] ? (S.sortDir < 0 ? ' &#9660;' : ' &#9650;') : '') + '</th>'; }).join('') + '</tr>';
+  var QUAL = ['few', 'some', 'good'];
+  $('body').innerHTML = list.map(function (x) {
+    var bar = x.boost == null ? '<span class="dim">' + (x.pd ? 'no weapon to compare' : '-') + '</span> ' :
+      '<span class="bb" title="Strong +' + pct(x.th.strong) + ', Too strong +' + pct(x.th.too) + '"><i class="f v-' + x.verdict + '" style="width:' + Math.min(100, x.boost / (x.th.too * 1.6) * 100).toFixed(0) + '%"></i><u style="left:' + (x.th.strong / (x.th.too * 1.6) * 100).toFixed(0) + '%"></u><u class="t" style="left:' + (x.th.too / (x.th.too * 1.6) * 100).toFixed(0) + '%"></u></span><b>' + boostTxt(x) + '</b> ';
+    var cells = ['<td class="l pl">' + esc(pname(x.plugin)) + '<span class="rar ' + x.rarity + '">' + esc(x.rarity || '?') + '</span></td>'];
+    if (S.view === 'weapon') cells.push('<td class="l">' + esc(weaponName(x.weapon)) + '</td>');
+    cells.push('<td class="l">' + esc(STAGES[x.stage] || 'Stage ' + x.stage) + '</td>', '<td class="l">' + (CLASSES[x.cls] || x.cls) + '</td>',
+      '<td>' + bar + '<span class="chip c-' + x.verdict + '">' + VERDICT[x.verdict] + '</span></td>',
+      '<td>' + (x.pd ? fmt(x.dps) : '<span class="dim">0</span>') + '</td>', '<td>' + (x.peers > 0 ? x.peers.toFixed(2) + 'x' : '<span class="dim">-</span>') + '</td>',
+      '<td class="q-' + QUAL[x.quality] + '">' + QUAL[x.quality] + ' <span class="mini">' + x.batches + ' uploads, ' + fmtTime(x.sec) + '</span></td>',
+      '<td class="' + (x.cons ? 'cons-' + x.cons : 'dim') + '">' + (x.cons || '-') + '</td>');
+    return '<tr data-plugin="' + esc(x.plugin) + '" data-stage="' + x.stage + '" class="v-' + x.verdict + (x.quality === 0 ? ' few' : '') + '">' + cells.join('') + '</tr>';
+  }).join('');
+  $('empty').style.display = list.length ? 'none' : 'block';
+}
+
+// ---- heat map: plugins down, stages across ----
+function renderHeat(rows) {
+  var cls = $('f-class').value, cells = filtered(build(cls === 'all' ? rows : rows.filter(function (r) { return r.class == cls; }), 'cell'), true);
+  var byPlugin = {}, stagesUsed = {};
+  cells.forEach(function (x) { (byPlugin[x.plugin] = byPlugin[x.plugin] || {})[x.stage] = x; stagesUsed[x.stage] = 1; });
+  var stages = Object.keys(stagesUsed).map(Number).sort(function (a, b) { return a - b; });
+  var ids = Object.keys(byPlugin).sort(function (a, b) {
+    var wa = Math.max.apply(null, Object.keys(byPlugin[a]).map(function (s) { return byPlugin[a][s].ratio; })), wb = Math.max.apply(null, Object.keys(byPlugin[b]).map(function (s) { return byPlugin[b][s].ratio; }));
+    return wb - wa;
+  });
+  if (!ids.length) { $('v-heat').innerHTML = '<div class="none">No rows match the filters.</div>'; return; }
+  var h = '<div class="tbl" style="padding:10px"><table class="hm"><tr><th></th>' + stages.map(function (s) { return '<th title="' + esc(STAGES[s] || '') + '">' + esc(STAGE_SHORT[s] || s) + '</th>'; }).join('') + '</tr>';
+  ids.forEach(function (id) {
+    h += '<tr><td class="nm">' + esc(pname(id)) + '<span class="rar ' + info(id).r + '">' + esc(info(id).r || '?') + '</span></td>';
+    stages.forEach(function (s) {
+      var x = byPlugin[id][s];
+      h += x ? '<td class="c v-' + x.verdict + ' q' + x.quality + '" data-plugin="' + esc(id) + '" data-stage="' + s + '" title="' + esc(pname(id) + ', ' + (STAGES[s] || '') + ': ' + VERDICT[x.verdict] + ', ' + x.batches + ' uploads') + '">' + (x.boost == null ? '-' : '+' + pct(x.boost)) + '</td>' : '<td class="c empty"></td>';
+    });
+    h += '</tr>';
+  });
+  h += '</table></div><div class="legend"><span><i class="sw" style="background:var(--red)"></i>Too strong</span><span><i class="sw" style="background:var(--amber)"></i>Strong</span><span><i class="sw" style="background:var(--green)"></i>Normal</span><span><i class="sw" style="background:var(--blue)"></i>Low</span><span><i class="sw" style="background:#4a5063"></i>Not judged</span><span>Faded cells have thin data. The number is the Boost, all weapon classes pooled.</span></div>';
+  $('v-heat').innerHTML = h;
+}
+
+// ---- gaps ----
+function renderGaps() {
+  var seen = {}, dmg = {};
+  all.forEach(function (r) { seen[r.plugin] = 1; if (r.pdmg > 0) dmg[r.plugin] = 1; });
+  var none = Object.keys(plugins).filter(function (id) { return !seen[id]; }).sort(), nodmg = Object.keys(seen).filter(function (id) { return !dmg[id]; }).sort();
+  function chips(ids) { return ids.length ? '<div class="chips">' + ids.map(function (id) { return '<span>' + esc(pname(id)) + '</span>'; }).join('') + '</div>' : '<div class="none">None.</div>'; }
+  $('gap-sum').textContent = 'Gaps: ' + none.length + ' plugins with no uploads yet, ' + nodmg.length + ' that never dealt damage';
+  $('gaps').innerHTML = '<h4 class="mini" style="margin:0">No uploads yet (nobody who shares has equipped them)</h4>' + chips(none) +
+    '<h4 class="mini" style="margin:12px 0 0">Equipped but never dealt damage (usually utility plugins, which this report cannot judge)</h4>' + chips(nodmg);
+}
+
+// ---- plugin detail ----
+function openDetail(id, stage) {
+  var inf = info(id), rows = all.filter(function (r) { return r.plugin === id && (!$('f-cal').checked || r.cal); }), vrows = rows.filter(function (r) { var v = $('f-ver').value; return v === 'all' || r.ver === v; });
+  var th = thr(inf.r), h = '<button class="close" id="d-close">Close</button><h2 class="big">' + esc(inf.n) + '<span class="rar ' + inf.r + '">' + esc(inf.r || '?') + '</span></h2>' +
+    '<div class="mini">' + esc(id) + ' &middot; ' + esc(inf.c || '') + ' &middot; lines for this rarity: Strong +' + pct(th.strong) + ', Too strong +' + pct(th.too) + ', Low under +' + pct(th.low) + '</div>';
+  if (!vrows.length) { h += '<div class="note">No data for this plugin with the current version filter.</div>'; show(h); return; }
+
+  // by stage
+  var cells = build(vrows, 'cell').sort(function (a, b) { return a.stage - b.stage; });
+  h += '<h4>Boost by stage</h4><table><tr><th class="l">Stage</th><th class="l">Boost</th><th>Plugin DPS</th><th>Data</th></tr>' + cells.map(function (x) {
+    var bar = x.boost == null ? '<span class="dim">no weapon to compare</span>' : '<span class="bb"><i class="f v-' + x.verdict + '" style="width:' + Math.min(100, x.boost / (th.too * 1.6) * 100).toFixed(0) + '%"></i><u style="left:' + (th.strong / (th.too * 1.6) * 100).toFixed(0) + '%"></u><u class="t" style="left:' + (th.too / (th.too * 1.6) * 100).toFixed(0) + '%"></u></span><b>' + boostTxt(x) + '</b> <span class="chip c-' + x.verdict + '">' + VERDICT[x.verdict] + '</span>';
+    return '<tr' + (x.stage == stage ? ' style="background:var(--panel2)"' : '') + '><td class="l">' + esc(STAGES[x.stage] || x.stage) + '</td><td class="l">' + bar + '</td><td>' + (x.pd ? fmt(x.dps) : '0') + '</td><td class="' + (x.quality === 2 ? 'q-good' : x.quality ? 'q-some' : 'q-few') + '">' + x.batches + ' uploads, ' + fmtTime(x.sec) + '</td></tr>';
+  }).join('') + '</table>';
+
+  // advice for the chosen stage (or the strongest one)
+  var focus = cells.filter(function (x) { return x.stage == stage; })[0] || cells.slice().sort(function (a, b) { return b.ratio - a.ratio; })[0];
+  if (focus && focus.quality > 0 && (focus.verdict === 'toostrong' || focus.verdict === 'strong' || focus.verdict === 'weak')) {
+    h += '<div class="note ' + (focus.verdict === 'weak' ? 'low' : 'bad') + '"><b>' + VERDICT[focus.verdict] + ' at ' + esc(STAGES[focus.stage]) + ' (+' + pct(focus.boost) + ').</b> ' + suggestion(focus) +
+      (focus.quality < 2 ? ' <span class="dim">Data is thin here, so treat this as a hint.</span>' : '') + (focus.cons === 'swingy' ? ' <span class="dim">Uploads vary a lot, so a few heavy ones may be pulling it.</span>' : '') + '</div>';
+    var word = focus.verdict === 'weak' ? 'BUFF' : 'NERF', sign = focus.verdict === 'weak' ? '+' : '-', tgt = focus.verdict === 'weak' ? th.low : th.strong;
+    var card = '#### ' + inf.n + ' | ' + (inf.r || 'Rarity') + ' | ' + word + '\n> (your reason, in your own words)\n- [' + sign + '] Boost at ' + STAGES[focus.stage] + ': +' + pct(focus.boost) + ' => about +' + pct(tgt) + ' (from the stats report)';
+    h += '<h4>Patch note card (starting point)</h4><pre class="card" id="card">' + esc(card) + '</pre><button class="btn" id="d-copy">Copy card</button> <span class="mini" id="d-copied"></span>';
+  }
+
+  // weapons
+  var wk = build(vrows, 'weapon'), byW = {};
+  wk.forEach(function (x) { var w = byW[x.weapon] = byW[x.weapon] || { weapon: x.weapon, pd: 0, wd: 0, sec: 0, batches: 0, cls: x.cls }; w.pd += x.pd; w.wd += x.wd; w.sec += x.sec; w.batches = Math.max(w.batches, x.batches); });
+  var ws = Object.keys(byW).map(function (k) { return byW[k]; }).sort(function (a, b) { return b.sec - a.sec; }), totalSec = ws.reduce(function (s, w) { return s + w.sec; }, 0) || 1;
+  if (ws.length) {
+    h += '<h4>Weapons it was seen with</h4>';
+    if (ws[0].sec / totalSec >= 0.6 && ws.length > 1) h += '<div class="note">' + Math.round(ws[0].sec / totalSec * 100) + '% of the data comes from <b>' + esc(weaponName(ws[0].weapon)) + '</b>, so these numbers mostly describe that weapon.</div>';
+    h += '<table><tr><th class="l">Weapon</th><th class="l">Class</th><th>Boost</th><th>Plugin DPS</th><th>Share of data</th></tr>' + ws.slice(0, 12).map(function (w) {
+      var b = w.wd > 0 ? w.pd / w.wd * 100 : null;
+      return '<tr><td class="l">' + esc(weaponName(w.weapon)) + '</td><td class="l">' + (CLASSES[w.cls] || '') + '</td><td>' + (b == null ? '-' : '+' + pct(b)) + '</td><td>' + (w.sec > 0 ? fmt(w.pd / w.sec) : '-') + '</td><td>' + Math.round(w.sec / totalSec * 100) + '%</td></tr>';
+    }).join('') + '</table>' + (ws.length > 12 ? '<div class="mini">' + (ws.length - 12) + ' more weapons not shown.</div>' : '');
+  }
+
+  // versions (ignores the version filter on purpose, so you can see a patch's effect)
+  var byV = {}; rows.forEach(function (r) { var v = byV[r.ver] = byV[r.ver] || { ver: r.ver, pd: 0, wd: 0, sec: 0, batches: 0 }; v.pd += r.pdmg; v.wd += r.wdmg; v.sec += r.seconds; v.batches = Math.max(v.batches, r.batches); });
+  var vs = Object.keys(byV).sort(verCmp).map(function (k) { return byV[k]; });
+  if (vs.length > 1) {
+    h += '<h4>By mod version (all stages together)</h4><table><tr><th class="l">Version</th><th>Boost</th><th>vs the version before</th><th>Plugin DPS</th><th>Data</th></tr>' + vs.map(function (v, i) {
+      var b = v.wd > 0 ? v.pd / v.wd * 100 : null, pb = i && vs[i - 1].wd > 0 ? vs[i - 1].pd / vs[i - 1].wd * 100 : null, d = '';
+      if (b != null && pb != null && pb > 0) { var ch = Math.round((b / pb - 1) * 100); d = '<span class="' + (ch > 0 ? 'delta-up' : 'delta-down') + '">' + (ch > 0 ? '+' : '') + ch + '%</span>'; }
+      return '<tr><td class="l">' + esc(v.ver) + '</td><td>' + (b == null ? '-' : '+' + pct(b)) + '</td><td>' + (d || '<span class="dim">-</span>') + '</td><td>' + (v.sec > 0 ? fmt(v.pd / v.sec) : '-') + '</td><td>' + v.batches + ' uploads, ' + fmtTime(v.sec) + '</td></tr>';
+    }).join('') + '</table><div class="mini">Different versions mean different players and gear, so read a change as a hint, not proof. Red means the Boost went up.</div>';
+  }
+  show(h);
+  history.replaceState(null, '', '#p=' + encodeURIComponent(id) + (stage != null ? '&s=' + stage : ''));
+  var copy = $('d-copy');
+  if (copy) copy.onclick = function () {
+    var text = $('card').textContent, done = function () { $('d-copied').textContent = 'Copied.'; };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text); done(); }); else { fallbackCopy(text); done(); }
+  };
+}
+function fallbackCopy(text) { var t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) {} document.body.removeChild(t); }
+function show(html) { $('detail').innerHTML = html; $('detail').style.display = 'block'; $('shade').style.display = 'block'; $('detail').scrollTop = 0; var c = $('d-close'); if (c) c.onclick = closeDetail; }
+function closeDetail() { $('detail').style.display = 'none'; $('shade').style.display = 'none'; history.replaceState(null, '', location.pathname + location.search); }
+
+// ---- balance targets editor ----
+function renderTargets() {
+  var h = '<tr><th>Rarity</th><th>Strong at (Boost %)</th><th>Too strong at (Boost %)</th></tr>';
+  RARITIES.forEach(function (r) { h += '<tr><td><span class="rar ' + r + '" style="margin:0">' + r + '</span></td><td><input type="number" min="1" data-r="' + r + '" data-i="0" value="' + S.targets.t[r][0] + '"></td><td><input type="number" min="1" data-r="' + r + '" data-i="1" value="' + S.targets.t[r][1] + '"></td></tr>'; });
+  h += '<tr><td>Low band</td><td colspan="2">under <input type="number" min="1" max="90" id="t-low" value="' + S.targets.low + '"> % of the Strong line</td></tr>';
+  $('ttable').innerHTML = h;
+}
+
+// ---- wiring ----
+function render() {
+  var v = $('f-ver').value;
+  $('ver-note').textContent = v === 'all' ? 'Showing every version together. Data from before and after a patch is mixed, so a nerfed plugin can look half as strong as it now is. Pick one version to judge it.' : v === 'earlier' ? 'Showing only the old numbers from before versions were kept.' : 'Showing only mod version ' + v + '. Older versions are in the Mod version list.';
+  var rows = baseRows(), units = build(rows, 'plugin');
+  renderHealth(units); renderActions(units);
+  if (S.view === 'heat') { $('v-table').style.display = 'none'; $('v-heat').style.display = 'block'; renderHeat(rows); }
+  else { $('v-heat').style.display = 'none'; $('v-table').style.display = 'block'; renderTable(S.view === 'weapon' ? build(rows, 'weapon') : units); }
+}
+
+function fillFilters() {
+  function opts(id, items, label) { $(id).innerHTML = '<option value="all">' + label + '</option>' + items.map(function (i) { return '<option value="' + esc(i[0]) + '">' + esc(i[1]) + '</option>'; }).join(''); }
+  var stages = {}, classes = {}, vers = {};
+  all.forEach(function (r) { stages[r.stage] = 1; classes[r.class] = 1; vers[r.ver] = 1; });
+  opts('f-ver', Object.keys(vers).sort(verCmp).reverse().map(function (v) { return [v, v === 'earlier' ? 'earlier (before versions were kept)' : v]; }), 'All versions');
+  var named = Object.keys(vers).filter(function (v) { return v !== 'earlier'; }).sort(verCmp);
+  if (named.length) $('f-ver').value = named[named.length - 1]; // balance is about the current build, so start there
+  opts('f-stage', Object.keys(stages).map(Number).sort(function (a, b) { return a - b; }).map(function (s) { return [s, STAGES[s] || 'Stage ' + s]; }), 'All stages');
+  opts('f-class', Object.keys(classes).map(Number).sort(function (a, b) { return a - b; }).map(function (c) { return [c, CLASSES[c] || 'Class ' + c]; }), 'All classes');
+  opts('f-rar', RARITIES.map(function (r) { return [r, r]; }), 'All rarities');
+}
+
+function openFromHash() {
+  var m = /^#p=([^&]+)(?:&s=(\d+))?/.exec(location.hash);
+  if (m) openDetail(decodeURIComponent(m[1]), m[2] != null ? +m[2] : null);
+}
+
+document.addEventListener('click', function (e) {
+  var more = e.target.closest('[data-more]'); if (more) { var k = more.getAttribute('data-more'); S.showAll[k] = !S.showAll[k]; render(); return; }
+  var th = e.target.closest('#head th'); if (th) { var key = th.getAttribute('data-k'); S.sortDir = S.sortKey === key ? -S.sortDir : (key === 'plugin' || key === 'weapon' || key === 'stage' || key === 'cls' ? 1 : -1); S.sortKey = key; render(); return; }
+  var t = e.target.closest('[data-plugin]'); if (t) openDetail(t.getAttribute('data-plugin'), +t.getAttribute('data-stage'));
+});
+$('shade').onclick = closeDetail;
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDetail(); });
+['f-ver', 'f-stage', 'f-class', 'f-rar', 'f-q', 'f-b', 'f-s', 'f-low', 'f-cal'].forEach(function (id) { $(id).addEventListener('input', render); });
+[['t-plugin', 'plugin'], ['t-weapon', 'weapon'], ['t-heat', 'heat']].forEach(function (p) {
+  $(p[0]).onclick = function () { S.view = p[1]; ['t-plugin', 't-weapon', 't-heat'].forEach(function (b) { $(b).className = b === p[0] ? 'on' : ''; }); render(); };
+});
+$('ttable').addEventListener('input', function (e) {
+  var el = e.target, v = +el.value; if (!(v > 0)) return;
+  if (el.id === 't-low') S.targets.low = Math.min(90, v); else if (el.getAttribute('data-r')) S.targets.t[el.getAttribute('data-r')][+el.getAttribute('data-i')] = v;
+  saveTargets(); render();
+});
+$('t-reset').onclick = function () { S.targets = JSON.parse(JSON.stringify(DEFAULTS)); saveTargets(); renderTargets(); render(); };
+
+fetch('/report.json?token=' + encodeURIComponent(token)).then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); }).then(function (data) {
+  all = (data.rows || []).map(function (r) { r.nb = r.nb || 0; r.sb = r.sb || 0; r.sb2 = r.sb2 || 0; return r; }); plugins = data.plugins || {};
+  fillFilters(); renderTargets(); renderGaps(); render(); openFromHash();
+}).catch(function (e) { document.body.insertAdjacentHTML('beforeend', '<p style="color:var(--red)">Could not load the numbers (' + e + '). Is the password in the address right?</p>'); });
+})();
+</script>

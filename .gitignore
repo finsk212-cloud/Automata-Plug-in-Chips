@@ -7,3 +7,7 @@ obj/
 *.user
 .claude/settings.local.json
 .claude/settings.json
+
+# Local test server data and secrets (the report password for local tests lives in .dev.vars)
+server/.wrangler/
+server/.dev.vars

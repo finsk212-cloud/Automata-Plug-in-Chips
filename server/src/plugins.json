@@ -1,0 +1,932 @@
+{
+    "adaptive_armor":  {
+                           "n":  "Adaptive Armor",
+                           "r":  "Rare",
+                           "c":  "Universal"
+                       },
+    "afterburner":  {
+                        "n":  "Afterburner",
+                        "r":  "Epic",
+                        "c":  "Ranged"
+                    },
+    "ambush":  {
+                   "n":  "Ambush",
+                   "r":  "Common",
+                   "c":  "Melee"
+               },
+    "apex_hunter":  {
+                        "n":  "Apex Hunter",
+                        "r":  "Legendary",
+                        "c":  "Ranged"
+                    },
+    "apex_predator":  {
+                          "n":  "Apex Predator",
+                          "r":  "Legendary",
+                          "c":  "Universal"
+                      },
+    "arcane_singularity":  {
+                               "n":  "Arcane Singularity",
+                               "r":  "Legendary",
+                               "c":  "Magic"
+                           },
+    "arcane_spark":  {
+                         "n":  "Arcane Spark",
+                         "r":  "Common",
+                         "c":  "Magic"
+                     },
+    "armor_piercer":  {
+                          "n":  "Armor Piercer",
+                          "r":  "Epic",
+                          "c":  "Universal"
+                      },
+    "astral_siphon":  {
+                          "n":  "Astral Siphon",
+                          "r":  "Epic",
+                          "c":  "Magic"
+                      },
+    "autopilot":  {
+                      "n":  "Upgrade Pod: Autopilot",
+                      "r":  "Epic",
+                      "c":  "Support"
+                  },
+    "type_s_synchronizer_protocol":  {
+                                         "n":  "Type-S: Synchronizer Protocol",
+                                         "r":  "Epic",
+                                         "c":  "Universal"
+                                     },
+    "type_b_berserker_protocol":  {
+                                      "n":  "Type-B: Berserker Protocol",
+                                      "r":  "Epic",
+                                      "c":  "Universal"
+                                  },
+    "type_d_dreadnought_protocol":  {
+                                        "n":  "Type-D: Dreadnought Protocol",
+                                        "r":  "Epic",
+                                        "c":  "Universal"
+                                    },
+    "bait_master":  {
+                        "n":  "Bait Master",
+                        "r":  "Rare",
+                        "c":  "Universal"
+                    },
+    "berserker":  {
+                      "n":  "Berserker",
+                      "r":  "Rare",
+                      "c":  "Melee"
+                  },
+    "big_stick_energy":  {
+                             "n":  "Big Stick Energy",
+                             "r":  "Common",
+                             "c":  "Melee"
+                         },
+    "blade_dance":  {
+                        "n":  "Blade Dance",
+                        "r":  "Legendary",
+                        "c":  "Melee"
+                    },
+    "bloodletter":  {
+                        "n":  "Bloodletter",
+                        "r":  "Common",
+                        "c":  "Melee"
+                    },
+    "brewers_instinct":  {
+                             "n":  "Brewer\u0027s Instinct",
+                             "r":  "Rare",
+                             "c":  "Universal"
+                         },
+    "bulwark":  {
+                    "n":  "Bulwark",
+                    "r":  "Rare",
+                    "c":  "Universal"
+                },
+    "callout":  {
+                    "n":  "Callout",
+                    "r":  "Rare",
+                    "c":  "Support"
+                },
+    "celestial_pull":  {
+                           "n":  "Celestial Pull",
+                           "r":  "Common",
+                           "c":  "Magic"
+                       },
+    "chain_lightning":  {
+                            "n":  "Chain Lightning",
+                            "r":  "Rare",
+                            "c":  "Melee"
+                        },
+    "chaos_rounds":  {
+                         "n":  "Chaos Rounds",
+                         "r":  "Epic",
+                         "c":  "Ranged"
+                     },
+    "chronobreak":  {
+                        "n":  "Chronobreak",
+                        "r":  "Legendary",
+                        "c":  "Support"
+                    },
+    "cleanse":  {
+                    "n":  "Cleanse",
+                    "r":  "Rare",
+                    "c":  "Support"
+                },
+    "cleansing_strike":  {
+                             "n":  "Cleansing Strike",
+                             "r":  "Rare",
+                             "c":  "Melee"
+                         },
+    "combat_medic":  {
+                         "n":  "Combat Medic",
+                         "r":  "Common",
+                         "c":  "Support"
+                     },
+    "contact_charge":  {
+                           "n":  "Contact Charge",
+                           "r":  "Common",
+                           "c":  "Support"
+                       },
+    "corrosive_tip":  {
+                          "n":  "Corrosive Tip",
+                          "r":  "Common",
+                          "c":  "Support"
+                      },
+    "crit_happens":  {
+                         "n":  "Crit Happens",
+                         "r":  "Epic",
+                         "c":  "Summon"
+                     },
+    "critical_surge":  {
+                           "n":  "Critical Surge",
+                           "r":  "Rare",
+                           "c":  "Universal"
+                       },
+    "danger_close":  {
+                         "n":  "Danger Close",
+                         "r":  "Legendary",
+                         "c":  "Ranged"
+                     },
+    "dark_omen":  {
+                      "n":  "Dark Omen",
+                      "r":  "Epic",
+                      "c":  "Universal"
+                  },
+    "deadeye":  {
+                    "n":  "Deadeye",
+                    "r":  "Epic",
+                    "c":  "Ranged"
+                },
+    "dead_weight":  {
+                        "n":  "Dead Weight",
+                        "r":  "Epic",
+                        "c":  "Melee"
+                    },
+    "debug_full_crit":  {
+                            "n":  "[DEBUG] Full Crit",
+                            "r":  "Common",
+                            "c":  "Universal"
+                        },
+    "demolition_expert":  {
+                              "n":  "Demolition Expert",
+                              "r":  "Common",
+                              "c":  "Universal"
+                          },
+    "discount_rod":  {
+                         "n":  "Rod of Discount",
+                         "r":  "Rare",
+                         "c":  "Magic"
+                     },
+    "double_tip":  {
+                       "n":  "Double Tip",
+                       "r":  "Epic",
+                       "c":  "Magic"
+                   },
+    "echo_chamber":  {
+                         "n":  "Echo Chamber",
+                         "r":  "Legendary",
+                         "c":  "Ranged"
+                     },
+    "eldritch_covenant":  {
+                              "n":  "Eldritch Covenant",
+                              "r":  "Legendary",
+                              "c":  "Magic"
+                          },
+    "emergency_aid":  {
+                          "n":  "Emergency Aid",
+                          "r":  "Rare",
+                          "c":  "Support"
+                      },
+    "employee_of_the_month":  {
+                                  "n":  "Employee of the Month",
+                                  "r":  "Rare",
+                                  "c":  "Summon"
+                              },
+    "eternal_flame":  {
+                          "n":  "Eternal Flame",
+                          "r":  "Rare",
+                          "c":  "Magic"
+                      },
+    "eternal_legion":  {
+                           "n":  "Eternal Legion",
+                           "r":  "Legendary",
+                           "c":  "Summon"
+                       },
+    "featherfall":  {
+                        "n":  "Featherfall",
+                        "r":  "Common",
+                        "c":  "Universal"
+                    },
+    "festering_wounds":  {
+                             "n":  "Festering Wounds",
+                             "r":  "Rare",
+                             "c":  "Universal"
+                         },
+    "fetch":  {
+                  "n":  "Fetch",
+                  "r":  "Common",
+                  "c":  "Summon"
+              },
+    "fight_or_flight":  {
+                            "n":  "Fight or Flight",
+                            "r":  "Common",
+                            "c":  "Universal"
+                        },
+    "final_stand":  {
+                        "n":  "Final Stand",
+                        "r":  "Legendary",
+                        "c":  "Universal"
+                    },
+    "floor_is_lava":  {
+                          "n":  "Floor is Lava",
+                          "r":  "Legendary",
+                          "c":  "Ranged"
+                      },
+    "focus_directive":  {
+                            "n":  "Focus Directive",
+                            "r":  "Common",
+                            "c":  "Summon"
+                        },
+    "fortunes_favor":  {
+                           "n":  "Fortune\u0027s Favor",
+                           "r":  "Common",
+                           "c":  "Universal"
+                       },
+    "frenzied_assault":  {
+                             "n":  "Frenzied Assault",
+                             "r":  "Epic",
+                             "c":  "Melee"
+                         },
+    "frostbound":  {
+                       "n":  "Frostbound",
+                       "r":  "Rare",
+                       "c":  "Magic"
+                   },
+    "frost_touch":  {
+                        "n":  "Frost Touch",
+                        "r":  "Common",
+                        "c":  "Magic"
+                    },
+    "get_excited":  {
+                        "n":  "Get Excited!",
+                        "r":  "Common",
+                        "c":  "Universal"
+                    },
+    "get_over_here":  {
+                          "n":  "Get over here!",
+                          "r":  "Epic",
+                          "c":  "Support"
+                      },
+    "glass_sight":  {
+                        "n":  "Glass Sight",
+                        "r":  "Common",
+                        "c":  "Ranged"
+                    },
+    "godslayer_blade":  {
+                            "n":  "Godslayer Blade",
+                            "r":  "Legendary",
+                            "c":  "Melee"
+                        },
+    "grand_entrance":  {
+                           "n":  "Grand Entrance",
+                           "r":  "Common",
+                           "c":  "Summon"
+                       },
+    "grapple_master":  {
+                           "n":  "Grapple Master",
+                           "r":  "Common",
+                           "c":  "Universal"
+                       },
+    "tombstone_boost":  {
+                            "n":  "Grave Danger",
+                            "r":  "Epic",
+                            "c":  "Universal"
+                        },
+    "pellet_burst":  {
+                         "n":  "Group Hug",
+                         "r":  "Epic",
+                         "c":  "Ranged"
+                     },
+    "guardians_wrath":  {
+                            "n":  "Guardian\u0027s Wrath",
+                            "r":  "Epic",
+                            "c":  "Universal"
+                        },
+    "gun_go_brrr":  {
+                        "n":  "Gun Go Brrr",
+                        "r":  "Epic",
+                        "c":  "Ranged"
+                    },
+    "headhunter":  {
+                       "n":  "Headhunter",
+                       "r":  "Rare",
+                       "c":  "Ranged"
+                   },
+    "heart_drop":  {
+                       "n":  "Heart Drop",
+                       "r":  "Common",
+                       "c":  "Universal"
+                   },
+    "hex_detonation":  {
+                           "n":  "Hex Detonation",
+                           "r":  "Legendary",
+                           "c":  "Magic"
+                       },
+    "hit_me_here":  {
+                        "n":  "Hit Me Here",
+                        "r":  "Epic",
+                        "c":  "Ranged"
+                    },
+    "hunters_pace":  {
+                         "n":  "Hunter\u0027s Pace",
+                         "r":  "Common",
+                         "c":  "Ranged"
+                     },
+    "infernos_heart":  {
+                           "n":  "Inferno\u0027s Heart",
+                           "r":  "Legendary",
+                           "c":  "Magic"
+                       },
+    "auto_fishing":  {
+                         "n":  "Insta Cast",
+                         "r":  "Common",
+                         "c":  "Universal"
+                     },
+    "ironclad_aura":  {
+                          "n":  "Ironclad Aura",
+                          "r":  "Rare",
+                          "c":  "Support"
+                      },
+    "ironclad_will":  {
+                          "n":  "Ironclad Will",
+                          "r":  "Legendary",
+                          "c":  "Melee"
+                      },
+    "iron_rhythm":  {
+                        "n":  "Iron Rhythm",
+                        "r":  "Common",
+                        "c":  "Universal"
+                    },
+    "iron_will":  {
+                      "n":  "Iron Will",
+                      "r":  "Common",
+                      "c":  "Universal"
+                  },
+    "keen_eye":  {
+                     "n":  "Keen Eye",
+                     "r":  "Common",
+                     "c":  "Support"
+                 },
+    "kickback":  {
+                     "n":  "Kickback",
+                     "r":  "Epic",
+                     "c":  "Ranged"
+                 },
+    "death_blast":  {
+                        "n":  "Last Gasp",
+                        "r":  "Legendary",
+                        "c":  "Universal"
+                    },
+    "last_rites":  {
+                       "n":  "Last Rites",
+                       "r":  "Epic",
+                       "c":  "Support"
+                   },
+    "last_stand":  {
+                       "n":  "Last Stand",
+                       "r":  "Rare",
+                       "c":  "Universal"
+                   },
+    "leftovers":  {
+                      "n":  "Leftovers",
+                      "r":  "Epic",
+                      "c":  "Melee"
+                  },
+    "lifeline":  {
+                     "n":  "Lifeline",
+                     "r":  "Legendary",
+                     "c":  "Support"
+                 },
+    "long_distance_relationship":  {
+                                       "n":  "Long Distance Relationship",
+                                       "r":  "Legendary",
+                                       "c":  "Magic"
+                                   },
+    "lucky_find":  {
+                       "n":  "Lucky Find",
+                       "r":  "Common",
+                       "c":  "Universal"
+                   },
+    "lucky_strike":  {
+                         "n":  "Lucky Strike",
+                         "r":  "Rare",
+                         "c":  "Universal"
+                     },
+    "tree_bonus":  {
+                       "n":  "Lumberjack",
+                       "r":  "Common",
+                       "c":  "Universal"
+                   },
+    "mana_reflux":  {
+                        "n":  "Mana Reflux",
+                        "r":  "Common",
+                        "c":  "Universal"
+                    },
+    "mana_well":  {
+                      "n":  "Mana Well",
+                      "r":  "Common",
+                      "c":  "Support"
+                  },
+    "marionette":  {
+                       "n":  "Marionette",
+                       "r":  "Legendary",
+                       "c":  "Summon"
+                   },
+    "martyrs_resolve":  {
+                            "n":  "Martyr\u0027s Resolve",
+                            "r":  "Legendary",
+                            "c":  "Support"
+                        },
+    "master_angler":  {
+                          "n":  "Master Angler",
+                          "r":  "Rare",
+                          "c":  "Universal"
+                      },
+    "mending_aura":  {
+                         "n":  "Mending Aura",
+                         "r":  "Epic",
+                         "c":  "Universal"
+                     },
+    "meteor_strike":  {
+                          "n":  "Meteor Strike",
+                          "r":  "Epic",
+                          "c":  "Universal"
+                      },
+    "minion_momentum":  {
+                            "n":  "Minion Momentum",
+                            "r":  "Common",
+                            "c":  "Summon"
+                        },
+    "mirror_image":  {
+                         "n":  "Mirror Image",
+                         "r":  "Epic",
+                         "c":  "Magic"
+                     },
+    "momentum_crash":  {
+                           "n":  "Momentum Crash",
+                           "r":  "Epic",
+                           "c":  "Melee"
+                       },
+    "momentum_swing":  {
+                           "n":  "Momentum Swing",
+                           "r":  "Common",
+                           "c":  "Melee"
+                       },
+    "necromancers_court":  {
+                               "n":  "Necromancer\u0027s Court",
+                               "r":  "Epic",
+                               "c":  "Summon"
+                           },
+    "neural_linkage":  {
+                           "n":  "Neural Linkage",
+                           "r":  "Epic",
+                           "c":  "Summon"
+                       },
+    "one_in_the_chamber":  {
+                               "n":  "One in the Chamber",
+                               "r":  "Rare",
+                               "c":  "Ranged"
+                           },
+    "opportunist":  {
+                        "n":  "Opportunist",
+                        "r":  "Rare",
+                        "c":  "Melee"
+                    },
+    "pod_ore":  {
+                    "n":  "Upgrade Pod: Ore Sniffer",
+                    "r":  "Common",
+                    "c":  "Universal"
+                },
+    "ore_bonus":  {
+                      "n":  "Ore Than Enough",
+                      "r":  "Common",
+                      "c":  "Universal"
+                  },
+    "overcharge":  {
+                       "n":  "Overcharge",
+                       "r":  "Rare",
+                       "c":  "Magic"
+                   },
+    "overcharge_round":  {
+                             "n":  "Overcharge Round",
+                             "r":  "Epic",
+                             "c":  "Ranged"
+                         },
+    "overwhelm":  {
+                      "n":  "Overwhelm",
+                      "r":  "Rare",
+                      "c":  "Melee"
+                  },
+    "party_poppers":  {
+                          "n":  "Party Poppers",
+                          "r":  "Epic",
+                          "c":  "Ranged"
+                      },
+    "mana_buffer":  {
+                        "n":  "Pay to Win",
+                        "r":  "Epic",
+                        "c":  "Magic"
+                    },
+    "pod_shoot":  {
+                      "n":  "Upgrade Pod: Pea Shooter",
+                      "r":  "Common",
+                      "c":  "Universal"
+                  },
+    "phase_round":  {
+                        "n":  "Phase Round",
+                        "r":  "Epic",
+                        "c":  "Ranged"
+                    },
+    "phoenix_heart":  {
+                          "n":  "Phoenix Heart",
+                          "r":  "Legendary",
+                          "c":  "Universal"
+                      },
+    "pied_piper":  {
+                       "n":  "Pied Piper",
+                       "r":  "Epic",
+                       "c":  "Summon"
+                   },
+    "piercing_shot":  {
+                          "n":  "Piercing Shot",
+                          "r":  "Rare",
+                          "c":  "Ranged"
+                      },
+    "plague_bearer":  {
+                          "n":  "Plague Bearer",
+                          "r":  "Rare",
+                          "c":  "Universal"
+                      },
+    "pogo_stick":  {
+                       "n":  "Pogo Stick",
+                       "r":  "Rare",
+                       "c":  "Melee"
+                   },
+    "point_blank":  {
+                        "n":  "Point Blank",
+                        "r":  "Rare",
+                        "c":  "Ranged"
+                    },
+    "potion_rush":  {
+                        "n":  "Potion Rush",
+                        "r":  "Common",
+                        "c":  "Universal"
+                    },
+    "prismatic_fracture":  {
+                               "n":  "Prismatic Fracture",
+                               "r":  "Epic",
+                               "c":  "Magic"
+                           },
+    "prolonged_surge":  {
+                            "n":  "Prolonged Surge",
+                            "r":  "Common",
+                            "c":  "Support"
+                        },
+    "queens_swarm":  {
+                         "n":  "Queen\u0027s Swarm",
+                         "r":  "Rare",
+                         "c":  "Summon"
+                     },
+    "quickcast":  {
+                      "n":  "Quickcast",
+                      "r":  "Common",
+                      "c":  "Magic"
+                  },
+    "quickfire":  {
+                      "n":  "Quickfire",
+                      "r":  "Common",
+                      "c":  "Ranged"
+                  },
+    "quick_recovery":  {
+                           "n":  "Quick Recovery",
+                           "r":  "Common",
+                           "c":  "Universal"
+                       },
+    "rapid_fire":  {
+                       "n":  "Rapid Fire",
+                       "r":  "Common",
+                       "c":  "Ranged"
+                   },
+    "ravenous_swarm":  {
+                           "n":  "Ravenous Swarm",
+                           "r":  "Epic",
+                           "c":  "Summon"
+                       },
+    "reforgers_patience":  {
+                               "n":  "Reforger\u0027s Patience",
+                               "r":  "Epic",
+                               "c":  "Universal"
+                           },
+    "revitalizing_wave":  {
+                              "n":  "Revitalizing Wave",
+                              "r":  "Epic",
+                              "c":  "Support"
+                          },
+    "ricochet_engine":  {
+                            "n":  "Ricochet Engine",
+                            "r":  "Legendary",
+                            "c":  "Ranged"
+                        },
+    "riposte":  {
+                    "n":  "Riposte",
+                    "r":  "Common",
+                    "c":  "Melee"
+                },
+    "run_as_administrator":  {
+                                 "n":  "Run as Administrator",
+                                 "r":  "Legendary",
+                                 "c":  "Magic"
+                             },
+    "scapegoat":  {
+                      "n":  "Scapegoat",
+                      "r":  "Rare",
+                      "c":  "Support"
+                  },
+    "scavengers_luck":  {
+                            "n":  "Scavenger\u0027s Luck",
+                            "r":  "Rare",
+                            "c":  "Universal"
+                        },
+    "second_pulse":  {
+                         "n":  "Second Pulse",
+                         "r":  "Common",
+                         "c":  "Universal"
+                     },
+    "second_wind":  {
+                        "n":  "Second Wind",
+                        "r":  "Common",
+                        "c":  "Universal"
+                    },
+    "sentry_salvo":  {
+                         "n":  "Sentry Salvo",
+                         "r":  "Common",
+                         "c":  "Summon"
+                     },
+    "sentrys_resolve":  {
+                            "n":  "Sentry\u0027s Resolve",
+                            "r":  "Rare",
+                            "c":  "Summon"
+                        },
+    "shared_dose":  {
+                        "n":  "Shared Dose",
+                        "r":  "Common",
+                        "c":  "Support"
+                    },
+    "sharpened_focus":  {
+                            "n":  "Sharpened Focus",
+                            "r":  "Epic",
+                            "c":  "Universal"
+                        },
+    "sharpshooter":  {
+                         "n":  "Sharpshooter",
+                         "r":  "Rare",
+                         "c":  "Ranged"
+                     },
+    "shockwave":  {
+                      "n":  "Shockwave",
+                      "r":  "Rare",
+                      "c":  "Melee"
+                  },
+    "siege_battery":  {
+                          "n":  "Siege Battery",
+                          "r":  "Legendary",
+                          "c":  "Summon"
+                      },
+    "soft_landing":  {
+                         "n":  "Soft Landing",
+                         "r":  "Common",
+                         "c":  "Support"
+                     },
+    "soul_link":  {
+                      "n":  "Soul Link",
+                      "r":  "Epic",
+                      "c":  "Support"
+                  },
+    "soul_martyr":  {
+                        "n":  "Soul Martyr",
+                        "r":  "Legendary",
+                        "c":  "Support"
+                    },
+    "spectral_guard":  {
+                           "n":  "Spectral Guard",
+                           "r":  "Rare",
+                           "c":  "Summon"
+                       },
+    "spell_echo":  {
+                       "n":  "Spell Echo",
+                       "r":  "Rare",
+                       "c":  "Magic"
+                   },
+    "star_power":  {
+                       "n":  "Star Power",
+                       "r":  "Common",
+                       "c":  "Magic"
+                   },
+    "steady_hands":  {
+                         "n":  "Steady Hands",
+                         "r":  "Common",
+                         "c":  "Ranged"
+                     },
+    "steady_heart":  {
+                         "n":  "Steady Heart",
+                         "r":  "Common",
+                         "c":  "Universal"
+                     },
+    "stormcaller":  {
+                        "n":  "Stormcaller",
+                        "r":  "Epic",
+                        "c":  "Melee"
+                    },
+    "sugar_rush":  {
+                       "n":  "Sugar Rush",
+                       "r":  "Rare",
+                       "c":  "Magic"
+                   },
+    "sunder":  {
+                   "n":  "Sunder",
+                   "r":  "Common",
+                   "c":  "Melee"
+               },
+    "supercharger":  {
+                         "n":  "Supercharger",
+                         "r":  "Common",
+                         "c":  "Support"
+                     },
+    "swarm_tactics":  {
+                          "n":  "Swarm Tactics",
+                          "r":  "Common",
+                          "c":  "Summon"
+                      },
+    "swiftness_aura":  {
+                           "n":  "Swiftness Aura",
+                           "r":  "Common",
+                           "c":  "Support"
+                       },
+    "swift_return":  {
+                         "n":  "Swift Return",
+                         "r":  "Rare",
+                         "c":  "Universal"
+                     },
+    "taunt":  {
+                  "n":  "Taunt",
+                  "r":  "Rare",
+                  "c":  "Support"
+              },
+    "tight_squeeze":  {
+                          "n":  "Tight Squeeze",
+                          "r":  "Rare",
+                          "c":  "Ranged"
+                      },
+    "time_warp":  {
+                      "n":  "Time Warp",
+                      "r":  "Epic",
+                      "c":  "Magic"
+                  },
+    "pod_light":  {
+                      "n":  "Upgrade Pod: Lighthouse",
+                      "r":  "Common",
+                      "c":  "Support"
+                  },
+    "treasure_diver":  {
+                           "n":  "Treasure Diver",
+                           "r":  "Rare",
+                           "c":  "Universal"
+                       },
+    "treasure_hunter":  {
+                            "n":  "Treasure Hunter",
+                            "r":  "Common",
+                            "c":  "Universal"
+                        },
+    "trick_shot":  {
+                       "n":  "Trick Shot",
+                       "r":  "Epic",
+                       "c":  "Ranged"
+                   },
+    "trophy_hunter":  {
+                          "n":  "Trophy Hunter",
+                          "r":  "Epic",
+                          "c":  "Melee"
+                      },
+    "turret_syndrome":  {
+                            "n":  "Turret Syndrome",
+                            "r":  "Legendary",
+                            "c":  "Summon"
+                        },
+    "twin_strike":  {
+                        "n":  "Twin Strike",
+                        "r":  "Rare",
+                        "c":  "Universal"
+                    },
+    "undying_bond":  {
+                         "n":  "Undying Bond",
+                         "r":  "Legendary",
+                         "c":  "Support"
+                     },
+    "vampiric_edge":  {
+                          "n":  "Vampiric Edge",
+                          "r":  "Common",
+                          "c":  "Melee"
+                      },
+    "pod_vein":  {
+                     "n":  "Upgrade Pod: Vein Miner",
+                     "r":  "Common",
+                     "c":  "Universal"
+                 },
+    "vengeance":  {
+                      "n":  "Vengeance",
+                      "r":  "Rare",
+                      "c":  "Universal"
+                  },
+    "vital_echo":  {
+                       "n":  "Vital Echo",
+                       "r":  "Common",
+                       "c":  "Universal"
+                   },
+    "void_step":  {
+                      "n":  "Void Step",
+                      "r":  "Epic",
+                      "c":  "Universal"
+                  },
+    "volatile_rounds":  {
+                            "n":  "Volatile Rounds",
+                            "r":  "Rare",
+                            "c":  "Ranged"
+                        },
+    "volt_tether":  {
+                        "n":  "Volt Tether",
+                        "r":  "Epic",
+                        "c":  "Summon"
+                    },
+    "wand_discipline":  {
+                            "n":  "Wand Discipline",
+                            "r":  "Common",
+                            "c":  "Magic"
+                        },
+    "warcry":  {
+                   "n":  "Warcry",
+                   "r":  "Common",
+                   "c":  "Support"
+               },
+    "war_gods_tempo":  {
+                           "n":  "War God\u0027s Tempo",
+                           "r":  "Legendary",
+                           "c":  "Melee"
+                       },
+    "pod_trap":  {
+                     "n":  "Upgrade Pod: Watch Your Step",
+                     "r":  "Common",
+                     "c":  "Universal"
+                 },
+    "whip_cracker":  {
+                         "n":  "Whip Cracker",
+                         "r":  "Rare",
+                         "c":  "Summon"
+                     },
+    "whiplash_wave":  {
+                          "n":  "Whiplash Wave",
+                          "r":  "Epic",
+                          "c":  "Summon"
+                      },
+    "whip_master":  {
+                        "n":  "Whip Master",
+                        "r":  "Common",
+                        "c":  "Summon"
+                    },
+    "wild_card":  {
+                      "n":  "Wild Card",
+                      "r":  "Rare",
+                      "c":  "Universal"
+                  },
+    "wild_magic":  {
+                       "n":  "Wild Magic",
+                       "r":  "Epic",
+                       "c":  "Magic"
+                   }
+}
