@@ -28,7 +28,11 @@ const STAGE_NAMES = Object.keys(STAGE);
 const HIT_CAP = [250, 400, 700, 1500, 2000, 3000, 5000];
 const hitSize = (dps, stage) => Math.max(5, Math.min(dps / 2.5, HIT_CAP[STAGE[stage]]));
 
-// [plugin, weapon, class, stage, version, uploads, seconds per upload, weapon DPS, Boost in %, how much the Boost varies between uploads (0 to 1)]
+// Pass --tester-only to leave out the normal players: then no stage has other weapons to compare with, and the Gear check should say it
+// cannot judge instead of calling everything fine.
+const testerOnly = process.argv.includes('--tester-only');
+
+// [plugin, weapon, class, stage, version, uploads, seconds per upload, weapon DPS, Boost in %, how much the Boost varies between uploads (0 to 1), optional fixed damage per hit]
 const specs = [];
 
 // ---- normal players: three weapons per class at every stage ----
@@ -39,7 +43,7 @@ const NORMAL = {
     ['ChlorophyteShotbow', 'VenusMagnum', 'TacticalShotgun'], ['Stynger', 'HeatRay', 'SniperRifle'], ['SDMG', 'Tsunami', 'Celeb2']]
 };
 const BASE_DPS = [40, 90, 150, 320, 420, 560, 800];
-STAGE_NAMES.forEach((stage, si) => {
+if (!testerOnly) STAGE_NAMES.forEach((stage, si) => {
   for (const cls of ['Melee', 'Ranged']) {
     NORMAL[cls][si].forEach((w, wi) => {
       const dps = BASE_DPS[si] * [0.85, 1, 1.2][wi] * (cls === 'Ranged' ? 1.1 : 1);
@@ -83,19 +87,22 @@ for (const w of ['StarWrath', 'Meowmere', 'SolarEruption', 'TerraBlade']) {
   specs.push(['death_blast', 'Terraria/' + w, 'Melee', 'Start', '1.4.2', 4, 25, dps, 70, 0.2]);
 }
 // Normal players at the Start stage use the same plugins with ordinary gear, for comparison.
-for (const w of ['IronBroadsword', 'Katana', 'LightsBane']) {
+if (!testerOnly) for (const w of ['IronBroadsword', 'Katana', 'LightsBane']) {
   specs.push(['riposte',     'Terraria/' + w, 'Melee', 'Start', '1.4.2', 4, 25, 45, 30, 0.2]);
   specs.push(['stormcaller', 'Terraria/' + w, 'Melee', 'Start', '1.4.2', 4, 25, 45, 14, 0.2]);
   specs.push(['death_blast', 'Terraria/' + w, 'Melee', 'Start', '1.4.2', 4, 25, 45, 22, 0.2]);
 }
+// A slow heavy hitter with ordinary DPS: huge hits (bigger than what weapons 3 stages ahead do per hit) but nothing special per second.
+// The Gear check must leave it in, because only one of its two numbers is high.
+if (!testerOnly) specs.push(['riposte', 'Terraria/SlowHeavyHammer', 'Melee', 'Start', '1.4.2', 5, 40, 45, 30, 0.2, 400]);
 
 let sent = 0;
-for (const [plugin, weapon, cls, stage, ver, uploads, secs, wdps, boost, spread] of specs) {
+for (const [plugin, weapon, cls, stage, ver, uploads, secs, wdps, boost, spread, fixedHit] of specs) {
   for (let i = 0; i < uploads; i++) {
     const b = Math.max(0, boost * (1 + (rand() * 2 - 1) * spread));
     const t = Math.max(1, Math.round(secs * (0.7 + rand() * 0.6) * 10) / 10);
     const wd = Math.round(wdps * t), pd = boost === 0 ? 0 : Math.round(wd * b / 100);
-    const row = { p: plugin, w: weapon, c: CLASS[cls], g: STAGE[stage], pd, ph: Math.max(1, Math.round(pd / 40)), wd, wh: wd > 0 ? Math.max(1, Math.round(wd / hitSize(wdps, stage))) : 0, t };
+    const row = { p: plugin, w: weapon, c: CLASS[cls], g: STAGE[stage], pd, ph: Math.max(1, Math.round(pd / 40)), wd, wh: wd > 0 ? Math.max(1, Math.round(wd / (fixedHit || hitSize(wdps, stage)))) : 0, t };
     const res = await fetch(base + '/', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ v: 1, mod: ver, cal: false, rows: [row] }) });
     if (!res.ok) { console.error('POST failed', res.status, await res.text()); process.exit(1); }
     sent++;

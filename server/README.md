@@ -65,12 +65,15 @@ The page starts on the **newest mod version**, because balance is about the curr
   plugin looks weak next to a huge weapon, and a plugin that also hits other enemies can look strong, because the mod records a hit's damage
   capped at the enemy's remaining life. The check lists every weapon and stage pair (sorted by weapon DPS) and **leaves out** the ones that
   look overgeared: a weapon far above other weapons of the same class at the same stage (default 5 times, editable), or one that already hits
-  like weapons 3 or more stages ahead (this second rule still works when your own testing is most of a stage's data). The numbers it
-  compares are the weapon's damage per second and per hit, from every mod version.
+  like weapons 3 or more stages ahead (this second rule still works when your own testing is most of a stage's data). A weapon is only
+  flagged when its damage per second **and** its damage per hit are both high, so slow heavy hitters and fast weak weapons are left alone.
+  The numbers come from every mod version, because gear does not change with a patch.
   **It is a best guess, not a measurement**: the data never says which gear a player had, and the damage cap squeezes the difference at low
-  stages, so a moderately overgeared weapon can slip under the line. Use **Skip** on any pair it missed and **Keep** on any it wrongly cut;
-  both are remembered in your browser. A red note under the filters says how many rows were left out, and the plugin detail panel says
-  which weapons were cut for that plugin. Untick the box to see the raw numbers.
+  stages, so a moderately overgeared weapon can slip under the line. It also needs other players to compare with (at least 3 other weapons
+  of the same class, each with a minute of data). **While most of the data is your own testing, it cannot judge those weapons and says so
+  in a note**; then use **Skip** by hand. Use **Skip** on any pair it missed and **Keep** on any it wrongly cut; both are remembered in your
+  browser. A red note under the filters says how many rows were left out, and the plugin detail panel says which weapons were cut for that
+  plugin. Untick the box to see the raw numbers (Skip and Keep are paused while it is unticked).
 - **Uploads**: a batch is counted once for each weapon it holds a row for, so the number can run a little high for plugins used with several weapons.
 - **Consistency**: how much a plugin's Boost changes between uploads (steady, varies, swingy). Short or low-hit uploads (under 10 seconds or 10 weapon hits) are left out. It needs 3 or more counted uploads from the new
   version on, so older rows show a dash. Uploads from one player are alike, so this is a warning sign, not a statistical guarantee.
@@ -98,7 +101,8 @@ node test/seed-local.mjs http://localhost:8787
 ```
 Then open `http://localhost:8787/report?token=localtest` (the test password is in `.dev.vars`, which is not committed). `seed-local.mjs`
 refuses any address that is not this computer, so it can never add fake numbers to the real database. The fake data holds normal players at
-every stage, a tester with endgame gear in early worlds, and the same tester making up most of the Start stage, so the Gear check can be tried.
+every stage, a tester with endgame gear in early worlds, and the same tester making up most of the Start stage, so the Gear check can be tried. Add `--tester-only` to the seed command to leave out the normal players and see what the page does when
+there is nothing to compare with.
 To start over, empty the local tables first: `wrangler d1 execute automata-stats --local --command "DELETE FROM stats2; DELETE FROM stats;"`.
 
 ## Privacy, in plain words

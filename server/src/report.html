@@ -113,7 +113,7 @@
  .btn:hover{border-color:var(--gold)}
  .delta-up{color:var(--red)} .delta-down{color:var(--blue)}
  #gear-list{background:none;border:0;border-radius:0} #gear-list table{font-size:13px} #gear-list th{position:static;cursor:default} #gear-list td,#gear-list th{padding:6px 10px} #gear-list tbody tr{cursor:default}
- #gear-note .btn{margin-left:8px}
+ #gear-note .btn,#gear-warn .btn{margin-left:8px} #gear-list .btn:disabled{opacity:.4;cursor:not-allowed}
 </style>
 <div class="wrap">
 <h1>Plug-in Chips balance report</h1>
@@ -146,8 +146,9 @@
 
 <p class="mini" id="ver-note" style="margin:-2px 0 10px"></p>
 <p class="note bad" id="gear-note" style="display:none"></p>
+<p class="note low" id="gear-warn" style="display:none"></p>
 <details id="gear"><summary id="gear-sum">Gear check</summary>
- <p class="mini">Testing with late-game gear in an early world makes numbers look huge: weapon damage and Plugin DPS go up with gear, while a plugin's own damage grows only with the world stage. This check looks for weapons that hit far harder than other weapons at the same stage, or as hard as weapons several stages ahead, and leaves them out of every number below. It is a best guess, so look at the list and use Skip or Keep on any row. Your choices are saved in this browser only.</p>
+ <p class="mini">Testing with late-game gear in an early world makes numbers look huge: weapon damage and Plugin DPS go up with gear, while a plugin's own damage grows only with the world stage. This check looks for weapons whose damage per second and damage per hit are both far above other weapons at the same stage, or already as high as weapons several stages ahead, and leaves them out of every number below. It is a best guess, so look at the list and use Skip or Keep on any row. Your choices are saved in this browser only.</p>
  <div class="row" style="margin:0 0 10px">
   <label class="chk"><input type="checkbox" id="g-on" checked>Leave overgeared data out of everything below</label>
   <label>Flag at (times the stage's typical weapon)<input type="number" id="g-t" min="1.5" step="0.5" value="5"></label>
@@ -273,16 +274,22 @@ function analyzeGear() {
     var v = list.filter(function (q) { return q.ok && q.cls === p.cls && (ahead ? q.stage >= p.stage + GEAR_AHEAD : q.stage === p.stage); }).map(function (q) { return q[m]; });
     return v.length >= 3 ? median(v) : null;
   }
-  G = { pairs: list, auto: {} };
+  // A weapon only counts as overgeared when its damage per second AND its damage per hit are both high. Either one alone is common:
+  // slow heavy hitters have big hits with ordinary DPS, and fast weak weapons have high DPS with small hits.
+  function both(p, ahead) {
+    var sd = ref(p, 'dps', ahead), sh = ref(p, 'hit', ahead);
+    return sd > 0 && sh > 0 ? Math.min(p.dps / sd, p.hit / sh) : null;
+  }
+  G = { pairs: list, auto: {}, nothing: 0 };
   list.forEach(function (p) {
-    p.same = 0; p.ahead = 0; p.why = [];
+    p.same = 0; p.ahead = 0; p.why = []; p.cmp = false;
     if (!p.ok) return;
-    [['dps', 'damage per second'], ['hit', 'damage per hit']].forEach(function (mm) {
-      var s = ref(p, mm[0], false), a = ref(p, mm[0], true);
-      if (s > 0) { var rs = p[mm[0]] / s; if (rs > p.same) p.same = rs; if (rs >= T) p.why.push(mm[1] + ' is ' + rs.toFixed(1) + 'x other weapons at this stage'); }
-      if (a > 0) { var ra = p[mm[0]] / a; if (ra > p.ahead) p.ahead = ra; if (ra >= 1) p.why.push(mm[1] + ' already matches weapons ' + GEAR_AHEAD + '+ stages ahead'); }
-    });
+    var s = both(p, false), a = both(p, true);
+    p.cmp = s != null || a != null;
+    if (s != null) { p.same = s; if (s >= T) p.why.push('damage per second and per hit are both ' + s.toFixed(1) + 'x other weapons at this stage'); }
+    if (a != null) { p.ahead = a; if (a >= 1) p.why.push('already hits like weapons ' + GEAR_AHEAD + '+ stages ahead'); }
     if (p.why.length) G.auto[p.key] = true;
+    if (!p.cmp) G.nothing++;
   });
   list.sort(function (a, b) { return b.dps - a.dps; });
 }
@@ -291,14 +298,20 @@ function gearExcluded(weapon, stage) { return excludedKey(gearKey(weapon, stage)
 function leaveOut(rows) { return S.gear.on ? rows.filter(function (r) { return !gearExcluded(r.weapon, r.stage); }) : rows; }
 function toggleGear(k) {
   var g = S.gear, was = excludedKey(k);
-  if (!g.on) { g.on = true; $('g-on').checked = true; was = excludedKey(k); }
+  if (!g.on) return; // the buttons are disabled while the check is switched off
   if (was) { delete g.skip[k]; if (G.auto[k]) g.keep[k] = true; } else { g.skip[k] = true; delete g.keep[k]; }
   saveGear(); render();
 }
 
 function renderGear() {
   var g = S.gear, flagged = Object.keys(G.auto).length, left = S.left, shown = G.pairs.filter(function (p) { return p.sec >= 10; }), lim = S.gearAll ? shown.length : 30;
-  $('gear-sum').textContent = 'Gear check: ' + (flagged ? flagged + ' weapon and stage pair' + (flagged > 1 ? 's' : '') + ' look overgeared' : 'no weapon flagged automatically') + (left.pairs ? ', ' + left.pairs + ' left out of the numbers below' : '') + (g.on ? '' : ' (switched off)');
+  var checkable = G.pairs.filter(function (p) { return p.ok; }).length;
+  $('gear-sum').textContent = 'Gear check: ' + (flagged ? flagged + ' weapon and stage pair' + (flagged > 1 ? 's' : '') + ' look overgeared' : 'no weapon flagged automatically') + (left.pairs ? ', ' + left.pairs + ' left out of the numbers below' : '') + (G.nothing ? ', ' + G.nothing + ' could not be checked yet' : '') + (g.on ? '' : ' (switched off)');
+  var warn = $('gear-warn');
+  if (G.nothing) {
+    warn.style.display = 'block';
+    warn.innerHTML = '<b>The Gear check cannot judge ' + (G.nothing === checkable ? 'any' : G.nothing + ' of ' + checkable) + ' weapon and stage pair' + (checkable > 1 ? 's' : '') + ' yet.</b> It compares a weapon with at least 3 other weapons of the same class (at the same stage, or 3+ stages ahead), each with a minute or more of data, and there are not enough uploads for that. Until more players share, nothing is cut automatically for these: if you tested with gear that is too strong for the stage, use Skip in the list.<button class="btn" id="g-open2">Open the list</button>';
+  } else warn.style.display = 'none';
   var note = $('gear-note');
   if (left.pairs) { note.style.display = 'block'; note.innerHTML = '<b>The Gear check left out ' + left.rows + ' rows</b> (' + left.pairs + ' weapon and stage pair' + (left.pairs > 1 ? 's' : '') + ' that look overgeared for their stage, like late-game gear in an early world). Every number below ignores them.<button class="btn" id="g-open">Review the list</button>'; }
   else note.style.display = 'none';
@@ -310,14 +323,15 @@ function renderGear() {
     else if (flag && g.on) st = '<span class="chip c-strong">kept</span> <span class="mini">flagged, but you chose to keep it</span>';
     else if (flag) st = '<span class="chip c-strong">flagged</span> <span class="mini">the check is switched off</span>';
     else if (!p.ok) st = '<span class="dim">too little data to judge</span>';
+    else if (!p.cmp) st = '<span class="chip c-na">cannot check yet</span> <span class="mini">too few other weapons to compare with</span>';
     else st = '<span class="chip c-normal">looks fine</span>';
     h += '<tr><td class="l">' + esc(weaponName(p.weapon)) + '</td><td class="l">' + esc(STAGES[p.stage] || p.stage) + '</td><td class="l">' + (CLASSES[p.cls] || p.cls) + '</td><td>' + fmt(p.dps) + '</td><td>' + fmt(p.hit) + '</td>' +
       '<td>' + (p.same > 0 ? p.same.toFixed(1) + 'x' : '<span class="dim">-</span>') + '</td><td>' + (p.ahead > 0 ? p.ahead.toFixed(1) + 'x' : '<span class="dim">-</span>') + '</td>' +
-      '<td class="mini">' + fmtTime(p.sec) + ', ' + p.wh + ' hits</td><td class="l">' + st + '</td><td><button class="btn" data-gear="' + esc(p.key) + '">' + (ex ? 'Keep' : 'Skip') + '</button></td></tr>';
+      '<td class="mini">' + fmtTime(p.sec) + ', ' + p.wh + ' hits</td><td class="l">' + st + '</td><td><button class="btn" data-gear="' + esc(p.key) + '"' + (g.on ? '' : ' disabled title="Switch the check on to use Skip and Keep"') + '>' + (ex ? 'Keep' : 'Skip') + '</button></td></tr>';
   });
   h += '</tbody></table>';
   if (shown.length > 30) h += '<button class="more" data-gearmore="1">' + (S.gearAll ? 'Show fewer' : 'Show all ' + shown.length) + '</button>';
-  h += '<p class="mini">Sorted by weapon DPS. "vs this stage" is how many times stronger it is than the median weapon of the same class at the same stage; "vs stages ahead" is the same against weapons 3 or more stages later. A dash means there are fewer than 3 weapons to compare with. This list uses every mod version, because gear does not change with a patch.</p>';
+  h += '<p class="mini">Sorted by weapon DPS. "vs this stage" is how many times stronger it is than the median weapon of the same class at the same stage; "vs stages ahead" is the same against weapons 3 or more stages later. Both use the lower of the DPS ratio and the damage-per-hit ratio, so a weapon is only flagged when both are high. A dash means there are fewer than 3 weapons to compare with. This list uses every mod version, because gear does not change with a patch.</p>';
   $('gear-list').innerHTML = h;
 }
 
@@ -608,7 +622,7 @@ function openFromHash() {
 document.addEventListener('click', function (e) {
   var gb = e.target.closest('[data-gear]'); if (gb) { toggleGear(gb.getAttribute('data-gear')); return; }
   if (e.target.closest('[data-gearmore]')) { S.gearAll = !S.gearAll; render(); return; }
-  if (e.target.closest('#g-open')) { $('gear').open = true; $('gear').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+  if (e.target.closest('#g-open') || e.target.closest('#g-open2')) { $('gear').open = true; $('gear').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   var more = e.target.closest('[data-more]'); if (more) { var k = more.getAttribute('data-more'); S.showAll[k] = !S.showAll[k]; render(); return; }
   var th = e.target.closest('#head th'); if (th) { var key = th.getAttribute('data-k'); S.sortDir = S.sortKey === key ? -S.sortDir : (key === 'plugin' || key === 'weapon' || key === 'stage' || key === 'cls' ? 1 : -1); S.sortKey = key; render(); return; }
   var t = e.target.closest('[data-plugin]'); if (t) openDetail(t.getAttribute('data-plugin'), +t.getAttribute('data-stage'));
