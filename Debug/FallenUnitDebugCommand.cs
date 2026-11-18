@@ -9,14 +9,15 @@ namespace Augments
 	// Debug: /fallen teleports you next to the nearest Fallen Unit you have not recovered yet.
 	//   /fallen          the nearest one you have not recovered (or the nearest of all, if you took them all)
 	//   /fallen list     how many there are, how many you recovered, and how far the nearest is
-	//   /fallen spawn N  put one with look N (1 sword grave, 2 lying in flowers, 3 overgrown) where you stand (singleplayer)
+	//   /fallen spawn N [water|tree]  put one with look N (1 sword grave, 2 lying in flowers, 3 overgrown) where you stand (singleplayer).
+	//                    "water" draws it under water (on a lake floor if you stand in one); "tree" marks it as a tree unit
 	//   /fallen reset    forget which ones you recovered (singleplayer)
 	//   /fallen regen    place all of them again in new spots (singleplayer)
 	public class FallenUnitDebugCommand : ModCommand
 	{
 		public override string Command => "fallen";
 		public override CommandType Type => CommandType.Chat;
-		public override string Usage => "/fallen [list | spawn 1-3 | reset | regen]";
+		public override string Usage => "/fallen [list | spawn 1-3 [water|tree] | reset | regen]";
 		public override string Description => "Debug: teleport to the nearest Fallen Unit, or list, spawn, reset and place them again.";
 
 		public override void Action(CommandCaller caller, string input, string[] args)
@@ -62,14 +63,18 @@ namespace Augments
 						look = n - 1;
 
 					int x = (int)(player.Center.X / 16f);
-					int y = FallenUnitSystem.FindFloor(x, (int)(player.position.Y / 16f), 30);
+					// A third word picks where it rests: water (on a lake floor if you stand in one, otherwise just drawn as if wet) or tree.
+					int spot = args.Length > 2 && args[2].ToLowerInvariant() == "water" ? 1 : args.Length > 2 && args[2].ToLowerInvariant() == "tree" ? 2 : 0;
+					int y = spot == 1 ? FallenUnitSystem.FindWetFloor(x, (int)(player.position.Y / 16f) - 20, (int)(player.position.Y / 16f) + 30) : -1;
+					if (y < 0)
+						y = FallenUnitSystem.FindFloor(x, (int)(player.position.Y / 16f), 30);
 					if (y < 0)
 					{
 						caller.Reply("No room here: it needs a flat floor 7 tiles wide with 4 tiles of open space above it.", Color.Orange);
 						return;
 					}
-					FallenUnit unit = FallenUnitSystem.Add(x, y, look);
-					caller.Reply($"Placed Unit {unit.Name} (look {unit.Look + 1}).", Color.LightGreen);
+					FallenUnit unit = FallenUnitSystem.Add(x, y, look, spot);
+					caller.Reply($"Placed Unit {unit.Name} (look {unit.Look + 1}, {(spot == 1 ? "under water" : spot == 2 ? "tree" : "cave")}).", Color.LightGreen);
 					return;
 				}
 

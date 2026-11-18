@@ -27,6 +27,7 @@ namespace Augments
 		public int Id;
 		public int X, Y;     // the tile just above the floor, in the middle of the body
 		public byte Look;    // which of the four scenes (see FallenUnitArt)
+		public byte Spot;    // where it rests: 0 a cave, 1 under water, 2 inside a living tree
 		public bool Flip;    // facing left instead of right
 		public string Name = "";
 		public readonly HashSet<string> RecoveredBy = new HashSet<string>();
@@ -106,6 +107,7 @@ namespace Augments
 					["x"] = unit.X,
 					["y"] = unit.Y,
 					["look"] = unit.Look,
+						["spot"] = unit.Spot,
 					["flip"] = unit.Flip,
 					["name"] = unit.Name,
 					["by"] = new List<string>(unit.RecoveredBy),
@@ -128,6 +130,7 @@ namespace Augments
 					X = t.GetInt("x"),
 					Y = t.GetInt("y"),
 					Look = (byte)(t.GetByte("look") % FallenUnitArt.LookCount),
+						Spot = (byte)Math.Min(2, (int)t.GetByte("spot")),
 					Flip = t.GetBool("flip"),
 					Name = t.GetString("name")
 				};
@@ -158,6 +161,7 @@ namespace Augments
 				writer.Write(unit.Y);
 				writer.Write(unit.Look);
 				writer.Write(unit.Flip);
+				writer.Write(unit.Spot);
 				writer.Write(unit.Name ?? "");
 				writer.Write(unit.RecoveredBy.Count);
 				foreach (string name in unit.RecoveredBy)
@@ -178,6 +182,7 @@ namespace Augments
 					Y = reader.ReadInt32(),
 					Look = (byte)(reader.ReadByte() % FallenUnitArt.LookCount),
 					Flip = reader.ReadBoolean(),
+					Spot = (byte)Math.Min(2, (int)reader.ReadByte()),
 					Name = reader.ReadString()
 				};
 				int by = reader.ReadInt32();
@@ -224,13 +229,16 @@ namespace Augments
 			// One always waits in the dungeon.
 			TryPlaceInDungeon();
 
+			// One may rest inside a living tree, if this world has one with a room big enough.
+			TryPlaceInTree();
+
 			// The rest are spread across the world in vertical strips, so they reach the snow, the jungle, the desert and so on.
 			int strips = Math.Max(1, count - Units.Count);
 			int left = 120;
 			int stripWidth = Math.Max(1, (Main.maxTilesX - 2 * left) / strips);
 			for (int i = 0; i < strips; i++)
 			{
-				for (int attempt = 0; attempt < 400; attempt++)
+				// Every third strip tries to put its unit on the floor of an underground lake first.				for (int attempt = 0; attempt < 400; attempt++)
 				{
 					int x = left + i * stripWidth + Rand.Next(stripWidth);
 					int top = (int)Main.worldSurface + 20;
@@ -261,7 +269,56 @@ namespace Augments
 			}
 		}
 
-		internal static FallenUnit Add(int x, int y, int look = -1)
+		// The floor of an underground lake: seven solid tiles with four tiles of water above them.
+		private static bool TryPlaceUnderwater(int stripLeft, int stripWidth)
+		{
+			for (int attempt = 0; attempt < 60; attempt++)
+			{
+				int x = stripLeft + Rand.Next(stripWidth);
+				int y = FindWetFloor(x, (int)Main.worldSurface + 20, Main.UnderworldLayer - 40);
+				if (y < 0 || !IsGoodSpot(x, y, false, 1))
+					continue;
+				Add(x, y, -1, 1);
+				return true;
+			}
+			return false;
+		}
+
+		// A room inside a living tree (its walls are living wood). Looks for open living-wood tiles all over the world, then
+		// for a floor under one of them. Nothing is placed if this world has no tree room big enough.
+		private static void TryPlaceInTree()
+		{
+			var spots = new List<Point>();
+			int top = (int)(Main.worldSurface * 0.3);
+			int bottom = Math.Min(Main.maxTilesY - 200, (int)Main.rockLayer + 100);
+			for (int x = 100; x < Main.maxTilesX - 100; x += 2)
+			{
+				for (int y = top; y < bottom; y += 2)
+				{
+					Tile t = Main.tile[x, y];
+					if (t.WallType == WallID.LivingWood && !t.HasTile)
+						spots.Add(new Point(x, y));
+				}
+			}
+
+			for (int attempt = 0; attempt < 120 && spots.Count > 0; attempt++)
+			{
+				Point p = spots[Rand.Next(spots.Count)];
+				for (int y = p.Y; y < p.Y + 10; y++)
+				{
+					if (!HasTreeRoomAt(p.X, y))
+						continue;
+					if (IsGoodSpot(p.X, y, false, 2))
+					{
+						Add(p.X, y, -1, 2);
+						return;
+					}
+					break;
+				}
+			}
+		}
+
+		internal static FallenUnit Add(int x, int y, int look = -1, int spot = 0)
 		{
 			var unit = new FallenUnit
 			{
@@ -270,6 +327,7 @@ namespace Augments
 				Y = y,
 				Look = (byte)(look >= 0 ? look % FallenUnitArt.LookCount : Rand.Next(FallenUnitArt.LookCount)),
 				Flip = Rand.NextBool(),
+				Spot = (byte)spot,
 				Name = MakeName()
 			};
 			Units.Add(unit);
@@ -336,9 +394,65 @@ namespace Augments
 			return true;
 		}
 
-		private static bool IsGoodSpot(int x, int y, bool dungeon)
+		// Water that is deep enough to swim in (and not lava, honey or shimmer), with nothing solid in it.
+		private static bool IsWater(int x, int y)
 		{
-			if (!HasRoomAt(x, y))
+			Tile t = Main.tile[x, y];
+			if (t.LiquidAmount < 128 || t.LiquidType != LiquidID.Water)
+				return false;
+			return !t.HasTile || (!Main.tileSolid[t.TileType] && Main.tileCut[t.TileType]);
+		}
+
+		// A flat floor seven tiles wide with four tiles of water above it.
+		internal static bool HasWetRoomAt(int x, int y)
+		{
+			for (int dx = -3; dx <= 3; dx++)
+			{
+				if (!WorldGen.InWorld(x + dx, y - 4, 12) || !IsSolid(x + dx, y + 1))
+					return false;
+				for (int dy = 0; dy <= 3; dy++)
+				{
+					if (!IsWater(x + dx, y - dy))
+						return false;
+				}
+			}
+			return true;
+		}
+
+		// The first tile from top down to bottom that has a wet room (see HasWetRoomAt), or -1.
+		internal static int FindWetFloor(int x, int top, int bottom)
+		{
+			for (int y = top; y < bottom; y++)
+			{
+				if (!WorldGen.InWorld(x, y, 12))
+					return -1;
+				if (HasWetRoomAt(x, y))
+					return y;
+			}
+			return -1;
+		}
+
+		// A smaller room than a cave needs (the tree's rooms are tight): five tiles of floor, three of dry air, and living wood behind.
+		internal static bool HasTreeRoomAt(int x, int y)
+		{
+			if (!WorldGen.InWorld(x, y, 12) || Main.tile[x, y].WallType != WallID.LivingWood)
+				return false;
+			for (int dx = -2; dx <= 2; dx++)
+			{
+				if (!IsSolid(x + dx, y + 1))
+					return false;
+				for (int dy = 0; dy <= 2; dy++)
+				{
+					if (!IsOpen(x + dx, y - dy))
+						return false;
+				}
+			}
+			return true;
+		}
+
+		private static bool IsGoodSpot(int x, int y, bool dungeon, int spot = 0)
+		{
+			if (!(spot == 1 ? HasWetRoomAt(x, y) : spot == 2 ? HasTreeRoomAt(x, y) : HasRoomAt(x, y)))
 				return false;
 
 			ushort wall = Main.tile[x, y].WallType;
@@ -347,7 +461,12 @@ namespace Augments
 			if (!dungeon && Main.wallDungeon[wall])
 				return false;
 
-			// Away from spawn (where an old world's base usually is) and from each other.
+			return IsFarEnough(x, y);
+		}
+
+		// Away from spawn (where an old world's base usually is) and from each other.
+		private static bool IsFarEnough(int x, int y)
+		{
 			if (Math.Abs(x - Main.spawnTileX) < 140 && Math.Abs(y - Main.spawnTileY) < 120)
 				return false;
 			foreach (FallenUnit other in Units)
@@ -1099,7 +1218,16 @@ namespace Augments
 			// Lit exactly like the cave around it: in the dark it is dark, so you need a light to see it. Nothing here glows on
 			// its own: the light shaft, the petals and the sparks all fade with the cave's light too.
 			Color light = Lighting.GetColor(unit.X, unit.Y - 1);
-			DrawLightShaft(unit, scene, recovered, time, light);
+			if (unit.Spot == 1)
+			{
+				// Under water: everything is tinted blue, and bubbles rise from the body instead of petals falling.
+				light = light.MultiplyRGB(new Color(160, 205, 255));
+				DrawBubbles(unit, scene, recovered, time, light);
+			}
+			else
+			{
+				DrawLightShaft(unit, scene, recovered, time, light);
+			}
 
 			Vector2 tl = TopLeft(unit, scene);
 			SpriteEffects flip = unit.Flip ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
@@ -1195,6 +1323,30 @@ namespace Augments
 				Fill(new Vector2((int)x, (int)y), flat ? 4 : 2, flat ? 2 : 4, petal.MultiplyRGB(light) * alpha);
 			}
 		}
+		// Small pale bubbles rising from the body, wobbling a little, fading in at the bottom and out at the top. Worked out from the
+		// time alone, so nothing has to be stored.
+		private static void DrawBubbles(FallenUnit unit, Scene scene, bool recovered, float time, Color light)
+		{
+			float lit = (light.R + light.G + light.B) / (3f * 255f);
+			if (lit < 0.02f)
+				return;
+
+			float floorY = (unit.Y + 1) * 16f;
+			float startY = floorY - scene.H * Px * 0.6f;
+			const float Rise = 80f;
+			for (int i = 0; i < 6; i++)
+			{
+				float seedA = Frac((unit.Id * 0.6180339f) + i * 0.3819660f);
+				float seedB = Frac((unit.Id * 0.7548776f) + i * 0.5698403f);
+				float up = Frac(seedA + time * 0.0014f * (0.6f + 0.6f * seedB));
+				float x = unit.X * 16 + 8 + (seedB - 0.5f) * scene.W * Px * 0.8f + (float)Math.Sin(time * 0.05f + seedA * 6.283f) * 3f;
+				float y = startY - up * Rise;
+				float alpha = Math.Min(1f, up * 6f) * Math.Min(1f, (1f - up) * 5f) * (recovered ? 0.5f : 0.8f);
+				int size = i % 3 == 0 ? 3 : 2;
+				Fill(new Vector2((int)x, (int)y), size, size, new Color(200, 235, 255).MultiplyRGB(light) * alpha);
+			}
+		}
+
 		private static float Frac(float v) => v - (float)Math.Floor(v);
 
 		private static void Fill(Vector2 worldTopLeft, int w, int h, Color color)
