@@ -75,8 +75,8 @@ Numbers pool every player who opted in, so a few heavy players can pull them. It
 ## Changing the report
 
 - `src/report.html` is the whole page (no outside scripts or fonts, because your password is in the address).
-- `src/plugins.json` gives each plugin's name and rarity. Rebuild it after adding or renaming a plugin, from the repository root:
-  `powershell -File server\tools\make-plugins.ps1`. A plugin missing from it still shows, just without a rarity (it then uses the Rare lines).
+- `src/plugins.json` gives each plugin's name, rarity and plain description (shown when you hover a plugin name). Rebuild it after adding or renaming a plugin, from the repository root:
+  `node server/tools/make-plugins.mjs`. A plugin missing from it still shows, just without a rarity (it then uses the Rare lines).
 
 ## Trying the report on your own computer (never touches the real server)
 

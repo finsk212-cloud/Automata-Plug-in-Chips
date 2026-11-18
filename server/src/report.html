@@ -94,6 +94,11 @@
  .targets th{color:var(--dim);font-weight:500}
  .guide{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:8px 24px;font-size:13px;color:var(--dim)} .guide b{color:var(--gold)}
 
+ /* hover explanation of a plugin */
+ .tipme{border-bottom:1px dotted #5b6177;cursor:help}
+ #tip{position:fixed;z-index:40;display:none;max-width:380px;background:#262c3d;border:1px solid #444c66;border-radius:8px;padding:9px 12px;font-size:13px;line-height:1.45;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.45)}
+ #tip b{font-size:14px} #tip .meta{color:var(--dim);font-size:12px;margin:1px 0 5px} #tip .foot{color:var(--dim);font-size:11px;margin-top:6px}
+
  /* detail panel */
  #shade{position:fixed;inset:0;background:rgba(5,6,10,.55);display:none;z-index:20}
  #detail{position:fixed;top:0;right:0;bottom:0;width:min(640px,100vw);background:var(--panel);border-left:1px solid var(--line);z-index:21;overflow-y:auto;padding:18px 22px 40px;display:none}
@@ -171,6 +176,7 @@
 
 <div id="shade"></div>
 <aside id="detail" aria-label="Plugin detail"></aside>
+<div id="tip" role="tooltip"></div>
 
 <script>
 (function () {
@@ -192,6 +198,7 @@ function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&
 function nice(id) { return id.split('_').map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' '); }
 function info(id) { return plugins[id] || { n: nice(id), r: '', c: '' }; }
 function pname(id) { return info(id).n; }
+function tag(id) { return '<span class="tipme" data-tip="' + esc(id) + '">' + esc(pname(id)) + '</span>'; }
 function weaponName(key) {
   if (key === 'none') return 'No weapon (damage over time)';
   var parts = key.split('/'), name = parts[parts.length - 1].replace(/([a-z0-9])([A-Z])/g, '$1 $2');
@@ -271,7 +278,7 @@ function actionCol(cls, title, why, items, key) {
   if (!items.length) h += '<div class="none">Nothing here on good data.</div>';
   shown.forEach(function (g) {
     var x = g.top;
-    h += '<button class="item" data-plugin="' + esc(x.plugin) + '" data-stage="' + x.stage + '"><div class="top"><span class="nm">' + esc(pname(x.plugin)) + '<span class="rar ' + x.rarity + '">' + esc(x.rarity || '?') + '</span></span>' +
+    h += '<button class="item" data-plugin="' + esc(x.plugin) + '" data-stage="' + x.stage + '"><div class="top"><span class="nm">' + tag(x.plugin) + '<span class="rar ' + x.rarity + '">' + esc(x.rarity || '?') + '</span></span>' +
       '<span class="num" style="color:var(--' + (x.verdict === 'toostrong' ? 'red' : x.verdict === 'strong' ? 'amber' : 'blue') + ')">' + boostTxt(x) + '</span></div>' +
       '<div class="sub2">' + esc(STAGES[x.stage] || 'Stage ' + x.stage) + ', ' + (CLASSES[x.cls] || '') + ' weapons' + (g.more ? ' (+' + g.more + ' more stage' + (g.more > 1 ? 's' : '') + ')' : '') + ' &middot; ' + (x.verdict === 'weak' ? 'under +' + pct(x.th.low) : x.verdict === 'toostrong' ? 'Too strong from +' + pct(x.th.too) : 'Strong from +' + pct(x.th.strong)) + ' &middot; ' + x.batches + ' uploads' + (x.cons ? ' &middot; ' + x.cons : '') + '</div></button>';
   });
@@ -347,7 +354,7 @@ function renderTable(list) {
   $('body').innerHTML = list.map(function (x) {
     var bar = x.boost == null ? '<span class="dim">' + (x.pd ? 'no weapon to compare' : '-') + '</span> ' :
       '<span class="bb" title="Strong +' + pct(x.th.strong) + ', Too strong +' + pct(x.th.too) + '"><i class="f v-' + x.verdict + '" style="width:' + Math.min(100, x.boost / (x.th.too * 1.6) * 100).toFixed(0) + '%"></i><u style="left:' + (x.th.strong / (x.th.too * 1.6) * 100).toFixed(0) + '%"></u><u class="t" style="left:' + (x.th.too / (x.th.too * 1.6) * 100).toFixed(0) + '%"></u></span><b>' + boostTxt(x) + '</b> ';
-    var cells = ['<td class="l pl">' + esc(pname(x.plugin)) + '<span class="rar ' + x.rarity + '">' + esc(x.rarity || '?') + '</span></td>'];
+    var cells = ['<td class="l pl">' + tag(x.plugin) + '<span class="rar ' + x.rarity + '">' + esc(x.rarity || '?') + '</span></td>'];
     if (S.view === 'weapon') cells.push('<td class="l">' + esc(weaponName(x.weapon)) + '</td>');
     cells.push('<td class="l">' + esc(STAGES[x.stage] || 'Stage ' + x.stage) + '</td>', '<td class="l">' + (CLASSES[x.cls] || x.cls) + '</td>',
       '<td>' + bar + '<span class="chip c-' + x.verdict + '">' + VERDICT[x.verdict] + '</span></td>',
@@ -372,7 +379,7 @@ function renderHeat(rows) {
   if (!ids.length) { $('v-heat').innerHTML = '<div class="none">No rows match the filters.</div>'; return; }
   var h = '<div class="tbl" style="padding:10px"><table class="hm"><tr><th></th>' + stages.map(function (s) { return '<th title="' + esc(STAGES[s] || '') + '">' + esc(STAGE_SHORT[s] || s) + '</th>'; }).join('') + '</tr>';
   ids.forEach(function (id) {
-    h += '<tr><td class="nm">' + esc(pname(id)) + '<span class="rar ' + info(id).r + '">' + esc(info(id).r || '?') + '</span></td>';
+    h += '<tr><td class="nm">' + tag(id) + '<span class="rar ' + info(id).r + '">' + esc(info(id).r || '?') + '</span></td>';
     stages.forEach(function (s) {
       var x = byPlugin[id][s];
       h += x ? '<td class="c v-' + x.verdict + ' q' + x.quality + '" data-plugin="' + esc(id) + '" data-stage="' + s + '" title="' + esc(pname(id) + ', ' + (STAGES[s] || '') + ': ' + VERDICT[x.verdict] + ', ' + x.batches + ' uploads') + '">' + (x.boost == null ? '-' : '+' + pct(x.boost)) + '</td>' : '<td class="c empty"></td>';
@@ -388,7 +395,7 @@ function renderGaps() {
   var seen = {}, dmg = {};
   all.forEach(function (r) { seen[r.plugin] = 1; if (r.pdmg > 0) dmg[r.plugin] = 1; });
   var none = Object.keys(plugins).filter(function (id) { return !seen[id]; }).sort(), nodmg = Object.keys(seen).filter(function (id) { return !dmg[id]; }).sort();
-  function chips(ids) { return ids.length ? '<div class="chips">' + ids.map(function (id) { return '<span>' + esc(pname(id)) + '</span>'; }).join('') + '</div>' : '<div class="none">None.</div>'; }
+  function chips(ids) { return ids.length ? '<div class="chips">' + ids.map(function (id) { return '<span>' + tag(id) + '</span>'; }).join('') + '</div>' : '<div class="none">None.</div>'; }
   $('gap-sum').textContent = 'Gaps: ' + none.length + ' plugins with no uploads yet, ' + nodmg.length + ' that never dealt damage';
   $('gaps').innerHTML = '<h4 class="mini" style="margin:0">No uploads yet (nobody who shares has equipped them)</h4>' + chips(none) +
     '<h4 class="mini" style="margin:12px 0 0">Equipped but never dealt damage (usually utility plugins, which this report cannot judge)</h4>' + chips(nodmg);
@@ -397,7 +404,7 @@ function renderGaps() {
 // ---- plugin detail ----
 function openDetail(id, stage) {
   var inf = info(id), rows = all.filter(function (r) { return r.plugin === id && (!$('f-cal').checked || r.cal); }), vrows = rows.filter(function (r) { var v = $('f-ver').value; return v === 'all' || r.ver === v; });
-  var th = thr(inf.r), h = '<button class="close" id="d-close">Close</button><h2 class="big">' + esc(inf.n) + '<span class="rar ' + inf.r + '">' + esc(inf.r || '?') + '</span></h2>' +
+  var th = thr(inf.r), h = '<button class="close" id="d-close">Close</button><h2 class="big">' + tag(id) + '<span class="rar ' + inf.r + '">' + esc(inf.r || '?') + '</span></h2>' +
     '<div class="mini">' + esc(id) + ' &middot; ' + esc(inf.c || '') + ' &middot; lines for this rarity: Strong +' + pct(th.strong) + ', Too strong +' + pct(th.too) + ', Low under +' + pct(th.low) + '</div>';
   if (!vrows.length) { h += '<div class="note">No data for this plugin with the current version filter.</div>'; show(h); return; }
 
@@ -511,6 +518,24 @@ $('ttable').addEventListener('input', function (e) {
 });
 $('t-reset').onclick = function () { S.targets = JSON.parse(JSON.stringify(DEFAULTS)); saveTargets(); renderTargets(); render(); };
 
+// ---- hover explanation of a plugin ----
+var tipEl = $('tip');
+function placeTip(x, y) {
+  var w = tipEl.offsetWidth, h = tipEl.offsetHeight, left = x + 16, top = y + 18;
+  if (left + w > window.innerWidth - 8) left = Math.max(8, x - w - 16);
+  if (top + h > window.innerHeight - 8) top = Math.max(8, y - h - 12);
+  tipEl.style.left = left + 'px'; tipEl.style.top = top + 'px';
+}
+document.addEventListener('mouseover', function (e) {
+  var el = e.target.closest('[data-tip]'); if (!el) return;
+  var inf = plugins[el.getAttribute('data-tip')];
+  if (!inf || !inf.d) { tipEl.style.display = 'none'; return; }
+  tipEl.innerHTML = '<b>' + esc(inf.n) + '</b><div class="meta">' + esc((inf.r || '') + (inf.r && inf.c ? ', ' : '') + (inf.c ? inf.c + ' class' : '')) + '</div>' + esc(inf.d) +
+    '<div class="foot">Numbers are the starting values. Many grow with game progress and Fortune.</div>';
+  tipEl.style.display = 'block'; placeTip(e.clientX, e.clientY);
+});
+document.addEventListener('mousemove', function (e) { if (tipEl.style.display === 'block') placeTip(e.clientX, e.clientY); });
+document.addEventListener('mouseout', function (e) { if (e.target.closest('[data-tip]')) tipEl.style.display = 'none'; });
 fetch('/report.json?token=' + encodeURIComponent(token)).then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); }).then(function (data) {
   all = (data.rows || []).map(function (r) { r.nb = r.nb || 0; r.sb = r.sb || 0; r.sb2 = r.sb2 || 0; return r; }); plugins = data.plugins || {};
   fillFilters(); renderTargets(); renderGaps(); render(); openFromHash();

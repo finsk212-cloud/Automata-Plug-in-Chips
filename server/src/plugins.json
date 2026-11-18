@@ -1,932 +1,1118 @@
 {
-    "adaptive_armor":  {
-                           "n":  "Adaptive Armor",
-                           "r":  "Rare",
-                           "c":  "Universal"
-                       },
-    "afterburner":  {
-                        "n":  "Afterburner",
-                        "r":  "Epic",
-                        "c":  "Ranged"
-                    },
-    "ambush":  {
-                   "n":  "Ambush",
-                   "r":  "Common",
-                   "c":  "Melee"
-               },
-    "apex_hunter":  {
-                        "n":  "Apex Hunter",
-                        "r":  "Legendary",
-                        "c":  "Ranged"
-                    },
-    "apex_predator":  {
-                          "n":  "Apex Predator",
-                          "r":  "Legendary",
-                          "c":  "Universal"
-                      },
-    "arcane_singularity":  {
-                               "n":  "Arcane Singularity",
-                               "r":  "Legendary",
-                               "c":  "Magic"
-                           },
-    "arcane_spark":  {
-                         "n":  "Arcane Spark",
-                         "r":  "Common",
-                         "c":  "Magic"
-                     },
-    "armor_piercer":  {
-                          "n":  "Armor Piercer",
-                          "r":  "Epic",
-                          "c":  "Universal"
-                      },
-    "astral_siphon":  {
-                          "n":  "Astral Siphon",
-                          "r":  "Epic",
-                          "c":  "Magic"
-                      },
-    "autopilot":  {
-                      "n":  "Upgrade Pod: Autopilot",
-                      "r":  "Epic",
-                      "c":  "Support"
-                  },
-    "type_s_synchronizer_protocol":  {
-                                         "n":  "Type-S: Synchronizer Protocol",
-                                         "r":  "Epic",
-                                         "c":  "Universal"
-                                     },
-    "type_b_berserker_protocol":  {
-                                      "n":  "Type-B: Berserker Protocol",
-                                      "r":  "Epic",
-                                      "c":  "Universal"
-                                  },
-    "type_d_dreadnought_protocol":  {
-                                        "n":  "Type-D: Dreadnought Protocol",
-                                        "r":  "Epic",
-                                        "c":  "Universal"
-                                    },
-    "bait_master":  {
-                        "n":  "Bait Master",
-                        "r":  "Rare",
-                        "c":  "Universal"
-                    },
-    "berserker":  {
-                      "n":  "Berserker",
-                      "r":  "Rare",
-                      "c":  "Melee"
-                  },
-    "big_stick_energy":  {
-                             "n":  "Big Stick Energy",
-                             "r":  "Common",
-                             "c":  "Melee"
-                         },
-    "blade_dance":  {
-                        "n":  "Blade Dance",
-                        "r":  "Legendary",
-                        "c":  "Melee"
-                    },
-    "bloodletter":  {
-                        "n":  "Bloodletter",
-                        "r":  "Common",
-                        "c":  "Melee"
-                    },
-    "brewers_instinct":  {
-                             "n":  "Brewer\u0027s Instinct",
-                             "r":  "Rare",
-                             "c":  "Universal"
-                         },
-    "bulwark":  {
-                    "n":  "Bulwark",
-                    "r":  "Rare",
-                    "c":  "Universal"
-                },
-    "callout":  {
-                    "n":  "Callout",
-                    "r":  "Rare",
-                    "c":  "Support"
-                },
-    "celestial_pull":  {
-                           "n":  "Celestial Pull",
-                           "r":  "Common",
-                           "c":  "Magic"
-                       },
-    "chain_lightning":  {
-                            "n":  "Chain Lightning",
-                            "r":  "Rare",
-                            "c":  "Melee"
-                        },
-    "chaos_rounds":  {
-                         "n":  "Chaos Rounds",
-                         "r":  "Epic",
-                         "c":  "Ranged"
-                     },
-    "chronobreak":  {
-                        "n":  "Chronobreak",
-                        "r":  "Legendary",
-                        "c":  "Support"
-                    },
-    "cleanse":  {
-                    "n":  "Cleanse",
-                    "r":  "Rare",
-                    "c":  "Support"
-                },
-    "cleansing_strike":  {
-                             "n":  "Cleansing Strike",
-                             "r":  "Rare",
-                             "c":  "Melee"
-                         },
-    "combat_medic":  {
-                         "n":  "Combat Medic",
-                         "r":  "Common",
-                         "c":  "Support"
-                     },
-    "contact_charge":  {
-                           "n":  "Contact Charge",
-                           "r":  "Common",
-                           "c":  "Support"
-                       },
-    "corrosive_tip":  {
-                          "n":  "Corrosive Tip",
-                          "r":  "Common",
-                          "c":  "Support"
-                      },
-    "crit_happens":  {
-                         "n":  "Crit Happens",
-                         "r":  "Epic",
-                         "c":  "Summon"
-                     },
-    "critical_surge":  {
-                           "n":  "Critical Surge",
-                           "r":  "Rare",
-                           "c":  "Universal"
-                       },
-    "danger_close":  {
-                         "n":  "Danger Close",
-                         "r":  "Legendary",
-                         "c":  "Ranged"
-                     },
-    "dark_omen":  {
-                      "n":  "Dark Omen",
-                      "r":  "Epic",
-                      "c":  "Universal"
-                  },
-    "deadeye":  {
-                    "n":  "Deadeye",
-                    "r":  "Epic",
-                    "c":  "Ranged"
-                },
-    "dead_weight":  {
-                        "n":  "Dead Weight",
-                        "r":  "Epic",
-                        "c":  "Melee"
-                    },
-    "debug_full_crit":  {
-                            "n":  "[DEBUG] Full Crit",
-                            "r":  "Common",
-                            "c":  "Universal"
-                        },
-    "demolition_expert":  {
-                              "n":  "Demolition Expert",
-                              "r":  "Common",
-                              "c":  "Universal"
-                          },
-    "discount_rod":  {
-                         "n":  "Rod of Discount",
-                         "r":  "Rare",
-                         "c":  "Magic"
-                     },
-    "double_tip":  {
-                       "n":  "Double Tip",
-                       "r":  "Epic",
-                       "c":  "Magic"
-                   },
-    "echo_chamber":  {
-                         "n":  "Echo Chamber",
-                         "r":  "Legendary",
-                         "c":  "Ranged"
-                     },
-    "eldritch_covenant":  {
-                              "n":  "Eldritch Covenant",
-                              "r":  "Legendary",
-                              "c":  "Magic"
-                          },
-    "emergency_aid":  {
-                          "n":  "Emergency Aid",
-                          "r":  "Rare",
-                          "c":  "Support"
-                      },
-    "employee_of_the_month":  {
-                                  "n":  "Employee of the Month",
-                                  "r":  "Rare",
-                                  "c":  "Summon"
-                              },
-    "eternal_flame":  {
-                          "n":  "Eternal Flame",
-                          "r":  "Rare",
-                          "c":  "Magic"
-                      },
-    "eternal_legion":  {
-                           "n":  "Eternal Legion",
-                           "r":  "Legendary",
-                           "c":  "Summon"
-                       },
-    "featherfall":  {
-                        "n":  "Featherfall",
-                        "r":  "Common",
-                        "c":  "Universal"
-                    },
-    "festering_wounds":  {
-                             "n":  "Festering Wounds",
-                             "r":  "Rare",
-                             "c":  "Universal"
-                         },
-    "fetch":  {
-                  "n":  "Fetch",
-                  "r":  "Common",
-                  "c":  "Summon"
-              },
-    "fight_or_flight":  {
-                            "n":  "Fight or Flight",
-                            "r":  "Common",
-                            "c":  "Universal"
-                        },
-    "final_stand":  {
-                        "n":  "Final Stand",
-                        "r":  "Legendary",
-                        "c":  "Universal"
-                    },
-    "floor_is_lava":  {
-                          "n":  "Floor is Lava",
-                          "r":  "Legendary",
-                          "c":  "Ranged"
-                      },
-    "focus_directive":  {
-                            "n":  "Focus Directive",
-                            "r":  "Common",
-                            "c":  "Summon"
-                        },
-    "fortunes_favor":  {
-                           "n":  "Fortune\u0027s Favor",
-                           "r":  "Common",
-                           "c":  "Universal"
-                       },
-    "frenzied_assault":  {
-                             "n":  "Frenzied Assault",
-                             "r":  "Epic",
-                             "c":  "Melee"
-                         },
-    "frostbound":  {
-                       "n":  "Frostbound",
-                       "r":  "Rare",
-                       "c":  "Magic"
-                   },
-    "frost_touch":  {
-                        "n":  "Frost Touch",
-                        "r":  "Common",
-                        "c":  "Magic"
-                    },
-    "get_excited":  {
-                        "n":  "Get Excited!",
-                        "r":  "Common",
-                        "c":  "Universal"
-                    },
-    "get_over_here":  {
-                          "n":  "Get over here!",
-                          "r":  "Epic",
-                          "c":  "Support"
-                      },
-    "glass_sight":  {
-                        "n":  "Glass Sight",
-                        "r":  "Common",
-                        "c":  "Ranged"
-                    },
-    "godslayer_blade":  {
-                            "n":  "Godslayer Blade",
-                            "r":  "Legendary",
-                            "c":  "Melee"
-                        },
-    "grand_entrance":  {
-                           "n":  "Grand Entrance",
-                           "r":  "Common",
-                           "c":  "Summon"
-                       },
-    "grapple_master":  {
-                           "n":  "Grapple Master",
-                           "r":  "Common",
-                           "c":  "Universal"
-                       },
-    "tombstone_boost":  {
-                            "n":  "Grave Danger",
-                            "r":  "Epic",
-                            "c":  "Universal"
-                        },
-    "pellet_burst":  {
-                         "n":  "Group Hug",
-                         "r":  "Epic",
-                         "c":  "Ranged"
-                     },
-    "guardians_wrath":  {
-                            "n":  "Guardian\u0027s Wrath",
-                            "r":  "Epic",
-                            "c":  "Universal"
-                        },
-    "gun_go_brrr":  {
-                        "n":  "Gun Go Brrr",
-                        "r":  "Epic",
-                        "c":  "Ranged"
-                    },
-    "headhunter":  {
-                       "n":  "Headhunter",
-                       "r":  "Rare",
-                       "c":  "Ranged"
-                   },
-    "heart_drop":  {
-                       "n":  "Heart Drop",
-                       "r":  "Common",
-                       "c":  "Universal"
-                   },
-    "hex_detonation":  {
-                           "n":  "Hex Detonation",
-                           "r":  "Legendary",
-                           "c":  "Magic"
-                       },
-    "hit_me_here":  {
-                        "n":  "Hit Me Here",
-                        "r":  "Epic",
-                        "c":  "Ranged"
-                    },
-    "hunters_pace":  {
-                         "n":  "Hunter\u0027s Pace",
-                         "r":  "Common",
-                         "c":  "Ranged"
-                     },
-    "infernos_heart":  {
-                           "n":  "Inferno\u0027s Heart",
-                           "r":  "Legendary",
-                           "c":  "Magic"
-                       },
-    "auto_fishing":  {
-                         "n":  "Insta Cast",
-                         "r":  "Common",
-                         "c":  "Universal"
-                     },
-    "ironclad_aura":  {
-                          "n":  "Ironclad Aura",
-                          "r":  "Rare",
-                          "c":  "Support"
-                      },
-    "ironclad_will":  {
-                          "n":  "Ironclad Will",
-                          "r":  "Legendary",
-                          "c":  "Melee"
-                      },
-    "iron_rhythm":  {
-                        "n":  "Iron Rhythm",
-                        "r":  "Common",
-                        "c":  "Universal"
-                    },
-    "iron_will":  {
-                      "n":  "Iron Will",
-                      "r":  "Common",
-                      "c":  "Universal"
-                  },
-    "keen_eye":  {
-                     "n":  "Keen Eye",
-                     "r":  "Common",
-                     "c":  "Support"
-                 },
-    "kickback":  {
-                     "n":  "Kickback",
-                     "r":  "Epic",
-                     "c":  "Ranged"
-                 },
-    "death_blast":  {
-                        "n":  "Last Gasp",
-                        "r":  "Legendary",
-                        "c":  "Universal"
-                    },
-    "last_rites":  {
-                       "n":  "Last Rites",
-                       "r":  "Epic",
-                       "c":  "Support"
-                   },
-    "last_stand":  {
-                       "n":  "Last Stand",
-                       "r":  "Rare",
-                       "c":  "Universal"
-                   },
-    "leftovers":  {
-                      "n":  "Leftovers",
-                      "r":  "Epic",
-                      "c":  "Melee"
-                  },
-    "lifeline":  {
-                     "n":  "Lifeline",
-                     "r":  "Legendary",
-                     "c":  "Support"
-                 },
-    "long_distance_relationship":  {
-                                       "n":  "Long Distance Relationship",
-                                       "r":  "Legendary",
-                                       "c":  "Magic"
-                                   },
-    "lucky_find":  {
-                       "n":  "Lucky Find",
-                       "r":  "Common",
-                       "c":  "Universal"
-                   },
-    "lucky_strike":  {
-                         "n":  "Lucky Strike",
-                         "r":  "Rare",
-                         "c":  "Universal"
-                     },
-    "tree_bonus":  {
-                       "n":  "Lumberjack",
-                       "r":  "Common",
-                       "c":  "Universal"
-                   },
-    "mana_reflux":  {
-                        "n":  "Mana Reflux",
-                        "r":  "Common",
-                        "c":  "Universal"
-                    },
-    "mana_well":  {
-                      "n":  "Mana Well",
-                      "r":  "Common",
-                      "c":  "Support"
-                  },
-    "marionette":  {
-                       "n":  "Marionette",
-                       "r":  "Legendary",
-                       "c":  "Summon"
-                   },
-    "martyrs_resolve":  {
-                            "n":  "Martyr\u0027s Resolve",
-                            "r":  "Legendary",
-                            "c":  "Support"
-                        },
-    "master_angler":  {
-                          "n":  "Master Angler",
-                          "r":  "Rare",
-                          "c":  "Universal"
-                      },
-    "mending_aura":  {
-                         "n":  "Mending Aura",
-                         "r":  "Epic",
-                         "c":  "Universal"
-                     },
-    "meteor_strike":  {
-                          "n":  "Meteor Strike",
-                          "r":  "Epic",
-                          "c":  "Universal"
-                      },
-    "minion_momentum":  {
-                            "n":  "Minion Momentum",
-                            "r":  "Common",
-                            "c":  "Summon"
-                        },
-    "mirror_image":  {
-                         "n":  "Mirror Image",
-                         "r":  "Epic",
-                         "c":  "Magic"
-                     },
-    "momentum_crash":  {
-                           "n":  "Momentum Crash",
-                           "r":  "Epic",
-                           "c":  "Melee"
-                       },
-    "momentum_swing":  {
-                           "n":  "Momentum Swing",
-                           "r":  "Common",
-                           "c":  "Melee"
-                       },
-    "necromancers_court":  {
-                               "n":  "Necromancer\u0027s Court",
-                               "r":  "Epic",
-                               "c":  "Summon"
-                           },
-    "neural_linkage":  {
-                           "n":  "Neural Linkage",
-                           "r":  "Epic",
-                           "c":  "Summon"
-                       },
-    "one_in_the_chamber":  {
-                               "n":  "One in the Chamber",
-                               "r":  "Rare",
-                               "c":  "Ranged"
-                           },
-    "opportunist":  {
-                        "n":  "Opportunist",
-                        "r":  "Rare",
-                        "c":  "Melee"
-                    },
-    "pod_ore":  {
-                    "n":  "Upgrade Pod: Ore Sniffer",
-                    "r":  "Common",
-                    "c":  "Universal"
-                },
-    "ore_bonus":  {
-                      "n":  "Ore Than Enough",
-                      "r":  "Common",
-                      "c":  "Universal"
-                  },
-    "overcharge":  {
-                       "n":  "Overcharge",
-                       "r":  "Rare",
-                       "c":  "Magic"
-                   },
-    "overcharge_round":  {
-                             "n":  "Overcharge Round",
-                             "r":  "Epic",
-                             "c":  "Ranged"
-                         },
-    "overwhelm":  {
-                      "n":  "Overwhelm",
-                      "r":  "Rare",
-                      "c":  "Melee"
-                  },
-    "party_poppers":  {
-                          "n":  "Party Poppers",
-                          "r":  "Epic",
-                          "c":  "Ranged"
-                      },
-    "mana_buffer":  {
-                        "n":  "Pay to Win",
-                        "r":  "Epic",
-                        "c":  "Magic"
-                    },
-    "pod_shoot":  {
-                      "n":  "Upgrade Pod: Pea Shooter",
-                      "r":  "Common",
-                      "c":  "Universal"
-                  },
-    "phase_round":  {
-                        "n":  "Phase Round",
-                        "r":  "Epic",
-                        "c":  "Ranged"
-                    },
-    "phoenix_heart":  {
-                          "n":  "Phoenix Heart",
-                          "r":  "Legendary",
-                          "c":  "Universal"
-                      },
-    "pied_piper":  {
-                       "n":  "Pied Piper",
-                       "r":  "Epic",
-                       "c":  "Summon"
-                   },
-    "piercing_shot":  {
-                          "n":  "Piercing Shot",
-                          "r":  "Rare",
-                          "c":  "Ranged"
-                      },
-    "plague_bearer":  {
-                          "n":  "Plague Bearer",
-                          "r":  "Rare",
-                          "c":  "Universal"
-                      },
-    "pogo_stick":  {
-                       "n":  "Pogo Stick",
-                       "r":  "Rare",
-                       "c":  "Melee"
-                   },
-    "point_blank":  {
-                        "n":  "Point Blank",
-                        "r":  "Rare",
-                        "c":  "Ranged"
-                    },
-    "potion_rush":  {
-                        "n":  "Potion Rush",
-                        "r":  "Common",
-                        "c":  "Universal"
-                    },
-    "prismatic_fracture":  {
-                               "n":  "Prismatic Fracture",
-                               "r":  "Epic",
-                               "c":  "Magic"
-                           },
-    "prolonged_surge":  {
-                            "n":  "Prolonged Surge",
-                            "r":  "Common",
-                            "c":  "Support"
-                        },
-    "queens_swarm":  {
-                         "n":  "Queen\u0027s Swarm",
-                         "r":  "Rare",
-                         "c":  "Summon"
-                     },
-    "quickcast":  {
-                      "n":  "Quickcast",
-                      "r":  "Common",
-                      "c":  "Magic"
-                  },
-    "quickfire":  {
-                      "n":  "Quickfire",
-                      "r":  "Common",
-                      "c":  "Ranged"
-                  },
-    "quick_recovery":  {
-                           "n":  "Quick Recovery",
-                           "r":  "Common",
-                           "c":  "Universal"
-                       },
-    "rapid_fire":  {
-                       "n":  "Rapid Fire",
-                       "r":  "Common",
-                       "c":  "Ranged"
-                   },
-    "ravenous_swarm":  {
-                           "n":  "Ravenous Swarm",
-                           "r":  "Epic",
-                           "c":  "Summon"
-                       },
-    "reforgers_patience":  {
-                               "n":  "Reforger\u0027s Patience",
-                               "r":  "Epic",
-                               "c":  "Universal"
-                           },
-    "revitalizing_wave":  {
-                              "n":  "Revitalizing Wave",
-                              "r":  "Epic",
-                              "c":  "Support"
-                          },
-    "ricochet_engine":  {
-                            "n":  "Ricochet Engine",
-                            "r":  "Legendary",
-                            "c":  "Ranged"
-                        },
-    "riposte":  {
-                    "n":  "Riposte",
-                    "r":  "Common",
-                    "c":  "Melee"
-                },
-    "run_as_administrator":  {
-                                 "n":  "Run as Administrator",
-                                 "r":  "Legendary",
-                                 "c":  "Magic"
-                             },
-    "scapegoat":  {
-                      "n":  "Scapegoat",
-                      "r":  "Rare",
-                      "c":  "Support"
-                  },
-    "scavengers_luck":  {
-                            "n":  "Scavenger\u0027s Luck",
-                            "r":  "Rare",
-                            "c":  "Universal"
-                        },
-    "second_pulse":  {
-                         "n":  "Second Pulse",
-                         "r":  "Common",
-                         "c":  "Universal"
-                     },
-    "second_wind":  {
-                        "n":  "Second Wind",
-                        "r":  "Common",
-                        "c":  "Universal"
-                    },
-    "sentry_salvo":  {
-                         "n":  "Sentry Salvo",
-                         "r":  "Common",
-                         "c":  "Summon"
-                     },
-    "sentrys_resolve":  {
-                            "n":  "Sentry\u0027s Resolve",
-                            "r":  "Rare",
-                            "c":  "Summon"
-                        },
-    "shared_dose":  {
-                        "n":  "Shared Dose",
-                        "r":  "Common",
-                        "c":  "Support"
-                    },
-    "sharpened_focus":  {
-                            "n":  "Sharpened Focus",
-                            "r":  "Epic",
-                            "c":  "Universal"
-                        },
-    "sharpshooter":  {
-                         "n":  "Sharpshooter",
-                         "r":  "Rare",
-                         "c":  "Ranged"
-                     },
-    "shockwave":  {
-                      "n":  "Shockwave",
-                      "r":  "Rare",
-                      "c":  "Melee"
-                  },
-    "siege_battery":  {
-                          "n":  "Siege Battery",
-                          "r":  "Legendary",
-                          "c":  "Summon"
-                      },
-    "soft_landing":  {
-                         "n":  "Soft Landing",
-                         "r":  "Common",
-                         "c":  "Support"
-                     },
-    "soul_link":  {
-                      "n":  "Soul Link",
-                      "r":  "Epic",
-                      "c":  "Support"
-                  },
-    "soul_martyr":  {
-                        "n":  "Soul Martyr",
-                        "r":  "Legendary",
-                        "c":  "Support"
-                    },
-    "spectral_guard":  {
-                           "n":  "Spectral Guard",
-                           "r":  "Rare",
-                           "c":  "Summon"
-                       },
-    "spell_echo":  {
-                       "n":  "Spell Echo",
-                       "r":  "Rare",
-                       "c":  "Magic"
-                   },
-    "star_power":  {
-                       "n":  "Star Power",
-                       "r":  "Common",
-                       "c":  "Magic"
-                   },
-    "steady_hands":  {
-                         "n":  "Steady Hands",
-                         "r":  "Common",
-                         "c":  "Ranged"
-                     },
-    "steady_heart":  {
-                         "n":  "Steady Heart",
-                         "r":  "Common",
-                         "c":  "Universal"
-                     },
-    "stormcaller":  {
-                        "n":  "Stormcaller",
-                        "r":  "Epic",
-                        "c":  "Melee"
-                    },
-    "sugar_rush":  {
-                       "n":  "Sugar Rush",
-                       "r":  "Rare",
-                       "c":  "Magic"
-                   },
-    "sunder":  {
-                   "n":  "Sunder",
-                   "r":  "Common",
-                   "c":  "Melee"
-               },
-    "supercharger":  {
-                         "n":  "Supercharger",
-                         "r":  "Common",
-                         "c":  "Support"
-                     },
-    "swarm_tactics":  {
-                          "n":  "Swarm Tactics",
-                          "r":  "Common",
-                          "c":  "Summon"
-                      },
-    "swiftness_aura":  {
-                           "n":  "Swiftness Aura",
-                           "r":  "Common",
-                           "c":  "Support"
-                       },
-    "swift_return":  {
-                         "n":  "Swift Return",
-                         "r":  "Rare",
-                         "c":  "Universal"
-                     },
-    "taunt":  {
-                  "n":  "Taunt",
-                  "r":  "Rare",
-                  "c":  "Support"
-              },
-    "tight_squeeze":  {
-                          "n":  "Tight Squeeze",
-                          "r":  "Rare",
-                          "c":  "Ranged"
-                      },
-    "time_warp":  {
-                      "n":  "Time Warp",
-                      "r":  "Epic",
-                      "c":  "Magic"
-                  },
-    "pod_light":  {
-                      "n":  "Upgrade Pod: Lighthouse",
-                      "r":  "Common",
-                      "c":  "Support"
-                  },
-    "treasure_diver":  {
-                           "n":  "Treasure Diver",
-                           "r":  "Rare",
-                           "c":  "Universal"
-                       },
-    "treasure_hunter":  {
-                            "n":  "Treasure Hunter",
-                            "r":  "Common",
-                            "c":  "Universal"
-                        },
-    "trick_shot":  {
-                       "n":  "Trick Shot",
-                       "r":  "Epic",
-                       "c":  "Ranged"
-                   },
-    "trophy_hunter":  {
-                          "n":  "Trophy Hunter",
-                          "r":  "Epic",
-                          "c":  "Melee"
-                      },
-    "turret_syndrome":  {
-                            "n":  "Turret Syndrome",
-                            "r":  "Legendary",
-                            "c":  "Summon"
-                        },
-    "twin_strike":  {
-                        "n":  "Twin Strike",
-                        "r":  "Rare",
-                        "c":  "Universal"
-                    },
-    "undying_bond":  {
-                         "n":  "Undying Bond",
-                         "r":  "Legendary",
-                         "c":  "Support"
-                     },
-    "vampiric_edge":  {
-                          "n":  "Vampiric Edge",
-                          "r":  "Common",
-                          "c":  "Melee"
-                      },
-    "pod_vein":  {
-                     "n":  "Upgrade Pod: Vein Miner",
-                     "r":  "Common",
-                     "c":  "Universal"
-                 },
-    "vengeance":  {
-                      "n":  "Vengeance",
-                      "r":  "Rare",
-                      "c":  "Universal"
-                  },
-    "vital_echo":  {
-                       "n":  "Vital Echo",
-                       "r":  "Common",
-                       "c":  "Universal"
-                   },
-    "void_step":  {
-                      "n":  "Void Step",
-                      "r":  "Epic",
-                      "c":  "Universal"
-                  },
-    "volatile_rounds":  {
-                            "n":  "Volatile Rounds",
-                            "r":  "Rare",
-                            "c":  "Ranged"
-                        },
-    "volt_tether":  {
-                        "n":  "Volt Tether",
-                        "r":  "Epic",
-                        "c":  "Summon"
-                    },
-    "wand_discipline":  {
-                            "n":  "Wand Discipline",
-                            "r":  "Common",
-                            "c":  "Magic"
-                        },
-    "warcry":  {
-                   "n":  "Warcry",
-                   "r":  "Common",
-                   "c":  "Support"
-               },
-    "war_gods_tempo":  {
-                           "n":  "War God\u0027s Tempo",
-                           "r":  "Legendary",
-                           "c":  "Melee"
-                       },
-    "pod_trap":  {
-                     "n":  "Upgrade Pod: Watch Your Step",
-                     "r":  "Common",
-                     "c":  "Universal"
-                 },
-    "whip_cracker":  {
-                         "n":  "Whip Cracker",
-                         "r":  "Rare",
-                         "c":  "Summon"
-                     },
-    "whiplash_wave":  {
-                          "n":  "Whiplash Wave",
-                          "r":  "Epic",
-                          "c":  "Summon"
-                      },
-    "whip_master":  {
-                        "n":  "Whip Master",
-                        "r":  "Common",
-                        "c":  "Summon"
-                    },
-    "wild_card":  {
-                      "n":  "Wild Card",
-                      "r":  "Rare",
-                      "c":  "Universal"
-                  },
-    "wild_magic":  {
-                       "n":  "Wild Magic",
-                       "r":  "Epic",
-                       "c":  "Magic"
-                   }
+ "adaptive_armor": {
+  "n": "Adaptive Armor",
+  "r": "Rare",
+  "c": "Universal",
+  "d": "Defense grows by +1 every 2 seconds you go without taking damage, up to +10 after 20 seconds. Resets to zero the instant you're hit."
+ },
+ "afterburner": {
+  "n": "Afterburner",
+  "r": "Epic",
+  "c": "Ranged",
+  "d": "While airborne: +25% ranged damage, +12% ranged crit chance and +10% ranged attack speed. Firing a ranged weapon in the air pushes you backwards, opposite your aim. Slower, heavier weapons push harder. You take no fall damage and gain +25% wing flight time."
+ },
+ "ambush": {
+  "n": "Ambush",
+  "r": "Common",
+  "c": "Melee",
+  "d": "Stand still for 2 seconds to prime your next melee hit. The primed hit deals +25% bonus damage based on the weapon's base damage."
+ },
+ "apex_hunter": {
+  "n": "Apex Hunter",
+  "r": "Legendary",
+  "c": "Ranged",
+  "d": "Ranged hits against a boss build a mark"
+ },
+ "apex_predator": {
+  "n": "Apex Predator",
+  "r": "Legendary",
+  "c": "Universal",
+  "d": "Damage scales up the lower the target's HP is, up to +50% bonus damage against an enemy on the brink of death."
+ },
+ "arcane_singularity": {
+  "n": "Arcane Singularity",
+  "r": "Legendary",
+  "c": "Magic",
+  "d": "Magic hits build up to 8 charges. At full charge, your next magic hit opens a vortex for 3 seconds, pulling enemies within 300 pixels toward its core and dealing 20 magic damage every 0.5 seconds."
+ },
+ "arcane_spark": {
+  "n": "Arcane Spark",
+  "r": "Common",
+  "c": "Magic",
+  "d": "Magic hits deal 6 bonus magic damage on-hit."
+ },
+ "armor_piercer": {
+  "n": "Armor Piercer",
+  "r": "Epic",
+  "c": "Universal",
+  "d": "Gain +19 Armor Penetration"
+ },
+ "astral_siphon": {
+  "n": "Astral Siphon",
+  "r": "Epic",
+  "c": "Magic",
+  "d": "Magic crits restore 5 HP and 15 mana."
+ },
+ "autopilot": {
+  "n": "Upgrade Pod: Autopilot",
+  "r": "Epic",
+  "c": "Support",
+  "d": "Your Pod becomes Pod 153 and heals the lowest-health nearby player for 5 HP per second."
+ },
+ "type_s_synchronizer_protocol": {
+  "n": "Type-S: Synchronizer Protocol",
+  "r": "Epic",
+  "c": "Universal",
+  "d": "Every 10 seconds, cycles polarity between Offensive Overclock (+15% damage, +10% crit, +10 armor penetration, but halts natural life regeneration) and Restorative Nano-Repair (+15 defense, +12 life regen, +15% movement speed, but -15% damage)."
+ },
+ "type_b_berserker_protocol": {
+  "n": "Type-B: Berserker Protocol",
+  "r": "Epic",
+  "c": "Universal",
+  "d": "While below 50% HP, enter Berserk Overclock: gain +40% damage, +15% movement speed, and +10% attack speed. Potion sickness duration is increased by +15 seconds."
+ },
+ "type_d_dreadnought_protocol": {
+  "n": "Type-D: Dreadnought Protocol",
+  "r": "Epic",
+  "c": "Universal",
+  "d": "Grants +20 defense and 15% damage reduction, but reduces outgoing damage by 15%. Taking 120 cumulative damage detonates a kinetic shockwave dealing 60 damage with violent knockback, and activates a 1.5 seconds Energy Barrier that negates all incoming damage."
+ },
+ "bait_master": {
+  "n": "Bait Master",
+  "r": "Rare",
+  "c": "Universal",
+  "d": "Fishing bait grants +30% more fishing power than normal."
+ },
+ "berserker": {
+  "n": "Berserker",
+  "r": "Rare",
+  "c": "Melee",
+  "d": "While below 50% HP, melee hits deal +20% bonus damage."
+ },
+ "big_stick_energy": {
+  "n": "Big Stick Energy",
+  "r": "Common",
+  "c": "Melee",
+  "d": "Melee weapons are 25% bigger."
+ },
+ "blade_dance": {
+  "n": "Blade Dance",
+  "r": "Legendary",
+  "c": "Melee",
+  "d": "Active: Press its hotkey with a melee weapon in hand to become invulnerable for 2 seconds while you blink between nearby enemies, cutting each one you reach for 90 damage (8 slashes). 50 seconds cooldown."
+ },
+ "bloodletter": {
+  "n": "Bloodletter",
+  "r": "Common",
+  "c": "Melee",
+  "d": "Melee crits make enemies bleed, dealing 3 damage per second for 5 seconds."
+ },
+ "brewers_instinct": {
+  "n": "Brewer's Instinct",
+  "r": "Rare",
+  "c": "Universal",
+  "d": "Buff potions have a 40% chance to last 50% longer."
+ },
+ "bulwark": {
+  "n": "Bulwark",
+  "r": "Rare",
+  "c": "Universal",
+  "d": "Going 10 seconds without taking damage charges a shield that completely blocks your next hit, then resets and must recharge."
+ },
+ "callout": {
+  "n": "Callout",
+  "r": "Rare",
+  "c": "Support",
+  "d": "Your hits mark enemies for 5 seconds, shown as a [cmark:x] above them. Marked enemies take +10% damage from your teammates."
+ },
+ "celestial_pull": {
+  "n": "Celestial Pull",
+  "r": "Common",
+  "c": "Magic",
+  "d": "Increases pickup range for Mana Stars by 15 tiles."
+ },
+ "chain_lightning": {
+  "n": "Chain Lightning",
+  "r": "Rare",
+  "c": "Melee",
+  "d": "Melee hits deal 15 damage on-hit and chain electricity to up to 2 nearby enemies, dealing 50% of your on-hit damage."
+ },
+ "chaos_rounds": {
+  "n": "Chaos Rounds",
+  "r": "Epic",
+  "c": "Ranged",
+  "d": "Ranged hits apply a random debuff for 3 seconds: On Fire, Frostburn, Poisoned, Venom or Ichor."
+ },
+ "chronobreak": {
+  "n": "Chronobreak",
+  "r": "Legendary",
+  "c": "Support",
+  "d": "Active: Press its hotkey to rewind you and nearby teammates to where they stood 4 seconds ago, restoring HP up to what they had then. It never lowers anyone's HP. Rewound players are invulnerable for 0.5 seconds. 120 seconds cooldown."
+ },
+ "cleanse": {
+  "n": "Cleanse",
+  "r": "Rare",
+  "c": "Support",
+  "d": "Active: Press its hotkey to remove all debuffs from nearby teammates and throw them onto nearby enemies instead. 15 seconds cooldown."
+ },
+ "cleansing_strike": {
+  "n": "Cleansing Strike",
+  "r": "Rare",
+  "c": "Melee",
+  "d": "Melee crits remove one active debuff from yourself, if you have any."
+ },
+ "combat_medic": {
+  "n": "Combat Medic",
+  "r": "Common",
+  "c": "Support",
+  "d": "Nearby teammates regenerate 1.5 HP per second."
+ },
+ "contact_charge": {
+  "n": "Contact Charge",
+  "r": "Common",
+  "c": "Support",
+  "d": "True melee hits grant +20% Overclock charge to your Medi Gun, at most once every 2 seconds."
+ },
+ "corrosive_tip": {
+  "n": "Corrosive Tip",
+  "r": "Common",
+  "c": "Support",
+  "d": "The Medi Gun siphon beam deals +50% damage."
+ },
+ "crit_happens": {
+  "n": "Crit Happens",
+  "r": "Epic",
+  "c": "Summon",
+  "d": "Minions can now Critically Strike!"
+ },
+ "critical_surge": {
+  "n": "Critical Surge",
+  "r": "Rare",
+  "c": "Universal",
+  "d": "Crits have a 40% chance to deal a bonus on-hit strike for 25% of the weapon's base damage."
+ },
+ "danger_close": {
+  "n": "Danger Close",
+  "r": "Legendary",
+  "c": "Ranged",
+  "d": "Active: Press its hotkey to mark your cursor. After 1.5 seconds, 20 shells rain down on it, each exploding for 45 damage and setting enemies on fire. 45 seconds cooldown."
+ },
+ "dark_omen": {
+  "n": "Dark Omen",
+  "r": "Epic",
+  "c": "Universal",
+  "d": "During a Blood Moon, all damage dealt is increased by +20% and 6% of damage dealt is returned as healing. During a Solar Eclipse, movement speed is increased by 20% and incoming damage is reduced by 12%."
+ },
+ "dead_weight": {
+  "n": "Dead Weight",
+  "r": "Epic",
+  "c": "Melee",
+  "d": "The slower your melee weapon, the harder it hits, up to +30% damage and 10 armor penetration. Hits with slow weapons also slam the ground, hurling nearby enemies away. 0.6 seconds cooldown."
+ },
+ "deadeye": {
+  "n": "Deadeye",
+  "r": "Epic",
+  "c": "Ranged",
+  "d": "Consecutive ranged hits on the same enemy build +2% crit chance per hit, up to +16% crit chance at 8 stacks. Switching targets resets the stacks."
+ },
+ "debug_full_crit": {
+  "n": "[DEBUG] Full Crit",
+  "r": "Common",
+  "c": "Universal",
+  "d": "Testing only. Guarantees 100% crit chance on all weapons."
+ },
+ "demolition_expert": {
+  "n": "Demolition Expert",
+  "r": "Common",
+  "c": "Universal",
+  "d": "Explosive hits (bombs, dynamite, rocket launchers, grenade launchers) deal +20% bonus damage."
+ },
+ "discount_rod": {
+  "n": "Rod of Discount",
+  "r": "Rare",
+  "c": "Magic",
+  "d": "Active: Press its hotkey to teleport to your cursor (up to 25 tiles away), leaving an afterimage that explodes after 1 second. 8 seconds cooldown."
+ },
+ "double_tip": {
+  "n": "Double Tip",
+  "r": "Epic",
+  "c": "Magic",
+  "d": "Magic casts fire an additional Twin Harmonic Spell dealing 35% damage. Alternating casts between different magic weapons triggers Hyper-Weave for 5 seconds, boosting twin damage to 60%, granting +15% magic damage, and reducing mana cost by -50%."
+ },
+ "echo_chamber": {
+  "n": "Echo Chamber",
+  "r": "Legendary",
+  "c": "Ranged",
+  "d": "Firing a ranged projectile also fires an echo shot for 20% damage. Echo shots trigger on-hit effects at 50% effectiveness."
+ },
+ "eldritch_covenant": {
+  "n": "Eldritch Covenant",
+  "r": "Legendary",
+  "c": "Magic",
+  "d": "Spending mana builds corruption. At full corruption, your next magic hit opens an eldritch eye for 4 seconds, firing lasers that deal 40 damage."
+ },
+ "emergency_aid": {
+  "n": "Emergency Aid",
+  "r": "Rare",
+  "c": "Support",
+  "d": "You and nearby teammates below 40% HP regenerate 3 HP per second."
+ },
+ "employee_of_the_month": {
+  "n": "Employee of the Month",
+  "r": "Rare",
+  "c": "Summon",
+  "d": "Your highest-damage minion wears a gold star and deals +40% damage."
+ },
+ "eternal_flame": {
+  "n": "Eternal Flame",
+  "r": "Rare",
+  "c": "Magic",
+  "d": "Permanently immune to fire-based debuffs (On Fire!, Hellfire, Cursed Inferno, Shadowflame, Burning). Each time one would have been applied, gain +15% magic damage for 4 seconds instead."
+ },
+ "eternal_legion": {
+  "n": "Eternal Legion",
+  "r": "Legendary",
+  "c": "Summon",
+  "d": "Permanently grants +1 max minion slot and +1 max sentry slot."
+ },
+ "featherfall": {
+  "n": "Featherfall",
+  "r": "Common",
+  "c": "Universal",
+  "d": "Fall damage is reduced by 50%. Landing from a significant fall grants +30% movement speed for 2 seconds."
+ },
+ "festering_wounds": {
+  "n": "Festering Wounds",
+  "r": "Rare",
+  "c": "Universal",
+  "d": "Damage Over Time effects deal 50% more damage."
+ },
+ "fetch": {
+  "n": "Fetch",
+  "r": "Common",
+  "c": "Summon",
+  "d": "Items dropped by enemies your summons kill fly straight to you."
+ },
+ "fight_or_flight": {
+  "n": "Fight or Flight",
+  "r": "Common",
+  "c": "Universal",
+  "d": "While below 50% HP, gain +10% movement speed."
+ },
+ "final_stand": {
+  "n": "Final Stand",
+  "r": "Legendary",
+  "c": "Universal",
+  "d": "Dropping below 20% HP grants +40 defense and full knockback immunity for 5 seconds. 60 second cooldown."
+ },
+ "floor_is_lava": {
+  "n": "Floor is Lava",
+  "r": "Legendary",
+  "c": "Ranged",
+  "d": "Ranged explosions splash Napalm Plasma outward. The plasma lands on the ground as several pools (and sometimes sticks to a wall) that burn for 4 seconds, dealing continuous 22 fire damage. Enemies standing in the plasma (pools or wall flames) suffer Thermite Melt: ignoring 20 defense, taking +15% ranged damage from all sources, and being slowed by 25%. You take 75% less self-damage from your own explosives."
+ },
+ "focus_directive": {
+  "n": "Focus Directive",
+  "r": "Common",
+  "c": "Summon",
+  "d": "Whips grant +6 summon tag damage to hit enemies."
+ },
+ "fortunes_favor": {
+  "n": "Fortune's Favor",
+  "r": "Common",
+  "c": "Universal",
+  "d": "Grants +10% Fortune (+0.05 World Luck & +10% lucky trigger chances across all augments). Also slowly regenerates 1 HP every 4 seconds on its own."
+ },
+ "frenzied_assault": {
+  "n": "Frenzied Assault",
+  "r": "Epic",
+  "c": "Melee",
+  "d": "Melee crits grant a stacking attack speed buff: +7% per stack, up to +35% at 5 stacks. Stacks reset after 3 seconds."
+ },
+ "frost_touch": {
+  "n": "Frost Touch",
+  "r": "Common",
+  "c": "Magic",
+  "d": "Magic crits apply Frostburn for 4 seconds."
+ },
+ "frostbound": {
+  "n": "Frostbound",
+  "r": "Rare",
+  "c": "Magic",
+  "d": "Magic hits against an already Frostburned enemy deal +25% bonus damage, based on the weapon's base damage. Requires the enemy to have Frostburn applied."
+ },
+ "get_excited": {
+  "n": "Get Excited!",
+  "r": "Common",
+  "c": "Universal",
+  "d": "After killing an enemy, gain +8% movement speed for 2 seconds, stacking up to +24% movement speed."
+ },
+ "get_over_here": {
+  "n": "Get over here!",
+  "r": "Epic",
+  "c": "Support",
+  "d": "Active: Press its hotkey to hook the nearest teammate within 1500 pixels and yank them to your side. They take 50% less damage for 2 seconds after landing. 60 seconds cooldown."
+ },
+ "glass_sight": {
+  "n": "Glass Sight",
+  "r": "Common",
+  "c": "Ranged",
+  "d": "Ranged crits deal 15% increased damage."
+ },
+ "godslayer_blade": {
+  "n": "Godslayer Blade",
+  "r": "Legendary",
+  "c": "Melee",
+  "d": "Melee crits summon a falling sword that deals 75% of base weapon damage to the target and nearby enemies. Enemies struck are inflicted with Ichor for 2 seconds. 2 seconds cooldown."
+ },
+ "grand_entrance": {
+  "n": "Grand Entrance",
+  "r": "Common",
+  "c": "Summon",
+  "d": "Summoning a minion or sentry calls down lightning on it, dealing 50% of its damage to nearby enemies it can see and knocking them back."
+ },
+ "grapple_master": {
+  "n": "Grapple Master",
+  "r": "Common",
+  "c": "Universal",
+  "d": "Releasing your grappling hook grants +25% movement speed for 4 seconds."
+ },
+ "tombstone_boost": {
+  "n": "Grave Danger",
+  "r": "Epic",
+  "c": "Universal",
+  "d": "Every tombstone within 30 tiles of you gives +3% damage to all your attacks, up to +30% damage from 10 tombstones."
+ },
+ "pellet_burst": {
+  "n": "Group Hug",
+  "r": "Epic",
+  "c": "Ranged",
+  "d": "When 2 or more pellets of one shot hit the same enemy, they burst for 75% of their damage in a small area around it."
+ },
+ "guardians_wrath": {
+  "n": "Guardian's Wrath",
+  "r": "Epic",
+  "c": "Universal",
+  "d": "While below 30% HP, gain +15 defense and reduce incoming damage by 20%, but outgoing damage is reduced by 15% during that same window."
+ },
+ "gun_go_brrr": {
+  "n": "Gun Go Brrr",
+  "r": "Epic",
+  "c": "Ranged",
+  "d": "The longer you hold fire, the more heat builds, up to +60% attack speed. At max heat your gun jams for 2 seconds."
+ },
+ "headhunter": {
+  "n": "Headhunter",
+  "r": "Rare",
+  "c": "Ranged",
+  "d": "Ranged crits executes enemies below 15% HP, regardless of the hit's normal damage. Does not work on bosses."
+ },
+ "heart_drop": {
+  "n": "Heart Drop",
+  "r": "Common",
+  "c": "Universal",
+  "d": "While missing HP, enemy kills have +10% chance heart drop chance."
+ },
+ "hex_detonation": {
+  "n": "Hex Detonation",
+  "r": "Legendary",
+  "c": "Magic",
+  "d": "Magic hits stack Hex on enemies, up to 5 stacks for 6 seconds. The next magic hit on a fully hexed enemy detonates it, dealing 200% of that hit's damage to nearby enemies."
+ },
+ "hit_me_here": {
+  "n": "Hit Me Here",
+  "r": "Epic",
+  "c": "Ranged",
+  "d": "Ranged hits scan the target, projecting a glowing cybernetic weakpoint reticle for 4 seconds. Hitting the weakpoint guarantees a Critical Strike that ignores 100% defense, ruptures the target, and grants +15% movement speed for 2 seconds."
+ },
+ "hunters_pace": {
+  "n": "Hunter's Pace",
+  "r": "Common",
+  "c": "Ranged",
+  "d": "Ranged hits give +15% movement speed for 2 seconds."
+ },
+ "infernos_heart": {
+  "n": "Inferno's Heart",
+  "r": "Legendary",
+  "c": "Magic",
+  "d": "8 consecutive magic hits within 0.5 seconds of each other charge a burst"
+ },
+ "auto_fishing": {
+  "n": "Insta Cast",
+  "r": "Common",
+  "c": "Universal",
+  "d": "While you hold a fishing pole, the line reels in by itself the moment a fish bites, and then it casts again toward your cursor."
+ },
+ "iron_rhythm": {
+  "n": "Iron Rhythm",
+  "r": "Common",
+  "c": "Universal",
+  "d": "Every 4th attack applies 15 damage on-hit."
+ },
+ "iron_will": {
+  "n": "Iron Will",
+  "r": "Common",
+  "c": "Universal",
+  "d": "After you're hit, gain +8 defense for 3 seconds. 30 seconds cooldown."
+ },
+ "ironclad_aura": {
+  "n": "Ironclad Aura",
+  "r": "Rare",
+  "c": "Support",
+  "d": "Nearby teammates gain +8 defense while you are within range."
+ },
+ "ironclad_will": {
+  "n": "Ironclad Will",
+  "r": "Legendary",
+  "c": "Melee",
+  "d": "Melee hits have a 40% chance to ignore 100% of enemy defense."
+ },
+ "keen_eye": {
+  "n": "Keen Eye",
+  "r": "Common",
+  "c": "Support",
+  "d": "Nearby teammates gain +8% critical strike chance."
+ },
+ "kickback": {
+  "n": "Kickback",
+  "r": "Epic",
+  "c": "Ranged",
+  "d": "Each shotgun or rocket launcher shot adds a stack (max 8). Every stack gives those weapons +15% damage. Stacks reset after 3 seconds without firing one. Firing one also pushes you backwards, opposite your aim, and much harder up or down than sideways. Rocket launchers kick harder than shotguns."
+ },
+ "death_blast": {
+  "n": "Last Gasp",
+  "r": "Legendary",
+  "c": "Universal",
+  "d": "When a hit would kill you, you refuse to die: for 5 seconds your health stays at 0, nothing can hurt you, and you deal +100% damage with +50% attack speed. Then you die in a small blast that hurts enemies nearby. 180 seconds cooldown."
+ },
+ "last_rites": {
+  "n": "Last Rites",
+  "r": "Epic",
+  "c": "Support",
+  "d": "When a nearby teammate drops below 20% HP, grant them 3 seconds of invulnerability."
+ },
+ "last_stand": {
+  "n": "Last Stand",
+  "r": "Rare",
+  "c": "Universal",
+  "d": "A killing blow instead leaves you at 1 HP, with brief invulnerability. 3 minutes cooldown."
+ },
+ "leftovers": {
+  "n": "Leftovers",
+  "r": "Epic",
+  "c": "Melee",
+  "d": "When a melee hit kills an enemy, the damage left over hits the nearest other enemy."
+ },
+ "lifeline": {
+  "n": "Lifeline",
+  "r": "Legendary",
+  "c": "Support",
+  "d": "When a nearby teammate would die, they survive on 1 HP instead."
+ },
+ "long_distance_relationship": {
+  "n": "Long Distance Relationship",
+  "r": "Legendary",
+  "c": "Magic",
+  "d": "Active: Press its hotkey to open a portal at your cursor for 8 seconds. Your magic spells launch from the portal toward your cursor instead of from you. Portal spells deal up to +50% damage, more the farther the portal is from you, and cost half the mana. 20 seconds cooldown."
+ },
+ "lucky_find": {
+  "n": "Lucky Find",
+  "r": "Common",
+  "c": "Universal",
+  "d": "Grants +5% Fortune (World Luck & lucky trigger chance). Defeated enemies have a 25% chance to drop extra coins."
+ },
+ "lucky_strike": {
+  "n": "Lucky Strike",
+  "r": "Rare",
+  "c": "Universal",
+  "d": "Grants +5% Fortune (World Luck & lucky trigger chance). Any crit has a 40% chance to deal a second strike for the same damage."
+ },
+ "tree_bonus": {
+  "n": "Lumberjack",
+  "r": "Common",
+  "c": "Universal",
+  "d": "Wood from the trees you chop has a 30% chance to drop twice. Trees might be hiding a little something for you."
+ },
+ "mana_reflux": {
+  "n": "Mana Reflux",
+  "r": "Common",
+  "c": "Universal",
+  "d": "When you take damage, restore mana equal to 35% of the damage taken."
+ },
+ "mana_well": {
+  "n": "Mana Well",
+  "r": "Common",
+  "c": "Support",
+  "d": "Nearby teammates regenerate mana 30% faster."
+ },
+ "marionette": {
+  "n": "Marionette",
+  "r": "Legendary",
+  "c": "Summon",
+  "d": "Your minions are locked to your mouse cursor instead of following you. Minions deal +15% damage."
+ },
+ "martyrs_resolve": {
+  "n": "Martyr's Resolve",
+  "r": "Legendary",
+  "c": "Support",
+  "d": "Nearby teammates take 15% reduced damage. You take 15% increased damage."
+ },
+ "master_angler": {
+  "n": "Master Angler",
+  "r": "Rare",
+  "c": "Universal",
+  "d": "Grants +10 fishing power and opening crates has a 20% chance for bonus loot."
+ },
+ "mending_aura": {
+  "n": "Mending Aura",
+  "r": "Epic",
+  "c": "Universal",
+  "d": "While standing still, heal 5 HP every second."
+ },
+ "meteor_strike": {
+  "n": "Meteor Strike",
+  "r": "Epic",
+  "c": "Universal",
+  "d": "Crits against bosses have a 40% chance to call down a bonus strike dealing 2.5% of the boss's maximum HP."
+ },
+ "minion_momentum": {
+  "n": "Minion Momentum",
+  "r": "Common",
+  "c": "Summon",
+  "d": "Minion hits build a stacking +1% bonus damage per hit, up to +20% bonus damage at 20 stacks, as long as the same minion type stays active. Switching to a different summon weapon resets the stack."
+ },
+ "mirror_image": {
+  "n": "Mirror Image",
+  "r": "Epic",
+  "c": "Magic",
+  "d": "Incoming hits have a 15% chance to be completely avoided, taking zero damage, followed by a brief 1.33 seconds window of invincibility. Applies to any damage source."
+ },
+ "momentum_crash": {
+  "n": "Momentum Crash",
+  "r": "Epic",
+  "c": "Melee",
+  "d": "Dashing grants 75% reduced damage taken for 0.25 seconds. Landing a melee hit during this window deals +30% bonus damage and applies Confused for 1.5 seconds."
+ },
+ "momentum_swing": {
+  "n": "Momentum Swing",
+  "r": "Common",
+  "c": "Melee",
+  "d": "Hitting the same enemy repeatedly within 1.5 seconds builds +3% bonus damage per stack, up to +15% bonus damage at 5 stacks. Switching targets or waiting too long resets the stacks."
+ },
+ "necromancers_court": {
+  "n": "Necromancer's Court",
+  "r": "Epic",
+  "c": "Summon",
+  "d": "Summon kills raise ghost minions for 6 seconds, each dealing 5 damage."
+ },
+ "neural_linkage": {
+  "n": "Neural Linkage",
+  "r": "Epic",
+  "c": "Summon",
+  "d": "While you have an active minion, reduce incoming damage by 20%. Taking damage commands your nearest minion to counter-dash the attacker for 200% minion damage. 2 seconds counter cooldown."
+ },
+ "one_in_the_chamber": {
+  "n": "One in the Chamber",
+  "r": "Rare",
+  "c": "Ranged",
+  "d": "Pausing attack for 0.7 seconds chambers a Hyper-Velocity Round. The next shot gains +100% velocity, pierces 3 additional enemies, and deals +35% damage."
+ },
+ "opportunist": {
+  "n": "Opportunist",
+  "r": "Rare",
+  "c": "Melee",
+  "d": "Melee hits against an airborne enemy (knocked into the air or naturally flying) deal +20% bonus damage, based on the weapon's base damage."
+ },
+ "pod_ore": {
+  "n": "Upgrade Pod: Ore Sniffer",
+  "r": "Common",
+  "c": "Universal",
+  "d": "Your Pod becomes Pod 311. Active: Press its hotkey and your Pod sniffs out the nearest ore, giving you a riddle about it and an arrow to follow. 6 seconds cooldown."
+ },
+ "ore_bonus": {
+  "n": "Ore Than Enough",
+  "r": "Common",
+  "c": "Universal",
+  "d": "Every ore you mine has a 30% chance to drop twice."
+ },
+ "overcharge": {
+  "n": "Overcharge",
+  "r": "Rare",
+  "c": "Magic",
+  "d": "Magic weapons cost double mana per cast, but deal +40% bonus damage."
+ },
+ "overcharge_round": {
+  "n": "Overcharge Round",
+  "r": "Epic",
+  "c": "Ranged",
+  "d": "Consecutive ranged hits build a stacking on-hit proc, +1 stack per hit up to 10, resetting after 1 second without a hit. The proc deals 5 plus 3 per stack, up to 35 at full charge."
+ },
+ "overwhelm": {
+  "n": "Overwhelm",
+  "r": "Rare",
+  "c": "Melee",
+  "d": "Hitting the same enemy 3 times within 1.5 seconds applies Confused for 1 second. Switching targets or waiting too long resets the count."
+ },
+ "party_poppers": {
+  "n": "Party Poppers",
+  "r": "Epic",
+  "c": "Ranged",
+  "d": "Rockets and explosive ranged weapons gain +15% damage and a +30% blast radius. When an explosive detonates, it releases 4 bouncy micro-bomblets that explode on contact."
+ },
+ "mana_buffer": {
+  "n": "Pay to Win",
+  "r": "Epic",
+  "c": "Magic",
+  "d": "Half of every hit you take is paid from your mana instead of your life, while you have mana."
+ },
+ "pod_shoot": {
+  "n": "Upgrade Pod: Pea Shooter",
+  "r": "Common",
+  "c": "Universal",
+  "d": "Your Pod becomes Pod 218 and shoots a small bolt at the nearest enemy every 1 second."
+ },
+ "phase_round": {
+  "n": "Phase Round",
+  "r": "Epic",
+  "c": "Ranged",
+  "d": "Arrows and bullets can pass through walls."
+ },
+ "phoenix_heart": {
+  "n": "Phoenix Heart",
+  "r": "Legendary",
+  "c": "Universal",
+  "d": "A killing blow instead restores you to max HP, with 3 seconds of invulnerability."
+ },
+ "pied_piper": {
+  "n": "Pied Piper",
+  "r": "Epic",
+  "c": "Summon",
+  "d": "While you have an active minion, gain 25% damage reduction for 3 seconds every 8 seconds."
+ },
+ "piercing_shot": {
+  "n": "Piercing Shot",
+  "r": "Rare",
+  "c": "Ranged",
+  "d": "Ranged projectiles have a 40% chance to pierce through the first enemy hit."
+ },
+ "plague_bearer": {
+  "n": "Plague Bearer",
+  "r": "Rare",
+  "c": "Universal",
+  "d": "Killing an enemy with active debuffs transfers them to the nearest enemy, refreshed at full duration."
+ },
+ "pogo_stick": {
+  "n": "Pogo Stick",
+  "r": "Rare",
+  "c": "Melee",
+  "d": "Falling onto an enemy stomps it and bounces you up. Stomp damage: 150% of your melee weapon's damage, or 40 damage without one. Each kill in a row without landing: +8% melee damage, up to 10 stacks. Stacks reset when you land, or after 4 seconds without a kill."
+ },
+ "point_blank": {
+  "n": "Point Blank",
+  "r": "Rare",
+  "c": "Ranged",
+  "d": "Ranged hits deal +50% bonus damage when within 8 tiles of the target."
+ },
+ "potion_rush": {
+  "n": "Potion Rush",
+  "r": "Common",
+  "c": "Universal",
+  "d": "After using a healing potion, gain +10% movement speed for 4 seconds."
+ },
+ "prismatic_fracture": {
+  "n": "Prismatic Fracture",
+  "r": "Epic",
+  "c": "Magic",
+  "d": "Magic hits shatter into 3 Homing Prismatic Shards dealing 30% damage. Magic Critical Strikes release 5 shards and inflict Prismatic Daze for 3 seconds."
+ },
+ "prolonged_surge": {
+  "n": "Prolonged Surge",
+  "r": "Common",
+  "c": "Support",
+  "d": "Medi Gun Overclock buffs on your ally last 12 seconds instead of 6 seconds."
+ },
+ "queens_swarm": {
+  "n": "Queen's Swarm",
+  "r": "Rare",
+  "c": "Summon",
+  "d": "Minion hits build swarm stacks on enemies. At 5 stacks, release 6 void bugs (15 damage each) to swarm nearby enemies. The same enemy can release again after 3 seconds, and you can release once every 1 second."
+ },
+ "quick_recovery": {
+  "n": "Quick Recovery",
+  "r": "Common",
+  "c": "Universal",
+  "d": "After taking damage, regenerate 6 HP over 3 seconds."
+ },
+ "quickcast": {
+  "n": "Quickcast",
+  "r": "Common",
+  "c": "Magic",
+  "d": "Magic weapons gain +20% attack speed."
+ },
+ "quickfire": {
+  "n": "Quickfire",
+  "r": "Common",
+  "c": "Ranged",
+  "d": "Ranged weapons have a 40% chance to not consume ammo."
+ },
+ "rapid_fire": {
+  "n": "Rapid Fire",
+  "r": "Common",
+  "c": "Ranged",
+  "d": "Ranged weapons gain +10% attack speed."
+ },
+ "ravenous_swarm": {
+  "n": "Ravenous Swarm",
+  "r": "Epic",
+  "c": "Summon",
+  "d": "Minion kills have a 40% chance to grant +1 max minion slot."
+ },
+ "reforgers_patience": {
+  "n": "Reforger's Patience",
+  "r": "Epic",
+  "c": "Universal",
+  "d": "Reforging costs 20% less. You can undo your most recent reforge once, refunding the cost and restoring the previous prefix."
+ },
+ "revitalizing_wave": {
+  "n": "Revitalizing Wave",
+  "r": "Epic",
+  "c": "Support",
+  "d": "Every 20 seconds, you start charging a magical cloud. At max 20 stacks heal all nearby teammates for 25 HP."
+ },
+ "ricochet_engine": {
+  "n": "Ricochet Engine",
+  "r": "Legendary",
+  "c": "Ranged",
+  "d": "Ranged hits have a 40% chance to spawn a ricochet shot that bounces between nearby enemies. Ricochet hits trigger on-hit effects at 50% effectiveness."
+ },
+ "riposte": {
+  "n": "Riposte",
+  "r": "Common",
+  "c": "Melee",
+  "d": "After an enemy hits you, you have 2 seconds to land a melee hit. That hit deals +20% bonus damage based on the weapon's base damage."
+ },
+ "run_as_administrator": {
+  "n": "Run as Administrator",
+  "r": "Legendary",
+  "c": "Magic",
+  "d": "Active: Press its hotkey for 6 seconds of no mana costs and +50% magic attack speed. Then you can't cast for 3 seconds. 25 seconds cooldown."
+ },
+ "scapegoat": {
+  "n": "Scapegoat",
+  "r": "Rare",
+  "c": "Support",
+  "d": "Every debuff a nearby teammate gets is removed from them and applied to you instead."
+ },
+ "scavengers_luck": {
+  "n": "Scavenger's Luck",
+  "r": "Rare",
+  "c": "Universal",
+  "d": "Grants +5% Fortune (World Luck & lucky trigger chance). Defeated enemies have a 40% chance to grant +15% crit chance for 5 seconds."
+ },
+ "second_pulse": {
+  "n": "Second Pulse",
+  "r": "Common",
+  "c": "Universal",
+  "d": "Healing potions restore +10 extra HP."
+ },
+ "second_wind": {
+  "n": "Second Wind",
+  "r": "Common",
+  "c": "Universal",
+  "d": "When you fall below 25% HP, heal 40 HP. 60 seconds cooldown."
+ },
+ "sentry_salvo": {
+  "n": "Sentry Salvo",
+  "r": "Common",
+  "c": "Summon",
+  "d": "Sentry attacks have a 40% chance to strike a second time."
+ },
+ "sentrys_resolve": {
+  "n": "Sentry's Resolve",
+  "r": "Rare",
+  "c": "Summon",
+  "d": "Sentries last 30% longer before expiring."
+ },
+ "shared_dose": {
+  "n": "Shared Dose",
+  "r": "Common",
+  "c": "Support",
+  "d": "Medi Gun Overclock also restores 50% of its heal to you."
+ },
+ "sharpened_focus": {
+  "n": "Sharpened Focus",
+  "r": "Epic",
+  "c": "Universal",
+  "d": "All weapons gain +40% crit chance."
+ },
+ "sharpshooter": {
+  "n": "Sharpshooter",
+  "r": "Rare",
+  "c": "Ranged",
+  "d": "Ranged hits deal increasing bonus damage the farther away the target is when hit, scaling up to +25% bonus damage at 400 pixels or more, based on the weapon's base damage."
+ },
+ "shockwave": {
+  "n": "Shockwave",
+  "r": "Rare",
+  "c": "Melee",
+  "d": "Melee crits release a kinetic wave that violently pushes nearby enemies away."
+ },
+ "siege_battery": {
+  "n": "Siege Battery",
+  "r": "Legendary",
+  "c": "Summon",
+  "d": "Every 6 seconds, each sentry also fires a siege shell at the highest-HP enemy in range for 400% of its damage, with splash."
+ },
+ "soft_landing": {
+  "n": "Soft Landing",
+  "r": "Common",
+  "c": "Support",
+  "d": "You and nearby teammates take no fall damage while inside your support aura."
+ },
+ "soul_link": {
+  "n": "Soul Link",
+  "r": "Epic",
+  "c": "Support",
+  "d": "Using a healing potion also heals nearby teammates for 40% of the amount healed."
+ },
+ "soul_martyr": {
+  "n": "Soul Martyr",
+  "r": "Legendary",
+  "c": "Support",
+  "d": "Teammates inside your aura cannot die. Any lethal damage they take is absorbed and transferred to you instead (cannot drop you below 1 HP)."
+ },
+ "spectral_guard": {
+  "n": "Spectral Guard",
+  "r": "Rare",
+  "c": "Summon",
+  "d": "While you have 3 or more minions or sentries active at once, gain +8 defense."
+ },
+ "spell_echo": {
+  "n": "Spell Echo",
+  "r": "Rare",
+  "c": "Magic",
+  "d": "40% chance per cast to not consume any mana."
+ },
+ "star_power": {
+  "n": "Star Power",
+  "r": "Common",
+  "c": "Magic",
+  "d": "Picking up a Mana Star gives you Star Power for 6 seconds. Star Power: gives +25% movement speed, immunity to contact damage, and enemies you touch take damage."
+ },
+ "steady_hands": {
+  "n": "Steady Hands",
+  "r": "Common",
+  "c": "Ranged",
+  "d": "Standing still continuously builds ranged crit chance, up to +20%."
+ },
+ "steady_heart": {
+  "n": "Steady Heart",
+  "r": "Common",
+  "c": "Universal",
+  "d": "While above 80% HP, gain +5% damage."
+ },
+ "stormcaller": {
+  "n": "Stormcaller",
+  "r": "Epic",
+  "c": "Melee",
+  "d": "Melee kills have a 40% chance to call down a lightning strike on a random nearby enemy, dealing 15% of that enemy's max HP as damage."
+ },
+ "sugar_rush": {
+  "n": "Sugar Rush",
+  "r": "Rare",
+  "c": "Magic",
+  "d": "Drinking Mana Potions no longer inflicts the damage penalty of Mana Sickness. Instead, excess mana grants Sugar Rush, giving decaying +15% magic damage and +10% magic crit over 5 seconds."
+ },
+ "sunder": {
+  "n": "Sunder",
+  "r": "Common",
+  "c": "Melee",
+  "d": "Melee crits apply Ichor for 3 seconds, reducing enemy defense briefly."
+ },
+ "supercharger": {
+  "n": "Supercharger",
+  "r": "Common",
+  "c": "Support",
+  "d": "Increases Medi Gun Overclock charge rate by +15%, and refunds 15% charge when Overclock is activated."
+ },
+ "swarm_tactics": {
+  "n": "Swarm Tactics",
+  "r": "Common",
+  "c": "Summon",
+  "d": "Minion kills restore 5 HP."
+ },
+ "swift_return": {
+  "n": "Swift Return",
+  "r": "Rare",
+  "c": "Universal",
+  "d": "On death, your respawn timer is reduced by 40%."
+ },
+ "swiftness_aura": {
+  "n": "Swiftness Aura",
+  "r": "Common",
+  "c": "Support",
+  "d": "Nearby teammates gain +15% movement speed."
+ },
+ "taunt": {
+  "n": "Taunt",
+  "r": "Rare",
+  "c": "Support",
+  "d": "Nearby enemies preferentially target you instead of teammates."
+ },
+ "tight_squeeze": {
+  "n": "Tight Squeeze",
+  "r": "Rare",
+  "c": "Ranged",
+  "d": "Multi-projectile ranged weapons have their spread angle reduced by 45%. Striking a single enemy with 3 or more projectiles from the same blast inflicts Concussive Fracture, making it take +12% bonus ranged damage for 4 seconds."
+ },
+ "time_warp": {
+  "n": "Time Warp",
+  "r": "Epic",
+  "c": "Magic",
+  "d": "Magic crits slow all nearby enemies by 40% for 3 seconds."
+ },
+ "pod_light": {
+  "n": "Upgrade Pod: Lighthouse",
+  "r": "Common",
+  "c": "Support",
+  "d": "Your Pod becomes Pod 096 and lights up the area around you with a warm glow."
+ },
+ "treasure_diver": {
+  "n": "Treasure Diver",
+  "r": "Rare",
+  "c": "Universal",
+  "d": "While submerged, breath capacity is increased and kills have a 25% chance to drop bonus coins."
+ },
+ "treasure_hunter": {
+  "n": "Treasure Hunter",
+  "r": "Common",
+  "c": "Universal",
+  "d": "Increases pickup range for coins, hearts, and mana stars."
+ },
+ "trick_shot": {
+  "n": "Trick Shot",
+  "r": "Epic",
+  "c": "Ranged",
+  "d": "Arrows and bullets bounce off walls up to 3 times, gaining +30% damage per bounce. Bounced shots always crit and gain +8 armor penetration. Grants +10% velocity."
+ },
+ "trophy_hunter": {
+  "n": "Trophy Hunter",
+  "r": "Epic",
+  "c": "Melee",
+  "d": "The first melee kill against each unique enemy type permanently grants +0.25% melee damage."
+ },
+ "turret_syndrome": {
+  "n": "Turret Syndrome",
+  "r": "Legendary",
+  "c": "Summon",
+  "d": "Permanently grants +1 max sentry slot. Active sentries become mobile hovering drones that slowly orbit around you, dealing +25% sentry damage."
+ },
+ "twin_strike": {
+  "n": "Twin Strike",
+  "r": "Rare",
+  "c": "Universal",
+  "d": "Crits apply on-hit twice. Deal 15 damage on-hit, at most once every 0.3 seconds."
+ },
+ "undying_bond": {
+  "n": "Undying Bond",
+  "r": "Legendary",
+  "c": "Support",
+  "d": "While you are alive and have the Support Class buff, dead teammates respawn at your location instead of their spawn point."
+ },
+ "vampiric_edge": {
+  "n": "Vampiric Edge",
+  "r": "Common",
+  "c": "Melee",
+  "d": "Melee kills restore 3 HP."
+ },
+ "pod_vein": {
+  "n": "Upgrade Pod: Vein Miner",
+  "r": "Common",
+  "c": "Universal",
+  "d": "Your Pod becomes Pod 360. When you mine an ore, your Pod also mines up to 8 more ore tiles of the same kind touching it."
+ },
+ "vengeance": {
+  "n": "Vengeance",
+  "r": "Rare",
+  "c": "Universal",
+  "d": "When an enemy damages you, hit it back for 20 damage."
+ },
+ "vital_echo": {
+  "n": "Vital Echo",
+  "r": "Common",
+  "c": "Universal",
+  "d": "Being healed by any source grants +6 defense for 3 seconds."
+ },
+ "void_step": {
+  "n": "Void Step",
+  "r": "Epic",
+  "c": "Universal",
+  "d": "Enemy kills grant +2% dodge chance, stacking up to +20%. Resets if 4 seconds pass without a kill."
+ },
+ "volatile_rounds": {
+  "n": "Volatile Rounds",
+  "r": "Rare",
+  "c": "Ranged",
+  "d": "Ranged hits against an enemy with any DoT effect active (Bleeding, Frostburn, Poisoned, etc.) trigger an explosion dealing 15% damage to nearby enemies."
+ },
+ "volt_tether": {
+  "n": "Volt Tether",
+  "r": "Epic",
+  "c": "Summon",
+  "d": "High-voltage arcs tether you to your 2 nearest minions. Enemies caught in the electric arcs take continuous 8 summon damage and are Electrified."
+ },
+ "wand_discipline": {
+  "n": "Wand Discipline",
+  "r": "Common",
+  "c": "Magic",
+  "d": "Magic weapons cost 10% less mana to use."
+ },
+ "warcry": {
+  "n": "Warcry",
+  "r": "Common",
+  "c": "Support",
+  "d": "Nearby teammates gain +10% damage while you are within range."
+ },
+ "war_gods_tempo": {
+  "n": "War God's Tempo",
+  "r": "Legendary",
+  "c": "Melee",
+  "d": "Drumbeat: melee hits landing 0.3-1.0 seconds after your last counted hit build Tempo (max 15). Each stack gives +2% melee damage. Missing the beat halves your Tempo. Conquest: melee kills add 2 Tempo. At full Tempo you raise a War Banner for 10 seconds: you and allies within 37 tiles deal +15% damage and take 10% less damage, and your melee kills release a 60 damage shockwave. 15 seconds before the next banner."
+ },
+ "pod_trap": {
+  "n": "Upgrade Pod: Watch Your Step",
+  "r": "Common",
+  "c": "Universal",
+  "d": "Your Pod becomes Pod 077 and flashes red when a trap is near, telling you which way it is."
+ },
+ "whip_cracker": {
+  "n": "Whip Cracker",
+  "r": "Rare",
+  "c": "Summon",
+  "d": "Whip hits apply a stacking debuff, increasing damage taken by 2% per stack (max 5 stacks)."
+ },
+ "whip_master": {
+  "n": "Whip Master",
+  "r": "Common",
+  "c": "Summon",
+  "d": "Whips gain +15% attack speed and +20% range."
+ },
+ "whiplash_wave": {
+  "n": "Whiplash Wave",
+  "r": "Epic",
+  "c": "Summon",
+  "d": "When your whip cracks, a sonic wave flies out from its tip for 40% of the whip's damage. It pierces 3 enemies and triggers on-hit effects at 50% effectiveness. Wave size and distance scale with your whip's range."
+ },
+ "wild_card": {
+  "n": "Wild Card",
+  "r": "Rare",
+  "c": "Universal",
+  "d": "Grants +5% Fortune (World Luck & lucky trigger chance). Crits randomly trigger ONE of four effects, 25% chance each: heal 5 HP; +50% movement speed for 1.5 seconds; ~1 second of invincibility; or an immediate bonus strike for +20% bonus damage."
+ },
+ "wild_magic": {
+  "n": "Wild Magic",
+  "r": "Epic",
+  "c": "Magic",
+  "d": "Magic attacks have a 40% chance to trigger a random Wild Surge (guaranteed on Critical Strike): • Frost Nova: Chills and deals 22 magic damage • Supernova: AOE blast dealing 32 magic damage • Chain Zap: Arc lightning jumping to 3 enemies for 26 magic damage • Mana Cascade: Restores 40 Mana • ★ JACKPOT ★: 5% chance to unleash ALL surges at once!"
+ }
 }
