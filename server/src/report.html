@@ -112,6 +112,8 @@
  .btn{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:5px 12px}
  .btn:hover{border-color:var(--gold)}
  .delta-up{color:var(--red)} .delta-down{color:var(--blue)}
+ #gear-list{background:none;border:0;border-radius:0} #gear-list table{font-size:13px} #gear-list th{position:static;cursor:default} #gear-list td,#gear-list th{padding:6px 10px} #gear-list tbody tr{cursor:default}
+ #gear-note .btn{margin-left:8px}
 </style>
 <div class="wrap">
 <h1>Plug-in Chips balance report</h1>
@@ -143,6 +145,16 @@
 </div>
 
 <p class="mini" id="ver-note" style="margin:-2px 0 10px"></p>
+<p class="note bad" id="gear-note" style="display:none"></p>
+<details id="gear"><summary id="gear-sum">Gear check</summary>
+ <p class="mini">Testing with late-game gear in an early world makes numbers look huge: weapon damage and Plugin DPS go up with gear, while a plugin's own damage grows only with the world stage. This check looks for weapons that hit far harder than other weapons at the same stage, or as hard as weapons several stages ahead, and leaves them out of every number below. It is a best guess, so look at the list and use Skip or Keep on any row. Your choices are saved in this browser only.</p>
+ <div class="row" style="margin:0 0 10px">
+  <label class="chk"><input type="checkbox" id="g-on" checked>Leave overgeared data out of everything below</label>
+  <label>Flag at (times the stage's typical weapon)<input type="number" id="g-t" min="1.5" step="0.5" value="5"></label>
+  <button class="btn" id="g-reset">Forget my Skip and Keep choices</button>
+ </div>
+ <div id="gear-list" class="tbl"></div>
+</details>
 <section id="s-actions">
  <h2>What to look at first</h2>
  <div class="cols" id="cols"></div>
@@ -165,7 +177,8 @@
  <details><summary>How to read this page</summary><div class="guide">
   <div><b>Boost</b>: the extra damage a plugin adds on top of the weapon. +25% means the weapon does 100 and the plugin adds 25 more. The verdict is based on this, because it stays fair across weak and strong weapons.</div>
   <div><b>Verdict</b>: Too strong and Strong are Boost over the lines of the plugin's rarity. Low means under 30% of the Strong line (change this under Balance targets). Normal is in between. Plugins that deal no damage, or have no weapon to compare, are not judged.</div>
-  <div><b>Plugin DPS</b>: plugin damage per second of fighting. <b>vs peers</b>: that DPS divided by the median plugin at the same stage and weapon class. It is context only: it says nothing about size, so a tiny plugin can look strong next to tiny peers.</div>
+  <div><b>Plugin DPS</b>: plugin damage per second of fighting. <b>Weapon DPS</b>: the weapon's own damage per second. <b>vs peers</b>: Plugin DPS divided by the median plugin at the same stage and weapon class. These are context only: they rise with the player's gear, so late-game gear in an early world makes them skyrocket (see Gear check).</div>
+  <div><b>Gear check</b>: finds weapons that are far too strong for their stage and leaves them out. Boost is the safest number, but it is not immune: a plugin with flat damage looks weak next to a huge weapon, and a plugin that hits other enemies can look strong because the weapon's recorded damage is capped at the enemy's remaining life.</div>
   <div><b>Data</b>: <span class="q-good">good</span> is 10+ uploads and 2+ minutes, <span class="q-some">some</span> meets your minimums, <span class="q-few">few</span> does not. Only good rows reach the lists at the top.</div>
   <div><b>Consistency</b>: how much a plugin's Boost changes from one upload to the next. Steady is reliable. Swingy means a few heavy uploads may be pulling the average. It needs 3+ uploads from the new version on, so older rows show a dash.</div>
   <div><b>Rarity ladder</b>: the median Boost of good rows for each rarity. It should climb from Common to Legendary.</div>
@@ -191,7 +204,7 @@ var VERDICT = { toostrong: 'Too strong', strong: 'Strong', normal: 'Normal', wea
 
 var token = new URLSearchParams(location.search).get('token') || '';
 var all = [], plugins = {};
-var S = { view: 'plugin', sortKey: 'ratio', sortDir: -1, targets: loadTargets(), showAll: {} };
+var S = { view: 'plugin', sortKey: 'ratio', sortDir: -1, targets: loadTargets(), showAll: {}, gear: loadGear(), gearAll: false, left: { rows: 0, pairs: 0 } };
 var $ = function (id) { return document.getElementById(id); };
 
 function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -221,6 +234,91 @@ function saveTargets() { try { localStorage.setItem('automata-targets', JSON.str
 function thr(rarity) {
   var t = S.targets.t[rarity] || S.targets.t.Rare;
   return { strong: t[0], too: Math.max(t[1], t[0]), low: t[0] * S.targets.low / 100 };
+}
+
+// ---- gear check: weapons far stronger than the stage they were used in (late-game gear in an early test world) ----
+// Weapon damage follows the gear, but a plugin's own damage follows the world stage, so overgeared data inflates Plugin DPS and "vs peers",
+// and it distorts Boost in both directions (flat-damage plugins look weak, plugins that hit other enemies look strong, because a hit's
+// recorded damage is capped at the enemy's remaining life). Nothing in the data says which gear a player had, so this is a best guess:
+//   1. a weapon whose damage per second or per hit is far above other weapons at its own stage and class, or
+//   2. a weapon that already hits like the weapons 3 or more stages ahead.
+// Rule 2 is there for when the tester is most of the data and the stage's own median is overgeared too.
+var GEAR_MIN_SEC = 60, GEAR_MIN_HITS = 20, GEAR_AHEAD = 3, GEAR_T = 5;
+var G = { pairs: [], auto: {} };
+function loadGear() {
+  try { var s = JSON.parse(localStorage.getItem('automata-gear') || 'null'); if (s && typeof s.T === 'number' && s.skip && s.keep) return s; } catch (e) {}
+  return { on: true, T: GEAR_T, skip: {}, keep: {} };
+}
+function saveGear() { try { localStorage.setItem('automata-gear', JSON.stringify(S.gear)); } catch (e) {} }
+function gearKey(weapon, stage) { return weapon + '|' + stage; }
+
+function analyzeGear() {
+  var map = {}, list = [], T = S.gear.T;
+  all.forEach(function (r) {
+    if (r.weapon === 'none' || !(r.wdmg > 0)) return;
+    var k = gearKey(r.weapon, r.stage), p = map[k];
+    if (!p) { p = map[k] = { key: k, weapon: r.weapon, stage: r.stage, cls: r.class, pl: {} }; list.push(p); }
+    var q = p.pl[r.plugin] = p.pl[r.plugin] || { wd: 0, wh: 0, sec: 0, cls: r.class };
+    q.wd += r.wdmg; q.wh += r.whits; q.sec += r.seconds;
+  });
+  // The mod credits one weapon hit to every plugin that is equipped, so the weapon's numbers repeat for each plugin. Read them from the plugin with the most time.
+  list.forEach(function (p) {
+    var best = null;
+    Object.keys(p.pl).forEach(function (id) { var q = p.pl[id]; if (!best || q.sec > best.sec) best = q; });
+    p.sec = best.sec; p.wd = best.wd; p.wh = best.wh; p.cls = best.cls;
+    p.dps = p.sec > 0 ? p.wd / p.sec : 0; p.hit = p.wh > 0 ? p.wd / p.wh : 0;
+    p.ok = p.sec >= GEAR_MIN_SEC && p.wh >= GEAR_MIN_HITS;
+  });
+  function ref(p, m, ahead) {
+    var v = list.filter(function (q) { return q.ok && q.cls === p.cls && (ahead ? q.stage >= p.stage + GEAR_AHEAD : q.stage === p.stage); }).map(function (q) { return q[m]; });
+    return v.length >= 3 ? median(v) : null;
+  }
+  G = { pairs: list, auto: {} };
+  list.forEach(function (p) {
+    p.same = 0; p.ahead = 0; p.why = [];
+    if (!p.ok) return;
+    [['dps', 'damage per second'], ['hit', 'damage per hit']].forEach(function (mm) {
+      var s = ref(p, mm[0], false), a = ref(p, mm[0], true);
+      if (s > 0) { var rs = p[mm[0]] / s; if (rs > p.same) p.same = rs; if (rs >= T) p.why.push(mm[1] + ' is ' + rs.toFixed(1) + 'x other weapons at this stage'); }
+      if (a > 0) { var ra = p[mm[0]] / a; if (ra > p.ahead) p.ahead = ra; if (ra >= 1) p.why.push(mm[1] + ' already matches weapons ' + GEAR_AHEAD + '+ stages ahead'); }
+    });
+    if (p.why.length) G.auto[p.key] = true;
+  });
+  list.sort(function (a, b) { return b.dps - a.dps; });
+}
+function excludedKey(k) { var g = S.gear; if (!g.on) return false; if (g.skip[k]) return true; return !!(G.auto[k] && !g.keep[k]); }
+function gearExcluded(weapon, stage) { return excludedKey(gearKey(weapon, stage)); }
+function leaveOut(rows) { return S.gear.on ? rows.filter(function (r) { return !gearExcluded(r.weapon, r.stage); }) : rows; }
+function toggleGear(k) {
+  var g = S.gear, was = excludedKey(k);
+  if (!g.on) { g.on = true; $('g-on').checked = true; was = excludedKey(k); }
+  if (was) { delete g.skip[k]; if (G.auto[k]) g.keep[k] = true; } else { g.skip[k] = true; delete g.keep[k]; }
+  saveGear(); render();
+}
+
+function renderGear() {
+  var g = S.gear, flagged = Object.keys(G.auto).length, left = S.left, shown = G.pairs.filter(function (p) { return p.sec >= 10; }), lim = S.gearAll ? shown.length : 30;
+  $('gear-sum').textContent = 'Gear check: ' + (flagged ? flagged + ' weapon and stage pair' + (flagged > 1 ? 's' : '') + ' look overgeared' : 'no weapon flagged automatically') + (left.pairs ? ', ' + left.pairs + ' left out of the numbers below' : '') + (g.on ? '' : ' (switched off)');
+  var note = $('gear-note');
+  if (left.pairs) { note.style.display = 'block'; note.innerHTML = '<b>The Gear check left out ' + left.rows + ' rows</b> (' + left.pairs + ' weapon and stage pair' + (left.pairs > 1 ? 's' : '') + ' that look overgeared for their stage, like late-game gear in an early world). Every number below ignores them.<button class="btn" id="g-open">Review the list</button>'; }
+  else note.style.display = 'none';
+  if (!shown.length) { $('gear-list').innerHTML = '<div class="none">No weapon data yet.</div>'; return; }
+  var h = '<table><thead><tr><th class="l">Weapon</th><th class="l">Stage</th><th class="l">Class</th><th>Weapon DPS</th><th>Damage per hit</th><th>vs this stage</th><th>vs stages ahead</th><th>Data</th><th class="l">Status</th><th></th></tr></thead><tbody>';
+  shown.slice(0, lim).forEach(function (p) {
+    var ex = excludedKey(p.key), flag = !!G.auto[p.key], st;
+    if (ex) st = '<span class="chip c-toostrong">left out</span> <span class="mini">' + (g.skip[p.key] ? 'by you' : esc(p.why.join('; '))) + '</span>';
+    else if (flag && g.on) st = '<span class="chip c-strong">kept</span> <span class="mini">flagged, but you chose to keep it</span>';
+    else if (flag) st = '<span class="chip c-strong">flagged</span> <span class="mini">the check is switched off</span>';
+    else if (!p.ok) st = '<span class="dim">too little data to judge</span>';
+    else st = '<span class="chip c-normal">looks fine</span>';
+    h += '<tr><td class="l">' + esc(weaponName(p.weapon)) + '</td><td class="l">' + esc(STAGES[p.stage] || p.stage) + '</td><td class="l">' + (CLASSES[p.cls] || p.cls) + '</td><td>' + fmt(p.dps) + '</td><td>' + fmt(p.hit) + '</td>' +
+      '<td>' + (p.same > 0 ? p.same.toFixed(1) + 'x' : '<span class="dim">-</span>') + '</td><td>' + (p.ahead > 0 ? p.ahead.toFixed(1) + 'x' : '<span class="dim">-</span>') + '</td>' +
+      '<td class="mini">' + fmtTime(p.sec) + ', ' + p.wh + ' hits</td><td class="l">' + st + '</td><td><button class="btn" data-gear="' + esc(p.key) + '">' + (ex ? 'Keep' : 'Skip') + '</button></td></tr>';
+  });
+  h += '</tbody></table>';
+  if (shown.length > 30) h += '<button class="more" data-gearmore="1">' + (S.gearAll ? 'Show fewer' : 'Show all ' + shown.length) + '</button>';
+  h += '<p class="mini">Sorted by weapon DPS. "vs this stage" is how many times stronger it is than the median weapon of the same class at the same stage; "vs stages ahead" is the same against weapons 3 or more stages later. A dash means there are fewer than 3 weapons to compare with. This list uses every mod version, because gear does not change with a patch.</p>';
+  $('gear-list').innerHTML = h;
 }
 
 // ---- turning rows into units ----
@@ -257,7 +355,10 @@ function build(rows, mode) {
 
 function baseRows() {
   var ver = $('f-ver').value, cal = $('f-cal').checked;
-  return all.filter(function (r) { return (ver === 'all' || r.ver === ver) && (!cal || r.cal); });
+  var pre = all.filter(function (r) { return (ver === 'all' || r.ver === ver) && (!cal || r.cal); }), kept = leaveOut(pre), gone = {};
+  pre.forEach(function (r) { if (gearExcluded(r.weapon, r.stage)) gone[gearKey(r.weapon, r.stage)] = 1; });
+  S.left = { rows: pre.length - kept.length, pairs: Object.keys(gone).length };
+  return kept;
 }
 
 // ---- the lists at the top ----
@@ -339,7 +440,7 @@ function filtered(list, skipClass) {
 var SORTVAL = {
   plugin: function (x) { return pname(x.plugin); }, weapon: function (x) { return weaponName(x.weapon); }, stage: function (x) { return x.stage; }, cls: function (x) { return x.cls; },
   rarity: function (x) { return RARITIES.indexOf(x.rarity); }, boost: function (x) { return x.boost == null ? -1 : x.boost; }, ratio: function (x) { return x.ratio; },
-  dps: function (x) { return x.dps; }, peers: function (x) { return x.peers; }, quality: function (x) { return x.quality * 1e6 + x.batches; }, sec: function (x) { return x.sec; }, cons: function (x) { return x.cons === 'steady' ? 3 : x.cons === 'varies' ? 2 : x.cons === 'swingy' ? 1 : 0; }
+  dps: function (x) { return x.dps; }, wdps: function (x) { return x.wdps; }, peers: function (x) { return x.peers; }, quality: function (x) { return x.quality * 1e6 + x.batches; }, sec: function (x) { return x.sec; }, cons: function (x) { return x.cons === 'steady' ? 3 : x.cons === 'varies' ? 2 : x.cons === 'swingy' ? 1 : 0; }
 };
 
 function renderTable(list) {
@@ -348,16 +449,17 @@ function renderTable(list) {
   list.sort(function (a, b) { var va = f(a), vb = f(b); return (typeof va === 'string' ? va.localeCompare(vb) : va - vb) * S.sortDir || b.quality - a.quality; });
   var cols = [['plugin', 'Plugin', 1]];
   if (S.view === 'weapon') cols.push(['weapon', 'Weapon', 1]);
-  cols.push(['stage', 'Stage', 1], ['cls', 'Class', 1], ['ratio', 'Boost (lines: Strong, Too strong)', 0], ['dps', 'Plugin DPS', 0], ['peers', 'vs peers', 0], ['quality', 'Data', 0], ['cons', 'Consistency', 0]);
+  cols.push(['stage', 'Stage', 1], ['cls', 'Class', 1], ['ratio', 'Boost (lines: Strong, Too strong)', 0], ['wdps', 'Weapon DPS', 0], ['dps', 'Plugin DPS', 0], ['peers', 'vs peers', 0], ['quality', 'Data', 0], ['cons', 'Consistency', 0]);
   $('head').innerHTML = '<tr>' + cols.map(function (c) { return '<th class="' + (c[2] ? 'l' : '') + '" data-k="' + c[0] + '">' + c[1] + (S.sortKey === c[0] ? (S.sortDir < 0 ? ' &#9660;' : ' &#9650;') : '') + '</th>'; }).join('') + '</tr>';
   var QUAL = ['few', 'some', 'good'];
   $('body').innerHTML = list.map(function (x) {
     var bar = x.boost == null ? '<span class="dim">' + (x.pd ? 'no weapon to compare' : '-') + '</span> ' :
       '<span class="bb" title="Strong +' + pct(x.th.strong) + ', Too strong +' + pct(x.th.too) + '"><i class="f v-' + x.verdict + '" style="width:' + Math.min(100, x.boost / (x.th.too * 1.6) * 100).toFixed(0) + '%"></i><u style="left:' + (x.th.strong / (x.th.too * 1.6) * 100).toFixed(0) + '%"></u><u class="t" style="left:' + (x.th.too / (x.th.too * 1.6) * 100).toFixed(0) + '%"></u></span><b>' + boostTxt(x) + '</b> ';
     var cells = ['<td class="l pl">' + tag(x.plugin) + '<span class="rar ' + x.rarity + '">' + esc(x.rarity || '?') + '</span></td>'];
-    if (S.view === 'weapon') cells.push('<td class="l">' + esc(weaponName(x.weapon)) + '</td>');
+    if (S.view === 'weapon') cells.push('<td class="l">' + esc(weaponName(x.weapon)) + (G.auto[gearKey(x.weapon, x.stage)] ? ' <span class="chip c-strong" title="The Gear check flags this weapon as overgeared for this stage">gear?</span>' : '') + '</td>');
     cells.push('<td class="l">' + esc(STAGES[x.stage] || 'Stage ' + x.stage) + '</td>', '<td class="l">' + (CLASSES[x.cls] || x.cls) + '</td>',
       '<td>' + bar + '<span class="chip c-' + x.verdict + '">' + VERDICT[x.verdict] + '</span></td>',
+      '<td>' + (x.wd ? fmt(x.wdps) : '<span class="dim">-</span>') + '</td>',
       '<td>' + (x.pd ? fmt(x.dps) : '<span class="dim">0</span>') + '</td>', '<td>' + (x.peers > 0 ? x.peers.toFixed(2) + 'x' : '<span class="dim">-</span>') + '</td>',
       '<td class="q-' + QUAL[x.quality] + '">' + QUAL[x.quality] + ' <span class="mini">' + x.batches + ' uploads, ' + fmtTime(x.sec) + '</span></td>',
       '<td class="' + (x.cons ? 'cons-' + x.cons : 'dim') + '">' + (x.cons || '-') + '</td>');
@@ -403,9 +505,12 @@ function renderGaps() {
 
 // ---- plugin detail ----
 function openDetail(id, stage) {
-  var inf = info(id), rows = all.filter(function (r) { return r.plugin === id && (!$('f-cal').checked || r.cal); }), vrows = rows.filter(function (r) { var v = $('f-ver').value; return v === 'all' || r.ver === v; });
+  var inf = info(id), raw = all.filter(function (r) { return r.plugin === id && (!$('f-cal').checked || r.cal); }), rows = leaveOut(raw), vrows = rows.filter(function (r) { var v = $('f-ver').value; return v === 'all' || r.ver === v; });
+  var cutPairs = {}; raw.forEach(function (r) { if (gearExcluded(r.weapon, r.stage)) cutPairs[gearKey(r.weapon, r.stage)] = 1; });
   var th = thr(inf.r), h = '<button class="close" id="d-close">Close</button><h2 class="big">' + tag(id) + '<span class="rar ' + inf.r + '">' + esc(inf.r || '?') + '</span></h2>' +
     '<div class="mini">' + esc(id) + ' &middot; ' + esc(inf.c || '') + ' &middot; lines for this rarity: Strong +' + pct(th.strong) + ', Too strong +' + pct(th.too) + ', Low under +' + pct(th.low) + '</div>';
+  var nCut = Object.keys(cutPairs).length;
+  if (nCut) h += '<div class="note low">The Gear check left out ' + nCut + ' overgeared weapon and stage pair' + (nCut > 1 ? 's' : '') + ' for this plugin: ' + esc(Object.keys(cutPairs).slice(0, 4).map(function (k) { var i = k.lastIndexOf('|'); return weaponName(k.slice(0, i)) + ' at ' + (STAGE_SHORT[k.slice(i + 1)] || k.slice(i + 1)); }).join(', ') + (nCut > 4 ? ' and ' + (nCut - 4) + ' more' : '')) + '.</div>';
   if (!vrows.length) { h += '<div class="note">No data for this plugin with the current version filter.</div>'; show(h); return; }
 
   // by stage
@@ -474,7 +579,7 @@ function render() {
   var versionCount = document.getElementById('f-ver').options.length - 1;
   $('ver-note').textContent = v === 'all' ? (versionCount > 1 ? 'Showing every version together. Data from before and after a patch is mixed, so a nerfed plugin can look half as strong as it now is. Pick one version to judge it.' : '') : v === 'earlier' ? 'Showing only the old numbers from before versions were kept.' : 'Showing only mod version ' + v + '. Older versions are in the Mod version list.';
   var rows = baseRows(), units = build(rows, 'plugin');
-  renderHealth(units); renderActions(units);
+  renderGear(); renderHealth(units); renderActions(units);
   if (S.view === 'heat') { $('v-table').style.display = 'none'; $('v-heat').style.display = 'block'; renderHeat(rows); }
   else { $('v-heat').style.display = 'none'; $('v-table').style.display = 'block'; renderTable(S.view === 'weapon' ? build(rows, 'weapon') : units); }
 }
@@ -487,7 +592,7 @@ function fillFilters() {
   var named = Object.keys(vers).filter(function (v) { return v !== 'earlier'; }).sort(verCmp);
   // Balance is about the current build, so start on the newest version, but only once it has good data. Otherwise pool everything.
   if (named.length) {
-    var newest = named[named.length - 1], goodHere = build(all.filter(function (r) { return r.ver === newest; }), 'plugin').some(function (x) { return x.quality === 2; });
+    var newest = named[named.length - 1], goodHere = build(leaveOut(all.filter(function (r) { return r.ver === newest; })), 'plugin').some(function (x) { return x.quality === 2; });
     if (goodHere) $('f-ver').value = newest;
   }
   opts('f-stage', Object.keys(stages).map(Number).sort(function (a, b) { return a - b; }).map(function (s) { return [s, STAGES[s] || 'Stage ' + s]; }), 'All stages');
@@ -501,6 +606,9 @@ function openFromHash() {
 }
 
 document.addEventListener('click', function (e) {
+  var gb = e.target.closest('[data-gear]'); if (gb) { toggleGear(gb.getAttribute('data-gear')); return; }
+  if (e.target.closest('[data-gearmore]')) { S.gearAll = !S.gearAll; render(); return; }
+  if (e.target.closest('#g-open')) { $('gear').open = true; $('gear').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   var more = e.target.closest('[data-more]'); if (more) { var k = more.getAttribute('data-more'); S.showAll[k] = !S.showAll[k]; render(); return; }
   var th = e.target.closest('#head th'); if (th) { var key = th.getAttribute('data-k'); S.sortDir = S.sortKey === key ? -S.sortDir : (key === 'plugin' || key === 'weapon' || key === 'stage' || key === 'cls' ? 1 : -1); S.sortKey = key; render(); return; }
   var t = e.target.closest('[data-plugin]'); if (t) openDetail(t.getAttribute('data-plugin'), +t.getAttribute('data-stage'));
@@ -516,6 +624,9 @@ $('ttable').addEventListener('input', function (e) {
   if (el.id === 't-low') S.targets.low = Math.min(90, v); else if (el.getAttribute('data-r')) S.targets.t[el.getAttribute('data-r')][+el.getAttribute('data-i')] = v;
   saveTargets(); render();
 });
+$('g-on').onchange = function () { S.gear.on = this.checked; saveGear(); render(); };
+$('g-t').addEventListener('input', function () { var v = +this.value; if (!(v >= 1.5)) return; S.gear.T = v; saveGear(); analyzeGear(); render(); });
+$('g-reset').onclick = function () { S.gear.skip = {}; S.gear.keep = {}; saveGear(); render(); };
 $('t-reset').onclick = function () { S.targets = JSON.parse(JSON.stringify(DEFAULTS)); saveTargets(); renderTargets(); render(); };
 
 // ---- hover explanation of a plugin ----
@@ -538,6 +649,7 @@ document.addEventListener('mousemove', function (e) { if (tipEl.style.display ==
 document.addEventListener('mouseout', function (e) { if (e.target.closest('[data-tip]')) tipEl.style.display = 'none'; });
 fetch('/report.json?token=' + encodeURIComponent(token)).then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); }).then(function (data) {
   all = (data.rows || []).map(function (r) { r.nb = r.nb || 0; r.sb = r.sb || 0; r.sb2 = r.sb2 || 0; return r; }); plugins = data.plugins || {};
+  $('g-on').checked = S.gear.on; $('g-t').value = S.gear.T; analyzeGear();
   fillFilters(); renderTargets(); renderGaps(); render(); openFromHash();
 }).catch(function (e) { document.body.insertAdjacentHTML('beforeend', '<p style="color:var(--red)">Could not load the numbers (' + e + '). Is the password in the address right?</p>'); });
 })();

@@ -4,7 +4,7 @@
 //   GET  /report        your private report page   (needs ?token=YOUR_REPORT_TOKEN)
 //   GET  /report.json   the same numbers as data   (needs ?token=YOUR_REPORT_TOKEN)
 //
-// The page itself lives in report.html. plugins.json (made by tools/make-plugins.ps1) gives the report each plugin's name and rarity.
+// The page itself lives in report.html. plugins.json (made by tools/make-plugins.mjs) gives the report each plugin's name and rarity.
 //
 // PRIVACY: this code never reads or stores the sender's IP address, name or anything that identifies them. A batch is only
 // numbers about plugins and weapons, and it is ADDED into running totals, so single players cannot be picked out.

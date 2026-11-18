@@ -60,6 +60,17 @@ The page starts on the **newest mod version**, because balance is about the curr
   the Boost you think each rarity should have; they are remembered in your browser only.
 - **Data**: good is 10+ uploads and 2+ minutes. Only good rows reach "What to look at first" (nerf candidates, watch list, buff
   candidates). Rows with thin data are hidden from the table until you tick "Show rows with thin data".
+- **Gear check** (a panel under the filters): testing with late-game gear in an early world inflates **Weapon DPS, Plugin DPS and "vs peers"**
+  (they follow your gear, while a plugin's own damage follows the world stage). **Boost is the safest number but not immune**: a flat-damage
+  plugin looks weak next to a huge weapon, and a plugin that also hits other enemies can look strong, because the mod records a hit's damage
+  capped at the enemy's remaining life. The check lists every weapon and stage pair (sorted by weapon DPS) and **leaves out** the ones that
+  look overgeared: a weapon far above other weapons of the same class at the same stage (default 5 times, editable), or one that already hits
+  like weapons 3 or more stages ahead (this second rule still works when your own testing is most of a stage's data). The numbers it
+  compares are the weapon's damage per second and per hit, from every mod version.
+  **It is a best guess, not a measurement**: the data never says which gear a player had, and the damage cap squeezes the difference at low
+  stages, so a moderately overgeared weapon can slip under the line. Use **Skip** on any pair it missed and **Keep** on any it wrongly cut;
+  both are remembered in your browser. A red note under the filters says how many rows were left out, and the plugin detail panel says
+  which weapons were cut for that plugin. Untick the box to see the raw numbers.
 - **Uploads**: a batch is counted once for each weapon it holds a row for, so the number can run a little high for plugins used with several weapons.
 - **Consistency**: how much a plugin's Boost changes between uploads (steady, varies, swingy). Short or low-hit uploads (under 10 seconds or 10 weapon hits) are left out. It needs 3 or more counted uploads from the new
   version on, so older rows show a dash. Uploads from one player are alike, so this is a warning sign, not a statistical guarantee.
@@ -86,7 +97,9 @@ wrangler dev
 node test/seed-local.mjs http://localhost:8787
 ```
 Then open `http://localhost:8787/report?token=localtest` (the test password is in `.dev.vars`, which is not committed). `seed-local.mjs`
-refuses any address that is not this computer, so it can never add fake numbers to the real database.
+refuses any address that is not this computer, so it can never add fake numbers to the real database. The fake data holds normal players at
+every stage, a tester with endgame gear in early worlds, and the same tester making up most of the Start stage, so the Gear check can be tried.
+To start over, empty the local tables first: `wrangler d1 execute automata-stats --local --command "DELETE FROM stats2; DELETE FROM stats;"`.
 
 ## Privacy, in plain words
 

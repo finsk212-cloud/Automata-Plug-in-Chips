@@ -4,6 +4,11 @@
 //   3. In server/:  node test/seed-local.mjs http://localhost:8787
 //   4. Open  http://localhost:8787/report?token=localtest   (the password is in server/.dev.vars)
 // It refuses any address that is not this computer, so it can never put fake numbers on the real server.
+//
+// The data holds three kinds of players, so the Gear check can be tried:
+//   - normal players: stage-appropriate weapons at every stage (the "peers" the check compares against)
+//   - a tester with endgame gear (Zenith and friends) in early worlds, a small part of the data at most stages
+//   - the same tester making up MOST of the Start stage (so the Start median is overgeared too)
 
 const base = (process.argv[2] || 'http://localhost:8787').replace(/\/$/, '');
 const host = new URL(base).hostname;
@@ -16,9 +21,36 @@ let seed = 12345;
 const rand = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
 const CLASS = { Universal: 0, Melee: 1, Ranged: 2, Magic: 3, Summon: 4, Support: 5 };
 const STAGE = { Start: 0, Skeletron: 1, WoF: 2, Mechs: 3, Plantera: 4, Golem: 5, MoonLord: 6 };
+const STAGE_NAMES = Object.keys(STAGE);
+
+// The mod records a hit's damage capped at the enemy's remaining life, so a huge weapon does not hit for DPS/2.5 forever:
+// its hits flatten out at roughly what the enemies of that stage can lose in one hit.
+const HIT_CAP = [250, 400, 700, 1500, 2000, 3000, 5000];
+const hitSize = (dps, stage) => Math.max(5, Math.min(dps / 2.5, HIT_CAP[STAGE[stage]]));
 
 // [plugin, weapon, class, stage, version, uploads, seconds per upload, weapon DPS, Boost in %, how much the Boost varies between uploads (0 to 1)]
-const specs = [
+const specs = [];
+
+// ---- normal players: three weapons per class at every stage ----
+const NORMAL = {
+  Melee: [['IronBroadsword', 'Katana', 'LightsBane'], ['BladeOfGrass', 'FieryGreatsword', 'NightsEdge'], ['DaoOfPow', 'Cutlass', 'Trimarang'], ['Excalibur', 'Keybrand', 'TrueNightsEdge'],
+    ['ChlorophyteSaber', 'ChlorophyteClaymore', 'ChlorophytePartisan'], ['Sunfury', 'PossessedHatchet', 'Flairon'], ['TheHorsemansBlade', 'InfluxWaver', 'ScourgeOfTheCorruptor']],
+  Ranged: [['WoodenBow', 'Musket', 'Boomstick'], ['Minishark', 'PhoenixBlaster', 'HellwingBow'], ['Shotgun', 'MoltenFury', 'Uzi2'], ['ClockworkAssaultRifle', 'Gatligator', 'OnyxBlaster'],
+    ['ChlorophyteShotbow', 'VenusMagnum', 'TacticalShotgun'], ['Stynger', 'HeatRay', 'SniperRifle'], ['SDMG', 'Tsunami', 'Celeb2']]
+};
+const BASE_DPS = [40, 90, 150, 320, 420, 560, 800];
+STAGE_NAMES.forEach((stage, si) => {
+  for (const cls of ['Melee', 'Ranged']) {
+    NORMAL[cls][si].forEach((w, wi) => {
+      const dps = BASE_DPS[si] * [0.85, 1, 1.2][wi] * (cls === 'Ranged' ? 1.1 : 1);
+      specs.push(['steady_heart', 'Terraria/' + w, cls, stage, '1.4.2', 3, 25, dps, 6, 0.3]);
+      specs.push(['momentum_swing', 'Terraria/' + w, cls, stage, '1.4.2', 3, 25, dps, 4, 0.3]);
+    });
+  }
+});
+
+// ---- a tester with endgame gear: a few rows at most stages ----
+specs.push(
   ['armor_piercer',   'Terraria/Zenith',      'Melee',  'Start',     '1.4.2',  1, 19, 791, 11, 0.1],
   ['tombstone_boost', 'Terraria/Zenith',      'Melee',  'Start',     '1.4.2',  1, 14, 265, 27, 0.1],
   ['death_blast',     'Terraria/Zenith',      'Melee',  'Start',     '1.4.2',  4,  7, 191, 21, 0.4],
@@ -38,7 +70,24 @@ const specs = [
   ['steady_heart',    'Terraria/Zenith',      'Melee',  'Skeletron', '1.4.2', 16, 60, 125, 3.2, 0.3],
   ['pod_shoot',       'none',                 'Universal','Start',   '1.4.2', 14, 30, 0, 0, 0],
   ['stormcaller',     'Terraria/Zenith',      'Melee',  'Skeletron', '1.4.1', 12, 40, 887, 5, 0.3]
-];
+);
+
+// ---- the same tester making up most of the Start stage: four more endgame weapons at the very start ----
+// How an overgeared hit changes Boost: a plugin that adds a percentage of the hit (riposte) stays the same, a plugin with flat damage that
+// grows with the world stage (stormcaller) looks weak next to a huge weapon, and a plugin that hits other enemies (death_blast) looks strong,
+// because the weapon's own hit is capped at the enemy's life while the plugin's hits on the others are not.
+for (const w of ['StarWrath', 'Meowmere', 'SolarEruption', 'TerraBlade']) {
+  const dps = { StarWrath: 1300, Meowmere: 1100, SolarEruption: 950, TerraBlade: 900 }[w];
+  specs.push(['riposte',     'Terraria/' + w, 'Melee', 'Start', '1.4.2', 4, 25, dps, 30, 0.2]);
+  specs.push(['stormcaller', 'Terraria/' + w, 'Melee', 'Start', '1.4.2', 4, 25, dps, 1.5, 0.2]);
+  specs.push(['death_blast', 'Terraria/' + w, 'Melee', 'Start', '1.4.2', 4, 25, dps, 70, 0.2]);
+}
+// Normal players at the Start stage use the same plugins with ordinary gear, for comparison.
+for (const w of ['IronBroadsword', 'Katana', 'LightsBane']) {
+  specs.push(['riposte',     'Terraria/' + w, 'Melee', 'Start', '1.4.2', 4, 25, 45, 30, 0.2]);
+  specs.push(['stormcaller', 'Terraria/' + w, 'Melee', 'Start', '1.4.2', 4, 25, 45, 14, 0.2]);
+  specs.push(['death_blast', 'Terraria/' + w, 'Melee', 'Start', '1.4.2', 4, 25, 45, 22, 0.2]);
+}
 
 let sent = 0;
 for (const [plugin, weapon, cls, stage, ver, uploads, secs, wdps, boost, spread] of specs) {
@@ -46,7 +95,7 @@ for (const [plugin, weapon, cls, stage, ver, uploads, secs, wdps, boost, spread]
     const b = Math.max(0, boost * (1 + (rand() * 2 - 1) * spread));
     const t = Math.max(1, Math.round(secs * (0.7 + rand() * 0.6) * 10) / 10);
     const wd = Math.round(wdps * t), pd = boost === 0 ? 0 : Math.round(wd * b / 100);
-    const row = { p: plugin, w: weapon, c: CLASS[cls], g: STAGE[stage], pd, ph: Math.max(1, Math.round(pd / 40)), wd, wh: Math.max(1, Math.round(wd / 60)), t };
+    const row = { p: plugin, w: weapon, c: CLASS[cls], g: STAGE[stage], pd, ph: Math.max(1, Math.round(pd / 40)), wd, wh: wd > 0 ? Math.max(1, Math.round(wd / hitSize(wdps, stage))) : 0, t };
     const res = await fetch(base + '/', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ v: 1, mod: ver, cal: false, rows: [row] }) });
     if (!res.ok) { console.error('POST failed', res.status, await res.text()); process.exit(1); }
     sent++;
