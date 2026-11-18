@@ -716,7 +716,8 @@ namespace Augments
 	// The three looks, drawn as pixel art built in code (one art pixel is two screen pixels, like the game's own sprites),
 	// plus the dead Pod (the mod's own Pod sprite in grey, lens cracked), a soft shaft of light with falling petals, and
 	// the Pod's message box. Small animations: the blindfold tied to the sword flutters, the overgrown unit's broken arm
-	// sparks now and then, flowers and mushrooms glow faintly, and the core and the Pod's light pulse until it is recovered.
+	// sparks now and then, and the core and the Pod's light pulse until it is recovered. Nothing glows in the dark: everything
+	// is lit by the cave's own light, except the Pod's tiny red light.
 	internal static class FallenUnitArt
 	{
 		public const int LookCount = 3;
@@ -1092,23 +1093,16 @@ namespace Augments
 			if (tex == null)
 				return;
 
-			DrawLightShaft(unit, scene, recovered, time);
-
-			// Lit like the cave around it, but the light shaft keeps it from ever going fully dark.
+			// Lit exactly like the cave around it: in the dark it is dark, so you need a light to see it. Nothing here glows on
+			// its own: the light shaft, the petals and the sparks all fade with the cave's light too.
 			Color light = Lighting.GetColor(unit.X, unit.Y - 1);
-			light = new Color(Math.Max((int)light.R, 62), Math.Max((int)light.G, 58), Math.Max((int)light.B, 54));
+			DrawLightShaft(unit, scene, recovered, time, light);
 
 			Vector2 tl = TopLeft(unit, scene);
 			SpriteEffects flip = unit.Flip ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
 			Main.spriteBatch.Draw(tex, tl - Main.screenPosition, null, light, 0f, Vector2.Zero, Px, flip, 0f);
 
 			float pulse = 0.55f + 0.45f * (float)Math.Sin(time * 0.05f + unit.Id);
-
-			// White flowers and blue mushrooms glow faintly in the dark.
-			foreach (Point p in scene.Flowers)
-				Fill(CellToWorld(unit, scene, p) - new Vector2(Px, Px), Px * 3, Px * 3, Glow(255, 255, 240) * 0.10f);
-			foreach (Point p in scene.Mushrooms)
-				Fill(CellToWorld(unit, scene, p) - new Vector2(Px, Px), Px * 3, Px * 3, Glow(127, 200, 240) * (0.12f + 0.08f * pulse));
 
 			// The broken arm throws a little spark now and then.
 			if (scene.Spark is Point spark)
@@ -1120,7 +1114,7 @@ namespace Augments
 					{
 						var art = new Vector2(spark.X + 1 + k * 0.4f + i, spark.Y - k * 0.3f - i * 0.6f);
 						Vector2 at = ArtToWorld(unit, scene, art);
-						Fill(at, 2, 2, i == 0 ? Glow(255, 244, 200) : Glow(255, 210, 122));
+						Fill(at, 2, 2, (i == 0 ? new Color(255, 244, 200) : new Color(255, 210, 122)).MultiplyRGB(light));
 					}
 				}
 			}
@@ -1135,28 +1129,28 @@ namespace Augments
 			if (recovered)
 				return; // its lights are out: nothing left to take
 
-			// The core still glows faintly, pulsing slowly.
+			// The core shows a faint blue, pulsing slowly, but only as bright as the light around it.
 			foreach (Point p in scene.Core)
-			{
-				Vector2 at = CellToWorld(unit, scene, p);
-				Fill(at - new Vector2(Px, Px), Px * 3, Px * 3, Glow(150, 210, 255) * (0.25f * pulse));
-				Fill(at, Px, Px, new Color(150, 210, 255) * (0.6f + 0.4f * pulse));
-			}
+				Fill(CellToWorld(unit, scene, p), Px, Px, new Color(150, 210, 255).MultiplyRGB(light) * (0.6f + 0.4f * pulse));
 
 			// The Pod's antenna light blinks red now and then.
 			if ((int)(time / 20f + unit.Id * 7) % 6 == 0)
 			{
 				// The antenna is straight above the Pod's centre, so flipping the sprite does not move it; only the tilt does.
 				Vector2 antenna = podPos + (PodSprites.Antenna - PodSprites.Origin).RotatedBy(podRot);
-				Fill(antenna - new Vector2(3f, 3f), 6, 6, Glow(240, 60, 45) * 0.25f);
 				Fill(antenna - new Vector2(1f, 1f), 2, 2, new Color(240, 60, 45));
 			}
 		}
 
 		// A soft beam of light falling on the body from above, brighter towards the floor, with petals drifting
-		// down through it. Drawn as thin horizontal bands so it needs no texture. Dimmer once you recovered it.
-		private static void DrawLightShaft(FallenUnit unit, Scene scene, bool recovered, float time)
+		// down through it. Drawn as thin horizontal bands so it needs no texture. Dimmer once you recovered it, and only as
+		// bright as the cave's own light.
+		private static void DrawLightShaft(FallenUnit unit, Scene scene, bool recovered, float time, Color light)
 		{
+			// The beam is only as bright as the cave: in darkness it is gone.
+			float lit = (light.R + light.G + light.B) / (3f * 255f);
+			if (lit < 0.02f)
+				return;
 			const int Bands = 28;
 			const float Rise = 22f;                     // how far above the scene the beam starts, in art pixels
 			float strength = recovered ? 0.05f : 0.09f;
@@ -1175,7 +1169,7 @@ namespace Augments
 				float y = topY + i * bandH;
 				var rect = new Rectangle((int)(centerX - half), (int)y, (int)(half * 2f), (int)Math.Ceiling(bandH));
 				Main.spriteBatch.Draw(TextureAssets.MagicPixel.Value, new Rectangle(rect.X - (int)Main.screenPosition.X, rect.Y - (int)Main.screenPosition.Y, rect.Width, rect.Height),
-					new Rectangle(0, 0, 1, 1), Glow(255, 244, 210) * (strength * t));
+					new Rectangle(0, 0, 1, 1), Glow(255, 244, 210) * (strength * t * lit));
 			}
 
 			// Pink and white petals drifting down through the light, swaying and turning as they fall. Worked out from the
@@ -1195,7 +1189,7 @@ namespace Augments
 				float alpha = Math.Min(1f, down * 6f) * Math.Min(1f, (1f - down) * 8f) * (recovered ? 0.6f : 0.9f);
 				Color petal = i % 3 == 0 ? new Color(244, 244, 236) : new Color(248, 178, 200);
 				bool flat = sway > 0f; // a petal turning over shows as wide, then tall
-				Fill(new Vector2((int)x, (int)y), flat ? 4 : 2, flat ? 2 : 4, petal * alpha);
+				Fill(new Vector2((int)x, (int)y), flat ? 4 : 2, flat ? 2 : 4, petal.MultiplyRGB(light) * alpha);
 			}
 		}
 		private static float Frac(float v) => v - (float)Math.Floor(v);
