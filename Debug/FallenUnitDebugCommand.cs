@@ -40,6 +40,10 @@ namespace Augments
 						if (unit.IsRecoveredBy(player))
 							mine++;
 					caller.Reply($"{FallenUnitSystem.Units.Count} Fallen Units in this world. You recovered {mine}.", Color.LightGreen);
+					int wet = 0, tree = 0;
+					foreach (FallenUnit unit in FallenUnitSystem.Units)
+						if (unit.Spot == 1) wet++; else if (unit.Spot == 2) tree++;
+					caller.Reply($"Resting under water: {wet}. Inside a living tree: {tree}.", Color.LightGreen);
 					caller.Reply($"Memory logs read, whole account: {FallenUnitLogs.LogsRead()} of {FallenUnitLogs.Logs.Length}.", Color.LightGreen);
 					FallenUnit nearest = FallenUnitSystem.Nearest(player.Center, player);
 					if (nearest != null)

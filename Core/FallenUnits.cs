@@ -296,7 +296,7 @@ namespace Augments
 				for (int y = top; y < bottom; y += 2)
 				{
 					Tile t = Main.tile[x, y];
-					if (t.WallType == WallID.LivingWood && !t.HasTile)
+					if (IsTreeWall(t.WallType) && !t.HasTile)
 						spots.Add(new Point(x, y));
 				}
 			}
@@ -325,7 +325,7 @@ namespace Augments
 				Id = nextId++,
 				X = x,
 				Y = y,
-				Look = (byte)(look >= 0 ? look % FallenUnitArt.LookCount : Rand.Next(FallenUnitArt.LookCount)),
+				Look = (byte)(look >= 0 ? look % FallenUnitArt.LookCount : spot == 2 ? (Rand.NextBool() ? 0 : 2) : Rand.Next(FallenUnitArt.LookCount)),
 				Flip = Rand.NextBool(),
 				Spot = (byte)spot,
 				Name = MakeName()
@@ -432,10 +432,13 @@ namespace Augments
 			return -1;
 		}
 
+		// The wall of a living tree's rooms: the placed living wood wall, or the one world generation uses.
+		private static bool IsTreeWall(ushort wall) => wall == WallID.LivingWood || wall == WallID.LivingWoodUnsafe;
+
 		// A smaller room than a cave needs (the tree's rooms are tight): five tiles of floor, three of dry air, and living wood behind.
 		internal static bool HasTreeRoomAt(int x, int y)
 		{
-			if (!WorldGen.InWorld(x, y, 12) || Main.tile[x, y].WallType != WallID.LivingWood)
+			if (!WorldGen.InWorld(x, y, 12) || !IsTreeWall(Main.tile[x, y].WallType))
 				return false;
 			for (int dx = -2; dx <= 2; dx++)
 			{
@@ -1220,8 +1223,8 @@ namespace Augments
 			Color light = Lighting.GetColor(unit.X, unit.Y - 1);
 			if (unit.Spot == 1)
 			{
-				// Under water: everything is tinted blue, and bubbles rise from the body instead of petals falling.
-				light = light.MultiplyRGB(new Color(160, 205, 255));
+				// Under water: a light blue tint (the game draws real water over it too), and bubbles rise from the body instead of petals falling.
+				light = light.MultiplyRGB(new Color(215, 232, 255));
 				DrawBubbles(unit, scene, recovered, time, light);
 			}
 			else
