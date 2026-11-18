@@ -5,6 +5,9 @@
 
 [h2]NEW FEATURES[/h2]
 
+[b]FALLEN UNITS[/b]
+Broken androids now rest in caves all over the world, one in the dungeon, each with a dead Pod beside it. Point at one and right-click to open what it left behind: 1 to 3 plugins of any rarity, buried under old dust. Hold the left mouse button to wipe each card clean, then pick one. Each body gives one plugin per character, so every player in a world can recover from it. Your Pod beeps softly and its antenna flashes red when one is within 50 tiles, faster the closer you get. Worlds you already have get them too.
+
 [b]HIDDEN ENDINGS[/b]
 Five secret challenge endings, A to E, are now tracked for each character and shown on the Profile page as a riddle until you earn them. They are about how you beat a boss, not just that you beat it. Every ending only counts from the Wall of Flesh onward, and the last one needs a Mechanical Boss or later. A boss older than your world's current stage never counts. Endings only work in singleplayer for now.
 

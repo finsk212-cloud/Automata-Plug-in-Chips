@@ -60,7 +60,11 @@ namespace Augments
 		ScapegoatTransfer,   // client -> server: a teammate removed a debuff, hand it to the Scapegoat owner (payload: owner index, buff type, ticks)
 		ScapegoatApply,      // server -> Scapegoat owner's client: take this debuff (payload: buff type, ticks)
 		PluginEffect,        // client -> server -> others: play a plugin's sound/visual effect on the sender (payload: sender, effect id, int)
-		PodPetSync           // client -> server -> others: the sender's Pod pet is on/off and which skin it wears (payload: player, on, skin)
+		PodPetSync,          // client -> server -> others: the sender's Pod pet is on/off and which skin it wears (payload: player, on, skin)
+		FallenUnitRecover,   // client -> server: open this Fallen Unit's offer (payload: unit id)
+		FallenUnitRecovered, // server -> all: a player recovered a Fallen Unit (payload: unit id, player name)
+		FallenUnitOffer,     // server -> one client: the plugins in this unit (payload: unit id, count, ids)
+		FallenUnitPick       // client -> server: take this plugin from the unit (payload: unit id, plugin id)
 	}
 
 	internal enum DebugAugmentCommandType : byte
@@ -195,6 +199,35 @@ namespace Augments
 				case AugmentPacketType.PodPetSync:
 					PodPetPlayer.HandleSync(reader, whoAmI);
 					break;
+
+				case AugmentPacketType.FallenUnitRecover:
+					FallenUnitSystem.HandleOpenRequest(whoAmI, reader.ReadInt32());
+					break;
+
+				case AugmentPacketType.FallenUnitOffer:
+				{
+					int unitId = reader.ReadInt32();
+					int count = reader.ReadByte();
+					var ids = new System.Collections.Generic.List<string>(count);
+					for (int i = 0; i < count; i++)
+						ids.Add(reader.ReadString());
+					FallenUnitSystem.HandleOffer(unitId, ids);
+					break;
+				}
+
+				case AugmentPacketType.FallenUnitPick:
+				{
+					int unitId = reader.ReadInt32();
+					FallenUnitSystem.HandlePickRequest(whoAmI, unitId, reader.ReadString());
+					break;
+				}
+
+				case AugmentPacketType.FallenUnitRecovered:
+				{
+					int unitId = reader.ReadInt32();
+					FallenUnitSystem.HandleRecovered(unitId, reader.ReadString());
+					break;
+				}
 
 				case AugmentPacketType.SoulLinkRequest:
 					SupportEffects.HandleSoulLinkRequest(whoAmI, reader.ReadInt32());

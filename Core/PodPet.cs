@@ -420,9 +420,21 @@ namespace Augments
 
 			// 5. The antenna's signal light blinks.
 			// The scarred pod's warning light blinks faster, as if something is wrong.
-			bool signalOn = style == "scarred" ? (int)(t / 14f) % 2 == 0 : (int)(t / 24f) % 3 == 0;
-			if (signalOn)
-				Dot(At(PodSprites.Antenna), 2, 2, Color.Lerp(palette.Signal, Color.White, 0.35f));
+			// Near a Fallen Unit it flashes red with each beep instead (only on your own Pod: the beep is yours alone).
+			int ping = player.whoAmI == Main.myPlayer ? FallenUnitPlayer.PodPingTicks : 0;
+			if (ping > 0)
+			{
+				float a = ping / (float)FallenUnitPlayer.PodPingLength;
+				Vector2 antenna = At(PodSprites.Antenna);
+				Dot(antenna, 6, 6, new Color(255, 60, 45) * (0.30f * a));
+				Dot(antenna, 2, 2, Color.Lerp(new Color(255, 60, 45), Color.White, 0.25f * a));
+			}
+			else
+			{
+				bool signalOn = style == "scarred" ? (int)(t / 14f) % 2 == 0 : (int)(t / 24f) % 3 == 0;
+				if (signalOn)
+					Dot(At(PodSprites.Antenna), 2, 2, Color.Lerp(palette.Signal, Color.White, 0.35f));
+			}
 		}
 	}
 

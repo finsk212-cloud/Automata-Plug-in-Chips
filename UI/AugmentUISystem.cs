@@ -425,6 +425,10 @@ namespace Augments
 			if (IsAnalyticsOpen)
 				return true;
 
+			// Fallen Unit panel (wiping dust off its plugins)
+			if (FallenUnitUISystem.IsOpen)
+				return true;
+
 			// Pinned HUD being dragged or manipulated with Alt/Shift
 			if (AugmentPinnedHUD.IsInteractingAny)
 				return true;
