@@ -155,7 +155,7 @@
   <button class="btn" id="g-reset">Forget my Skip and Keep choices</button>
  </div>
  <details id="gear-tier-d"><summary>Rarity table: from which stage each weapon rarity belongs (editable placeholders)</summary>
-  <p class="mini">Newer versions of the mod send each weapon's rarity. A weapon used more than "slack" stages before the stage its rarity belongs to is left out, even when no other player has uploaded anything to compare with. <b>The defaults are my guesses, not facts</b>: rarity is only a rough sign of progression (Terra Blade is red but comes long before the Moon Lord). Use the "Rarity" and "Base damage" columns below, and edit this table until the cut-offs match what you know of the game. Weapons with a modded or unknown rarity are not covered by this rule.</p>
+  <p class="mini">Newer versions of the mod send each weapon's rarity. A weapon used more than "slack" stages before the stage its rarity belongs to is left out, even when no other player has uploaded anything to compare with. <b>The defaults are my guesses, not facts</b>: rarity is only a rough sign of progression (for example the Uzi is lime, a late rarity, yet it can drop in early Hardmode, and Duke Fishron's yellow weapons can be had much earlier than other yellow ones). Use the "Rarity" and "Base damage" columns below, and edit this table until the cut-offs match what you know of the game. Weapons with a modded or unknown rarity are not covered by this rule.</p>
   <table id="gear-tier"></table>
   <div class="row" style="margin:8px 0 0">
    <label>Slack: stages a weapon may be early<input type="number" id="g-slack" min="0" max="10" value="1"></label>
@@ -257,11 +257,12 @@ var G = { pairs: [], auto: {} };
 var W = {}; // weapon -> [rarity, base damage], as uploaded by mod versions that send them
 var RARITY_NAMES = ['White', 'Blue', 'Green', 'Orange', 'Light red', 'Pink', 'Light purple', 'Lime', 'Yellow', 'Cyan', 'Red', 'Purple'];
 // The tier rule: the earliest stage each vanilla rarity usually belongs to. THESE ARE PLACEHOLDERS from my memory of the game, not facts:
-// rarity is only a rough sign of progression (for example Terra Blade is red but comes long before the Moon Lord). Check them against the
+// rarity is only a rough sign of progression (for example the Uzi is lime, a late rarity, but drops in early Hardmode). The defaults follow the
+// wiki's rarity page (red = post Moon Lord, yellow = after Plantera, lime = around the mechanical bosses) and about twenty weapons checked one by one. Check them against the
 // "stage used" column in the list and edit them in the Rarity table. A weapon is flagged when it is used more than "slack" stages earlier.
 // (Plain values inside the function, not constants declared above it: loadGear() runs while the page state is being created, before this
 // section has been reached, so a constant here would still be undefined at that moment.)
-function gearDefaults() { return { on: true, T: 5, skip: {}, keep: {}, tier: { 0: 0, 1: 0, 2: 0, 3: 1, 4: 2, 5: 2, 6: 3, 7: 4, 8: 5, 9: 6, 10: 4, 11: 6 }, slack: 1 }; }
+function gearDefaults() { return { on: true, T: 5, skip: {}, keep: {}, tier: { 0: 0, 1: 0, 2: 0, 3: 1, 4: 2, 5: 2, 6: 3, 7: 3, 8: 4, 9: 5, 10: 6, 11: 6 }, slack: 1 }; }
 function loadGear() {
   var base = gearDefaults();
   try {
@@ -343,7 +344,7 @@ function renderTier() {
 }
 
 function renderGear() {
-  var g = S.gear, flagged = Object.keys(G.auto).length, left = S.left, shown = G.pairs.filter(function (p) { return p.sec >= 10; }), lim = S.gearAll ? shown.length : 30;
+  var g = S.gear, flagged = Object.keys(G.auto).length, left = S.left, shown = G.pairs.filter(function (p) { return p.sec >= 10 || G.auto[p.key] || g.skip[p.key] || g.keep[p.key]; }), lim = S.gearAll ? shown.length : 30;
   var checkable = G.pairs.filter(function (p) { return p.ok; }).length;
   $('gear-sum').textContent = 'Gear check: ' + (flagged ? flagged + ' weapon and stage pair' + (flagged > 1 ? 's' : '') + ' look overgeared' : 'no weapon flagged automatically') + (left.pairs ? ', ' + left.pairs + ' left out of the numbers below' : '') + (G.nothing ? ', ' + G.nothing + ' could not be checked yet' : '') + (g.on ? '' : ' (switched off)');
   var warn = $('gear-warn');

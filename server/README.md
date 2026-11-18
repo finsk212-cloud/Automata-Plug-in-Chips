@@ -74,9 +74,12 @@ The page starts on the **newest mod version**, because balance is about the curr
   The numbers come from every mod version, because gear does not change with a patch.
   **The most reliable rule is the rarity rule** (needs mod 1.4.2 or later uploads): the mod sends each weapon's rarity, and an editable
   "Rarity table" says from which stage each rarity belongs. A weapon used more than "slack" stages (default 1) before that is left out, even
-  with no other players to compare with. **The table's defaults are my guesses, not facts**: rarity is only a rough sign of progression
-  (Terra Blade is red but comes long before the Moon Lord), so check the "Rarity" and "Base damage" columns and edit the table. Weapons
-  with a modded rarity (for example from Calamity) have no known order and fall back to the other rules.
+  with no other players to compare with. The mod reads the rarity of the plain item, so a reforge cannot change it. **The table's defaults
+  are a rough guide, not facts**: they follow the wiki's rarity page (red = after the Moon Lord, yellow = after Plantera, cyan = Lunar
+  event, lime = around the mechanical bosses, and so on) and about twenty weapons I checked, but rarity is only a rough sign of progression.
+  For example the Uzi is lime yet drops in early Hardmode, and Duke Fishron's yellow weapons can be had long before other yellow ones,
+  so with the default slack of 1 those can be cut by mistake. Check the "Rarity" and "Base damage" columns, use Keep on a wrong cut, and
+  edit the table. Weapons with a modded rarity (for example from Calamity) have no known order and fall back to the other rules.
   **It is a best guess, not a measurement**: the data never says which gear a player had, and the damage cap squeezes the difference at low
   stages, so a moderately overgeared weapon can slip under the line. It also needs other players to compare with (at least 3 other weapons
   of the same class, each with a minute of data). **While most of the data is your own testing, it cannot judge those weapons and says so

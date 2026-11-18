@@ -101,7 +101,10 @@ namespace Augments.Core
 			classByKey[key] = (int)ClassOf(item);
 
 			// Only the vanilla rarities (white to purple) have a known order. Modded rarities, gray and the special ones are sent as -1 (unknown).
-			int rare = item.rare >= ItemRarityID.White && item.rare <= ItemRarityID.Purple ? item.rare : -1;
+			// Reforging moves an item's rarity up or down (by up to two steps), so the rarity is read from the plain, unreforged version of the item.
+			// Otherwise one player's reforged copy would change the weapon's rarity for everyone. (The base damage uses OriginalDamage for the same reason.)
+			int plainRare = ContentSamples.ItemsByType.TryGetValue(item.type, out Item sample) ? sample.rare : item.rare;
+			int rare = plainRare >= ItemRarityID.White && plainRare <= ItemRarityID.Purple ? plainRare : -1;
 			infoByKey[key] = (rare, Math.Max(0, item.OriginalDamage));
 			return key;
 		}

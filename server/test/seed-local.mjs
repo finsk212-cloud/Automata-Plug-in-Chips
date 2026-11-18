@@ -36,11 +36,13 @@ const testerOnly = process.argv.includes('--tester-only');
 const specs = [];
 
 // ---- normal players: three weapons per class at every stage ----
+// Only weapons whose rarity and base damage were checked on the Terraria wiki are used (see INFO below); the stage each one is paired with is
+// roughly when a normal player could have it. Everything here is made up except those weapon facts: the DPS, the Boost and the upload counts.
 const NORMAL = {
-  Melee: [['IronBroadsword', 'Katana', 'LightsBane'], ['BladeOfGrass', 'FieryGreatsword', 'NightsEdge'], ['DaoOfPow', 'Cutlass', 'Trimarang'], ['Excalibur', 'Keybrand', 'TrueNightsEdge'],
-    ['ChlorophyteSaber', 'ChlorophyteClaymore', 'ChlorophytePartisan'], ['Sunfury', 'PossessedHatchet', 'Flairon'], ['TheHorsemansBlade', 'InfluxWaver', 'ScourgeOfTheCorruptor']],
-  Ranged: [['WoodenBow', 'Musket', 'Boomstick'], ['Minishark', 'PhoenixBlaster', 'HellwingBow'], ['Shotgun', 'MoltenFury', 'Uzi2'], ['ClockworkAssaultRifle', 'Gatligator', 'OnyxBlaster'],
-    ['ChlorophyteShotbow', 'VenusMagnum', 'TacticalShotgun'], ['Stynger', 'HeatRay', 'SniperRifle'], ['SDMG', 'Tsunami', 'Celeb2']]
+  Melee: [['Katana', 'LightsBane', 'Muramasa'], ['NightsEdge', 'Sunfury', 'Muramasa'], ['Excalibur', 'NightsEdge', 'Sunfury'], ['Excalibur', 'ChlorophyteSaber', 'NightsEdge'],
+    ['ChlorophyteSaber', 'TerraBlade', 'Excalibur'], ['TerraBlade', 'ChlorophyteSaber', 'Excalibur'], ['TerraBlade', 'ChlorophyteSaber', 'Excalibur']],
+  Ranged: [['Boomstick', 'Minishark', 'PhoenixBlaster'], ['Boomstick', 'Minishark', 'PhoenixBlaster'], ['Megashark', 'Uzi', 'PhoenixBlaster'], ['Megashark', 'Uzi', 'Minishark'],
+    ['Uzi', 'SniperRifle', 'Megashark'], ['SniperRifle', 'Tsunami', 'Uzi'], ['Tsunami', 'SniperRifle', 'Megashark']]
 };
 const BASE_DPS = [40, 90, 150, 320, 420, 560, 800];
 if (!testerOnly) STAGE_NAMES.forEach((stage, si) => {
@@ -87,7 +89,7 @@ for (const w of ['StarWrath', 'Meowmere', 'SolarEruption', 'TerraBlade']) {
   specs.push(['death_blast', 'Terraria/' + w, 'Melee', 'Start', '1.4.2', 4, 25, dps, 70, 0.2]);
 }
 // Normal players at the Start stage use the same plugins with ordinary gear, for comparison.
-if (!testerOnly) for (const w of ['IronBroadsword', 'Katana', 'LightsBane']) {
+if (!testerOnly) for (const w of ['Katana', 'LightsBane', 'Muramasa']) {
   specs.push(['riposte',     'Terraria/' + w, 'Melee', 'Start', '1.4.2', 4, 25, 45, 30, 0.2]);
   specs.push(['stormcaller', 'Terraria/' + w, 'Melee', 'Start', '1.4.2', 4, 25, 45, 14, 0.2]);
   specs.push(['death_blast', 'Terraria/' + w, 'Melee', 'Start', '1.4.2', 4, 25, 45, 22, 0.2]);
@@ -98,13 +100,16 @@ if (!testerOnly) specs.push(['riposte', 'Terraria/SlowHeavyHammer', 'Melee', 'St
 
 // What each weapon IS, as newer versions of the mod send it: [rarity 0 to 11 (-1 = modded or unknown), base damage]. Weapons not listed here send
 // nothing (like an older mod version), so the page has to cope with missing rarity too. The normal weapons get rarity by stage.
-const NORMAL_RARITY = [1, 3, 4, 5, 7, 8, 9];
+// Rarity and base damage of the REAL weapons below were read from the Terraria wiki (terraria.wiki.gg), not guessed. The two fake weapons are marked.
 const INFO = {
-  'Terraria/Zenith': [10, 190], 'Terraria/TerraBlade': [10, 120], 'Terraria/StarWrath': [10, 170], 'Terraria/Meowmere': [10, 200],
-  'Terraria/SolarEruption': [9, 150], 'Terraria/Uzi': [3, 20], 'Terraria/Megashark': [4, 25], 'Terraria/SlowHeavyHammer': [2, 30],
-  'CalamityMod/FakeModdedBlade': [-1, 400]
+  'Terraria/Katana': [1, 18], 'Terraria/LightsBane': [1, 16], 'Terraria/Muramasa': [2, 24], 'Terraria/NightsEdge': [3, 40], 'Terraria/Sunfury': [3, 64],
+  'Terraria/Excalibur': [5, 72], 'Terraria/ChlorophyteSaber': [7, 80], 'Terraria/TerraBlade': [8, 85],
+  'Terraria/Boomstick': [2, 14], 'Terraria/Minishark': [2, 6], 'Terraria/PhoenixBlaster': [3, 30], 'Terraria/Megashark': [5, 25], 'Terraria/Uzi': [7, 30],
+  'Terraria/SniperRifle': [8, 200], 'Terraria/Tsunami': [8, 53],
+  'Terraria/Zenith': [10, 190], 'Terraria/Meowmere': [10, 200], 'Terraria/StarWrath': [10, 170], 'Terraria/SolarEruption': [10, 105],
+  'Terraria/SlowHeavyHammer': [2, 30],          // FAKE weapon, for the slow-heavy-hitter case
+  'CalamityMod/FakeModdedBlade': [-1, 400]      // FAKE modded weapon with an unknown rarity
 };
-STAGE_NAMES.forEach((stage, si) => ['Melee', 'Ranged'].forEach(cls => NORMAL[cls][si].forEach(w => { INFO['Terraria/' + w] ??= [NORMAL_RARITY[si], 10 + si * 15]; })));
 if (!process.argv.includes('--no-rarity')) {
   // a modded weapon with unknown rarity used at Start, to see the page fall back to the other signs
   specs.push(['riposte', 'CalamityMod/FakeModdedBlade', 'Melee', 'Start', '1.4.2', 4, 25, 900, 30, 0.2]);

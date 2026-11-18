@@ -96,9 +96,12 @@ async function reportJson(env) {
      SELECT plugin, weapon, class, stage, cal, 'earlier', batches, pdmg, phits, wdmg, whits, seconds, 0, 0, 0 FROM stats`
   ).all();
   // weapon -> [rarity, base damage]. Weapons that were never uploaded by a version that sends these are simply missing.
+  // (If the weapons table does not exist yet, because the worker went live before schema.sql was run, the report still loads without it.)
   const weapons = {};
-  const w = await env.DB.prepare('SELECT weapon, rare, bd FROM weapons').all();
-  for (const x of w.results) weapons[x.weapon] = [x.rare, x.bd];
+  try {
+    const w = await env.DB.prepare('SELECT weapon, rare, bd FROM weapons').all();
+    for (const x of w.results) weapons[x.weapon] = [x.rare, x.bd];
+  } catch { /* no weapons table yet */ }
   return new Response(JSON.stringify({ plugins: PLUGINS, rows: results, weapons }), { headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
 }
 
