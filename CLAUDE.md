@@ -41,6 +41,7 @@ Every change a player would notice goes in all three files, kept in sync: `CHANG
 - Only big, visible changes get their own entry. Small tweaks fold into one polish line ("Improved text size and alignment for readability").
 - Flavour text is playful or positive and never names one specific boss.
 - One icon per topic, not per sentence. Sentences about the same thing go together in one line; start a new line only for a different topic.
+- A line can carry a tag word next to its icon: `- [+NEW] text`, `- [+BUFF] text`, `- [-NERF] text` (the sign picks the icon, the word is drawn as a small box like the tag on a card title). Use it for a thing that is new, buffed or nerfed inside a card; a plain `[+]`, `[-]` or `[~]` line has no tag. Only the in-game page (`CHANGELOG.md`) shows it; the other two notes files stay plain text.
 
 ## Before publishing to the Workshop
 - Delete the temporary `Debug/EndingsDebugCommand.cs`.

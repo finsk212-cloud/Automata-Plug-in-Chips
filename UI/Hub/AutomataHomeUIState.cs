@@ -844,6 +844,8 @@ namespace Augments
 			public int Kind;   // 0 plain text, 10 plugin change card header, 11 "label: old => new" line
 			public int Dir;    // -1 nerf, +1 buff, 0 adjusted
 			public string Name, Rarity, Tag, Label, Old, New;
+			public string Pill; // an optional tag word (NEW, BUFF, NERF) drawn as a small box between the icon and the text
+			public int PillW;   // the box plus its gap, so the text can start after it
 		}
 
 		// Colours of the plugin change cards. A nerf is red, a buff is green, an adjustment is amber.
@@ -1143,6 +1145,12 @@ namespace Augments
 			const int textX = 36;
 			string text = b.Body;
 
+			if (!string.IsNullOrEmpty(b.Label))
+			{
+				AddTaggedStat(b, width, scale, textX, ref y);
+				return;
+			}
+
 			int arrowAt = text.IndexOf(" => ", StringComparison.Ordinal);
 			if (arrowAt > 0)
 			{
@@ -1172,6 +1180,30 @@ namespace Augments
 			WrapInto(text, textX, width, scale, 0, ref y, marker: 7, dir: b.Dir);
 			y += 3f;
 		}
+
+		// A line with a tag word ("NEW", "BUFF", "NERF"): the tag is drawn as a small box right after the icon and the text
+		// starts after the box. The first line is a little narrower to make room for it; the other lines use the full width.
+		private void AddTaggedStat(PatchBlock b, float width, float scale, int textX, ref float y)
+		{
+			int pillW = StatPillWidth(b.Label) + 8;
+			float lh = HubDraw.LineHeight(scale) + 3f;
+			string text = b.Body.Replace(" => ", " -> ");
+
+			var firstPass = new List<string>(HubDraw.Wrap(text, width - textX - pillW - 8f, scale));
+			if (firstPass.Count == 0)
+				return;
+
+			lines.Add(new PLine { Text = firstPass[0], X = textX, Y = y, Scale = scale, Tracking = 0f, Style = 0, Marker = 7, Dir = b.Dir, H = lh, Pill = b.Label, PillW = pillW });
+			y += lh;
+
+			if (firstPass.Count > 1)
+				WrapInto(string.Join(" ", firstPass.GetRange(1, firstPass.Count - 1)), textX, width, scale, 0, ref y);
+
+			y += 3f;
+		}
+
+		private const float StatPillScale = 0.56f;
+		private static int StatPillWidth(string label) => (int)Math.Round(HubDraw.Width(label, StatPillScale, 1f)) + 16;
 
 		private void WrapInto(string text, int indent, float width, float scale, int style, ref float y, int marker = 0, int dir = 0)
 		{
@@ -1384,8 +1416,25 @@ namespace Augments
 					HubDraw.Fill(sb, new Rectangle(body.X + l.X - 10, (int)(sy + HubDraw.LineHeight(l.Scale) / 2f), 5, 1), HubTheme.Dim);
 				}
 
-				HubDraw.Text(sb, l.Text, new Vector2(body.X + l.X, sy), c, l.Scale, l.Tracking);
+				float textLeft = body.X + l.X;
+				if (!string.IsNullOrEmpty(l.Pill))
+				{
+					DrawStatPill(sb, textLeft, sy, l);
+					textLeft += l.PillW;
+				}
+
+				HubDraw.Text(sb, l.Text, new Vector2(textLeft, sy), c, l.Scale, l.Tracking);
 			}
+		}
+
+		// The small tag box on a line of a card ("NEW", "BUFF", "NERF"): the same look as the tag on a card's title, in the line's icon colour.
+		private static void DrawStatPill(SpriteBatch sb, float x, float sy, PLine l)
+		{
+			int boxH = (int)Math.Round(HubDraw.LineHeight(StatPillScale) * 0.5f) + 10;
+			int boxY = (int)Math.Round(sy + HubDraw.CapMid(l.Scale) - boxH / 2f);
+			var tag = new Rectangle((int)x, boxY, StatPillWidth(l.Pill), boxH);
+			HubDraw.Fill(sb, tag, DirColor(l.Dir));
+			HubDraw.Text(sb, l.Pill, new Vector2(tag.X + 8, tag.Y + boxH / 2f - HubDraw.CapMid(StatPillScale)), Color.White * 0.95f, StatPillScale, 1f);
 		}
 
 		// The first line of a plugin change card: its name and a NERF / BUFF / ADJUSTED tag, with a bar in the rarity colour running down the

@@ -198,6 +198,9 @@ namespace Augments
             Register(new VeinMinerAugment());
             Register(new GraveDangerAugment());
             Register(new LastGaspAugment());
+            Register(new InstaCastAugment());
+            Register(new OreThanEnoughAugment());
+            Register(new LumberjackAugment());
         }
 
         public const int FirstRecentIndex = 118;

@@ -2440,6 +2440,10 @@ namespace Augments
 					Player.mouseInterface = true;
 				}
 			}
+
+			// Insta Cast: presses the use-item control for the player while fishing.
+			if (HasAugment("auto_fishing"))
+				InstaCastAugment.ApplyControls(Player);
 		}
 
 		public override bool PreItemCheck()

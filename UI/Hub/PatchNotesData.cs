@@ -36,9 +36,11 @@ namespace Augments
 		//   > It was doing far too much damage.
 		//   - Bug damage: 18 => 15          (the old value is dimmed and crossed out, then an arrow, then the new value)
 		//   - [+] Now counts every boss part  ([-] nerf, [+] buff, [~] adjusted; without one, the card's tag decides)
+		//   - [+NEW] A tag word after the sign (NEW, BUFF, NERF, CHANGED) is drawn as a small box between the icon and the text
 		public string Rarity; // Card: Common, Rare, Epic or Legendary
 		public string Tag;    // Card: NERF, BUFF, ADJUSTED, or NEW for a brand new plugin
 		public int Dir;       // Card and Stat: -1 nerf, +1 buff, 0 adjusted
+		public string Label;  // Stat: an optional tag word (NEW, BUFF, NERF...) drawn as a small box next to the icon
 	}
 
 	// The in-game patch notes, read from the mod's CHANGELOG.md once while the mod loads and kept in memory.
@@ -140,10 +142,16 @@ namespace Augments
 				{
 					string content = trimmed.Substring(2).Trim();
 					int dir = cardDir;
-					if (content.StartsWith("[+]")) { dir = 1; content = content.Substring(3); }
-					else if (content.StartsWith("[-]")) { dir = -1; content = content.Substring(3); }
-					else if (content.StartsWith("[~]")) { dir = 0; content = content.Substring(3); }
-					Blocks.Add(new PatchBlock { Kind = PatchKind.Stat, Body = Clean(content), Dir = dir });
+					string label = "";
+					// "[+]" picks the icon; "[+NEW]", "[+BUFF]", "[-NERF]" also add a tag word that is drawn next to it.
+					Match marker = Regex.Match(content, @"^\[([+\-~])\s*([A-Za-z ]{0,12})\]");
+					if (marker.Success)
+					{
+						dir = marker.Groups[1].Value == "+" ? 1 : marker.Groups[1].Value == "-" ? -1 : 0;
+						label = marker.Groups[2].Value.Trim().ToUpperInvariant();
+						content = content.Substring(marker.Length);
+					}
+					Blocks.Add(new PatchBlock { Kind = PatchKind.Stat, Body = Clean(content), Dir = dir, Label = label });
 				}
 				else if (trimmed.StartsWith("### "))
 				{

@@ -10,6 +10,19 @@
 
 ### New plugins
 
+#### Lumberjack | Common | NEW
+> My axe is getting cold!
+- [+] Wood from the trees you chop has a 30% chance to drop twice
+- [+] Trees might be hiding a little something for you
+- [~] You need an axe in your hand, and wood blocks you broke yourself do not count
+#### Ore Than Enough | Common | NEW
+> Buy one ore, get one free!
+- [+] Every ore you mine has a 30% chance to drop twice, and the ores Upgrade Pod: Vein Miner breaks for you count too
+- [~] You need a pickaxe in your hand, and gems are not ores
+#### Insta Cast | Common | NEW
+> Time for reel talk right now!
+- [+] While you hold a fishing pole, the line reels in by itself the moment a fish bites, and then it casts again toward your cursor
+- [~] Bait is used up as usual, and it keeps going until you put the pole away or aim off the water
 #### Last Gasp | Legendary | NEW
 > Five seconds, wanna start counting?
 - [+] When a hit would kill you, you refuse to die: for 5 seconds your health stays at 0 and nothing can hurt you, you deal +100% damage with +50% attack speed, and the screen slowly drains of all color
@@ -62,8 +75,8 @@
 
 #### Medi Gun | Epic | BUFF
 > It used to be gentle. Now it gets stronger the longer you stay.
-- [+] The damage tether warms up: up to +50% damage after 5 seconds on the same enemy
-- [+] The heal tether warms up too: up to +50% healing after 5 seconds on the same ally, and at once for an ally under half health
+- [+NEW] The damage tether warms up: up to +50% damage after 5 seconds on the same enemy
+- [+NEW] The heal tether warms up too: up to +50% healing after 5 seconds on the same ally, and at once for an ally under half health
 - MK I damage tether: 6 => 10 per second
 - MK II damage tether: 20 => 40 per second
 - MK III damage tether: 3x20 => 3x40
