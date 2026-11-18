@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS stats2 (
   whits    INTEGER NOT NULL DEFAULT 0,
   seconds  REAL    NOT NULL DEFAULT 0,  -- combat seconds with this plugin and weapon
   -- "Consistency": how much the plugin's Boost (plugin damage divided by weapon damage) differs from one batch to the next.
-  -- Only batches with at least 5 combat seconds and some weapon damage count. nb = how many, sb = their Boost values added up,
+  -- Only batches with at least 10 combat seconds and 10 weapon hits count. nb = how many, sb = their Boost values added up,
   -- sb2 = those values squared and added up. Two plain sums per row, no per-player data.
   nb       INTEGER NOT NULL DEFAULT 0,
   sb       REAL    NOT NULL DEFAULT 0,

@@ -60,7 +60,8 @@ The page starts on the **newest mod version**, because balance is about the curr
   the Boost you think each rarity should have; they are remembered in your browser only.
 - **Data**: good is 10+ uploads and 2+ minutes. Only good rows reach "What to look at first" (nerf candidates, watch list, buff
   candidates). Rows with thin data are hidden from the table until you tick "Show rows with thin data".
-- **Consistency**: how much a plugin's Boost changes between uploads (steady, varies, swingy). It needs 3 or more uploads from the new
+- **Uploads**: a batch is counted once for each weapon it holds a row for, so the number can run a little high for plugins used with several weapons.
+- **Consistency**: how much a plugin's Boost changes between uploads (steady, varies, swingy). Short or low-hit uploads (under 10 seconds or 10 weapon hits) are left out. It needs 3 or more counted uploads from the new
   version on, so older rows show a dash. Uploads from one player are alike, so this is a warning sign, not a statistical guarantee.
 - **Click any row or list item** for the plugin detail: Boost by stage, the weapons it was seen with (and whether one weapon dominates the
   data), a version-by-version history with the change between versions, a size suggestion ("cut about 35% to reach the Strong line"),

@@ -420,7 +420,7 @@ function openDetail(id, stage) {
 
   // weapons
   var wk = build(vrows, 'weapon'), byW = {};
-  wk.forEach(function (x) { var w = byW[x.weapon] = byW[x.weapon] || { weapon: x.weapon, pd: 0, wd: 0, sec: 0, batches: 0, cls: x.cls }; w.pd += x.pd; w.wd += x.wd; w.sec += x.sec; w.batches = Math.max(w.batches, x.batches); });
+  wk.forEach(function (x) { var w = byW[x.weapon] = byW[x.weapon] || { weapon: x.weapon, pd: 0, wd: 0, sec: 0, batches: 0, cls: x.cls }; w.pd += x.pd; w.wd += x.wd; w.sec += x.sec; w.batches += x.batches; });
   var ws = Object.keys(byW).map(function (k) { return byW[k]; }).sort(function (a, b) { return b.sec - a.sec; }), totalSec = ws.reduce(function (s, w) { return s + w.sec; }, 0) || 1;
   if (ws.length) {
     h += '<h4>Weapons it was seen with</h4>';
@@ -432,12 +432,12 @@ function openDetail(id, stage) {
   }
 
   // versions (ignores the version filter on purpose, so you can see a patch's effect)
-  var byV = {}; rows.forEach(function (r) { var v = byV[r.ver] = byV[r.ver] || { ver: r.ver, pd: 0, wd: 0, sec: 0, batches: 0 }; v.pd += r.pdmg; v.wd += r.wdmg; v.sec += r.seconds; v.batches = Math.max(v.batches, r.batches); });
+  var byV = {}; rows.forEach(function (r) { var v = byV[r.ver] = byV[r.ver] || { ver: r.ver, pd: 0, wd: 0, sec: 0, batches: 0 }; v.pd += r.pdmg; v.wd += r.wdmg; v.sec += r.seconds; v.batches += r.batches; });
   var vs = Object.keys(byV).sort(verCmp).map(function (k) { return byV[k]; });
   if (vs.length > 1) {
     h += '<h4>By mod version (all stages together)</h4><table><tr><th class="l">Version</th><th>Boost</th><th>vs the version before</th><th>Plugin DPS</th><th>Data</th></tr>' + vs.map(function (v, i) {
       var b = v.wd > 0 ? v.pd / v.wd * 100 : null, pb = i && vs[i - 1].wd > 0 ? vs[i - 1].pd / vs[i - 1].wd * 100 : null, d = '';
-      if (b != null && pb != null && pb > 0) { var ch = Math.round((b / pb - 1) * 100); d = '<span class="' + (ch > 0 ? 'delta-up' : 'delta-down') + '">' + (ch > 0 ? '+' : '') + ch + '%</span>'; }
+      if (b != null && pb != null && pb > 0 && vs[i - 1].ver !== 'earlier') { var ch = Math.round((b / pb - 1) * 100); d = '<span class="' + (ch > 0 ? 'delta-up' : 'delta-down') + '">' + (ch > 0 ? '+' : '') + ch + '%</span>'; }
       return '<tr><td class="l">' + esc(v.ver) + '</td><td>' + (b == null ? '-' : '+' + pct(b)) + '</td><td>' + (d || '<span class="dim">-</span>') + '</td><td>' + (v.sec > 0 ? fmt(v.pd / v.sec) : '-') + '</td><td>' + v.batches + ' uploads, ' + fmtTime(v.sec) + '</td></tr>';
     }).join('') + '</table><div class="mini">Different versions mean different players and gear, so read a change as a hint, not proof. Red means the Boost went up.</div>';
   }
@@ -464,7 +464,8 @@ function renderTargets() {
 // ---- wiring ----
 function render() {
   var v = $('f-ver').value;
-  $('ver-note').textContent = v === 'all' ? 'Showing every version together. Data from before and after a patch is mixed, so a nerfed plugin can look half as strong as it now is. Pick one version to judge it.' : v === 'earlier' ? 'Showing only the old numbers from before versions were kept.' : 'Showing only mod version ' + v + '. Older versions are in the Mod version list.';
+  var versionCount = document.getElementById('f-ver').options.length - 1;
+  $('ver-note').textContent = v === 'all' ? (versionCount > 1 ? 'Showing every version together. Data from before and after a patch is mixed, so a nerfed plugin can look half as strong as it now is. Pick one version to judge it.' : '') : v === 'earlier' ? 'Showing only the old numbers from before versions were kept.' : 'Showing only mod version ' + v + '. Older versions are in the Mod version list.';
   var rows = baseRows(), units = build(rows, 'plugin');
   renderHealth(units); renderActions(units);
   if (S.view === 'heat') { $('v-table').style.display = 'none'; $('v-heat').style.display = 'block'; renderHeat(rows); }
@@ -477,7 +478,11 @@ function fillFilters() {
   all.forEach(function (r) { stages[r.stage] = 1; classes[r.class] = 1; vers[r.ver] = 1; });
   opts('f-ver', Object.keys(vers).sort(verCmp).reverse().map(function (v) { return [v, v === 'earlier' ? 'earlier (before versions were kept)' : v]; }), 'All versions');
   var named = Object.keys(vers).filter(function (v) { return v !== 'earlier'; }).sort(verCmp);
-  if (named.length) $('f-ver').value = named[named.length - 1]; // balance is about the current build, so start there
+  // Balance is about the current build, so start on the newest version, but only once it has good data. Otherwise pool everything.
+  if (named.length) {
+    var newest = named[named.length - 1], goodHere = build(all.filter(function (r) { return r.ver === newest; }), 'plugin').some(function (x) { return x.quality === 2; });
+    if (goodHere) $('f-ver').value = newest;
+  }
   opts('f-stage', Object.keys(stages).map(Number).sort(function (a, b) { return a - b; }).map(function (s) { return [s, STAGES[s] || 'Stage ' + s]; }), 'All stages');
   opts('f-class', Object.keys(classes).map(Number).sort(function (a, b) { return a - b; }).map(function (c) { return [c, CLASSES[c] || 'Class ' + c]; }), 'All classes');
   opts('f-rar', RARITIES.map(function (r) { return [r, r]; }), 'All rarities');

@@ -54,8 +54,9 @@ async function ingest(request, env) {
     const t = num(r.t, LIMITS.t);
     if ([c, g, pd, ph, wd, wh, t].includes(null)) continue;
 
-    // Consistency: this batch's Boost (plugin damage / weapon damage), counted only when the batch is long enough to mean something.
-    const counted = t >= 5 && wd > 0 ? 1 : 0;
+    // Consistency: this batch's Boost (plugin damage / weapon damage). It only counts when the batch is long enough and the weapon hit
+    // enough times to mean something, because a few lucky hits give a wild Boost and these sums cannot be corrected later.
+    const counted = t >= 10 && wh >= 10 && wd > 0 ? 1 : 0;
     const boost = counted ? pd / wd : 0;
 
     statements.push(env.DB.prepare(
