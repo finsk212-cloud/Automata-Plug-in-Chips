@@ -1409,7 +1409,8 @@ namespace Augments
 				}
 				else if (l.Marker == 1)
 				{
-					HubDraw.Diamond(sb, new Vector2(body.X + l.X - 10, sy + HubDraw.LineHeight(l.Scale) / 2f + 1), 3f, HubTheme.Warn);
+					// Centred on the middle of the capital letters, like the card icons, not the whole line (which sat it too low).
+					HubDraw.Diamond(sb, new Vector2(body.X + l.X - 10, (float)Math.Round(sy + HubDraw.CapMid(l.Scale))), 3f, HubTheme.Warn);
 				}
 				else if (l.Marker == 3)
 				{
